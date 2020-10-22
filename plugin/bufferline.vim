@@ -215,7 +215,6 @@ function! bufferline#tab_pages ()
 endfu
 
 function! bufferline#pick_buffer()
-   echom s:letter_by_buffer
    let s:is_picking_buffer = v:true
    call bufferline#update()
    call s:shadow_open()
