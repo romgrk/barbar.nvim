@@ -6,9 +6,9 @@
 
 
 augroup bufferline
-    au!
-    au BufReadPost,BufNewFile * call <SID>on_buffer_open(expand('<abuf>'))
-    au BufDelete              * call <SID>on_buffer_close(expand('<abuf>'))
+   au!
+   au BufReadPost,BufNewFile * call <SID>on_buffer_open(expand('<abuf>'))
+   au BufDelete              * call <SID>on_buffer_close(expand('<abuf>'))
 augroup END
 
 
@@ -512,19 +512,19 @@ function! s:get_buffer_name (number)
 endfunc
 
 function! s:get_unique_name (first, second)
-    let first_parts  = path#Split(a:first)
-    let second_parts = path#Split(a:second)
+   let first_parts  = split(a:first, '/')
+   let second_parts = split(a:second, '/')
 
-    let length = 1
-    let first_result  = path#Join(first_parts[-length:])
-    let second_result = path#Join(second_parts[-length:])
-    while first_result == second_result && length < max([len(first_parts), len(second_parts)])
-        let length = length + 1
-        let first_result  = path#Join(first_parts[-min([len(first_parts), length]):])
-        let second_result = path#Join(second_parts[-min([len(second_parts), length]):])
-    endwhile
+   let length = 1
+   let first_result  = join(first_parts[-length:], '/')
+   let second_result = join(second_parts[-length:], '/')
+   while first_result == second_result && length < max([len(first_parts), len(second_parts)])
+      let length = length + 1
+      let first_result  = join(first_parts[-min([len(first_parts), length]):], '/')
+      let second_result = join(second_parts[-min([len(second_parts), length]):], '/')
+   endwhile
 
-    return [first_result, second_result]
+   return [first_result, second_result]
 endfunc
 
 function! s:basename(path)
@@ -532,11 +532,11 @@ function! s:basename(path)
 endfunc
 
 function! s:hl (...)
-    let str = '%#' . a:1 . '#'
-    if a:0 > 1
-        let str .= join(a:000[1:], '')
-    end
-    return str
+   let str = '%#' . a:1 . '#'
+   if a:0 > 1
+      let str .= join(a:000[1:], '')
+   end
+   return str
 endfu
 
 
