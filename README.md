@@ -41,6 +41,12 @@ Plug 'romgrk/lib.kom'
 Plug 'romgrk/barbar.nvim'
 ```
 
+I might remove the dependencies in the future if I have enough time to port the
+required functions.
+
+##### Requirements
+ - Neovim `latest`
+
 ## Usage
 
 No default mappings are provided, here is an example:
