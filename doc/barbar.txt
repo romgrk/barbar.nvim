@@ -88,4 +88,4 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 
 
- vim:tw=78:ts=8:norl:
+ vim:tw=78:ts=8:ft=help:norl:
