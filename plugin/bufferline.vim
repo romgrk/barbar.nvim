@@ -215,6 +215,7 @@ function! bufferline#tab_pages ()
 endfu
 
 function! bufferline#pick_buffer()
+   echom s:letter_by_buffer
    let s:is_picking_buffer = v:true
    call bufferline#update()
    call s:shadow_open()
@@ -248,8 +249,12 @@ endfunc
 " Section: Event handlers
 "========================
 
-function! s:on_buffer_open(bufnr)
-   call s:assign_next_letter(bufnr())
+function! s:on_buffer_open(abuf)
+   let buffer = bufnr()
+   " Buffer might be listed but not loaded, thus why it has already a letter
+   if !has_key(s:letter_by_buffer, buffer)
+      call s:assign_next_letter(bufnr())
+   end
    if &buftype == '' && &buflisted
       augroup BUFFER_MOD
       au!
