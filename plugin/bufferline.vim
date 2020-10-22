@@ -438,6 +438,7 @@ endfunc
 
 " Helpers
 
+if g:bufferline.icons
 lua << END
 local web = require'nvim-web-devicons'
 function get_icon_wrapper(args)
@@ -447,6 +448,7 @@ function get_icon_wrapper(args)
    return { icon, hl }
 end
 END
+end
 
 function! s:get_icon (buffer_name)
    let basename = fnamemodify(a:buffer_name, ':t')
