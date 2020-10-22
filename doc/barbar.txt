@@ -86,6 +86,10 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	Enables the shadow when entering buffer-picking mode.
 
+							*g:bufferline.icons*
+`g:bufferline.icons`		boolean	(default v:true)
+
+	Controls if icons are rendered on each tab.
 
 
  vim:tw=78:ts=8:ft=help:norl:

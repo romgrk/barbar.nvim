@@ -29,6 +29,7 @@ command!          -bang BufferPick          call bufferline#pick_buffer()
 
 let bufferline = extend({
 \ 'shadow': v:true,
+\ 'icons': v:true,
 \}, get(g:, 'bufferline', {}))
 
 "==========================
@@ -150,23 +151,27 @@ function! bufferline#render ()
 
       let status = s:hl_status[type]
       let mod = buf#modified(0+buffer.number) ? 'Mod' : ''
-
-      let namePrefix = s:hl('Buffer' . status . mod)
-      let name = '%{"' . buffer.name .'"}'
+      let has_icon = g:bufferline.icons
 
       let signPrefix = s:hl('Buffer' . status . 'Sign')
       let sign = status == 'Inactive' ?
          \ g:icons.bufferline_separator_inactive :
          \ g:icons.bufferline_separator_active
 
-      if s:is_picking_buffer == v:false
+      let namePrefix = s:hl('Buffer' . status . mod)
+      let name = '%{"' . (!has_icon && s:is_picking_buffer ? buffer.name[1:] : buffer.name) .'"}'
+
+      if s:is_picking_buffer
+         let letter = s:get_letter(buffer.number)
+         let iconPrefix = s:hl('Buffer' . status . 'Target')
+         let icon = '%{"' . (!empty(letter) ? letter : ' ') . (has_icon ? ' ' : '') . '"}'
+      elseif has_icon
          let [icon, iconHl] = s:get_icon(buffer.name)
          let iconPrefix = status is 'Inactive' ? namePrefix : s:hl(iconHl)
          let icon = '%{"' . icon .' "}'
       else
-         let letter = s:get_letter(buffer.number)
-         let iconPrefix = s:hl('Buffer' . status . 'Target')
-         let icon = '%{"' . (!empty(letter) ? letter : ' ') .' "}'
+         let iconPrefix = ''
+         let icon = ''
       end
 
       let result .=

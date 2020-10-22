@@ -15,6 +15,7 @@ ahead from memory.
  - [Features](#features)
  - [Install](#install)
  - [Usage](#usage)
+ - [Options](#options)
 
 ## Features
 
@@ -43,7 +44,8 @@ Plug 'romgrk/barbar.nvim'
 ```
 
 I might remove the dependencies in the future if I have enough time to port the
-required functions, or if you complain loud enough.
+required functions, or if you complain loud enough. You can skip the dependency
+on `'kyazdani42/nvim-web-devicons'` if you [disable icons](#options).
 
 ##### Requirements
  - Neovim `0.5`
@@ -110,3 +112,15 @@ hi BufferShadow guifg=#ffffff guibg=#ffffff
 You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see
 in the demos above.
+
+## Options
+
+```vim
+let bufferline = {}
+
+" Show a shadow over the editor in buffer-pick mode
+let bufferline.shadow = v:true
+
+" Disable icons
+let bufferline.icons = v:true
+```
