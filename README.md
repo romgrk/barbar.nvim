@@ -33,7 +33,8 @@ ahead from memory.
 ## Install
 
 Is two dependencies a lot for one plugin? Yes it is. But is Barbar a very good
-tabline plugin? Also yes.
+tabline plugin? Also yes. Do you now understand why the Install section is
+strategically placed after the cool demos? Yes again.
 
 ```vim
 Plug 'kyazdani42/nvim-web-devicons'
@@ -42,7 +43,7 @@ Plug 'romgrk/barbar.nvim'
 ```
 
 I might remove the dependencies in the future if I have enough time to port the
-required functions.
+required functions, or if you complain loud enough.
 
 ##### Requirements
  - Neovim `latest`
