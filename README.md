@@ -13,6 +13,15 @@ ahead from memory.
 
 ### Install
 
+Is two dependencies a lot for one plugin? Yes it is. But is Barbar a very good
+tabline plugin? Also yes.
+
 ```vim
-Plug 
+Plug 'kyazdani42/nvim-web-devicons'
+Plug 'romgrk/lib.kom'
+Plug 'romgrk/barbar.nvim'
 ```
+
+## Features
+
+![demo](./static/demo.gif)
