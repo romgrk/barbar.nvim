@@ -30,6 +30,7 @@ command!          -bang BufferPick          call bufferline#pick_buffer()
 let bufferline = extend({
 \ 'shadow': v:true,
 \ 'icons': v:true,
+\ 'semantic_letters': v:true,
 \}, get(g:, 'bufferline', {}))
 
 "==========================
@@ -337,6 +338,26 @@ endfunc
 
 function! s:assign_next_letter(bufnr)
    let bufnr = 0 + a:bufnr
+
+   " First, try to assign a letter based on name
+   if g:bufferline.semantic_letters == v:true
+      let name = fnamemodify(bufname(bufnr), ':t:r')
+
+      for i in range(len(name))
+         let letter = tolower(name[i])
+         let index = s:INDEX_BY_LETTER[letter]
+         let status = s:letter_status[index]
+         if status == 0
+            let s:letter_status[index] = 1
+            let s:letter = s:LETTERS[index]
+            let s:buffer_by_letter[s:letter] = bufnr
+            let s:letter_by_buffer[bufnr] = s:letter
+            return s:letter
+         end
+      endfor
+   end
+
+   " Otherwise, assign a letter by usable order
    let i = 0
    for status in s:letter_status
       if status == 0
