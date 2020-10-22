@@ -46,7 +46,7 @@ I might remove the dependencies in the future if I have enough time to port the
 required functions, or if you complain loud enough.
 
 ##### Requirements
- - Neovim `latest`
+ - Neovim `0.5`
 
 ## Usage
 
