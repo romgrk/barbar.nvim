@@ -11,6 +11,19 @@ augroup bufferline
    au BufDelete              * call <SID>on_buffer_close(expand('<abuf>'))
 augroup END
 
+function! s:did_load (...)
+    augroup bufferline_update
+        au!
+        au BufNew,BufDelete       * call bufferline#update()
+        au BufWinEnter,BufEnter   * call bufferline#update()
+        au BufWritePost           * call bufferline#update()
+        au TabEnter,TabNewEntered * call bufferline#update()
+    augroup END
+
+    call bufferline#update()
+ endfunc
+call timer_start(100, function('s:did_load'))
+
 
 command!          -bang BufferNext             call s:goto_buffer_relative(+1)
 command!          -bang BufferPrevious         call s:goto_buffer_relative(-1)
