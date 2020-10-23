@@ -78,6 +78,7 @@ let s:is_picking_buffer = v:false
 
 " Default icons
 let g:icons = extend(get(g:, 'icons', {}), #{
+\ bufferline_default_file: '',
 \ bufferline_separator_active:   '▎',
 \ bufferline_separator_inactive: '▎',
 \})
@@ -506,7 +507,7 @@ function! s:get_icon (buffer_name)
    let extension = matchstr(basename, '\v\.@<=\w+$', '', '')
    let [icon, hl] = luaeval("get_icon_wrapper(_A)", [basename, extension])
    if icon == ''
-      let icon = g:lua_tree_icons.default
+      let icon = g:icons.bufferline_default_file
    end
    return [icon, hl]
 endfunc
