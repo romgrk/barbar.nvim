@@ -4,7 +4,7 @@
 > Tabs, as understood by any other editor.
 
 `barbar.nvim` is a tabline plugin with re-orderable tabs, icons, nice highlighting,
-and a magic jump-to-buffer mode.
+sort-by commands, and a magic jump-to-buffer mode.
 
 In jump-to-buffer mode, tabs display a target letter instead of their icon. Jump to
 any buffer by simply typing their target letter. Even better, the target letter
