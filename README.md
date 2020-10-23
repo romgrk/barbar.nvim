@@ -23,7 +23,7 @@ files you can even type the letter ahead from memory.
 
 ![move](./static/move.gif)
 
-##### Re-order buffer
+##### Re-order tabs
 
 ![reorder](./static/reorder.gif)
 
@@ -34,6 +34,12 @@ files you can even type the letter ahead from memory.
 Letters stay constant for the lifetime of the buffer. By default, letters are assigned
 based on buffer name, eg **README** will get letter **r**. You can change this so that
 letters are assigned based on usability: home row (`asdfjkl;gh`) first, then other rows.
+
+##### Sort tabs automatically
+
+![jump](./static/sort.gif)
+
+`:BufferOrderByDirectory` and `:BufferOrderByLanguage`
 
 ## Install
 
@@ -58,10 +64,13 @@ required functions, or if you complain loud enough.
 ## Usage
 
 No default mappings are provided, here is an example:
-```vim
 
+```vim
 " Magic buffer-picking mode
-nnoremap <silent> <Space>b :BufferPick<CR>
+nnoremap <silent>      C-s> :BufferPick<CR>
+" Sort automatically by...
+nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
+nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
 " Move to previous/next
 nnoremap <silent>    <A-,> :BufferPrevious<CR>
 nnoremap <silent>    <A-.> :BufferNext<CR>
@@ -78,7 +87,6 @@ nnoremap <silent>    <A-6> :BufferGoto 6<CR>
 nnoremap <silent>    <A-7> :BufferGoto 7<CR>
 nnoremap <silent>    <A-8> :BufferGoto 8<CR>
 nnoremap <silent>    <A-9> :BufferLast<CR>
-
 ```
 
 For the highligh groups, here are the default ones:

@@ -12,16 +12,19 @@ augroup bufferline
 augroup END
 
 
-command!          -bang BufferNext          call s:goto_buffer_relative(+1)
-command!          -bang BufferPrevious      call s:goto_buffer_relative(-1)
+command!          -bang BufferNext             call s:goto_buffer_relative(+1)
+command!          -bang BufferPrevious         call s:goto_buffer_relative(-1)
 
-command! -nargs=1 -bang BufferGoto          call s:goto_buffer(<f-args>)
-command!          -bang BufferLast          call s:goto_buffer(-1)
+command! -nargs=1 -bang BufferGoto             call s:goto_buffer(<f-args>)
+command!          -bang BufferLast             call s:goto_buffer(-1)
 
-command!          -bang BufferMoveNext      call s:move_current_buffer(+1)
-command!          -bang BufferMovePrevious  call s:move_current_buffer(-1)
+command!          -bang BufferMoveNext         call s:move_current_buffer(+1)
+command!          -bang BufferMovePrevious     call s:move_current_buffer(-1)
 
-command!          -bang BufferPick          call bufferline#pick_buffer()
+command!          -bang BufferPick             call bufferline#pick_buffer()
+
+command!          -bang BufferOrderByDirectory call bufferline#order_by_directory()
+command!          -bang BufferOrderByLanguage  call bufferline#order_by_language()
 
 "=================
 " Section: Options
@@ -247,6 +250,30 @@ function! bufferline#pick_buffer()
       call s:shadow_close()
       redraw
    end
+endfunc
+
+function! bufferline#order_by_directory()
+   let new_buffers = copy(s:buffers)
+   let new_buffers = map(new_buffers, {_, b -> bufname(b)})
+   call sort(new_buffers, function('s:compare_directory'))
+   let new_buffers = map(new_buffers, {_, b -> bufnr(b)})
+
+   call remove(s:buffers, 0, -1)
+   call extend(s:buffers, new_buffers)
+
+   call bufferline#update()
+endfunc
+
+function! bufferline#order_by_language()
+   let new_buffers = copy(s:buffers)
+   let new_buffers = map(new_buffers, {_, b -> bufname(b)})
+   call sort(new_buffers, function('s:compare_language'))
+   let new_buffers = map(new_buffers, {_, b -> bufnr(b)})
+
+   call remove(s:buffers, 0, -1)
+   call extend(s:buffers, new_buffers)
+
+   call bufferline#update()
 endfunc
 
 
@@ -541,6 +568,28 @@ function! s:hl (...)
    end
    return str
 endfu
+
+function! s:is_relative_path(path)
+   return fnamemodify(a:path, ':p') != a:path
+endfunc
+
+function s:compare_directory(a, b)
+   let ra = s:is_relative_path(a:a)
+   let rb = s:is_relative_path(a:b)
+   if ra && !rb
+      return -1
+   end
+   if rb && !ra
+      return +1
+   end
+   return a:a < a:b
+endfunc
+
+function s:compare_language(a, b)
+   let ea = fnamemodify(a:a, ':e')
+   let eb = fnamemodify(a:b, ':e')
+   return ea < eb
+endfunc
 
 
 " Final setup
