@@ -3,13 +3,13 @@
 
 > Tabs, as understood by any other editor.
 
-`barbar.nvim` is a tabline plugin that implements tabs in a way that is more
-usable. Tabs are re-orderable, have icons, and are clearly highlighted. It also
-offers a jump-to-buffer mode. When you activate it, the tabs display a target
-letter instead of their icon. Jump to any buffer by simply typing their target
-letter. Even better, the target letter stays constant for the lifetime of the
-buffer, so if you're working with a set of files you can even type the letter
-ahead from memory.
+`barbar.nvim` is a tabline plugin with re-orderable tabs, icons, nice highlighting,
+and a magic jump-to-buffer mode.
+
+In jump-to-buffer mode, tabs display a target letter instead of their icon. Jump to
+any buffer by simply typing their target letter. Even better, the target letter
+stays constant for the lifetime of the buffer, so if you're working with a set of
+files you can even type the letter ahead from memory.
 
 ##### Table of content
  - [Features](#features)
@@ -30,6 +30,10 @@ ahead from memory.
 ##### Jump-to-buffer
 
 ![jump](./static/jump.gif)
+
+Letters stay constant for the lifetime of the buffer. By default, letters are assigned
+based on buffer name, eg **README** will get letter **r**. You can change this so that
+letters are assigned based on usability: home row (`asdfjkl;gh`) first, then other rows.
 
 ## Install
 
