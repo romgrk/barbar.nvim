@@ -46,10 +46,11 @@ Plug 'kyazdani42/nvim-web-devicons'
 Plug 'romgrk/lib.kom'
 Plug 'romgrk/barbar.nvim'
 ```
+You can skip the dependency on `'kyazdani42/nvim-web-devicons'` if you
+[disable icons](#options).
 
 I might remove the dependencies in the future if I have enough time to port the
-required functions, or if you complain loud enough. You can skip the dependency
-on `'kyazdani42/nvim-web-devicons'` if you [disable icons](#options).
+required functions, or if you complain loud enough. 
 
 ##### Requirements
  - Neovim `0.5`
