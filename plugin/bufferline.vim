@@ -582,13 +582,13 @@ function s:compare_directory(a, b)
    if rb && !ra
       return +1
    end
-   return a:a < a:b
+   return a:a > a:b
 endfunc
 
 function s:compare_language(a, b)
    let ea = fnamemodify(a:a, ':e')
    let eb = fnamemodify(a:b, ':e')
-   return ea < eb
+   return ea > eb
 endfunc
 
 
