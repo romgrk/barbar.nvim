@@ -345,6 +345,9 @@ function! s:assign_next_letter(bufnr)
 
       for i in range(len(name))
          let letter = tolower(name[i])
+         if !has_key(s:INDEX_BY_LETTER, letter)
+            continue
+         end
          let index = s:INDEX_BY_LETTER[letter]
          let status = s:letter_status[index]
          if status == 0
