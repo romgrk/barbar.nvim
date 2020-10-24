@@ -48,6 +48,7 @@ let bufferline = extend({
 \ 'shadow': v:true,
 \ 'icons': v:true,
 \ 'semantic_letters': v:true,
+\ 'clickable': v:false,
 \}, get(g:, 'bufferline', {}))
 
 "==========================
@@ -159,6 +160,7 @@ function! bufferline#render ()
    endfor
 
    let currentnr = bufnr()
+   let click_enabled = has('tablineat') && g:bufferline.clickable
 
    let result = ''
 
@@ -193,7 +195,12 @@ function! bufferline#render ()
          let icon = ''
       end
 
+      let clickable =
+         \ click_enabled ?
+            \ '%' . buffer.number . '@BufferlineClickHandler@' : ''
+
       let result .=
+         \ clickable .
          \ signPrefix . sign .
          \ iconPrefix . icon .
          \ namePrefix . name .
@@ -323,6 +330,15 @@ function! s:check_modified()
    end
 endfunc
 
+" Needs to be global -_-
+function! BufferlineClickHandler(minwid, clicks, btn, modifiers) abort
+   if a:btn =~ 'm'
+      execute 'bdelete ' . a:minwid
+      call bufferline#update()
+   else
+      execute 'buffer ' . a:minwid
+   end
+endfunction
 
 " Buffer movement
 

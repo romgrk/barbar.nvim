@@ -41,6 +41,10 @@ letters are assigned based on usability: home row (`asdfjkl;gh`) first, then oth
 
 `:BufferOrderByDirectory` and `:BufferOrderByLanguage`
 
+##### Clickable tabs (disabled by default, see note below)
+
+![click](./static/click.gif)
+
 ## Install
 
 Is two dependencies a lot for one plugin? Yes it is. But is Barbar a very good
@@ -143,4 +147,12 @@ let bufferline.icons = v:true
 " usability:
 "      asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP
 let bufferline.semantic_letters = v:true
+
+" Enables clickable tabs
+"  - left-click: go to buffer
+"  - middle-click: delete buffer
+"
+" NOTE disabled by default because this might cause E541 (too many items)
+"      if you have many tabs open
+let bufferline.clickable = v:false
 ```

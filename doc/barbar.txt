@@ -97,7 +97,7 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	Controls if icons are rendered on each tab.
 
-					       *g:bufferline.semantic_letters*
+					    *g:bufferline.semantic_letters*
 `g:bufferline.semantic_letters`		boolean	(default v:true)
 
 	If set, the letters for each buffer in buffer-pick mode will be
@@ -106,6 +106,15 @@ Here are the groups that you should define if you'd like to style Barbar.
 	usability:
 >
         let s:LETTERS = 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP'
+<
+
+					           *g:bufferline.clickable*
+`g:bufferline.clickable`		boolean	(default v:false)
+
+	If set, you can left-click on a tab to switch to that buffer, and
+	middle-click to delete it.
+>
+        let g:bufferline.clickable = v:true
 <
 
 
