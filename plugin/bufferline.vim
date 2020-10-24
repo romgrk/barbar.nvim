@@ -4,6 +4,7 @@
 " Date: Fri 22 May 2020 02:22:36 AM EDT
 " !::exe [So]
 
+set showtabline=2
 
 augroup bufferline
    au!
