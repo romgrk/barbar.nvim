@@ -123,7 +123,7 @@ exe 'hi default BufferInactiveTarget   guifg=red gui=bold guibg=' . bg_inactive
 
 
 " For the shadow in buffer-picking mode
-hi BufferShadow guifg=#ffffff guibg=#ffffff
+hi default BufferShadow guifg=#000000 guibg=#000000
 ```
 
 You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)

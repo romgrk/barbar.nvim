@@ -80,7 +80,7 @@ function s:setup_hl()
    hi default link BufferInactiveMod  TabLine
    hi default link BufferInactiveSign TabLine
    exe 'hi default BufferInactiveTarget   guifg=red gui=bold guibg=' . bg_inactive
-   hi BufferShadow guifg=#ffffff guibg=#000000
+   hi default BufferShadow guifg=#000000 guibg=#000000
 endfunc
 
 call s:setup_hl()
