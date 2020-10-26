@@ -49,6 +49,7 @@ let bufferline = extend({
 \ 'icons': v:true,
 \ 'semantic_letters': v:true,
 \ 'clickable': v:false,
+\ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \}, get(g:, 'bufferline', {}))
 
 "==========================
@@ -104,7 +105,7 @@ let g:icons = extend(get(g:, 'icons', {}), {
 "===================================
 
 " Constants
-let s:LETTERS = 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP'
+let s:LETTERS = g:bufferline.letters
 let s:INDEX_BY_LETTER = {}
 
 let s:letter_status = map(range(len(s:LETTERS)), {-> 0})

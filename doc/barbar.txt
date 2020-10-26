@@ -103,9 +103,18 @@ Here are the groups that you should define if you'd like to style Barbar.
 	If set, the letters for each buffer in buffer-pick mode will be
 	assigned based on their name. Otherwise or in case all letters are
 	already assigned, the behavior is to assign letters in order of
-	usability:
+	usability (see order just below)
+
+					             *g:bufferline.letters*
+`g:bufferline.letters`			string	(default
+		     'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP')
+
+	New buffer letters are assigned in this order. This order is
+	optimal for the qwerty keyboard layout but might need adjustement
+	for other layouts.
 >
-        let s:LETTERS = 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP'
+        let g:bufferline.letters = 
+	  \ 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP'
 <
 
 					           *g:bufferline.clickable*
