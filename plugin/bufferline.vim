@@ -92,10 +92,10 @@ let s:buffers = []
 let s:is_picking_buffer = v:false
 
 " Default icons
-let g:icons = extend(get(g:, 'icons', {}), #{
-\ bufferline_default_file: '',
-\ bufferline_separator_active:   '▎',
-\ bufferline_separator_inactive: '▎',
+let g:icons = extend(get(g:, 'icons', {}), {
+\ 'bufferline_default_file': '',
+\ 'bufferline_separator_active':   '▎',
+\ 'bufferline_separator_inactive': '▎',
 \})
 
 
