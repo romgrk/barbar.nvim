@@ -180,6 +180,9 @@ let bufferline.semantic_letters = v:true
 let bufferline.letters = 
   \ 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP'
 
+" Sets the padding width with which to surround each tab
+let bufferline.padding = 4
+
 ```
 
 ## About
