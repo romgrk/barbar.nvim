@@ -21,6 +21,7 @@ function! s:did_load (...)
         au TabEnter,TabNewEntered * call bufferline#update()
         au SessionLoadPost        * call bufferline#update()
         au WinEnter,WinLeave      * call bufferline#update()
+        au WinClosed              * call bufferline#update()
     augroup END
 
     call bufferline#update()
