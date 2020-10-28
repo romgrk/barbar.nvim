@@ -19,6 +19,7 @@ function! s:did_load (...)
         au BufWinEnter,BufEnter   * call bufferline#update()
         au BufWritePost           * call bufferline#update()
         au TabEnter,TabNewEntered * call bufferline#update()
+        au SessionLoadPost        * call bufferline#update()
     augroup END
 
     call bufferline#update()
