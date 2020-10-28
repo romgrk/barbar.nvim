@@ -1,4 +1,6 @@
 
+![header](./static/header.png)
+
 # barbar.nvim
 
 > Tabs, as understood by any other editor.
@@ -27,6 +29,10 @@ files you can even type the letter ahead from memory.
 
 ![reorder](./static/reorder.gif)
 
+##### Auto-sizing tabs, fill the space when available
+
+![resize](./static/resize.gif)
+
 ##### Jump-to-buffer
 
 ![jump](./static/jump.gif)
@@ -41,19 +47,25 @@ letters are assigned based on usability: home row (`asdfjkl;gh`) first, then oth
 
 `:BufferOrderByDirectory` and `:BufferOrderByLanguage`
 
-##### Clickable tabs (disabled by default, see note below)
+##### Clickable & closable tabs
 
 ![click](./static/click.gif)
 
+Left-click to go, middle-click or close button to close.
+
+##### Unique names when filenames match
+
+![unique-name](./static/unique-name.png)
+
 ## Install
 
-Is two dependencies a lot for one plugin? Yes it is. But is Barbar a very good
+Is ~~two~~ one dependency a lot for one plugin? Yes it is. But is Barbar a very good
 tabline plugin? Also yes. Do you now understand why the Install section is
 strategically placed after the cool demos? Yes again.
 
 ```vim
 Plug 'kyazdani42/nvim-web-devicons'
-Plug 'romgrk/lib.kom'
+" Plug 'romgrk/lib.kom' -- removed! You can remove it from your vimrc
 Plug 'romgrk/barbar.nvim'
 ```
 You can skip the dependency on `'kyazdani42/nvim-web-devicons'` if you
@@ -132,6 +144,11 @@ in the demos above.
 
 ## Options
 
+NOTE: Until [#13167](https://github.com/neovim/neovim/pull/13167) is merged,
+having too many tabline items shows as "E541" :/ If this happens a lot to you,
+you can disable the options `clickable`, `closable`, or `icons` to reduce
+the number of items you have.
+
 ```vim
 let bufferline = {}
 
@@ -141,13 +158,13 @@ let bufferline.shadow = v:true
 " Enable/disable icons
 let bufferline.icons = v:true
 
+" Enable/disable close button
+let bufferline.closable = v:true
+
 " Enables/disable clickable tabs
 "  - left-click: go to buffer
 "  - middle-click: delete buffer
-"
-" NOTE disabled by default because this might cause E541 (too many items)
-"      if you have many tabs open
-let bufferline.clickable = v:false
+let bufferline.clickable = v:true
 
 " If set, the letters for each buffer in buffer-pick mode will be
 " assigned based on their name. Otherwise or in case all letters are

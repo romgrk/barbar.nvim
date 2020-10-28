@@ -49,17 +49,15 @@ command!          -bang BufferOrderByLanguage  call bufferline#order_by_language
 let bufferline = extend({
 \ 'shadow': v:true,
 \ 'icons': v:true,
+\ 'closable': v:true,
 \ 'semantic_letters': v:true,
-\ 'clickable': v:false,
+\ 'clickable': v:true,
 \ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \}, get(g:, 'bufferline', {}))
 
 "==========================
 " Section: Bufferline state
 "==========================
-
-" Constants
-let s:SPACE = '%( %)'
 
 " Hl groups used for coloring
 let s:hl_picking = 'BufferTargetSign'
@@ -133,49 +131,69 @@ let s:empty_bufnr = nvim_create_buf(0, 1)
 " Section: Main functions
 "========================
 
-function! bufferline#update ()
+function! bufferline#update()
    let &tabline = bufferline#render()
 endfu
 
-function! bufferline#render ()
-   let bufferNames = {}
-   let bufferDetails = map(
-      \ copy(s:get_updated_buffers()),
-      \ {k, number -> { 'number': 0+number, 'name': s:get_buffer_name(number) }})
+function! bufferline#render()
+   let buffer_number_by_name = {}
+   let buffer_numbers = copy(s:get_updated_buffers())
+   let buffer_names = map(copy(s:get_updated_buffers()), {k, number -> s:get_buffer_name(number)})
 
-   for i in range(len(bufferDetails))
-      let buffer = bufferDetails[i]
+   " Compute names
+   for i in range(len(buffer_numbers))
+      let buffer_number = buffer_numbers[i]
+      let buffer_name   = buffer_names[i]
 
-      if !has_key(bufferNames, buffer.name)
-         let bufferNames[buffer.name] = i
+      if !has_key(buffer_number_by_name, buffer_name)
+         let buffer_number_by_name[buffer_name] = i
       else
-         let other = bufferNames[buffer.name]
-         let name = buffer.name
-         let results = s:get_unique_name(bufname(buffer.number), bufname(bufferDetails[other].number))
+         let other = buffer_number_by_name[buffer_name]
+         let name = buffer_name
+         let results = s:get_unique_name(bufname(buffer_number), bufname(buffer_numbers[other]))
          let newName = results[0]
          let newOtherName = results[1]
-         let buffer.name = newName
-         let bufferDetails[other].name = newOtherName
-         let bufferNames[buffer.name] = buffer
-         let bufferNames[bufferDetails[other].name] = bufferDetails[other]
-         call remove(bufferNames, name)
+         let buffer_name = newName
+         let buffer_names[i] = buffer_name
+         let buffer_names[other] = newOtherName
+         let buffer_number_by_name[buffer_name] = buffer_number
+         let buffer_number_by_name[buffer_names[other]] = buffer_numbers[other]
+         call remove(buffer_number_by_name, name)
       end
    endfor
 
+   " Actual rendering
+
+   " Options & cached values
    let currentnr = bufnr()
    let click_enabled = has('tablineat') && g:bufferline.clickable
+   let has_icons = g:bufferline.icons
+   let has_close = g:bufferline.closable
+   let buffers_length = len(buffer_numbers)
+
+   let MAX_PADDING = 4
+   let base_width = 1 + (has_icons ? 2 : 0) + (has_close ? 2 : 0) " separator + icon + space-after-icon + space-after-name
+   let available_width = &columns
+   let used_width = s:calculate_used_width(buffer_names, base_width)
+   let remaining_width = available_width - used_width
+   let remaining_width_per_buffer = remaining_width / buffers_length
+   let remaining_padding_per_buffer = remaining_width_per_buffer / 2
+   let padding_width = min([remaining_padding_per_buffer, MAX_PADDING]) - 1
+   let actual_width = used_width + padding_width * buffers_length
 
    let result = ''
 
-   for i in range(len(bufferDetails))
-      let buffer = bufferDetails[i]
-      let type = buf#activity(0+buffer.number)
+   for i in range(len(buffer_numbers))
+      let buffer_number = buffer_numbers[i]
+      let buffer_name   = buffer_names[i]
+
+      let type = bufferline#activity(buffer_number)
       let is_visible = type == 1
-      let is_current = currentnr == buffer.number
+      let is_current = currentnr == buffer_number
+      let is_modified = getbufvar(buffer_number, '&modified')
 
       let status = s:hl_status[type]
-      let mod = buf#modified(0+buffer.number) ? 'Mod' : ''
-      let has_icon = g:bufferline.icons
+      let mod = is_modified ? 'Mod' : ''
 
       let signPrefix = s:hl('Buffer' . status . 'Sign')
       let sign = status == 'Inactive' ?
@@ -183,33 +201,57 @@ function! bufferline#render ()
          \ g:icons.bufferline_separator_active
 
       let namePrefix = s:hl('Buffer' . status . mod)
-      let name = '%{"' . (!has_icon && s:is_picking_buffer ? buffer.name[1:] : buffer.name) .'"}'
+      let name = '%{"' . (!has_icons && s:is_picking_buffer ? buffer_name[1:] : buffer_name) .'"}'
 
       if s:is_picking_buffer
-         let letter = s:get_letter(buffer.number)
+         let letter = s:get_letter(buffer_number)
          let iconPrefix = s:hl('Buffer' . status . 'Target')
-         let icon = '%{"' . (!empty(letter) ? letter : ' ') . (has_icon ? ' ' : '') . '"}'
-      elseif has_icon
-         let [icon, iconHl] = s:get_icon(buffer.name)
-         let iconPrefix = status is 'Inactive' ? namePrefix : s:hl(iconHl)
+         let icon = '%{"' . (!empty(letter) ? letter : ' ') . (has_icons ? ' ' : '') . '"}'
+      elseif has_icons
+         let [icon, iconHl] = s:get_icon(buffer_name)
+         let iconPrefix = status is 'Inactive' ? s:hl('BufferInactive') : s:hl(iconHl)
          let icon = '%{"' . icon .' "}'
       else
          let iconPrefix = ''
          let icon = ''
       end
 
+      if has_close
+         let closePrefix = namePrefix
+         let close = (!is_modified ? '⨉' : '●') . ' ' " 
+         if click_enabled
+            let closePrefix = 
+               \ '%' . buffer_number . '@BufferlineCloseClickHandler@'
+               \ . closePrefix
+         end
+      else
+         let closePrefix = ''
+         let close = ''
+      end
+
       let clickable =
          \ click_enabled ?
-            \ '%' . buffer.number . '@BufferlineClickHandler@' : ''
+            \ '%' . buffer_number . '@BufferlineMainClickHandler@' : ''
 
-      let result .=
+      let padding = repeat(' ', padding_width)
+      let item =
          \ clickable .
          \ signPrefix . sign .
+         \ padding .
          \ iconPrefix . icon .
          \ namePrefix . name .
-         \ s:SPACE
+         \ padding .
+         \ ' ' .
+         \ closePrefix . close
 
+      let result .= item
    endfor
+
+   if actual_width < available_width
+      let signPrefix = s:hl('BufferInactiveSign')
+      let sign = g:icons.bufferline_separator_inactive
+      let result .= signPrefix . sign
+   end
 
    let result .= s:hl('TabLineFill')
 
@@ -334,13 +376,19 @@ function! s:check_modified()
 endfunc
 
 " Needs to be global -_-
-function! BufferlineClickHandler(minwid, clicks, btn, modifiers) abort
+function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
    if a:btn =~ 'm'
       execute 'bdelete ' . a:minwid
       call bufferline#update()
    else
       execute 'buffer ' . a:minwid
    end
+endfunction
+
+" Needs to be global -_-
+function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
+   execute 'bdelete ' . a:minwid
+   call bufferline#update()
 endfunction
 
 " Buffer movement
@@ -553,7 +601,7 @@ function! s:get_updated_buffers ()
       let s:buffers = g:session.buffers
    end
 
-   let current_buffers = buf#filter('&buflisted')
+   let current_buffers = bufferline#filter('&buflisted')
    let new_buffers =
       \ filter(
       \   copy(current_buffers),
@@ -566,6 +614,14 @@ function! s:get_updated_buffers ()
 
    return s:buffers
 endfunc
+
+function! s:calculate_used_width(buffer_names, base_width)
+   let sum = 0
+   for buffer_name in a:buffer_names
+      let sum += a:base_width + len(buffer_name)
+   endfor
+   return sum
+endfunction
 
 function! s:get_buffer_name (number)
    let name = bufname(a:number)

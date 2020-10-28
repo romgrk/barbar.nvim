@@ -97,6 +97,11 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	Controls if icons are rendered on each tab.
 
+							*g:bufferline.closable*
+`g:bufferline.closable`		boolean	(default v:true)
+
+	Controls if close buttons are shown.
+
 					    *g:bufferline.semantic_letters*
 `g:bufferline.semantic_letters`		boolean	(default v:true)
 
@@ -118,7 +123,7 @@ Here are the groups that you should define if you'd like to style Barbar.
 <
 
 					           *g:bufferline.clickable*
-`g:bufferline.clickable`		boolean	(default v:false)
+`g:bufferline.clickable`		boolean	(default v:true)
 
 	If set, you can left-click on a tab to switch to that buffer, and
 	middle-click to delete it.
