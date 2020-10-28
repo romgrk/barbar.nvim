@@ -83,7 +83,7 @@ No default mappings are provided, here is an example:
 
 ```vim
 " Magic buffer-picking mode
-nnoremap <silent>      C-s> :BufferPick<CR>
+nnoremap <silent> <C-s> :BufferPick<CR>
 " Sort automatically by...
 nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
 nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
