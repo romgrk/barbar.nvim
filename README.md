@@ -5,8 +5,9 @@
 
 > Tabs, as understood by any other editor.
 
-`barbar.nvim` is a tabline plugin with re-orderable tabs, icons, nice highlighting,
-sort-by commands, and a magic jump-to-buffer mode.
+`barbar.nvim` is a tabline plugin with re-orderable auto-sizing clickable tabs, icons,
+nice highlighting, sort-by commands and a magic jump-to-buffer mode. Plus the tab
+names are made unique when two filenames match.
 
 In jump-to-buffer mode, tabs display a target letter instead of their icon. Jump to
 any buffer by simply typing their target letter. Even better, the target letter
@@ -18,6 +19,7 @@ files you can even type the letter ahead from memory.
  - [Install](#install)
  - [Usage](#usage)
  - [Options](#options)
+ - [About Barbar](#about)
 
 ## Features
 
@@ -179,3 +181,12 @@ let bufferline.letters =
   \ 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP'
 
 ```
+
+## About
+
+Barbar is called barbar because it's a bar, but it's also more than a bar:
+a "barbar".
+
+It is pronounced like "Jar Jar" in "Jar Jar Binks", but with Bs.
+
+No, barbar has nothing to do with barbarians.
