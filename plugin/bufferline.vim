@@ -53,7 +53,7 @@ let bufferline = extend({
 \ 'closable': v:true,
 \ 'semantic_letters': v:true,
 \ 'clickable': v:true,
-\ 'padding': 4,
+\ 'maximum_padding': 4,
 \ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \}, get(g:, 'bufferline', {}))
 
@@ -180,7 +180,7 @@ function! bufferline#render()
    let remaining_width = available_width - used_width
    let remaining_width_per_buffer = remaining_width / buffers_length
    let remaining_padding_per_buffer = remaining_width_per_buffer / 2
-   let padding_width = min([remaining_padding_per_buffer, g:bufferline.padding]) - 1
+   let padding_width = min([remaining_padding_per_buffer, g:bufferline.maximum_padding]) - 1
    let actual_width = used_width + padding_width * buffers_length
 
    let result = ''

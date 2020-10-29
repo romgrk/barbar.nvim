@@ -131,12 +131,12 @@ Here are the groups that you should define if you'd like to style Barbar.
         let g:bufferline.clickable = v:true
 <
 
-					           *g:bufferline.padding*
-`g:bufferline.padding`		        int	(default 4)
+					           *g:bufferline.maximum_padding*
+`g:bufferline.maximum_padding`		int	(default 4)
 
-	Sets the padding width with which to surround each tab
+	Sets the maximum padding width with which to surround each tab
 >
-        let g:bufferline.padding = 4
+        let g:bufferline.maximum_padding = 4
 <
 
 
