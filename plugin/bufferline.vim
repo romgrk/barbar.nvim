@@ -53,6 +53,7 @@ let bufferline = extend({
 \ 'closable': v:true,
 \ 'semantic_letters': v:true,
 \ 'clickable': v:true,
+\ 'maximum_padding': 4,
 \ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \}, get(g:, 'bufferline', {}))
 
@@ -94,14 +95,13 @@ let s:buffers = []
 let s:is_picking_buffer = v:false
 
 " Default icons
-let g:icons = extend(get(g:, 'icons', {}), {
+let g:icons = extend({
 \ 'bufferline_default_file': '',
 \ 'bufferline_separator_active':   '▎',
 \ 'bufferline_separator_inactive': '▎',
 \ 'bufferline_close_tab': '',
 \ 'bufferline_close_tab_modified': '●',
-\}) " 
-
+\}, get(g:, 'icons', {})) " 
 
 "===================================
 " Section: Buffer-picking mode state
@@ -174,14 +174,13 @@ function! bufferline#render()
    let has_close = g:bufferline.closable
    let buffers_length = len(buffer_numbers)
 
-   let MAX_PADDING = 4
    let base_width = 1 + (has_icons ? 2 : 0) + (has_close ? 2 : 0) " separator + icon + space-after-icon + space-after-name
    let available_width = &columns
    let used_width = s:calculate_used_width(buffer_names, base_width)
    let remaining_width = available_width - used_width
    let remaining_width_per_buffer = remaining_width / buffers_length
    let remaining_padding_per_buffer = remaining_width_per_buffer / 2
-   let padding_width = min([remaining_padding_per_buffer, MAX_PADDING]) - 1
+   let padding_width = min([remaining_padding_per_buffer, g:bufferline.maximum_padding]) - 1
    let actual_width = used_width + padding_width * buffers_length
 
    let result = ''
