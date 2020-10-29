@@ -98,7 +98,9 @@ let g:icons = extend(get(g:, 'icons', {}), {
 \ 'bufferline_default_file': '',
 \ 'bufferline_separator_active':   '▎',
 \ 'bufferline_separator_inactive': '▎',
-\})
+\ 'bufferline_close_tab': '',
+\ 'bufferline_close_tab_modified': '●',
+\}) " 
 
 
 "===================================
@@ -219,7 +221,9 @@ function! bufferline#render()
 
       if has_close
          let closePrefix = namePrefix
-         let close = (!is_modified ? '⨉' : '●') . ' ' " 
+         let close = (!is_modified ?
+                  \ g:icons.bufferline_close_tab :
+                  \ g:icons.bufferline_close_tab_modified) . ' '
          if click_enabled
             let closePrefix = 
                \ '%' . buffer_number . '@BufferlineCloseClickHandler@'
