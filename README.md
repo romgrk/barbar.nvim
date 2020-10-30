@@ -62,7 +62,7 @@ Left-click to go, middle-click or close button to close.
 ##### bbye.vim for closing buffers
 
 A modified version of [bbye.vim](https://github.com/moll/vim-bbye) is included in this
-plugin to close buffers without messing with you window layout and more. Available
+plugin to close buffers without messing with your window layout and more. Available
 as `BufferClose` and `bufferline#bbye#delete(buf)`.
 
 ## Install
