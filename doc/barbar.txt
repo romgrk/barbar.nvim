@@ -21,7 +21,9 @@ at the top of your window. And it does it well so it's more than a bar. Barbar.
 2. Mappings & Commands	               *barbar-mappings* *barbar-commands*
 
 The plugin doesn't provide default mappings as there isn't any standard. The
-list below is the mappings I use.
+list below is the mappings I use. It is recommended to use the `BufferClose`
+command to close buffers instead of `bdelete` because it will not mess your
+window layout.
 
 The name of each command should be descriptive enough for you to use it.
 
@@ -49,6 +51,11 @@ The name of each command should be descriptive enough for you to use it.
    nnoremap <silent>    <A-7> :BufferGoto 7<CR>
    nnoremap <silent>    <A-8> :BufferGoto 8<CR>
    nnoremap <silent>    <A-9> :BufferLast<CR>
+
+   " Close buffer
+   nnoremap <silent>    <A-c> :BufferClose<CR>
+   " Wipeout buffer
+   "                          :BufferWipeout<CR>
 <
 
 ==============================================================================

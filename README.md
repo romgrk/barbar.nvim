@@ -59,6 +59,12 @@ Left-click to go, middle-click or close button to close.
 
 ![unique-name](./static/unique-name.png)
 
+##### bbye.vim for closing buffers
+
+A modified version of [bbye.vim](https://github.com/moll/vim-bbye) is included in this
+plugin to close buffers without messing with you window layout and more. Available
+as `BufferClose` and `bufferline#bbye#delete(buf)`.
+
 ## Install
 
 Is ~~two~~ one dependency a lot for one plugin? Yes it is. But is Barbar a very good
@@ -81,7 +87,11 @@ required functions, or if you complain loud enough.
 
 ## Usage
 
-No default mappings are provided, here is an example:
+### Mappings & commands
+
+No default mappings are provided, here is an example. It is recommended to use
+the `BufferClose` command to close buffers instead of `bdelete` because it will
+not mess your window layout.
 
 ```vim
 " Magic buffer-picking mode
@@ -105,7 +115,13 @@ nnoremap <silent>    <A-6> :BufferGoto 6<CR>
 nnoremap <silent>    <A-7> :BufferGoto 7<CR>
 nnoremap <silent>    <A-8> :BufferGoto 8<CR>
 nnoremap <silent>    <A-9> :BufferLast<CR>
+" Close buffer
+nnoremap <silent>    <A-c> :BufferClose<CR>
+" Wipeout buffer
+"                          :BufferWipeout<CR>
 ```
+
+### Highlighting
 
 For the highligh groups, here are the default ones:
 ```vim
@@ -193,3 +209,8 @@ a "barbar".
 It is pronounced like "Jar Jar" in "Jar Jar Binks", but with Bs.
 
 No, barbar has nothing to do with barbarians.
+
+## License
+
+barbar.nvim: Distributed under the terms of the JSON license.
+bbye.vim: Distributed under the terms of the GNU Affero license.
