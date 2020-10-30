@@ -10,21 +10,21 @@ augroup bufferline
    au!
    au BufReadPost,BufNewFile * call <SID>on_buffer_open(expand('<abuf>'))
    au BufDelete              * call <SID>on_buffer_close(expand('<abuf>'))
+   au Colorscheme            * call <SID>setup_hl()
 augroup END
 
 function! s:did_load (...)
-    augroup bufferline_update
-        au!
-        au BufNew,BufDelete       * call bufferline#update()
-        au BufWinEnter,BufEnter   * call bufferline#update()
-        au BufWritePost           * call bufferline#update()
-        au TabEnter,TabNewEntered * call bufferline#update()
-        au SessionLoadPost        * call bufferline#update()
-        au WinEnter,WinLeave      * call bufferline#update()
-        au WinClosed              * call bufferline#update()
-    augroup END
+   augroup bufferline_update
+      au!
+      au BufNew                 * call bufferline#update()
+      au BufWinEnter            * call bufferline#update()
+      au BufWritePost           * call bufferline#update()
+      au SessionLoadPost        * call bufferline#update()
+      au WinLeave               * call bufferline#update()
+      au WinClosed              * call bufferline#update()
+   augroup END
 
-    call bufferline#update()
+   call bufferline#update()
  endfunc
 call timer_start(100, function('s:did_load'))
 
@@ -135,7 +135,7 @@ let s:empty_bufnr = nvim_create_buf(0, 1)
 "========================
 
 function! bufferline#update()
-   let &tabline = bufferline#render()
+   call timer_start(1, function('s:on_update'), { 'repeat': 1 })
 endfu
 
 function! bufferline#render()
@@ -352,6 +352,10 @@ endfunc
 "========================
 " Section: Event handlers
 "========================
+
+function! s:on_update(timer)
+   let &tabline = bufferline#render()
+endfu
 
 function! s:on_buffer_open(abuf)
    let buffer = bufnr()
