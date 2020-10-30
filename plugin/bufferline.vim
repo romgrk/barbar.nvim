@@ -13,20 +13,23 @@ augroup bufferline
 augroup END
 
 function! s:did_load (...)
-    augroup bufferline_update
-        au!
-        au BufNew,BufDelete       * call bufferline#update()
-        au BufWinEnter,BufEnter   * call bufferline#update()
-        au BufWritePost           * call bufferline#update()
-        au TabEnter,TabNewEntered * call bufferline#update()
-        au SessionLoadPost        * call bufferline#update()
-        au WinEnter,WinLeave      * call bufferline#update()
-        au WinClosed              * call bufferline#update()
-    augroup END
+   augroup bufferline_update
+      au!
+      au BufNew                 * call bufferline#update()
+      au BufEnter               * call bufferline#update()
+      au BufWipeout             * call bufferline#update()
+      au BufWinEnter            * call bufferline#update()
+      au BufWinLeave            * call bufferline#update()
+      au BufWritePost           * call bufferline#update()
+      au SessionLoadPost        * call bufferline#update()
+      au WinEnter               * call bufferline#update()
+      au WinLeave               * call bufferline#update()
+      au WinClosed              * call bufferline#update_async()
+   augroup END
 
-    call bufferline#update()
- endfunc
-call timer_start(100, function('s:did_load'))
+   call bufferline#update()
+endfunc
+call timer_start(25, function('s:did_load'))
 
 
 command!          -bang BufferNext             call s:goto_buffer_relative(+1)
@@ -42,6 +45,13 @@ command!          -bang BufferPick             call bufferline#pick_buffer()
 
 command!          -bang BufferOrderByDirectory call bufferline#order_by_directory()
 command!          -bang BufferOrderByLanguage  call bufferline#order_by_language()
+
+command! -bang -complete=buffer -nargs=?
+                      \ BufferClose            call bufferline#bbye#delete('bdelete', <q-bang>, <q-args>)
+command! -bang -complete=buffer -nargs=?
+                      \ BufferDelete           call bufferline#bbye#delete('bdelete', <q-bang>, <q-args>)
+command! -bang -complete=buffer -nargs=?
+                      \ BufferWipeout          call bufferline#bbye#delete('bwipeout', <q-bang>, <q-args>)
 
 "=================
 " Section: Options
@@ -61,7 +71,6 @@ let bufferline = extend({
 "==========================
 
 " Hl groups used for coloring
-let s:hl_picking = 'BufferTargetSign'
 let s:hl_status = ['Inactive', 'Visible', 'Current']
 let s:hl_groups = ['BufferInactive', 'BufferVisible', 'BufferCurrent']
 
@@ -86,6 +95,9 @@ function s:setup_hl()
 endfunc
 
 call s:setup_hl()
+
+" Last value for tabline
+let s:last_tabline = ''
 
 " Current buffers in tabline (ordered)
 let s:buffers = []
@@ -135,7 +147,16 @@ let s:empty_bufnr = nvim_create_buf(0, 1)
 "========================
 
 function! bufferline#update()
-   let &tabline = bufferline#render()
+   let new_value = bufferline#render()
+   if new_value == s:last_tabline
+      return
+   end
+   let &tabline = new_value
+   let s:last_tabline = new_value
+endfu
+
+function! bufferline#update_async()
+   call timer_start(1, {->bufferline#update()})
 endfu
 
 function! bufferline#render()
@@ -198,8 +219,8 @@ function! bufferline#render()
       let status = s:hl_status[type]
       let mod = is_modified ? 'Mod' : ''
 
-      let signPrefix = s:hl('Buffer' . status . 'Sign')
-      let sign = status == 'Inactive' ?
+      let separatorPrefix = s:hl('Buffer' . status . 'Sign')
+      let separator = status == 'Inactive' ?
          \ g:icons.bufferline_separator_inactive :
          \ g:icons.bufferline_separator_active
 
@@ -241,7 +262,7 @@ function! bufferline#render()
       let padding = repeat(' ', padding_width)
       let item =
          \ clickable .
-         \ signPrefix . sign .
+         \ separatorPrefix . separator .
          \ padding .
          \ iconPrefix . icon .
          \ namePrefix . name .
@@ -253,9 +274,9 @@ function! bufferline#render()
    endfor
 
    if actual_width < available_width
-      let signPrefix = s:hl('BufferInactiveSign')
-      let sign = g:icons.bufferline_separator_inactive
-      let result .= signPrefix . sign
+      let separatorPrefix = s:hl('BufferInactiveSign')
+      let separator = g:icons.bufferline_separator_inactive
+      let result .= separatorPrefix . separator
    end
 
    let result .= s:hl('TabLineFill')
@@ -383,8 +404,7 @@ endfunc
 " Needs to be global -_-
 function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
    if a:btn =~ 'm'
-      execute 'bdelete ' . a:minwid
-      call bufferline#update()
+      call bufferline#bbye#delete('bdelete', '', a:minwid)
    else
       execute 'buffer ' . a:minwid
    end
@@ -392,8 +412,7 @@ endfunction
 
 " Needs to be global -_-
 function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
-   execute 'bdelete ' . a:minwid
-   call bufferline#update()
+   call bufferline#bbye#delete('bdelete', '', a:minwid)
 endfunction
 
 " Buffer movement
