@@ -91,13 +91,14 @@ function! s:new(bang)
     exe "enew" . a:bang
 
     setl noswapfile
-    " If empty and out of sight, delete it right away:
-    setl bufhidden=wipe
     " Regular buftype warns people if they have unsaved text there.  Wouldn't
     " want to lose someone's data:
     setl buftype=
-    " Hide the buffer from buffer explorers and tabbars:
-    setl nobuflisted
+
+    " If empty and out of sight, delete it right away:
+    setl bufhidden=wipe
+    let buffer_number = bufnr()
+    exe 'au BufWipeout <buffer> call bufferline#close_direct(' buffer_number ')'
 endfunction
 
 " Using the built-in :echoerr prints a stacktrace, which isn't that nice.
