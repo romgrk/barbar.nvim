@@ -13,6 +13,7 @@ augroup bufferline
    au BufDelete    * call <SID>on_buffer_close(expand('<abuf>'))
    au BufWritePost * call <SID>check_modified()
    au TextChanged  * call <SID>check_modified()
+   au ColorScheme  * call bufferline#highlight#setup()
 augroup END
 
 function! s:did_load (...)
