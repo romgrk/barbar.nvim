@@ -98,14 +98,13 @@ let s:last_tabline = ''
 
 " Current buffers in tabline (ordered)
 let s:buffers = []
-" Current buffers's width
-let s:buffer_widths = {} " Map<String, [nameWidth: Number, restOfWidth: Number]> 
-
-" Buffers being closed
-let s:buffers_closing = {}
+let s:buffers_by_id = {} " Map<String, [nameWidth: Number, restOfWidth: Number]> 
 
 " If the user is in buffer-picking mode
 let s:is_picking_buffer = v:false
+
+" Debugging
+" let g:events = []
 
 "===================================
 " Section: Buffer-picking mode state
@@ -151,8 +150,6 @@ function! bufferline#update_async()
    call timer_start(1, {->bufferline#update()})
 endfu
 
-let g:events = []
-
 function! bufferline#render()
    let buffer_numbers = copy(s:get_updated_buffers())
    let buffer_names = bufferline#get_buffer_names(buffer_numbers)
@@ -181,14 +178,15 @@ function! bufferline#render()
       let buffer_number = buffer_numbers[i]
       let buffer_name   = buffer_names[i]
 
-      let s:buffer_widths[buffer_number] = [len(buffer_name), base_width + 2 * padding_width]
+      let buffer_data = s:get_buffer_data(buffer_number)
+      let buffer_data.dimensions = [len(buffer_name), base_width + 2 * padding_width]
 
       let activity = bufferline#activity(buffer_number)
       let is_visible = activity == 1
       let is_current = activity == 2
       " let is_inactive = activity == 0
       let is_modified = getbufvar(buffer_number, '&modified')
-      let is_closing = has_key(s:buffers_closing, buffer_number)
+      let is_closing = buffer_data.closing
 
       let status = s:hl_status[activity]
       let mod = is_modified ? 'Mod' : ''
@@ -246,7 +244,7 @@ function! bufferline#render()
             \ ' ' .
             \ closePrefix . close
       else
-         let width = s:buffers_closing[buffer_number]
+         let width = buffer_data.width
          let text = 
             \ separator .
             \ padding .
@@ -256,7 +254,7 @@ function! bufferline#render()
             \ ' ' .
             \ close
          let text = strcharpart(text, 0, width)
-         let g:events += [width, text]
+         " let g:events += [width, text]
          let item = namePrefix .  text
       end
 
@@ -609,7 +607,10 @@ endfunc
 
 function! s:get_updated_buffers ()
    if exists('g:session.buffers')
-      let s:buffers = g:session.buffers
+      if g:session.buffers != s:buffers
+         " let g:events += ['uniq']
+         let s:buffers = uniq(g:session.buffers)
+      end
    elseif exists('g:session')
       let g:session.buffers = []
       let s:buffers = g:session.buffers
@@ -624,12 +625,15 @@ function! s:get_updated_buffers ()
 
    " Remove closed or update closing buffers
    let closed_buffers = filter(copy(s:buffers), {i, bufnr -> index(current_buffers, bufnr) == -1})
+
+   " let g:events += [ [s:buffers], ['new', new_buffers], ['closed', closed_buffers] ]
    for buffer_number in closed_buffers
-      if has_key(s:buffers_closing, buffer_number)
+      let buffer_data = s:get_buffer_data(buffer_number)
+      if buffer_data.closing
          continue
       end
-      " echom 'closing' buffer_number
-      if !has_key(s:buffer_widths, buffer_number)
+
+      if empty(buffer_data.dimensions)
          call s:close_buffer(buffer_number)
          continue
       end
@@ -642,14 +646,17 @@ function! s:get_updated_buffers ()
    return s:buffers
 endfunc
 
+function! s:get_buffer_data(buffer_number)
+   let s:buffers_by_id[a:buffer_number] = get(s:buffers_by_id, a:buffer_number,
+      \ { 'name': v:null, 'width': v:null, 'closing': v:false, 'dimensions': v:null })
+   return s:buffers_by_id[a:buffer_number]
+endfunc
+
 " Close buffer & cleanup associated data
 function! s:close_buffer(buffer_number)
    call filter(s:buffers, {_, bufnr -> bufnr != a:buffer_number})
-   if has_key(s:buffers_closing, a:buffer_number)
-      call remove(s:buffers_closing, a:buffer_number)
-   end
-   if has_key(s:buffer_widths, a:buffer_number)
-      call remove(s:buffer_widths, a:buffer_number)
+   if has_key(s:buffers_by_id, a:buffer_number)
+      call remove(s:buffers_by_id, a:buffer_number)
    end
    call bufferline#update()
 endfunc
@@ -658,10 +665,14 @@ function! s:close_buffer_animated(buffer_number)
    if g:bufferline.animation == v:false
       return s:close_buffer(a:buffer_number)
    end
+   let buffer_data = s:get_buffer_data(a:buffer_number)
    let current_width =
-            \ s:buffer_widths[a:buffer_number][0] +
-            \ s:buffer_widths[a:buffer_number][1]
-   let s:buffers_closing[a:buffer_number] = current_width
+            \ buffer_data.dimensions[0] +
+            \ buffer_data.dimensions[1]
+
+   let buffer_data.closing = v:true
+   let buffer_data.width = current_width
+
    call bufferline#animate#start(150, current_width, 0, v:t_number,
             \ {new_width, state ->
             \   s:close_buffer_animated_tick(a:buffer_number, new_width, state)})
@@ -669,7 +680,8 @@ endfunc
 
 function! s:close_buffer_animated_tick(buffer_number, new_width, state)
    if a:new_width > 0
-      let s:buffers_closing[a:buffer_number] = a:new_width
+      let buffer_data = s:get_buffer_data(a:buffer_number)
+      let buffer_data.width = a:new_width
       call bufferline#update()
       return
    end
@@ -683,8 +695,9 @@ function! s:calculate_used_width(buffer_numbers, buffer_names, base_width)
    for i in range(len(a:buffer_numbers))
       let buffer_number = a:buffer_numbers[i]
       let buffer_name = a:buffer_names[i]
-      if has_key(s:buffers_closing, buffer_number)
-         let sum += s:buffer_widths[buffer_number][0]
+      let buffer_data = s:get_buffer_data(buffer_number)
+      if buffer_data.closing
+         let sum += buffer_data.dimensions[0]
          continue
       end
       let sum += a:base_width + len(buffer_name)

@@ -173,6 +173,9 @@ let bufferline = {}
 " Show a shadow over the editor in buffer-pick mode
 let bufferline.shadow = v:true
 
+" Enable/disable animations
+let bufferline.animation = v:true
+
 " Enable/disable icons
 let bufferline.icons = v:true
 
