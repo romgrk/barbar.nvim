@@ -659,6 +659,10 @@ function! s:get_updated_buffers ()
          let new_index = 0
       end
       for new_buffer in new_buffers
+         if index(s:buffers, new_buffer) != -1
+            " Oh...
+            continue
+         end
          if getbufvar(new_buffer, '&buftype') != ''
             call add(s:buffers, new_buffer)
          else
@@ -703,13 +707,13 @@ function! s:close_buffer_animated(buffer_number)
 endfunc
 
 function! s:close_buffer_animated_tick(buffer_number, new_width, state)
-   if a:new_width > 0
+   if a:new_width > 0 && has_key(s:buffers_by_id, a:buffer_number)
       let buffer_data = s:get_buffer_data(a:buffer_number)
       let buffer_data.width = a:new_width
       call bufferline#update()
       return
    end
-
+   call bufferline#animate#stop(a:state)
    call s:close_buffer(a:buffer_number)
 endfunc
 
