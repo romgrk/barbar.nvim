@@ -117,57 +117,6 @@ nnoremap <silent>    <A-c> :BufferClose<CR>
 "                          :BufferWipeout<CR>
 ```
 
-### Highlighting
-
-For the highligh groups, here are the default ones. Your colorscheme
-can override them by defining them.
-
-```vim
-
-function bufferline#highlight#setup()
-   let fg_target = 'red'
-
-   let fg_current  = s:fg(['Normal'], '#efefef')
-   let fg_visible  = s:fg(['TabLineSel'], '#efefef')
-   let fg_inactive = s:fg(['TabLineFill'], '#888888')
-
-   let fg_modified  = s:fg(['WarningMsg'], '#E5AB0E')
-   let fg_special  = s:fg(['Special'], '#599eff')
-   let fg_subtle  = s:fg(['NonText', 'Comment'], '#555555')
-
-   let bg_current  = s:bg(['Normal'], '#000000')
-   let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
-   let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
-
-   "      Current: current buffer
-   "      Visible: visible but not current buffer
-   "     Inactive: invisible but not current buffer
-   "         -Mod: when modified
-   "        -Sign: the separator between buffers
-   "      -Target: letter in buffer-picking mode
-   " BufferShadow: shadow in buffer-picking mode
-   call s:hi_all([
-   \ ['BufferCurrent',        fg_current,  bg_current],
-   \ ['BufferCurrentMod',     fg_modified, bg_current],
-   \ ['BufferCurrentSign',    fg_special,  bg_current],
-   \ ['BufferCurrentTarget',  fg_target,   bg_current,   'bold'],
-   \ ['BufferVisible',        fg_visible,  bg_visible],
-   \ ['BufferVisibleMod',     fg_modified, bg_visible],
-   \ ['BufferVisibleSign',    fg_visible,  bg_visible],
-   \ ['BufferVisibleTarget',  fg_target,   bg_visible,   'bold'],
-   \ ['BufferInactive',       fg_inactive, bg_inactive],
-   \ ['BufferInactiveMod',    fg_modified, bg_inactive],
-   \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
-   \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
-   \ ['BufferShadow',         'black',     'black'],
-   \ ])
-endfunc
-```
-
-You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
-colorscheme that defines those groups and is also very pleasant as you could see
-in the demos above.
-
 ## Options
 
 NOTE: Until [#13167](https://github.com/neovim/neovim/pull/13167) is merged,
@@ -211,6 +160,56 @@ let bufferline.letters =
 let bufferline.maximum_padding = 4
 
 ```
+
+### Highlighting
+
+For the highligh groups, here are the default ones. Your colorscheme
+can override them by defining them.
+
+```vim
+function bufferline#highlight#setup()
+   let fg_target = 'red'
+
+   let fg_current  = s:fg(['Normal'], '#efefef')
+   let fg_visible  = s:fg(['TabLineSel'], '#efefef')
+   let fg_inactive = s:fg(['TabLineFill'], '#888888')
+
+   let fg_modified  = s:fg(['WarningMsg'], '#E5AB0E')
+   let fg_special  = s:fg(['Special'], '#599eff')
+   let fg_subtle  = s:fg(['NonText', 'Comment'], '#555555')
+
+   let bg_current  = s:bg(['Normal'], '#000000')
+   let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
+   let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
+
+   "      Current: current buffer
+   "      Visible: visible but not current buffer
+   "     Inactive: invisible but not current buffer
+   "         -Mod: when modified
+   "        -Sign: the separator between buffers
+   "      -Target: letter in buffer-picking mode
+   " BufferShadow: shadow in buffer-picking mode
+   call s:hi_all([
+   \ ['BufferCurrent',        fg_current,  bg_current],
+   \ ['BufferCurrentMod',     fg_modified, bg_current],
+   \ ['BufferCurrentSign',    fg_special,  bg_current],
+   \ ['BufferCurrentTarget',  fg_target,   bg_current,   'bold'],
+   \ ['BufferVisible',        fg_visible,  bg_visible],
+   \ ['BufferVisibleMod',     fg_modified, bg_visible],
+   \ ['BufferVisibleSign',    fg_visible,  bg_visible],
+   \ ['BufferVisibleTarget',  fg_target,   bg_visible,   'bold'],
+   \ ['BufferInactive',       fg_inactive, bg_inactive],
+   \ ['BufferInactiveMod',    fg_modified, bg_inactive],
+   \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
+   \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
+   \ ['BufferShadow',         'black',     'black'],
+   \ ])
+endfunc
+```
+
+You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
+colorscheme that defines those groups and is also very pleasant as you could see
+in the demos above.
 
 ## About
 
