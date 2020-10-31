@@ -142,7 +142,6 @@ let s:empty_bufnr = nvim_create_buf(0, 1)
 
 function! bufferline#update()
    let new_value = bufferline#render()
-   let s:last_current_buffer = bufnr('%')
    if new_value == s:last_tabline
       return
    end
@@ -155,6 +154,8 @@ function! bufferline#update_async()
 endfu
 
 function! bufferline#render()
+   let s:last_current_buffer = nvim_get_current_buf()
+
    let buffer_numbers = copy(s:get_updated_buffers())
    let buffer_names = bufferline#get_buffer_names(buffer_numbers)
 
