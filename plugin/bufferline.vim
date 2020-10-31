@@ -209,7 +209,7 @@ function! bufferline#render()
          let iconPrefix = s:hl('Buffer' . status . 'Target')
          let icon = (!empty(letter) ? letter : ' ') . (has_icons ? ' ' : '')
       elseif has_icons
-         let [icon, iconHl] = s:get_icon(buffer_name)
+         let [icon, iconHl] = s:get_icon(buffer_name, getbufvar(buffer_number, '&filetype'))
          let iconPrefix = status is 'Inactive' ? s:hl('BufferInactive') : s:hl(iconHl)
          let icon = icon . ' '
       else
@@ -600,9 +600,14 @@ end
 END
 end
 
-function! s:get_icon (buffer_name)
-   let basename = fnamemodify(a:buffer_name, ':t')
-   let extension = matchstr(basename, '\v\.@<=\w+$', '', '')
+function! s:get_icon (buffer_name, filetype)
+   if a:filetype == 'fugitive' || a:filetype == 'gitcommit'
+      let basename = 'git'
+      let extension = 'git'
+   else
+      let basename = fnamemodify(a:buffer_name, ':t')
+      let extension = matchstr(basename, '\v\.@<=\w+$', '', '')
+   end
    let [icon, hl] = luaeval("get_icon_wrapper(_A)", [basename, extension])
    if icon == ''
       let icon = g:icons.bufferline_default_file
