@@ -67,10 +67,10 @@ as `BufferClose` and `bufferline#bbye#delete(buf)`.
 
 ##### Animations?
 
-![animation](./static/animation.gif)
-
 This is very experimental and not merged in master. You want this? Add a comment in
 https://github.com/romgrk/barbar.nvim/pull/23 to convince me it's a good idea.
+
+![animation](./static/animation.gif)
 
 ## Install
 
