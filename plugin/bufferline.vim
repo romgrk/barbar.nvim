@@ -100,6 +100,9 @@ let s:last_tabline = ''
 let s:buffers = []
 let s:buffers_by_id = {} " Map<String, [nameWidth: Number, restOfWidth: Number]> 
 
+" Last current buffer number
+let s:last_current_buffer = v:null
+
 " If the user is in buffer-picking mode
 let s:is_picking_buffer = v:false
 
@@ -139,6 +142,7 @@ let s:empty_bufnr = nvim_create_buf(0, 1)
 
 function! bufferline#update()
    let new_value = bufferline#render()
+   let s:last_current_buffer = bufnr('%')
    if new_value == s:last_tabline
       return
    end
@@ -641,7 +645,21 @@ function! s:get_updated_buffers ()
    endfor
 
    " Add new buffers
-   call extend(s:buffers, new_buffers)
+   if !empty(new_buffers)
+      let new_index = index(s:buffers, s:last_current_buffer)
+      if new_index != -1
+         let new_index += 1
+      else
+         let new_index = 0
+      end
+      for new_buffer in new_buffers
+         if getbufvar(new_buffer, '&buftype') != ''
+            call add(s:buffers, new_buffer)
+         else
+            call insert(s:buffers, new_buffer, new_index)
+         end
+      endfor
+   end
 
    return s:buffers
 endfunc
