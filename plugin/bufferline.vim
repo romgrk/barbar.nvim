@@ -10,6 +10,9 @@ augroup bufferline
    au!
    au BufReadPost,BufNewFile * call <SID>on_buffer_open(expand('<abuf>'))
    au BufDelete              * call <SID>on_buffer_close(expand('<abuf>'))
+
+   au BufWritePost <buffer> call <SID>check_modified()
+   au TextChanged  <buffer> call <SID>check_modified()
 augroup END
 
 function! s:did_load (...)
@@ -31,6 +34,12 @@ function! s:did_load (...)
 endfunc
 call timer_start(25, function('s:did_load'))
 
+
+call bufferline#highlight#setup()
+
+"=================
+" Section: Commands
+"=================
 
 command!          -bang BufferNext             call s:goto_buffer_relative(+1)
 command!          -bang BufferPrevious         call s:goto_buffer_relative(-1)
@@ -59,6 +68,7 @@ command! -bang -complete=buffer -nargs=?
 
 let bufferline = extend({
 \ 'shadow': v:true,
+\ 'animation': v:true,
 \ 'icons': v:true,
 \ 'closable': v:true,
 \ 'semantic_letters': v:true,
@@ -67,59 +77,35 @@ let bufferline = extend({
 \ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \}, get(g:, 'bufferline', {}))
 
-"==========================
-" Section: Bufferline state
-"==========================
-
-" Hl groups used for coloring
-let s:hl_status = ['Inactive', 'Visible', 'Current']
-let s:hl_groups = ['BufferInactive', 'BufferVisible', 'BufferCurrent']
-
-" Initialize highlights
-function s:setup_hl()
-   let bg_current = get(nvim_get_hl_by_name('Normal',     1), 'background', '#000000')
-   let bg_visible = get(nvim_get_hl_by_name('TabLineSel', 1), 'background', '#000000')
-   let bg_inactive = get(nvim_get_hl_by_name('TabLine',   1), 'background', '#000000')
-
-   hi default link BufferCurrent      Normal
-   hi default link BufferCurrentMod   Normal
-   hi default link BufferCurrentSign  Normal
-   exe 'hi default BufferCurrentTarget   guifg=red gui=bold guibg=' . bg_current
-
-   hi default link BufferVisible      TabLineSel
-   hi default link BufferVisibleMod   TabLineSel
-   hi default link BufferVisibleSign  TabLineSel
-   exe 'hi default BufferVisibleTarget   guifg=red gui=bold guibg=' . bg_visible
-
-   hi default link BufferInactive     TabLine
-   hi default link BufferInactiveMod  TabLine
-   hi default link BufferInactiveSign TabLine
-   exe 'hi default BufferInactiveTarget   guifg=red gui=bold guibg=' . bg_inactive
-
-   hi default BufferShadow guifg=#000000 guibg=#000000
-endfunc
-
-call s:setup_hl()
-
-" Last value for tabline
-let s:last_tabline = ''
-
-" Current buffers in tabline (ordered)
-let s:buffers = []
-
-let s:widths = {}
-
-" If the user is in buffer-picking mode
-let s:is_picking_buffer = v:false
-
 " Default icons
-let g:icons = extend({
+let icons = extend({
 \ 'bufferline_default_file': '',
 \ 'bufferline_separator_active':   '▎',
 \ 'bufferline_separator_inactive': '▎',
 \ 'bufferline_close_tab': '',
 \ 'bufferline_close_tab_modified': '●',
 \}, get(g:, 'icons', {})) " 
+
+"==========================
+" Section: Bufferline state
+"==========================
+
+" Hl groups used for coloring
+let s:hl_status = ['Inactive', 'Visible', 'Current']
+
+" Last value for tabline
+let s:last_tabline = ''
+
+" Current buffers in tabline (ordered)
+let s:buffers = []
+" Current buffers's width
+let s:buffer_widths = {} " Map<String, [nameWidth: Number, restOfWidth: Number]> 
+
+" Buffers being closed
+let s:buffers_closing = {}
+
+" If the user is in buffer-picking mode
+let s:is_picking_buffer = v:false
 
 "===================================
 " Section: Buffer-picking mode state
@@ -168,33 +154,8 @@ endfu
 let g:events = []
 
 function! bufferline#render()
-   let buffer_number_by_name = {}
    let buffer_numbers = copy(s:get_updated_buffers())
-   let buffer_names = map(copy(s:get_updated_buffers()), {k, number -> s:get_buffer_name(number)})
-
-   " Compute names
-   for i in range(len(buffer_numbers))
-      let buffer_number = buffer_numbers[i]
-      let buffer_name   = buffer_names[i]
-
-      if !has_key(buffer_number_by_name, buffer_name)
-         let buffer_number_by_name[buffer_name] = i
-      else
-         let other = buffer_number_by_name[buffer_name]
-         let name = buffer_name
-         let results = s:get_unique_name(bufname(buffer_number), bufname(buffer_numbers[other]))
-         let newName = results[0]
-         let newOtherName = results[1]
-         let buffer_name = newName
-         let buffer_names[i] = buffer_name
-         let buffer_names[other] = newOtherName
-         let buffer_number_by_name[buffer_name] = buffer_number
-         let buffer_number_by_name[buffer_names[other]] = buffer_numbers[other]
-         call remove(buffer_number_by_name, name)
-      end
-   endfor
-
-   " Actual rendering
+   let buffer_names = bufferline#get_buffer_names(buffer_numbers)
 
    " Options & cached values
    let currentnr = bufnr()
@@ -212,21 +173,24 @@ function! bufferline#render()
    let padding_width = min([remaining_padding_per_buffer, g:bufferline.maximum_padding]) - 1
    let actual_width = used_width + padding_width * buffers_length
 
+   " Actual rendering
+
    let result = ''
 
    for i in range(len(buffer_numbers))
       let buffer_number = buffer_numbers[i]
       let buffer_name   = buffer_names[i]
 
-      let s:widths[buffer_number] = [len(buffer_name), base_width + 2 * padding_width]
+      let s:buffer_widths[buffer_number] = [len(buffer_name), base_width + 2 * padding_width]
 
-      let type = bufferline#activity(buffer_number)
-      let is_visible = type == 1
-      let is_current = currentnr == buffer_number
+      let activity = bufferline#activity(buffer_number)
+      let is_visible = activity == 1
+      let is_current = activity == 2
+      " let is_inactive = activity == 0
       let is_modified = getbufvar(buffer_number, '&modified')
-      let is_closing = has_key(s:closing, buffer_number)
+      let is_closing = has_key(s:buffers_closing, buffer_number)
 
-      let status = s:hl_status[type]
+      let status = s:hl_status[activity]
       let mod = is_modified ? 'Mod' : ''
 
       let separatorPrefix = s:hl('Buffer' . status . 'Sign')
@@ -282,7 +246,7 @@ function! bufferline#render()
             \ ' ' .
             \ closePrefix . close
       else
-         let width = s:closing[buffer_number]
+         let width = s:buffers_closing[buffer_number]
          let text = 
             \ separator .
             \ padding .
@@ -294,7 +258,6 @@ function! bufferline#render()
          let text = strcharpart(text, 0, width)
          let g:events += [width, text]
          let item = namePrefix .  text
-         " echom buffer_number 'width=' . width 'content=' . item
       end
 
 
@@ -397,6 +360,13 @@ function! bufferline#order_by_language()
    call bufferline#update()
 endfunc
 
+function! bufferline#close(buffer_number)
+   call s:close_buffer_animated(a:buffer_number)
+endfunc
+
+function! bufferline#close_direct(buffer_number)
+   call s:close_buffer(a:buffer_number)
+endfunc
 
 "========================
 " Section: Event handlers
@@ -408,14 +378,6 @@ function! s:on_buffer_open(abuf)
    if !has_key(s:letter_by_buffer, buffer)
       call s:assign_next_letter(bufnr())
    end
-   if &buftype == '' && &buflisted
-      augroup BUFFER_MOD
-      au!
-      au BufWritePost <buffer> call <SID>check_modified()
-      au TextChanged  <buffer> call <SID>check_modified()
-      au TextChangedI <buffer> call <SID>check_modified()
-      augroup END
-   end
 endfunc
 
 function! s:on_buffer_close(bufnr)
@@ -423,7 +385,7 @@ function! s:on_buffer_close(bufnr)
 endfunc
 
 function! s:check_modified()
-   if (&modified != get(b:,'checked'))
+   if (&modified != get(b:, 'checked'))
       let b:checked = &modified
       call bufferline#update()
    end
@@ -645,8 +607,6 @@ function! s:get_icon (buffer_name)
    return [icon, hl]
 endfunc
 
-let s:closing = { '2': 10 }
-
 function! s:get_updated_buffers ()
    if exists('g:session.buffers')
       let s:buffers = g:session.buffers
@@ -661,21 +621,19 @@ function! s:get_updated_buffers ()
       \   copy(current_buffers),
       \   {i, bufnr -> index(s:buffers, bufnr) == -1}
       \ )
-   " Remove closed buffers
+
+   " Remove closed or update closing buffers
    let closed_buffers = filter(copy(s:buffers), {i, bufnr -> index(current_buffers, bufnr) == -1})
    for buffer_number in closed_buffers
-      if has_key(s:closing, buffer_number)
+      if has_key(s:buffers_closing, buffer_number)
          continue
       end
       " echom 'closing' buffer_number
-      if !has_key(s:widths, buffer_number)
-         call filter(s:buffers, {i, bufnr -> bufnr != buffer_number})
+      if !has_key(s:buffer_widths, buffer_number)
+         call s:close_buffer(buffer_number)
          continue
       end
-      let current_width = s:widths[buffer_number][0] + s:widths[buffer_number][1]
-      let s:closing[buffer_number] = current_width
-      call bufferline#animate#start(150, current_width, 0, v:t_number,
-               \ {new_width, state -> s:close_buffer_tick(buffer_number, new_width, state)})
+      call s:close_buffer_animated(buffer_number)
    endfor
 
    " Add new buffers
@@ -684,60 +642,56 @@ function! s:get_updated_buffers ()
    return s:buffers
 endfunc
 
-function! s:close_buffer_tick(buffer_number, new_width, state)
+" Close buffer & cleanup associated data
+function! s:close_buffer(buffer_number)
+   call filter(s:buffers, {_, bufnr -> bufnr != a:buffer_number})
+   if has_key(s:buffers_closing, a:buffer_number)
+      call remove(s:buffers_closing, a:buffer_number)
+   end
+   if has_key(s:buffer_widths, a:buffer_number)
+      call remove(s:buffer_widths, a:buffer_number)
+   end
+   call bufferline#update()
+endfunc
+
+function! s:close_buffer_animated(buffer_number)
+   if g:bufferline.animation == v:false
+      return s:close_buffer(a:buffer_number)
+   end
+   let current_width =
+            \ s:buffer_widths[a:buffer_number][0] +
+            \ s:buffer_widths[a:buffer_number][1]
+   let s:buffers_closing[a:buffer_number] = current_width
+   call bufferline#animate#start(150, current_width, 0, v:t_number,
+            \ {new_width, state ->
+            \   s:close_buffer_animated_tick(a:buffer_number, new_width, state)})
+endfunc
+
+function! s:close_buffer_animated_tick(buffer_number, new_width, state)
    if a:new_width > 0
-      " echom 'tick' a:new_width
-      let s:closing[a:buffer_number] = a:new_width
+      let s:buffers_closing[a:buffer_number] = a:new_width
       call bufferline#update()
       return
    end
-   call remove(s:closing, a:buffer_number)
-   call filter(s:buffers, {i, bufnr -> bufnr != a:buffer_number})
-   call bufferline#update()
-   " echom 'closed' a:buffer_number
+
+   call s:close_buffer(a:buffer_number)
 endfunc
 
 function! s:calculate_used_width(buffer_numbers, buffer_names, base_width)
    let sum = 0
+
    for i in range(len(a:buffer_numbers))
       let buffer_number = a:buffer_numbers[i]
       let buffer_name = a:buffer_names[i]
-      if has_key(s:closing, buffer_number)
-         let sum += s:widths[buffer_number][0]
+      if has_key(s:buffers_closing, buffer_number)
+         let sum += s:buffer_widths[buffer_number][0]
          continue
       end
       let sum += a:base_width + len(buffer_name)
    endfor
+
    return sum
 endfunction
-
-function! s:get_buffer_name (number)
-   let name = bufname(a:number)
-   if empty(name)
-      return '[buffer ' . a:number . ']'
-   end
-   return s:basename(name)
-endfunc
-
-function! s:get_unique_name (first, second)
-   let first_parts  = split(a:first, '/')
-   let second_parts = split(a:second, '/')
-
-   let length = 1
-   let first_result  = join(first_parts[-length:], '/')
-   let second_result = join(second_parts[-length:], '/')
-   while first_result == second_result && length < max([len(first_parts), len(second_parts)])
-      let length = length + 1
-      let first_result  = join(first_parts[-min([len(first_parts), length]):], '/')
-      let second_result = join(second_parts[-min([len(second_parts), length]):], '/')
-   endwhile
-
-   return [first_result, second_result]
-endfunc
-
-function! s:basename(path)
-   return fnamemodify(a:path, ':t')
-endfunc
 
 function! s:hl (...)
    let str = '%#' . a:1 . '#'
