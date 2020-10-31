@@ -80,18 +80,22 @@ function s:setup_hl()
    let bg_current = get(nvim_get_hl_by_name('Normal',     1), 'background', '#000000')
    let bg_visible = get(nvim_get_hl_by_name('TabLineSel', 1), 'background', '#000000')
    let bg_inactive = get(nvim_get_hl_by_name('TabLine',   1), 'background', '#000000')
+
    hi default link BufferCurrent      Normal
    hi default link BufferCurrentMod   Normal
    hi default link BufferCurrentSign  Normal
    exe 'hi default BufferCurrentTarget   guifg=red gui=bold guibg=' . bg_current
+
    hi default link BufferVisible      TabLineSel
    hi default link BufferVisibleMod   TabLineSel
    hi default link BufferVisibleSign  TabLineSel
    exe 'hi default BufferVisibleTarget   guifg=red gui=bold guibg=' . bg_visible
+
    hi default link BufferInactive     TabLine
    hi default link BufferInactiveMod  TabLine
    hi default link BufferInactiveSign TabLine
    exe 'hi default BufferInactiveTarget   guifg=red gui=bold guibg=' . bg_inactive
+
    hi default BufferShadow guifg=#000000 guibg=#000000
 endfunc
 
@@ -102,6 +106,8 @@ let s:last_tabline = ''
 
 " Current buffers in tabline (ordered)
 let s:buffers = []
+
+let s:widths = {}
 
 " If the user is in buffer-picking mode
 let s:is_picking_buffer = v:false
@@ -159,6 +165,8 @@ function! bufferline#update_async()
    call timer_start(1, {->bufferline#update()})
 endfu
 
+let g:events = []
+
 function! bufferline#render()
    let buffer_number_by_name = {}
    let buffer_numbers = copy(s:get_updated_buffers())
@@ -197,7 +205,7 @@ function! bufferline#render()
 
    let base_width = 1 + (has_icons ? 2 : 0) + (has_close ? 2 : 0) " separator + icon + space-after-icon + space-after-name
    let available_width = &columns
-   let used_width = s:calculate_used_width(buffer_names, base_width)
+   let used_width = s:calculate_used_width(buffer_numbers, buffer_names, base_width)
    let remaining_width = available_width - used_width
    let remaining_width_per_buffer = remaining_width / buffers_length
    let remaining_padding_per_buffer = remaining_width_per_buffer / 2
@@ -210,10 +218,13 @@ function! bufferline#render()
       let buffer_number = buffer_numbers[i]
       let buffer_name   = buffer_names[i]
 
+      let s:widths[buffer_number] = [len(buffer_name), base_width + 2 * padding_width]
+
       let type = bufferline#activity(buffer_number)
       let is_visible = type == 1
       let is_current = currentnr == buffer_number
       let is_modified = getbufvar(buffer_number, '&modified')
+      let is_closing = has_key(s:closing, buffer_number)
 
       let status = s:hl_status[type]
       let mod = is_modified ? 'Mod' : ''
@@ -224,16 +235,16 @@ function! bufferline#render()
          \ g:icons.bufferline_separator_active
 
       let namePrefix = s:hl('Buffer' . status . mod)
-      let name = '%{"' . (!has_icons && s:is_picking_buffer ? buffer_name[1:] : buffer_name) .'"}'
+      let name = (!has_icons && s:is_picking_buffer ? buffer_name[1:] : buffer_name)
 
       if s:is_picking_buffer
          let letter = s:get_letter(buffer_number)
          let iconPrefix = s:hl('Buffer' . status . 'Target')
-         let icon = '%{"' . (!empty(letter) ? letter : ' ') . (has_icons ? ' ' : '') . '"}'
+         let icon = (!empty(letter) ? letter : ' ') . (has_icons ? ' ' : '')
       elseif has_icons
          let [icon, iconHl] = s:get_icon(buffer_name)
          let iconPrefix = status is 'Inactive' ? s:hl('BufferInactive') : s:hl(iconHl)
-         let icon = '%{"' . icon .' "}'
+         let icon = icon . ' '
       else
          let iconPrefix = ''
          let icon = ''
@@ -259,15 +270,33 @@ function! bufferline#render()
             \ '%' . buffer_number . '@BufferlineMainClickHandler@' : ''
 
       let padding = repeat(' ', padding_width)
-      let item =
-         \ clickable .
-         \ separatorPrefix . separator .
-         \ padding .
-         \ iconPrefix . icon .
-         \ namePrefix . name .
-         \ padding .
-         \ ' ' .
-         \ closePrefix . close
+
+      if !is_closing
+         let item =
+            \ clickable .
+            \ separatorPrefix . separator .
+            \ padding .
+            \ iconPrefix . icon .
+            \ namePrefix . name .
+            \ padding .
+            \ ' ' .
+            \ closePrefix . close
+      else
+         let width = s:closing[buffer_number]
+         let text = 
+            \ separator .
+            \ padding .
+            \ icon .
+            \ name .
+            \ padding .
+            \ ' ' .
+            \ close
+         let text = strcharpart(text, 0, width)
+         let g:events += [width, text]
+         let item = namePrefix .  text
+         " echom buffer_number 'width=' . width 'content=' . item
+      end
+
 
       let result .= item
    endfor
@@ -616,6 +645,8 @@ function! s:get_icon (buffer_name)
    return [icon, hl]
 endfunc
 
+let s:closing = { '2': 10 }
+
 function! s:get_updated_buffers ()
    if exists('g:session.buffers')
       let s:buffers = g:session.buffers
@@ -631,16 +662,50 @@ function! s:get_updated_buffers ()
       \   {i, bufnr -> index(s:buffers, bufnr) == -1}
       \ )
    " Remove closed buffers
-   call filter(s:buffers, {i, bufnr -> index(current_buffers, bufnr) != -1})
+   let closed_buffers = filter(copy(s:buffers), {i, bufnr -> index(current_buffers, bufnr) == -1})
+   for buffer_number in closed_buffers
+      if has_key(s:closing, buffer_number)
+         continue
+      end
+      " echom 'closing' buffer_number
+      if !has_key(s:widths, buffer_number)
+         call filter(s:buffers, {i, bufnr -> bufnr != buffer_number})
+         continue
+      end
+      let current_width = s:widths[buffer_number][0] + s:widths[buffer_number][1]
+      let s:closing[buffer_number] = current_width
+      call bufferline#animate#start(150, current_width, 0, v:t_number,
+               \ {new_width, state -> s:close_buffer_tick(buffer_number, new_width, state)})
+   endfor
+
    " Add new buffers
    call extend(s:buffers, new_buffers)
 
    return s:buffers
 endfunc
 
-function! s:calculate_used_width(buffer_names, base_width)
+function! s:close_buffer_tick(buffer_number, new_width, state)
+   if a:new_width > 0
+      " echom 'tick' a:new_width
+      let s:closing[a:buffer_number] = a:new_width
+      call bufferline#update()
+      return
+   end
+   call remove(s:closing, a:buffer_number)
+   call filter(s:buffers, {i, bufnr -> bufnr != a:buffer_number})
+   call bufferline#update()
+   " echom 'closed' a:buffer_number
+endfunc
+
+function! s:calculate_used_width(buffer_numbers, buffer_names, base_width)
    let sum = 0
-   for buffer_name in a:buffer_names
+   for i in range(len(a:buffer_numbers))
+      let buffer_number = a:buffer_numbers[i]
+      let buffer_name = a:buffer_names[i]
+      if has_key(s:closing, buffer_number)
+         let sum += s:widths[buffer_number][0]
+         continue
+      end
       let sum += a:base_width + len(buffer_name)
    endfor
    return sum
