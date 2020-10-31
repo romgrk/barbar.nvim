@@ -1,5 +1,5 @@
 
-![header](./static/header.png)
+![header](./static/header.gif)
 
 # barbar.nvim
 
@@ -22,10 +22,6 @@ files you can even type the letter ahead from memory.
  - [About Barbar](#about)
 
 ## Features
-
-##### Move
-
-![move](./static/move.gif)
 
 ##### Re-order tabs
 
@@ -126,46 +122,10 @@ nnoremap <silent>    <A-9> :BufferLast<CR>
 nnoremap <silent>    <A-c> :BufferClose<CR>
 " Wipeout buffer
 "                          :BufferWipeout<CR>
+" Other:
+" :BarbarEnable - enables barbar (enabled by default)
+" :BarbarDisable - very bad command, should never be used
 ```
-
-### Highlighting
-
-For the highligh groups, here are the default ones:
-```vim
-
-let bg_current = get(nvim_get_hl_by_name('Normal',     1), 'background', '#000000')
-let bg_visible = get(nvim_get_hl_by_name('TabLineSel', 1), 'background', '#000000')
-let bg_inactive = get(nvim_get_hl_by_name('TabLine',   1), 'background', '#000000')
-
-" For the current active buffer
-hi default link BufferCurrent      Normal
-" For the current active buffer when modified
-hi default link BufferCurrentMod   Normal
-" For the current active buffer icon
-hi default link BufferCurrentSign  Normal
-" For the current active buffer target when buffer-picking
-exe 'hi default BufferCurrentTarget   guifg=red gui=bold guibg=' . bg_current
-
-" For buffers visible but not the current one
-hi default link BufferVisible      TabLineSel
-hi default link BufferVisibleMod   TabLineSel
-hi default link BufferVisibleSign  TabLineSel
-exe 'hi default BufferVisibleTarget   guifg=red gui=bold guibg=' . bg_visible
-
-" For buffers invisible buffers
-hi default link BufferInactive     TabLine
-hi default link BufferInactiveMod  TabLine
-hi default link BufferInactiveSign TabLine
-exe 'hi default BufferInactiveTarget   guifg=red gui=bold guibg=' . bg_inactive
-
-
-" For the shadow in buffer-picking mode
-hi default BufferShadow guifg=#000000 guibg=#000000
-```
-
-You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
-colorscheme that defines those groups and is also very pleasant as you could see
-in the demos above.
 
 ## Options
 
@@ -179,6 +139,9 @@ let bufferline = {}
 
 " Show a shadow over the editor in buffer-pick mode
 let bufferline.shadow = v:true
+
+" Enable/disable animations
+let bufferline.animation = v:true
 
 " Enable/disable icons
 let bufferline.icons = v:true
@@ -207,6 +170,56 @@ let bufferline.letters =
 let bufferline.maximum_padding = 4
 
 ```
+
+### Highlighting
+
+For the highligh groups, here are the default ones. Your colorscheme
+can override them by defining them.
+
+```vim
+function bufferline#highlight#setup()
+   let fg_target = 'red'
+
+   let fg_current  = s:fg(['Normal'], '#efefef')
+   let fg_visible  = s:fg(['TabLineSel'], '#efefef')
+   let fg_inactive = s:fg(['TabLineFill'], '#888888')
+
+   let fg_modified  = s:fg(['WarningMsg'], '#E5AB0E')
+   let fg_special  = s:fg(['Special'], '#599eff')
+   let fg_subtle  = s:fg(['NonText', 'Comment'], '#555555')
+
+   let bg_current  = s:bg(['Normal'], '#000000')
+   let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
+   let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
+
+   "      Current: current buffer
+   "      Visible: visible but not current buffer
+   "     Inactive: invisible but not current buffer
+   "         -Mod: when modified
+   "        -Sign: the separator between buffers
+   "      -Target: letter in buffer-picking mode
+   " BufferShadow: shadow in buffer-picking mode
+   call s:hi_all([
+   \ ['BufferCurrent',        fg_current,  bg_current],
+   \ ['BufferCurrentMod',     fg_modified, bg_current],
+   \ ['BufferCurrentSign',    fg_special,  bg_current],
+   \ ['BufferCurrentTarget',  fg_target,   bg_current,   'bold'],
+   \ ['BufferVisible',        fg_visible,  bg_visible],
+   \ ['BufferVisibleMod',     fg_modified, bg_visible],
+   \ ['BufferVisibleSign',    fg_visible,  bg_visible],
+   \ ['BufferVisibleTarget',  fg_target,   bg_visible,   'bold'],
+   \ ['BufferInactive',       fg_inactive, bg_inactive],
+   \ ['BufferInactiveMod',    fg_modified, bg_inactive],
+   \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
+   \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
+   \ ['BufferShadow',         'black',     'black'],
+   \ ])
+endfunc
+```
+
+You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
+colorscheme that defines those groups and is also very pleasant as you could see
+in the demos above.
 
 ## About
 
