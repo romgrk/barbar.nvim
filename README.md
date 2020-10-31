@@ -65,6 +65,13 @@ A modified version of [bbye.vim](https://github.com/moll/vim-bbye) is included i
 plugin to close buffers without messing with your window layout and more. Available
 as `BufferClose` and `bufferline#bbye#delete(buf)`.
 
+##### Animations?
+
+![animation](./static/animation.png)
+
+This is very experimental and not merged in master. You want this? Add a comment in
+https://github.com/romgrk/barbar.nvim/pull/23 to convince me it's a good idea.
+
 ## Install
 
 Is ~~two~~ one dependency a lot for one plugin? Yes it is. But is Barbar a very good
