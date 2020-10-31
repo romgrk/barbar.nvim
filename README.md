@@ -1,5 +1,5 @@
 
-![header](./static/header.png)
+![header](./static/header.gif)
 
 # barbar.nvim
 
