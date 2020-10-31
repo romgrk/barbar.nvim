@@ -656,7 +656,7 @@ function! s:get_updated_buffers ()
       if new_index != -1
          let new_index += 1
       else
-         let new_index = 0
+         let new_index = len(s:buffers)
       end
       for new_buffer in new_buffers
          if index(s:buffers, new_buffer) != -1
