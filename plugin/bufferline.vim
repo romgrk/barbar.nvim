@@ -6,41 +6,53 @@
 
 set showtabline=2
 
-augroup bufferline
-   au!
-   au BufReadPost  * call <SID>on_buffer_open(expand('<abuf>'))
-   au BufNewFile   * call <SID>on_buffer_open(expand('<abuf>'))
-   au BufDelete    * call <SID>on_buffer_close(expand('<abuf>'))
-   au BufWritePost * call <SID>check_modified()
-   au TextChanged  * call <SID>check_modified()
-   au ColorScheme  * call bufferline#highlight#setup()
-augroup END
-
-function! s:did_load (...)
-   augroup bufferline_update
+function! bufferline#enable()
+   augroup bufferline
       au!
-      au BufNew                 * call bufferline#update()
-      au BufEnter               * call bufferline#update()
-      au BufWipeout             * call bufferline#update()
-      au BufWinEnter            * call bufferline#update()
-      au BufWinLeave            * call bufferline#update()
-      au BufWritePost           * call bufferline#update()
-      au SessionLoadPost        * call bufferline#update()
-      au WinEnter               * call bufferline#update()
-      au WinLeave               * call bufferline#update()
-      au WinClosed              * call bufferline#update_async()
+      au BufReadPost  * call <SID>on_buffer_open(expand('<abuf>'))
+      au BufNewFile   * call <SID>on_buffer_open(expand('<abuf>'))
+      au BufDelete    * call <SID>on_buffer_close(expand('<abuf>'))
+      au BufWritePost * call <SID>check_modified()
+      au TextChanged  * call <SID>check_modified()
+      au ColorScheme  * call bufferline#highlight#setup()
    augroup END
 
-   call bufferline#update()
+   function! s:did_load (...)
+      augroup bufferline_update
+         au!
+         au BufNew                 * call bufferline#update()
+         au BufEnter               * call bufferline#update()
+         au BufWipeout             * call bufferline#update()
+         au BufWinEnter            * call bufferline#update()
+         au BufWinLeave            * call bufferline#update()
+         au BufWritePost           * call bufferline#update()
+         au SessionLoadPost        * call bufferline#update()
+         au WinEnter               * call bufferline#update()
+         au WinLeave               * call bufferline#update()
+         au WinClosed              * call bufferline#update_async()
+      augroup END
+
+      call bufferline#update()
+   endfunc
+   call timer_start(25, function('s:did_load'))
+
+   call bufferline#highlight#setup()
 endfunc
-call timer_start(25, function('s:did_load'))
 
+function! bufferline#disable()
+   augroup bufferline | au! | augroup END
+   augroup bufferline_update | au! | augroup END
+   let &tabline = ''
+endfunc
 
-call bufferline#highlight#setup()
+call bufferline#enable()
 
 "=================
 " Section: Commands
 "=================
+
+command!                BarbarEnable           call bufferline#enable()
+command!                BarbarDisable          call bufferline#disable()
 
 command!          -bang BufferNext             call s:goto_buffer_relative(+1)
 command!          -bang BufferPrevious         call s:goto_buffer_relative(-1)

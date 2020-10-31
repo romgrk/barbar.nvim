@@ -115,6 +115,9 @@ nnoremap <silent>    <A-9> :BufferLast<CR>
 nnoremap <silent>    <A-c> :BufferClose<CR>
 " Wipeout buffer
 "                          :BufferWipeout<CR>
+" Other:
+" :BarbarEnable - enables barbar (enabled by default)
+" :BarbarDisable - very bad command, should never be used
 ```
 
 ## Options
