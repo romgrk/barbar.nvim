@@ -23,10 +23,6 @@ files you can even type the letter ahead from memory.
 
 ## Features
 
-##### Move
-
-![move](./static/move.gif)
-
 ##### Re-order tabs
 
 ![reorder](./static/reorder.gif)
