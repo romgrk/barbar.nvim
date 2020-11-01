@@ -6,9 +6,6 @@
 local vim = vim
 local api = vim.api
 local nvim = require'bufferline.nvim'
-local fun = require'bufferline.fun'
-local len = fun.operator.len
-local range = fun.range
 local utils = require'bufferline.utils'
 local state = require'bufferline.state'
 

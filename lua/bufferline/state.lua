@@ -5,8 +5,6 @@
 local vim = vim
 local api = vim.api
 local nvim = require'bufferline.nvim'
-local fun = require'bufferline.fun'
-local index = fun.index
 local utils = require'bufferline.utils'
 local len = utils.len
 local reverse = utils.reverse
@@ -151,7 +149,7 @@ function m.get_updated_buffers()
 
     -- Open next to the currently opened tab
     -- Find the new index where the tab will be inserted
-    local new_index = index(m.last_current_buffer, m.buffers)
+    local new_index = utils.index(m.buffers, m.last_current_buffer)
     if new_index ~= nil then
         new_index = new_index + 1
     else
@@ -159,7 +157,7 @@ function m.get_updated_buffers()
     end
 
     for i, new_buffer in ipairs(reverse(new_buffers)) do
-        if index(new_buffer, m.buffers) == nil then
+        if utils.index(m.buffers, new_buffer) == nil then
           -- For special buffers, we add them at the end
           if vim.fn.getbufvar(new_buffer, '&buftype') ~= '' then
             new_index = len(m.buffers) + 1
@@ -186,7 +184,7 @@ local function move_current_buffer (direction)
   m.get_updated_buffers()
 
   local currentnr = nvim.get_current_buf()
-  local idx = index(currentnr, m.buffers)
+  local idx = utils.index(m.buffers, currentnr)
 
   if idx == 1 and direction == -1 then
     return
@@ -206,6 +204,8 @@ end
 local function goto_buffer (number)
   m.get_updated_buffers()
 
+  number = tonumber(number)
+
   local idx
   if number == -1 then
     idx = len(m.buffers)
@@ -220,7 +220,7 @@ local function goto_buffer_relative (direction)
   m.get_updated_buffers()
 
   local currentnr = vim.fn.bufnr('%')
-  local idx = index(currentnr, m.buffers)
+  local idx = utils.index(m.buffers, currentnr)
 
   if idx == 1 and direction == -1 then
       idx = len(m.buffers)

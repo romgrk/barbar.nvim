@@ -5,11 +5,8 @@
 local vim = vim
 local api = vim.api
 local nvim = require'bufferline.nvim'
-local fun = require'bufferline.fun'
-local len = fun.operator.len
-local range = fun.range
-local map = fun.map
 local utils = require'bufferline.utils'
+local len = utils.len
 local slice = utils.slice
 local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
@@ -30,7 +27,7 @@ local buffer_by_letter = {} -- object
 local letter_by_buffer = {} -- object
 
 -- Initialize INDEX_BY_LETTER
-for index in range(len(LETTERS)) do
+for index = 1, len(LETTERS) do
   local letter = slice(LETTERS, index, index)
   INDEX_BY_LETTER[letter] = index
   letter_status[index] = false
@@ -49,7 +46,7 @@ local function assign_next_letter(bufnr)
   if vim.g.bufferline.semantic_letters == true then
     local name = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t:r')
 
-    for i in range(len(name)) do
+    for i = 1, len(name) do
       local letter = string.lower(slice(name, i, i))
 
       if INDEX_BY_LETTER[letter] ~= nil then
