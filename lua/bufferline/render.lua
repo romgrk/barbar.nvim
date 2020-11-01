@@ -90,11 +90,7 @@ local function render()
 
   -- Store current buffer to open new ones next to this one
   if nvim.buf_get_option(current, 'buflisted') then
-    state.previous_current_buffer = state.last_current_buffer
     state.last_current_buffer = current
-    state.last_current_time = vim.fn.reltime()
-  else
-    state.last_current_time = vim.fn.reltime()
   end
 
   local opts = vim.g.bufferline

@@ -151,20 +151,8 @@ function m.get_updated_buffers()
     did_change = true
 
     -- Open next to the currently opened tab
-    local last_buffer = m.last_current_buffer
-    -- Hack: some file openers (vim-clap) switch very fast to buffers
-    --       that aren't considered the current buffer when opening a
-    --       file. This gets use the file we want.
-    if m.last_current_time ~= nil then
-      local modified_since = vim.fn.reltimefloat(vim.fn.reltime(m.last_current_time))
-      local was_modified_recently = modified_since < 2
-      if was_modified_recently then
-        last_buffer = m.previous_current_buffer
-      end
-    end
-
     -- Find the new index where the tab will be inserted
-    local new_index = index(last_buffer, m.buffers)
+    local new_index = index(m.last_current_buffer, m.buffers)
     if new_index ~= nil then
         new_index = new_index + 1
     else
@@ -173,7 +161,7 @@ function m.get_updated_buffers()
 
     for i, new_buffer in ipairs(reverse(new_buffers)) do
         if index(new_buffer, m.buffers) == nil then
-          -- For special buffers, we add them at the end.
+          -- For special buffers, we add them at the end
           if vim.fn.getbufvar(new_buffer, '&buftype') ~= '' then
             new_index = len(m.buffers) + 1
           end

@@ -5,15 +5,23 @@
 
 local vim = vim
 local api = vim.api
-local fun = require'bufferline.fun'
-local range = fun.range
-local map = fun.map
-local reduce = fun.reduce
-local len = fun.operator.len
 local bufname = vim.fn.bufname
 local fnamemodify = vim.fn.fnamemodify
 local split = vim.split
 local join = table.concat
+
+local function len(value)
+  return #value
+end
+
+local function index(tbl, n)
+  for i, value in ipairs(tbl) do
+    if value == n then
+      return i
+    end
+  end
+  return -1
+end
 
 local function slice(tbl, first, last)
   if type(tbl) == 'string' then
@@ -87,6 +95,8 @@ end
 -- print(vim.inspect(get_buffer_names(vim.g['bufferline#'].buffers)))
 
 return {
+  len = len,
+  index = index,
   slice = slice,
   reverse = reverse,
   collect = collect,
