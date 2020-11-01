@@ -219,15 +219,18 @@ end
 local function goto_buffer_relative (direction)
   m.get_updated_buffers()
 
-  local currentnr = vim.fn.bufnr('%')
+  local currentnr = vim.fn.bufnr(0)
   local idx = utils.index(m.buffers, currentnr)
 
-  if idx == 1 and direction == -1 then
-      idx = len(m.buffers)
+  if idx == nil then
+    print("Couldn't find buffer " .. currentnr .. " in the list")
+    return
+  elseif idx == 1 and direction == -1 then
+    idx = len(m.buffers)
   elseif idx == len(m.buffers) and direction == 1 then
-      idx = 1
+    idx = 1
   else
-      idx = idx + direction
+    idx = idx + direction
   end
 
   nvim.command('silent buffer ' .. m.buffers[idx])
