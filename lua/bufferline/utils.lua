@@ -20,7 +20,7 @@ local function index(tbl, n)
       return i
     end
   end
-  return -1
+  return nil
 end
 
 local function slice(tbl, first, last)
