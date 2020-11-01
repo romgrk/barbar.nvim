@@ -41,14 +41,14 @@ function get_icon(buffer_name, filetype)
 end
 
 
-local function calculate_used_width(buffer_numbers, buffer_names, base_width)
+local function calculate_used_width(buffer_numbers, base_width)
   local sum = 0
 
   -- local sum += bufferline#tabpages#width()
 
   for i, buffer_number in ipairs(buffer_numbers) do
-    local buffer_name = buffer_names[i]
     local buffer_data = state.get_buffer_data(buffer_number)
+    local buffer_name = buffer_data.name or '[no name]'
 
     if buffer_data.closing then
       sum = sum + buffer_data.dimensions[1]
@@ -60,7 +60,7 @@ local function calculate_used_width(buffer_numbers, buffer_names, base_width)
   return sum
 end
 
-local function calculate_layout(buffer_numbers, buffer_names)
+local function calculate_layout(buffer_numbers)
   local opts = vim.g.bufferline
 
   -- separator + icon + space-after-icon + space-after-name
@@ -71,8 +71,7 @@ local function calculate_layout(buffer_numbers, buffer_names)
 
   local available_width = vim.o.columns
 
-  -- print(vim.inspect(buffer_names))
-  local used_width = calculate_used_width(buffer_numbers, buffer_names, base_width)
+  local used_width = calculate_used_width(buffer_numbers, base_width)
   -- local used_width = 100
 
   local buffers_length               = len(buffer_numbers)
@@ -87,13 +86,14 @@ end
 
 local function render()
   local buffer_numbers = state.get_updated_buffers()
-  local buffer_names = utils.get_buffer_names(buffer_numbers)
   local current = vim.fn.bufnr('%')
 
   -- Store current buffer to open new ones next to this one
   if nvim.buf_get_option(current, 'buflisted') then
     state.previous_current_buffer = state.last_current_buffer
     state.last_current_buffer = current
+    state.last_current_time = vim.fn.reltime()
+  else
     state.last_current_time = vim.fn.reltime()
   end
 
@@ -104,7 +104,7 @@ local function render()
   local has_icons = opts.icons
   local has_close = opts.closable
 
-  local layout = calculate_layout(buffer_numbers, buffer_names)
+  local layout = calculate_layout(buffer_numbers)
   local available_width = layout[1]
   local base_width      = layout[2]
   local padding_width   = layout[3]
@@ -113,9 +113,10 @@ local function render()
   local result = ''
 
   for i, buffer_number in ipairs(buffer_numbers) do
-    local buffer_name   = buffer_names[i]
 
     local buffer_data = state.get_buffer_data(buffer_number)
+    local buffer_name = buffer_data.name or '[no name]'
+
     buffer_data.dimensions = {
       len(buffer_name),
       base_width + 2 * padding_width,

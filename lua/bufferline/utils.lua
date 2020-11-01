@@ -84,42 +84,12 @@ function get_unique_name (first, second)
   return first_result, second_result
 end
 
-local function get_buffer_names(buffer_numbers)
-  local buffer_number_by_name = {}
-  local buffer_names = {}
-
-  -- Compute names
-  for i, number in ipairs(buffer_numbers) do
-    local name = get_buffer_name(number)
-
-    if buffer_number_by_name[name] == nil then
-      buffer_number_by_name[name] = i
-      table.insert(buffer_names, name)
-    else
-      local other_i = buffer_number_by_name[name]
-      -- print(vim.inspect({ i, other_i, name, buffer_number_by_name[name] }))
-      local new_name, new_other_name =
-        get_unique_name(
-          bufname(number),
-          bufname(buffer_numbers[other_i]))
-
-      buffer_names[i] = new_name
-      buffer_names[other_i] = new_other_name
-      buffer_number_by_name[name] = i
-      buffer_number_by_name[new_other_name] = buffer_numbers[other_i]
-      buffer_number_by_name[name] = nil
-    end
-
-  end
-
-  return buffer_names
-end
-
 -- print(vim.inspect(get_buffer_names(vim.g['bufferline#'].buffers)))
 
 return {
   slice = slice,
   reverse = reverse,
   collect = collect,
-  get_buffer_names = get_buffer_names,
+  get_buffer_name = get_buffer_name,
+  get_unique_name = get_unique_name,
 }
