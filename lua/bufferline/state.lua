@@ -219,11 +219,11 @@ end
 local function goto_buffer_relative (direction)
   m.get_updated_buffers()
 
-  local currentnr = vim.fn.bufnr(0)
+  local currentnr = vim.fn.bufnr('%')
   local idx = utils.index(m.buffers, currentnr)
 
   if idx == nil then
-    print("Couldn't find buffer " .. currentnr .. " in the list")
+    print("Couldn't find buffer " .. currentnr .. " in the list: " .. vim.inspect(state.buffers))
     return
   elseif idx == 1 and direction == -1 then
     idx = len(m.buffers)
