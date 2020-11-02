@@ -189,12 +189,12 @@ function! bufferline#order_by_language()
    call bufferline#update()
 endfunc
 
-function! bufferline#close(buffer_number)
-   call s:close_buffer_animated(a:buffer_number)
+function! bufferline#close(abuf)
+   call luaeval("require'bufferline.state'.close_buffer_animated(_A)", a:abuf)
 endfunc
 
-function! bufferline#close_direct(buffer_number)
-   call s:close_buffer(a:buffer_number)
+function! bufferline#close_direct(abuf)
+   call luaeval("require'bufferline.state'.close_buffer(_A)", a:abuf)
 endfunc
 
 "========================

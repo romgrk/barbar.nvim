@@ -117,7 +117,9 @@ local function open_buffers(new_buffers)
   -- Case: opening a lot of buffers from a session
   -- We avoid animating here as well as it's a bit
   -- too much work otherwise.
-  if initial_buffers <= 1 and len(new_buffers) > 1 then
+  if initial_buffers <= 1 and len(new_buffers) > 1 or
+     initial_buffers == 0 and len(new_buffers) == 1
+  then
     return
   end
 
@@ -308,6 +310,9 @@ end
 
 
 -- Exports
+
+m.close_buffer = close_buffer
+m.close_buffer_animated = close_buffer_animated
 
 m.move_current_buffer = move_current_buffer
 m.goto_buffer = goto_buffer
