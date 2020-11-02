@@ -15,6 +15,7 @@ local bufname = vim.fn.bufname
 
 
 local ANIMATION_OPEN_DURATION  = 150
+local ANIMATION_OPEN_DELAY     =  50
 local ANIMATION_CLOSE_DURATION = 100
 
 --------------------------------
@@ -72,21 +73,26 @@ local function open_buffer_start_animation(layout, buffer_number)
 
   buffer_data.width = 1
 
-  vim.fn['bufferline#animate#start'](
-    ANIMATION_OPEN_DURATION, 1, target_width, vim.v.t_number,
-    function(new_width, animation)
-      open_buffer_animated_tick(buffer_number, new_width, animation)
-    end)
+  vim.fn.timer_start(ANIMATION_OPEN_DELAY, function()
+    vim.fn['bufferline#animate#start'](
+      ANIMATION_OPEN_DURATION, 1, target_width, vim.v.t_number,
+      function(new_width, animation)
+        open_buffer_animated_tick(buffer_number, new_width, animation)
+      end)
+  end)
 end
 
 local function open_buffers(new_buffers)
+  local initial_buffers = len(m.buffers)
+  print('opening: ' .. initial_buffers .. ' / ' .. len(new_buffers))
+
   -- Open next to the currently opened tab
   -- Find the new index where the tab will be inserted
   local new_index = utils.index(m.buffers, m.last_current_buffer)
   if new_index ~= nil then
-      new_index = new_index + 1
+    new_index = new_index + 1
   else
-      new_index = len(m.buffers) + 1
+    new_index = len(m.buffers) + 1
   end
 
   -- Reverse otherwise they're opened in the wrong order
@@ -105,6 +111,13 @@ local function open_buffers(new_buffers)
 
   -- We're done if there is no animations
   if vim.g.bufferline.animation == false then
+    return
+  end
+
+  -- Case: opening a lot of buffers from a session
+  -- We avoid animating here as well as it's a bit
+  -- too much work otherwise.
+  if initial_buffers <= 1 and len(new_buffers) > 1 then
     return
   end
 

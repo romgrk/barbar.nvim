@@ -39,6 +39,22 @@ function get_icon(buffer_name, filetype)
   return web.get_icon(basename, extension, { default = true })
 end
 
+local function slice_groups(groups, width)
+  local result = ''
+  local text_width = 0
+  for i, group in ipairs(groups) do
+    local hl   = group[1]
+    local name = group[2]
+    local next_width = text_width + len(name)
+    if next_width >= width then
+      local diff = next_width - width
+      result = result .. hl .. vim.fn.strcharpart(name, 0, diff)
+      break
+    end
+    result = result .. hl .. name
+  end
+  return result
+end
 
 local function render()
   local buffer_numbers = state.get_updated_buffers()
@@ -142,16 +158,16 @@ local function render()
         ''
     else
       local width = buffer_data.width
-      local text = 
-        separator ..
-        padding ..
-        icon ..
-        name ..
-        padding ..
-        ' ' ..
-        close
-      text = vim.fn.strcharpart(text, 0, width)
-      item = namePrefix ..  text
+      local groups = {
+        { separatorPrefix, separator},
+        { '',              padding},
+        { iconPrefix,      icon},
+        { namePrefix,      name},
+        { '',              padding},
+        { '',              ' '},
+        { closePrefix,     close},
+      }
+      item = slice_groups(groups, width)
     end
 
     result = result .. item
