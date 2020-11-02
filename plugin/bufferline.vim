@@ -88,6 +88,7 @@ let bufferline = extend({
 \ 'clickable': v:true,
 \ 'maximum_padding': 4,
 \ 'tabpages': v:true,
+\ 'unsafe': v:false,
 \ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \}, get(g:, 'bufferline', {}))
 
@@ -141,7 +142,17 @@ function! bufferline#update_async()
 endfu
 
 function! bufferline#render() abort
-   return luaeval("require'bufferline.render'.render()")
+   if g:bufferline.unsafe
+      return luaeval("require'bufferline.render'.render()")
+   end
+   try
+      return luaeval("require'bufferline.render'.render()")
+   catch '*'
+      BarbarDisable
+      echohl ErrorMsg
+      echom "Barbar detected an error while running. Barbar disabled itself :/"
+      echohl None
+   endtry
 endfu
 
 function! bufferline#session (...)
