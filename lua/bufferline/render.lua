@@ -11,6 +11,7 @@ local utils = require'bufferline.utils'
 local len = utils.len
 local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
+local Layout = require'bufferline.layout'
 local JumpMode = require'bufferline.jump_mode'
 
 local HL_BY_ACTIVITY = {
@@ -39,49 +40,6 @@ function get_icon(buffer_name, filetype)
 end
 
 
-local function calculate_used_width(buffer_numbers, base_width)
-  local sum = 0
-
-  -- local sum += bufferline#tabpages#width()
-
-  for i, buffer_number in ipairs(buffer_numbers) do
-    local buffer_data = state.get_buffer_data(buffer_number)
-    local buffer_name = buffer_data.name or '[no name]'
-
-    if buffer_data.closing then
-      sum = sum + buffer_data.dimensions[1]
-    else
-      sum = sum + base_width + len(buffer_name)
-    end
-  end
-
-  return sum
-end
-
-local function calculate_layout(buffer_numbers)
-  local opts = vim.g.bufferline
-
-  -- separator + icon + space-after-icon + space-after-name
-  local base_width =
-    1
-    + (opts.icons and 2 or 0)
-    + (opts.closable and 2 or 0)
-
-  local available_width = vim.o.columns
-
-  local used_width = calculate_used_width(buffer_numbers, base_width)
-  -- local used_width = 100
-
-  local buffers_length               = len(buffer_numbers)
-  local remaining_width              = available_width - used_width
-  local remaining_width_per_buffer   = math.floor(remaining_width / buffers_length)
-  local remaining_padding_per_buffer = math.floor(remaining_width_per_buffer / 2)
-  local padding_width                = math.min(remaining_padding_per_buffer, opts.maximum_padding) - 1
-  local actual_width                 = used_width + padding_width * buffers_length
-
-  return { available_width, base_width, padding_width, actual_width }
-end
-
 local function render()
   local buffer_numbers = state.get_updated_buffers()
   local current = vim.fn.bufnr('%')
@@ -98,11 +56,7 @@ local function render()
   local has_icons = opts.icons
   local has_close = opts.closable
 
-  local layout = calculate_layout(buffer_numbers)
-  local available_width = layout[1]
-  local base_width      = layout[2]
-  local padding_width   = layout[3]
-  local actual_width    = layout[4]
+  local layout = Layout.calculate(state)
 
   local result = ''
 
@@ -111,10 +65,8 @@ local function render()
     local buffer_data = state.get_buffer_data(buffer_number)
     local buffer_name = buffer_data.name or '[no name]'
 
-    buffer_data.dimensions = {
-      len(buffer_name),
-      base_width + 2 * padding_width,
-    }
+    buffer_data.dimensions = Layout.calculate_dimensions(
+      buffer_name, layout.base_width, layout.padding_width)
 
     local activity = Buffer.get_activity(buffer_number)
     local is_visible = activity == 1
@@ -173,10 +125,11 @@ local function render()
       clickable = '%' .. buffer_number .. '@BufferlineMainClickHandler@'
     end
 
-    local padding = string.rep(' ', padding_width)
+    local padding = string.rep(' ', layout.padding_width)
 
     local item = ''
-    if not is_closing then
+    local is_animated = buffer_data.width ~= nil
+    if not is_animated then
       item =
         clickable ..
         separatorPrefix .. separator ..
@@ -204,7 +157,7 @@ local function render()
     result = result .. item
   end
 
-  if actual_width < available_width then
+  if layout.actual_width < layout.available_width then
     local separatorPrefix = hl('BufferInactiveSign')
     local separator = icons.bufferline_separator_inactive
     result = result .. separatorPrefix .. separator
@@ -220,7 +173,6 @@ end
 
 local exports = {
   render = render,
-  calculate_layout = calculate_layout,
 }
 
 return exports

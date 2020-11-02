@@ -6,15 +6,20 @@ local vim = vim
 local api = vim.api
 local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
+local Layout = require'bufferline.layout'
 local len = utils.len
 local reverse = utils.reverse
 local filter = vim.tbl_filter
 local includes = vim.tbl_contains
 local bufname = vim.fn.bufname
 
--- buffer_data {
---   closing = false,
--- }
+
+local ANIMATION_OPEN_DURATION  = 150
+local ANIMATION_CLOSE_DURATION = 100
+
+--------------------------------
+-- Section: Application state --
+--------------------------------
 
 local m = {
   is_picking_buffer = false,
@@ -43,6 +48,75 @@ function m.get_buffer_data(id)
   return m.buffers_by_id[id]
 end
 
+
+-- Open buffers
+
+local function open_buffer_animated_tick(buffer_number, new_width, animation)
+  local buffer_data = m.get_buffer_data(buffer_number)
+  if animation.running then
+    buffer_data.width = new_width
+  else
+    buffer_data.width = nil
+  end
+  vim.fn['bufferline#update']()
+end
+
+local function open_buffer_start_animation(layout, buffer_number)
+  local buffer_data = m.get_buffer_data(buffer_number)
+  buffer_data.dimensions = Layout.calculate_dimensions(
+    buffer_data.name, layout.base_width, layout.padding_width)
+
+  local target_width =
+    buffer_data.dimensions[1] +
+    buffer_data.dimensions[2]
+
+  buffer_data.width = 1
+
+  vim.fn['bufferline#animate#start'](
+    ANIMATION_OPEN_DURATION, 1, target_width, vim.v.t_number,
+    function(new_width, animation)
+      open_buffer_animated_tick(buffer_number, new_width, animation)
+    end)
+end
+
+local function open_buffers(new_buffers)
+  -- Open next to the currently opened tab
+  -- Find the new index where the tab will be inserted
+  local new_index = utils.index(m.buffers, m.last_current_buffer)
+  if new_index ~= nil then
+      new_index = new_index + 1
+  else
+      new_index = len(m.buffers) + 1
+  end
+
+  -- Reverse otherwise they're opened in the wrong order
+  new_buffers = reverse(new_buffers)
+
+  -- Insert the buffers where they go
+  for i, new_buffer in ipairs(new_buffers) do
+    if utils.index(m.buffers, new_buffer) == nil then
+      -- For special buffers, we add them at the end
+      if vim.fn.getbufvar(new_buffer, '&buftype') ~= '' then
+        new_index = len(m.buffers) + 1
+      end
+      table.insert(m.buffers, new_index, new_buffer)
+    end
+  end
+
+  -- We're done if there is no animations
+  if vim.g.bufferline.animation == false then
+    return
+  end
+
+  -- Update names because they affect the layout
+  m.update_names()
+
+  local layout = Layout.calculate(m)
+
+  for i, buffer_number in ipairs(new_buffers) do
+    open_buffer_start_animation(layout, buffer_number)
+  end
+end
 
 -- Close & cleanup buffers
 
@@ -78,7 +152,8 @@ local function close_buffer_animated(buffer_number)
   buffer_data.closing = true
   buffer_data.width = current_width
 
-  vim.fn['bufferline#animate#start'](150, current_width, 0, vim.v.t_number,
+  vim.fn['bufferline#animate#start'](
+    ANIMATION_CLOSE_DURATION, current_width, 0, vim.v.t_number,
     function(new_width, m)
       close_buffer_animated_tick(buffer_number, new_width, m)
     end)
@@ -100,7 +175,6 @@ function m.update_names()
     else
       local other_i = buffer_index_by_name[name]
       local other_n = m.buffers[other_i]
-      -- print(vim.inspect({ i, other_i, name, buffer_index_by_name[name] }))
       local new_name, new_other_name =
         utils.get_unique_name(
           bufname(buffer_n),
@@ -147,24 +221,7 @@ function m.get_updated_buffers()
   if len(new_buffers) > 0 then
     did_change = true
 
-    -- Open next to the currently opened tab
-    -- Find the new index where the tab will be inserted
-    local new_index = utils.index(m.buffers, m.last_current_buffer)
-    if new_index ~= nil then
-        new_index = new_index + 1
-    else
-        new_index = len(m.buffers) + 1
-    end
-
-    for i, new_buffer in ipairs(reverse(new_buffers)) do
-        if utils.index(m.buffers, new_buffer) == nil then
-          -- For special buffers, we add them at the end
-          if vim.fn.getbufvar(new_buffer, '&buftype') ~= '' then
-            new_index = len(m.buffers) + 1
-          end
-          table.insert(m.buffers, new_index, new_buffer)
-        end
-    end
+    open_buffers(new_buffers)
   end
 
   m.buffers =
