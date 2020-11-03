@@ -16,6 +16,18 @@ Preamble (you can delete this section):
 A clear and concise description of what the bug is.
 
 **To Reproduce**
+
+init.vim:
+
+```vim
+let $PLUGIN_DIRECTORY = '~/.config/nvim/bundle'
+set runtimepath^=$PLUGIN_DIRECTORY/nvim-web-devicons
+set runtimepath^=$PLUGIN_DIRECTORY/barbar.nvim
+
+" Set your options here
+let bufferline = {}
+```
+
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Click on '....'
