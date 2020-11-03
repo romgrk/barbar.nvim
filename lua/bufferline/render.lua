@@ -9,6 +9,7 @@ local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local get_icon = require'bufferline.get-icon'
 local len = utils.len
+local slice = utils.slice
 local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
 local Layout = require'bufferline.layout'
