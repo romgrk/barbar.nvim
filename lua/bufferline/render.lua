@@ -6,8 +6,8 @@
 local vim = vim
 local api = vim.api
 local nvim = require'bufferline.nvim'
-local web = require'nvim-web-devicons'
 local utils = require'bufferline.utils'
+local get_icon = require'bufferline.get-icon'
 local len = utils.len
 local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
@@ -22,21 +22,6 @@ local HL_BY_ACTIVITY = {
 
 local function hl(name)
    return '%#' .. name .. '#'
-end
-
-function get_icon(buffer_name, filetype)
-  local basename
-  local extension
-
-  if filetype == 'fugitive' or filetype == 'gitcommit' then
-    basename = 'git'
-    extension = 'git'
-  else
-    basename = vim.fn.fnamemodify(buffer_name, ':t')
-    extension = vim.fn.matchstr(basename, [[\v\.@<=\w+$]], '', '')
-  end
-
-  return web.get_icon(basename, extension, { default = true })
 end
 
 local function slice_groups(groups, width)

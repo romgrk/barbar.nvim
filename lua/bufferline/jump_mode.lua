@@ -10,7 +10,6 @@ local len = utils.len
 local slice = utils.slice
 local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
-local web = require'nvim-web-devicons'
 local fnamemodify = vim.fn.fnamemodify
 local bufname = vim.fn.bufname
 
