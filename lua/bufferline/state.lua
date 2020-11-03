@@ -12,6 +12,7 @@ local reverse = utils.reverse
 local filter = vim.tbl_filter
 local includes = vim.tbl_contains
 local bufname = vim.fn.bufname
+local fnamemodify = vim.fn.fnamemodify
 
 
 local ANIMATION_OPEN_DURATION  = 150
@@ -308,6 +309,39 @@ local function goto_buffer_relative (direction)
 end
 
 
+-- Ordering
+
+local function is_relative_path(path)
+   return fnamemodify(path, ':p') ~= path
+end
+
+local function order_by_directory()
+  table.sort(m.buffers, function(a, b)
+    local na = bufname(a)
+    local nb = bufname(b)
+    local ra = is_relative_path(na)
+    local rb = is_relative_path(nb)
+    if ra and not rb then
+      return true
+    end
+    if not ra and rb then
+      return false
+    end
+    return na < nb
+  end)
+  vim.fn['bufferline#update']()
+end
+
+local function order_by_language()
+  table.sort(m.buffers, function(a, b)
+    local na = fnamemodify(bufname(a), ':e')
+    local nb = fnamemodify(bufname(b), ':e')
+    return na < nb
+  end)
+  vim.fn['bufferline#update']()
+end
+
+
 -- Exports
 
 m.close_buffer = close_buffer
@@ -316,5 +350,8 @@ m.close_buffer_animated = close_buffer_animated
 m.move_current_buffer = move_current_buffer
 m.goto_buffer = goto_buffer
 m.goto_buffer_relative = goto_buffer_relative
+
+m.order_by_directory = order_by_directory
+m.order_by_language = order_by_language
 
 return m

@@ -177,27 +177,11 @@ function! bufferline#pick_buffer()
 endfunc
 
 function! bufferline#order_by_directory()
-   let new_buffers = copy(s:buffers)
-   let new_buffers = map(new_buffers, {_, b -> bufname(b)})
-   call sort(new_buffers, function('s:compare_directory'))
-   let new_buffers = map(new_buffers, {_, b -> bufnr(b)})
-
-   call remove(s:buffers, 0, -1)
-   call extend(s:buffers, new_buffers)
-
-   call bufferline#update()
+   call luaeval("require'bufferline.state'.order_by_directory()")
 endfunc
 
 function! bufferline#order_by_language()
-   let new_buffers = copy(s:buffers)
-   let new_buffers = map(new_buffers, {_, b -> bufname(b)})
-   call sort(new_buffers, function('s:compare_language'))
-   let new_buffers = map(new_buffers, {_, b -> bufnr(b)})
-
-   call remove(s:buffers, 0, -1)
-   call extend(s:buffers, new_buffers)
-
-   call bufferline#update()
+   call luaeval("require'bufferline.state'.order_by_language()")
 endfunc
 
 function! bufferline#close(abuf)
@@ -244,6 +228,7 @@ function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
    call bufferline#bbye#delete('bdelete', '', a:minwid)
 endfunction
 
+
 " Buffer movement
 
 function! s:move_current_buffer (direction)
@@ -256,59 +241,6 @@ endfunc
 
 function! s:goto_buffer_relative (direction)
    call luaeval("require'bufferline.state'.goto_buffer_relative(_A)", a:direction)
-endfunc
-
-
-" Helpers
-
-function! s:close_buffer_animated(buffer_number)
-   if g:bufferline.animation == v:false
-      return s:close_buffer(a:buffer_number)
-   end
-   let buffer_data = s:get_buffer_data(a:buffer_number)
-   let current_width =
-            \ buffer_data.dimensions[0] +
-            \ buffer_data.dimensions[1]
-
-   let buffer_data.closing = v:true
-   let buffer_data.width = current_width
-
-   call bufferline#animate#start(150, current_width, 0, v:t_number,
-            \ {new_width, state ->
-            \   s:close_buffer_animated_tick(a:buffer_number, new_width, state)})
-endfunc
-
-function! s:close_buffer_animated_tick(buffer_number, new_width, state)
-   if a:new_width > 0 && has_key(s:buffers_by_id, a:buffer_number)
-      let buffer_data = s:get_buffer_data(a:buffer_number)
-      let buffer_data.width = a:new_width
-      call bufferline#update()
-      return
-   end
-   call bufferline#animate#stop(a:state)
-   call s:close_buffer(a:buffer_number)
-endfunc
-
-function! s:is_relative_path(path)
-   return fnamemodify(a:path, ':p') != a:path
-endfunc
-
-function s:compare_directory(a, b)
-   let ra = s:is_relative_path(a:a)
-   let rb = s:is_relative_path(a:b)
-   if ra && !rb
-      return -1
-   end
-   if rb && !ra
-      return +1
-   end
-   return a:a > a:b
-endfunc
-
-function s:compare_language(a, b)
-   let ea = fnamemodify(a:a, ':e')
-   let eb = fnamemodify(a:b, ':e')
-   return ea > eb
 endfunc
 
 
