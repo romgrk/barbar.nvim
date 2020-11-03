@@ -84,7 +84,6 @@ end
 
 local function open_buffers(new_buffers)
   local initial_buffers = len(m.buffers)
-  print('opening: ' .. initial_buffers .. ' / ' .. len(new_buffers))
 
   -- Open next to the currently opened tab
   -- Find the new index where the tab will be inserted
