@@ -229,6 +229,9 @@ endfunc
 
 " Needs to be global -_-
 function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
+   if a:minwid == 0
+      return
+   end
    if a:btn =~ 'm'
       call bufferline#bbye#delete('bdelete', '', a:minwid)
    else
