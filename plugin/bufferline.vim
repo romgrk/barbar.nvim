@@ -247,6 +247,5 @@ endfunc
 " Final setup
 
 call luaeval("require'bufferline.state'.get_updated_buffers()")
-" call s:update_buffer_letters()
 
 let g:bufferline# = s:

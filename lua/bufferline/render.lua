@@ -101,7 +101,7 @@ local function render()
         (has_icons and ' ' or '')
     elseif has_icons then
       local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'))
-      iconPrefix = status == 'Inactive' and hl('BufferInactive') or hl(iconHl)
+      iconPrefix = status == 'Inactive' and hl('BufferInactive') or hl(iconHl or ('Buffer' .. status))
       icon = iconChar .. ' '
     end
 
@@ -174,7 +174,7 @@ local function render()
 end
 
 -- print()
--- print(render(vim.g['bufferline#'].buffers))
+-- print(render(state.buffers))
 
 local exports = {
   render = render,
