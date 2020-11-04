@@ -76,7 +76,8 @@ You can skip the dependency on `'kyazdani42/nvim-web-devicons'` if you
 [disable icons](#options).
 
 I might remove the dependencies in the future if I have enough time to port the
-required functions, or if you complain loud enough. 
+required functions, or if you complain loud enough. If you want the icons, don't
+forget to install [nerd fonts](https://www.nerdfonts.com/).
 
 ##### Requirements
  - Neovim `0.5`
