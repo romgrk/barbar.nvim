@@ -99,6 +99,8 @@ let icons = extend({
 \ 'bufferline_separator_inactive': '▎',
 \ 'bufferline_close_tab': '',
 \ 'bufferline_close_tab_modified': '●',
+\ 'bufferline_arrow_left': '',
+\ 'bufferline_arrow_right': '',
 \}, get(g:, 'icons', {})) " 
 
 "==========================
