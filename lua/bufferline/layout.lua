@@ -33,8 +33,10 @@ local function calculate(state)
 
   -- separator + icon + space-after-icon + space-after-name
   local base_width =
-    1
+      1 -- sign
     + (opts.icons and 2 or 0)
+        -- name
+    + 1 -- space after name
     + (opts.closable and 2 or 0)
 
   local available_width = vim.o.columns
@@ -43,14 +45,15 @@ local function calculate(state)
   -- local used_width = 100
 
   local buffers_length               = len(state.buffers)
-  local remaining_width              = available_width - used_width
+  local remaining_width              = math.max(available_width - used_width, 0)
   local remaining_width_per_buffer   = math.floor(remaining_width / buffers_length)
   local remaining_padding_per_buffer = math.floor(remaining_width_per_buffer / 2)
-  local padding_width                = math.min(remaining_padding_per_buffer, opts.maximum_padding) - 1
+  local padding_width                = math.min(remaining_padding_per_buffer, opts.maximum_padding)
   local actual_width                 = used_width + padding_width * buffers_length
 
   return {
     available_width = available_width,
+    used_width = used_width,
     base_width = base_width,
     padding_width = padding_width,
     actual_width = actual_width,
