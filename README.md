@@ -14,7 +14,7 @@ any buffer by simply typing their target letter. Even better, the target letter
 stays constant for the lifetime of the buffer, so if you're working with a set of
 files you can even type the letter ahead from memory.
 
-**/!\ NOTE: <u>recent neovim nightly</u> (0.5) required**
+**/!\ NOTE: RECENT NEOVIM NIGHTLY BUILD (0.5) REQUIRED**
 
 
 ##### Table of content
