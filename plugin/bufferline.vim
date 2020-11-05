@@ -144,17 +144,19 @@ function! bufferline#update_async()
 endfu
 
 function! bufferline#render() abort
-   if g:bufferline.unsafe
-      return luaeval("require'bufferline.render'.render()")
+   let result = luaeval("require'bufferline.render'.render_safe()")
+
+   if result[0]
+      return result[1]
    end
-   try
-      return luaeval("require'bufferline.render'.render()")
-   catch '*'
-      BarbarDisable
-      echohl ErrorMsg
-      echom "Barbar detected an error while running. Barbar disabled itself :/"
-      echohl None
-   endtry
+
+   let error = result[1]
+
+   BarbarDisable
+   echohl ErrorMsg
+   echom "Barbar detected an error while running. Barbar disabled itself :/"
+   echom "Include this in your report: " . string(error)
+   echohl None
 endfu
 
 function! bufferline#session (...)

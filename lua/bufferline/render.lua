@@ -68,7 +68,6 @@ local function slice_groups_left(groups, width)
 end
 
 local function render()
-  local start = os.clock()
   local buffer_numbers = state.get_updated_buffers()
   local current = vim.fn.bufnr('%')
 
@@ -241,10 +240,16 @@ local function render()
   return result
 end
 
+local function render_safe()
+  local ok, result = pcall(render)
+  return {ok, result}
+end
+
 -- print(render(state.buffers))
 
 local exports = {
   render = render,
+  render_safe = render_safe,
 }
 
 return exports
