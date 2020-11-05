@@ -137,9 +137,6 @@ the number of items you have.
 ```vim
 let bufferline = {}
 
-" Show a shadow over the editor in buffer-pick mode
-let bufferline.shadow = v:true
-
 " Enable/disable animations
 let bufferline.animation = v:true
 
@@ -198,7 +195,6 @@ function bufferline#highlight#setup()
    "         -Mod: when modified
    "        -Sign: the separator between buffers
    "      -Target: letter in buffer-picking mode
-   " BufferShadow: shadow in buffer-picking mode
    call s:hi_all([
    \ ['BufferCurrent',        fg_current,  bg_current],
    \ ['BufferCurrentMod',     fg_modified, bg_current],
@@ -212,7 +208,6 @@ function bufferline#highlight#setup()
    \ ['BufferInactiveMod',    fg_modified, bg_inactive],
    \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
    \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
-   \ ['BufferShadow',         'black',     'black'],
    \ ])
 endfunc
 ```
