@@ -8,9 +8,9 @@ function bufferline#highlight#setup()
    let fg_visible  = s:fg(['TabLineSel'], '#efefef')
    let fg_inactive = s:fg(['TabLineFill'], '#888888')
 
-   let fg_modified  = s:fg(['WarningMsg'], '#E5AB0E')
+   let fg_modified = s:fg(['WarningMsg'], '#E5AB0E')
    let fg_special  = s:fg(['Special'], '#599eff')
-   let fg_subtle  = s:fg(['NonText', 'Comment'], '#555555')
+   let fg_subtle   = s:fg(['NonText', 'Comment'], '#555555')
 
    let bg_current  = s:bg(['Normal'], '#000000')
    let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
