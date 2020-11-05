@@ -8,8 +8,8 @@ assignees: ''
 ---
 
 Preamble (you can delete this section):
- - Are you using a recent enough version of neovim? Current requirement is: 0.5
- - If you don't see any error messages, set `g:bufferline.unsafe` to `v:true`.
+ - Are you using a RECENT BUILD of neovim 0.5?
+ - If not, rebuild it now before reporting the issue.
 
 **Description**
 

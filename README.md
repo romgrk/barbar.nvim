@@ -136,6 +136,8 @@ you can disable the options `clickable`, `closable`, or `icons` to reduce
 the number of items you have.
 
 ```vim
+" NOTE: This variable doesn't exist before barbar runs. Create it before
+"       setting any option.
 let bufferline = {}
 
 " Enable/disable animations
