@@ -61,6 +61,10 @@ A modified version of [bbye.vim](https://github.com/moll/vim-bbye) is included i
 plugin to close buffers without messing with your window layout and more. Available
 as `BufferClose` and `bufferline#bbye#delete(buf)`.
 
+##### Scrollable tabs, to always show the current buffer
+
+![scroll](./static/scroll.gif)
+
 ## Install
 
 Is ~~two~~ one dependency a lot for one plugin? Yes it is. But is Barbar a very good

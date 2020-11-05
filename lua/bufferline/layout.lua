@@ -13,19 +13,23 @@ local function calculate_used_width(state, base_width)
   local sum = 0
 
   -- local sum += bufferline#tabpages#width()
+  local widths = {}
 
   for i, buffer_number in ipairs(state.buffers) do
     local buffer_data = state.get_buffer_data(buffer_number)
     local buffer_name = buffer_data.name or '[no name]'
 
+    local width
     if buffer_data.closing then
-      sum = sum + buffer_data.dimensions[1]
+      width = buffer_data.dimensions[1] + buffer_data.dimensions[2]
     else
-      sum = sum + base_width + len(buffer_name)
+      width = base_width + len(buffer_name)
     end
+    sum = sum + width
+    table.insert(widths, width)
   end
 
-  return sum
+  return sum, widths
 end
 
 local function calculate(state)
@@ -41,8 +45,7 @@ local function calculate(state)
 
   local available_width = vim.o.columns
 
-  local used_width = calculate_used_width(state, base_width)
-  -- local used_width = 100
+  local used_width, base_widths = calculate_used_width(state, base_width)
 
   local buffers_length               = len(state.buffers)
   local remaining_width              = math.max(available_width - used_width, 0)
@@ -51,12 +54,14 @@ local function calculate(state)
   local padding_width                = math.min(remaining_padding_per_buffer, opts.maximum_padding)
   local actual_width                 = used_width + padding_width * buffers_length
 
+
   return {
     available_width = available_width,
     used_width = used_width,
     base_width = base_width,
     padding_width = padding_width,
     actual_width = actual_width,
+    base_widths = base_widths,
   }
 end
 

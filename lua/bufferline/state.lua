@@ -18,6 +18,7 @@ local fnamemodify = vim.fn.fnamemodify
 local ANIMATION_OPEN_DURATION  = 150
 local ANIMATION_OPEN_DELAY     =  50
 local ANIMATION_CLOSE_DURATION = 100
+local ANIMATION_SCROLL_DURATION = 200
 
 --------------------------------
 -- Section: Application state --
@@ -25,6 +26,8 @@ local ANIMATION_CLOSE_DURATION = 100
 
 local m = {
   is_picking_buffer = false,
+  scroll = 0,
+  scroll_current = 0,
   buffers = {},
   buffers_by_id = {},
 }
@@ -48,6 +51,31 @@ function m.get_buffer_data(id)
   m.buffers_by_id[id] = m.new_buffer_data()
 
   return m.buffers_by_id[id]
+end
+
+
+-- Scrolling
+
+local scroll_animation = nil
+
+local function set_scroll_tick(new_scroll, animation)
+  m.scroll_current = new_scroll
+  if animation.running == false then
+    scroll_animation = nil
+  end
+  vim.fn['bufferline#update']()
+end
+
+local function set_scroll(target)
+  m.scroll = target
+
+  if scroll_animation ~= nil then
+    vim.fn['bufferline#animate#stop'](scroll_animation)
+  end
+
+  scroll_animation = vim.fn['bufferline#animate#start'](
+    ANIMATION_SCROLL_DURATION, m.scroll_current, target, vim.v.t_number,
+    set_scroll_tick)
 end
 
 
@@ -343,6 +371,8 @@ end
 
 
 -- Exports
+
+m.set_scroll = set_scroll
 
 m.close_buffer = close_buffer
 m.close_buffer_animated = close_buffer_animated
