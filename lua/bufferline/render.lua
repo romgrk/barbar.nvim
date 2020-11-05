@@ -242,7 +242,7 @@ end
 
 local function render_safe()
   local ok, result = pcall(render)
-  return {ok, result}
+  return {ok, tostring(result)}
 end
 
 -- print(render(state.buffers))
