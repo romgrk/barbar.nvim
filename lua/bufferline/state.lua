@@ -123,9 +123,6 @@ local function open_buffers(new_buffers)
     new_index = len(m.buffers) + 1
   end
 
-  -- Reverse otherwise they're opened in the wrong order
-  new_buffers = reverse(new_buffers)
-
   -- Insert the buffers where they go
   for i, new_buffer in ipairs(new_buffers) do
     if utils.index(m.buffers, new_buffer) == nil then
