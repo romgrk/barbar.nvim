@@ -144,6 +144,7 @@ let bufferline = {}
 let bufferline.animation = v:true
 
 " Enable/disable icons
+" if set to "numbers", will show buffer index in the tabline
 let bufferline.icons = v:true
 
 " Enable/disable close button

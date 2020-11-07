@@ -80,7 +80,8 @@ local function render()
   local icons = vim.g.icons
 
   local click_enabled = vim.fn.has('tablineat') and opts.clickable
-  local has_icons = opts.icons
+  local has_icons = opts.icons ~= false
+  local has_numbers = opts.icons == 'numbers'
   local has_close = opts.closable
 
   local layout = Layout.calculate(state)
@@ -126,9 +127,15 @@ local function render()
         (letter ~= nil and letter or ' ') ..
         (has_icons and ' ' or '')
     elseif has_icons then
-      local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'))
-      iconPrefix = status == 'Inactive' and hl('BufferInactive') or hl(iconHl or ('Buffer' .. status))
-      icon = iconChar .. ' '
+      if has_numbers then
+        local number_text = tostring(i)
+        iconPrefix = ''
+        icon = number_text .. (#number_text > 1 and '' or ' ')
+      else
+        local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'))
+        iconPrefix = status == 'Inactive' and hl('BufferInactive') or hl(iconHl or ('Buffer' .. status))
+        icon = iconChar .. ' '
+      end
     end
 
     local closePrefix = ''

@@ -117,9 +117,10 @@ Here are the groups that you should define if you'd like to style Barbar.
 	Enables animations.
 
 							*g:bufferline.icons*
-`g:bufferline.icons`		boolean	(default v:true)
+`g:bufferline.icons`		boolean, string	(default v:true)
 
 	Controls if icons are rendered on each tab.
+	If set to "numbers", will show buffer index in the tabline
 
 						    *g:bufferline.closable*
 `g:bufferline.closable`		boolean	(default v:true)
