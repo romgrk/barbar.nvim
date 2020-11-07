@@ -73,7 +73,12 @@ local function render()
 
   -- Store current buffer to open new ones next to this one
   if nvim.buf_get_option(current, 'buflisted') then
-    state.last_current_buffer = current
+    local ok, is_empty = pcall(api.nvim_buf_get_var, current, 'empty_buffer')
+    if ok and is_empty then
+      state.last_current_buffer = nil
+    else
+      state.last_current_buffer = current
+    end
   end
 
   local opts = vim.g.bufferline

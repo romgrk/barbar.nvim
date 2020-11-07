@@ -129,11 +129,14 @@ local function open_buffers(new_buffers)
   -- Insert the buffers where they go
   for i, new_buffer in ipairs(new_buffers) do
     if utils.index(m.buffers, new_buffer) == nil then
+      local actual_index = new_index
       -- For special buffers, we add them at the end
       if vim.fn.getbufvar(new_buffer, '&buftype') ~= '' then
-        new_index = len(m.buffers) + 1
+        actual_index = len(m.buffers) + 1
+      else
+        new_index = new_index + 1
       end
-      table.insert(m.buffers, new_index, new_buffer)
+      table.insert(m.buffers, actual_index, new_buffer)
     end
   end
 
