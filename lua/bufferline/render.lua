@@ -233,7 +233,7 @@ local function render()
   -- To prevent the expansion of the last click group
   result = result .. '%0@BufferlineMainClickHandler@'
 
-  if layout.actual_width + 1 <= layout.available_width then
+  if layout.actual_width + 1 <= layout.available_width and len(items) > 0 then
     local separatorPrefix = hl('BufferInactiveSign')
     local separator = icons.bufferline_separator_inactive
     result = result .. separatorPrefix .. separator
