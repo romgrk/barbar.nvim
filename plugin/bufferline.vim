@@ -9,12 +9,16 @@ set showtabline=2
 function! bufferline#enable()
    augroup bufferline
       au!
-      au BufReadPost  * call <SID>on_buffer_open(expand('<abuf>'))
-      au BufNewFile   * call <SID>on_buffer_open(expand('<abuf>'))
-      au BufDelete    * call <SID>on_buffer_close(expand('<abuf>'))
-      au BufWritePost * call <SID>check_modified()
-      au TextChanged  * call <SID>check_modified()
-      au ColorScheme  * call bufferline#highlight#setup()
+      au BufReadPost    * call <SID>on_buffer_open(expand('<abuf>'))
+      au BufNewFile     * call <SID>on_buffer_open(expand('<abuf>'))
+      au BufDelete      * call <SID>on_buffer_close(expand('<abuf>'))
+      au BufWritePost   * call <SID>check_modified()
+      au ColorScheme    * call bufferline#highlight#setup()
+      if exists('##BufModifiedSet')
+      au BufModifiedSet * call <SID>check_modified()
+      else
+      au TextChanged    * call <SID>check_modified()
+      end
    augroup END
 
    function! s:did_load (...)
