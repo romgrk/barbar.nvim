@@ -35,6 +35,7 @@ function bufferline#highlight#setup()
    \ ['BufferInactiveMod',    fg_modified, bg_inactive],
    \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
    \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
+   \ ['BufferTabpages',       fg_special,  bg_inactive, 'bold'],
    \ ])
 endfunc
 

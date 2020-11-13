@@ -9,10 +9,20 @@ local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local len = utils.len
 
-local function calculate_used_width(state, base_width)
+local function calculate_tabpages_width(state)
+  local current = nvim.get_current_tabpage()
+  local total   = vim.fn.tabpagenr('$')
+  if not vim.g.bufferline.tabpages or total == 1 then
+    return 0
+  end
+  return 1 + #tostring(current) + 1 + #tostring(total) + 1
+end
+
+local function calculate_buffers_width(state, base_width)
   local sum = 0
 
-  -- local sum += bufferline#tabpages#width()
+  sum = sum + calculate_tabpages_width(state)
+
   local widths = {}
 
   for i, buffer_number in ipairs(state.buffers) do
@@ -45,10 +55,13 @@ local function calculate(state)
 
   local available_width = vim.o.columns
 
-  local used_width, base_widths = calculate_used_width(state, base_width)
+  local used_width, base_widths = calculate_buffers_width(state, base_width)
+  local tabpages_width = calculate_tabpages_width(state, base_width)
+
+  local buffers_width = available_width - tabpages_width
 
   local buffers_length               = len(state.buffers)
-  local remaining_width              = math.max(available_width - used_width, 0)
+  local remaining_width              = math.max(buffers_width - used_width, 0)
   local remaining_width_per_buffer   = math.floor(remaining_width / buffers_length)
   local remaining_padding_per_buffer = math.floor(remaining_width_per_buffer / 2)
   local padding_width                = math.min(remaining_padding_per_buffer, opts.maximum_padding)
@@ -57,6 +70,8 @@ local function calculate(state)
 
   return {
     available_width = available_width,
+    buffers_width = buffers_width,
+    tabpages_width = tabpages_width,
     used_width = used_width,
     base_width = base_width,
     padding_width = padding_width,
@@ -71,7 +86,7 @@ end
 
 local exports = {
   calculate = calculate,
-  calculate_used_width = calculate_used_width,
+  calculate_buffers_width = calculate_buffers_width,
   calculate_dimensions = calculate_dimensions,
 }
 

@@ -193,8 +193,8 @@ local function render()
 
       if state.scroll > start then
         state.set_scroll(start)
-      elseif state.scroll + layout.available_width < end_ then
-        state.set_scroll(state.scroll + (end_ - (state.scroll + layout.available_width)))
+      elseif state.scroll + layout.buffers_width < end_ then
+        state.set_scroll(state.scroll + (end_ - (state.scroll + layout.buffers_width)))
       end
     end
 
@@ -205,7 +205,7 @@ local function render()
   -- Create actual tabline string
   local result = ''
 
-  local max_scroll = math.max(layout.used_width - layout.available_width, 0)
+  local max_scroll = math.max(layout.used_width - layout.buffers_width, 0)
   local scroll = math.min(state.scroll_current, max_scroll)
   local accumulated_width = 0
   local needed_width = scroll
@@ -219,8 +219,8 @@ local function render()
         accumulated_width = accumulated_width + diff
       end
     else
-      if accumulated_width + item.width > layout.available_width then
-        local diff = layout.available_width - accumulated_width
+      if accumulated_width + item.width > layout.buffers_width then
+        local diff = layout.buffers_width - accumulated_width
         result = result .. slice_groups_right(item.groups, diff)
         accumulated_width = accumulated_width + diff
         break
@@ -233,10 +233,16 @@ local function render()
   -- To prevent the expansion of the last click group
   result = result .. '%0@BufferlineMainClickHandler@'
 
-  if layout.actual_width + 1 <= layout.available_width and len(items) > 0 then
+  if layout.actual_width + 1 <= layout.buffers_width and len(items) > 0 then
     local separatorPrefix = hl('BufferInactiveSign')
     local separator = icons.bufferline_separator_inactive
     result = result .. separatorPrefix .. separator
+  end
+
+  local current_tabpage = nvim.get_current_tabpage()
+  local total_tabpages  = vim.fn.tabpagenr('$')
+  if layout.tabpages_width > 0 then
+    result = result .. '%=%#BufferTabpages# ' .. tostring(current_tabpage) .. '/' .. tostring(total_tabpages) .. ' '
   end
 
   -- vim.g.layout = {
