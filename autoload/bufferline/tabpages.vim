@@ -28,6 +28,8 @@ function! bufferline#tabpages#render()
 
   let current = tabpagenr()
 
+	call getchar()
+
   let result = '%=%#TabLineSel# ' . current . '/' . last . ' '
 
   return result

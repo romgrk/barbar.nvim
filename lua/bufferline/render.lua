@@ -155,7 +155,7 @@ local function render()
       close = icon .. ' '
 
       if click_enabled then
-        closePrefix = 
+        closePrefix =
             '%' .. buffer_number .. '@BufferlineCloseClickHandler@' .. closePrefix
       end
     end
@@ -239,7 +239,7 @@ local function render()
     result = result .. separatorPrefix .. separator
   end
 
-  local current_tabpage = nvim.get_current_tabpage()
+  local current_tabpage = vim.fn.tabpagenr()
   local total_tabpages  = vim.fn.tabpagenr('$')
   if layout.tabpages_width > 0 then
     result = result .. '%=%#BufferTabpages# ' .. tostring(current_tabpage) .. '/' .. tostring(total_tabpages) .. ' '
