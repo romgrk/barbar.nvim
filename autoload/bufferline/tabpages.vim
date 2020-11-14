@@ -10,7 +10,7 @@ function! bufferline#tabpages#width()
     return 0
   end
 
-  let current = nvim_get_current_tabpage()
+  let current = tabpagenr()
 
   return 2 + len(string(current)) + len(string(last))
 endfunc
@@ -26,7 +26,7 @@ function! bufferline#tabpages#render()
     return ''
   end
 
-  let current = nvim_get_current_tabpage()
+  let current = tabpagenr()
 
   let result = '%=%#TabLineSel# ' . current . '/' . last . ' '
 

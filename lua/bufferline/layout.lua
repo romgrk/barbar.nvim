@@ -10,7 +10,7 @@ local utils = require'bufferline.utils'
 local len = utils.len
 
 local function calculate_tabpages_width(state)
-  local current = nvim.get_current_tabpage()
+  local current = vim.fn.tabpagenr()
   local total   = vim.fn.tabpagenr('$')
   if not vim.g.bufferline.tabpages or total == 1 then
     return 0
