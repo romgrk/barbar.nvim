@@ -43,7 +43,7 @@ function! s:fg(groups, default)
    for group in a:groups
       let hl = nvim_get_hl_by_name(group,   1)
       if has_key(hl, 'foreground')
-         return printf("#%x", hl.foreground)
+         return printf("#%06x", hl.foreground)
       end
    endfor
    return a:default
@@ -53,7 +53,7 @@ function! s:bg(groups, default)
    for group in a:groups
       let hl = nvim_get_hl_by_name(group,   1)
       if has_key(hl, 'background')
-         return printf("#%x", hl.background)
+         return printf("#%06x", hl.background)
       end
    endfor
    return a:default
