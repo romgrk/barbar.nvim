@@ -38,7 +38,7 @@ function! bufferline#enable()
 
       call bufferline#update()
    endfunc
-   call timer_start(25, function('s:did_load'))
+   call timer_start(1, function('s:did_load'))
 
    call bufferline#highlight#setup()
 endfunc
@@ -111,21 +111,8 @@ let icons = extend({
 " Section: Bufferline state
 "==========================
 
-" Hl groups used for coloring
-let s:hl_status = ['Inactive', 'Visible', 'Current']
-
 " Last value for tabline
 let s:last_tabline = ''
-
-" Current buffers in tabline (ordered)
-let s:buffers = []
-let s:buffers_by_id = {} " Map<String, [nameWidth: Number, restOfWidth: Number]> 
-
-" Last current buffer number
-let s:last_current_buffer = v:null
-
-" If the user is in buffer-picking mode
-let s:is_picking_buffer = v:false
 
 " Debugging
 " let g:events = []
