@@ -233,7 +233,7 @@ function m.update_names()
   end
 end
 
-function m.get_updated_buffers()
+function m.get_updated_buffers(update_names)
   local current_buffers = vim.fn['bufferline#filter']('&buflisted')
   local new_buffers =
     filter(
@@ -270,7 +270,7 @@ function m.get_updated_buffers()
   m.buffers =
     filter(function(b) return nvim.buf_is_valid(b) end, m.buffers)
 
-  if did_change then
+  if did_change or update_names then
     m.update_names()
   end
 

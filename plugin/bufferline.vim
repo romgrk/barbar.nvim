@@ -25,6 +25,7 @@ function! bufferline#enable()
       augroup bufferline_update
          au!
          au BufNew                 * call bufferline#update()
+         au BufNewFile             * call bufferline#update(v:true)
          au BufEnter               * call bufferline#update()
          au BufWipeout             * call bufferline#update()
          au BufWinEnter            * call bufferline#update()
@@ -121,8 +122,8 @@ let s:last_tabline = ''
 " Section: Main functions
 "========================
 
-function! bufferline#update()
-   let new_value = bufferline#render()
+function! bufferline#update(...)
+   let new_value = bufferline#render(a:0 > 0 ? a:1 : v:false)
    if new_value == s:last_tabline
       return
    end
@@ -130,12 +131,12 @@ function! bufferline#update()
    let s:last_tabline = new_value
 endfu
 
-function! bufferline#update_async()
-   call timer_start(1, {->bufferline#update()})
+function! bufferline#update_async(...)
+   call timer_start(1, {->bufferline#update(a:0 > 0 ? a:1 : v:false)})
 endfu
 
-function! bufferline#render() abort
-   let result = luaeval("require'bufferline.render'.render_safe()")
+function! bufferline#render(update_names) abort
+   let result = luaeval("require'bufferline.render'.render_safe(_A)", a:update_names)
 
    if result[0]
       return result[1]
