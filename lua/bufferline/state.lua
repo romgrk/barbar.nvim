@@ -319,11 +319,33 @@ end
 local function goto_buffer_relative (direction)
   m.get_updated_buffers()
 
-  local currentnr = vim.fn.bufnr('%')
-  local idx = utils.index(m.buffers, currentnr)
+  local current = vim.fn.bufnr('%')
+  local current_win = nvim.get_current_win()
+  local is_listed = nvim.buf_get_option(current, 'buflisted')
+
+  -- Check previous window first
+  if not is_listed then
+    nvim.command('silent wincmd p')
+    current = vim.fn.bufnr('%')
+    is_listed = nvim.buf_get_option(current, 'buflisted')
+  end
+  -- Check all windows now
+  if not is_listed then
+    local wins = nvim.list_wins()
+    for i, win in ipairs(wins) do
+      current = nvim.win_get_buf(win)
+      is_listed = nvim.buf_get_option(current, 'buflisted')
+      if is_listed then
+        nvim.set_current_win(win)
+        break
+      end
+    end
+  end
+
+  local idx = utils.index(m.buffers, current)
 
   if idx == nil then
-    print("Couldn't find buffer " .. currentnr .. " in the list: " .. vim.inspect(state.buffers))
+    print("Couldn't find buffer " .. current .. " in the list: " .. vim.inspect(m.buffers))
     return
   elseif idx == 1 and direction == -1 then
     idx = len(m.buffers)
