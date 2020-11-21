@@ -82,12 +82,12 @@ local function render(update_names)
   end
 
   local opts = vim.g.bufferline
-  local icons = vim.g.icons
+  local icons = setmetatable(opts, {__index = function(_, k) return opts['icon_'..k] end})
 
   local click_enabled = vim.fn.has('tablineat') and opts.clickable
-  local has_icons = opts.icons ~= false
-  local has_numbers = opts.icons == 'numbers'
   local has_close = opts.closable
+  local has_icons = (opts.icons == true) or (opts.icons == 'both')
+  local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
 
   local layout = Layout.calculate(state)
 
@@ -103,6 +103,7 @@ local function render(update_names)
       buffer_name, layout.base_width, layout.padding_width)
 
     local activity = Buffer.get_activity(buffer_number)
+    local is_inactive = activity == 0
     local is_visible = activity == 1
     local is_current = activity == 2
     -- local is_inactive = activity == 0
@@ -113,9 +114,9 @@ local function render(update_names)
     local mod = is_modified and 'Mod' or ''
 
     local separatorPrefix = hl('Buffer' .. status .. 'Sign')
-    local separator = status == 'Inactive' and
-      icons.bufferline_separator_inactive or
-      icons.bufferline_separator_active
+    local separator = is_inactive and
+      icons.separator_inactive or
+      icons.separator_active
 
     local namePrefix = hl('Buffer' .. status .. mod)
     local name =
@@ -131,14 +132,16 @@ local function render(update_names)
       icon =
         (letter ~= nil and letter or ' ') ..
         (has_icons and ' ' or '')
-    elseif has_icons then
+    else
       if has_numbers then
         local number_text = tostring(i)
         iconPrefix = ''
-        icon = number_text .. (#number_text > 1 and '' or ' ')
-      else
+        icon = icon .. number_text .. ' '
+      end
+
+      if has_icons then
         local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
-        iconPrefix = hl(status ~= 'Inactive' and iconHl or 'BufferInactive')
+        iconPrefix = icon .. hl(is_inactive and 'BufferInactive' or iconHl)
         icon = iconChar .. ' '
       end
     end
@@ -148,8 +151,8 @@ local function render(update_names)
     if has_close then
       local icon =
         (not is_modified and
-          icons.bufferline_close_tab or
-          icons.bufferline_close_tab_modified)
+          icons.close_tab or
+          icons.close_tab_modified)
 
       closePrefix = namePrefix
       close = icon .. ' '
@@ -234,7 +237,7 @@ local function render(update_names)
   result = result .. '%0@BufferlineMainClickHandler@'
 
   if layout.actual_width + 1 <= layout.buffers_width and len(items) > 0 then
-    result = result .. hl('BufferTabpageFill') .. icons.bufferline_separator_inactive
+    result = result .. hl('BufferTabpageFill') .. icons.separator_inactive
   end
 
   local current_tabpage = vim.fn.tabpagenr()

@@ -88,28 +88,21 @@ command!                BufferCloseBuffersRight    lua require'bufferline.state'
 "=================
 
 let bufferline = extend({
-\ 'shadow': v:true,
 \ 'animation': v:true,
-\ 'icons': v:true,
-\ 'closable': v:true,
-\ 'semantic_letters': v:true,
 \ 'clickable': v:true,
+\ 'closable': v:true,
+\ 'icon_close_tab': '',
+\ 'icon_close_tab_modified': '●',
+\ 'icon_separator_active':   '▎',
+\ 'icon_separator_inactive': '▎',
+\ 'icons': v:true,
+\ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \ 'maximum_padding': 4,
+\ 'semantic_letters': v:true,
+\ 'shadow': v:true,
 \ 'tabpages': v:true,
 \ 'unsafe': v:false,
-\ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \}, get(g:, 'bufferline', {}))
-
-" Default icons
-let icons = extend({
-\ 'bufferline_default_file': '',
-\ 'bufferline_separator_active':   '▎',
-\ 'bufferline_separator_inactive': '▎',
-\ 'bufferline_close_tab': '',
-\ 'bufferline_close_tab_modified': '●',
-\ 'bufferline_arrow_left': '',
-\ 'bufferline_arrow_right': '',
-\}, get(g:, 'icons', {})) " 
 
 "==========================
 " Section: Bufferline state
