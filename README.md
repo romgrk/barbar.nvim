@@ -164,7 +164,7 @@ let bufferline.semantic_letters = v:true
 " New buffer letters are assigned in this order. This order is
 " optimal for the qwerty keyboard layout but might need adjustement
 " for other layouts.
-let bufferline.letters = 
+let bufferline.letters =
   \ 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP'
 
 " Sets the maximum padding width with which to surround each tab
@@ -174,7 +174,7 @@ let bufferline.maximum_padding = 4
 
 ### Highlighting
 
-For the highligh groups, here are the default ones. Your colorscheme
+For the highlight groups, here are the default ones. Your colorscheme
 can override them by defining them.
 
 ```vim
@@ -212,6 +212,8 @@ function bufferline#highlight#setup()
    \ ['BufferInactiveMod',    fg_modified, bg_inactive],
    \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
    \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
+   \ ['BufferTabpages',       fg_special,  bg_inactive, 'bold'],
+   \ ['BufferTabpageFill',    fg_inactive, bg_inactive],
    \ ])
 endfunc
 ```
@@ -231,5 +233,5 @@ No, barbar has nothing to do with barbarians.
 
 ## License
 
-barbar.nvim: Distributed under the terms of the JSON license.  
-bbye.vim: Distributed under the terms of the GNU Affero license.  
+barbar.nvim: Distributed under the terms of the JSON license.
+bbye.vim: Distributed under the terms of the GNU Affero license.
