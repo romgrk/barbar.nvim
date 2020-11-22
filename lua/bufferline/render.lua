@@ -182,7 +182,8 @@ local function render(update_names)
     local padding = string.rep(' ', layout.padding_width)
 
     local item = {
-      width = buffer_data.width or (layout.base_widths[i] + 2 * layout.padding_width),
+      width = buffer_data.width
+        or (layout.padding_width + layout.base_widths[i] + layout.padding_width),
       groups = vim.list_extend({
         { clickable,       ''},
         { separatorPrefix, separator},
@@ -243,7 +244,7 @@ local function render(update_names)
   -- To prevent the expansion of the last click group
   result = result .. '%0@BufferlineMainClickHandler@' .. hl('BufferTabpageFill')
 
-  if layout.actual_width + 1 <= layout.buffers_width and len(items) > 0 then
+  if layout.actual_width + len(icons.separator_inactive) <= layout.buffers_width and len(items) > 0 then
     result = result .. icons.separator_inactive
   end
 
