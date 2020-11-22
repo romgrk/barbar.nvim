@@ -131,7 +131,7 @@ local function render(update_names)
         -- Prefix
         hl('Buffer' .. status .. 'Target'),
         -- Icon
-        letter and letter or '',
+        letter and letter..' ' or '',
       }
     elseif has_numbers then
       local number_text = tostring(i)
@@ -149,7 +149,7 @@ local function render(update_names)
         --[[Prefix]]
         hl(is_inactive and 'BufferInactive' or iconHl),
         -- Icon
-        (has_numbers and '' or ' ') .. iconChar .. ' '
+        iconChar .. ' '
       }
     end
 

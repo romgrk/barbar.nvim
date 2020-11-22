@@ -44,6 +44,7 @@ local function calculate_buffers_width(state, base_width)
         local letter = get_letter(buffer_number)
         width = width
           + (letter and len(letter) or 0) -- buffer-letter
+          + (letter and 1 or 0) -- space-after-buffer-letter
       elseif opts.icons == 'both' or opts.icons == 'numbers' then
         width = width
           + len(tostring(i)) -- buffer-index
@@ -69,12 +70,10 @@ local function calculate(state)
   local opts = vim.g.bufferline
 
   local has_icons = (opts.icons == true) or (opts.icons == 'both')
-  local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
 
-  -- separator [+ space-before-icon] [+ icon + space-after-icon] + name + space-after-name
+  -- separator [+ icon + space-after-icon] + name + space-after-name
   local base_width =
-    (has_numbers and 0 or 1) -- space-before-icon
-    + (has_icons and (1 + 1) or 0) -- icon + space-after-icon
+    (has_icons and (1 + 1) or 0) -- icon + space-after-icon
         -- name
     + 1 -- space-after-name
 
