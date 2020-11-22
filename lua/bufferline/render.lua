@@ -124,26 +124,36 @@ local function render(update_names)
         slice(buffer_name, 1) or
         buffer_name
 
-    local iconPrefix = ''
-    local icon = ''
+    local buffer_icons = {}
     if state.is_picking_buffer then
       local letter = JumpMode.get_letter(buffer_number)
-      iconPrefix = hl('Buffer' .. status .. 'Target')
-      icon =
+      buffer_icons[#buffer_icons+1] = {
+        -- Prefix
+        hl('Buffer' .. status .. 'Target'),
+        -- Icon
         (letter ~= nil and letter or ' ') ..
         (has_numbers and ' ' or '') ..
         (has_icons and ' ' or '')
+      }
     else
       if has_numbers then
         local number_text = tostring(i)
-        iconPrefix = ''
-        icon = number_text .. ' '
+        buffer_icons[#buffer_icons+1] = {
+          -- Prefix
+          '',
+          -- Icon
+          number_text .. ' '
+        }
       end
 
       if has_icons then
         local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
-        iconPrefix = icon .. hl(is_inactive and 'BufferInactive' or iconHl)
-        icon = (has_numbers and '' or ' ') .. iconChar .. ' '
+        buffer_icons[#buffer_icons+1] = {
+          --[[Prefix]]
+          hl(is_inactive and 'BufferInactive' or iconHl),
+          -- Icon
+          (has_numbers and '' or ' ') .. iconChar .. ' '
+        }
       end
     end
 
@@ -173,16 +183,16 @@ local function render(update_names)
 
     local item = {
       width = buffer_data.width or (layout.base_widths[i] + 2 * layout.padding_width),
-      groups = {
+      groups = vim.list_extend({
         { clickable,       ''},
         { separatorPrefix, separator},
-        { '',              padding},
-        { iconPrefix,      icon},
+        { '',              padding}
+      }, vim.list_extend(buffer_icons, {
         { namePrefix,      name},
         { '',              padding},
         { '',              ' '},
         { closePrefix,     close},
-      }
+      }))
     }
 
     if is_current then

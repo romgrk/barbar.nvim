@@ -4,17 +4,16 @@
 --
 
 local vim = vim
-local api = vim.api
+local nvim = require'bufferline.nvim'
 local bufname = vim.fn.bufname
 local fnamemodify = vim.fn.fnamemodify
 local split = vim.split
 local join = table.concat
-local strwidth = vim.fn.strwidth
 
 local TYPE_STRING = 'string'
 
 local function len(value)
-  return type(value) == TYPE_STRING and strwidth(value) or #value
+  return type(value) == TYPE_STRING and nvim.strwidth(value) or #value
 end
 
 local function index(tbl, n)

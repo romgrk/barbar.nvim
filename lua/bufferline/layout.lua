@@ -4,7 +4,6 @@
 --
 
 local vim = vim
-local api = vim.api
 local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local len = utils.len
