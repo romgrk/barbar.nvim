@@ -134,7 +134,7 @@ local function render(update_names)
         (has_icons and ' ' or '')
     else
       if has_numbers then
-        local number_text = tostring(i)
+        local number_text = tostring(buffer_number)
         iconPrefix = ''
         icon = icon .. number_text .. ' '
       end
@@ -142,7 +142,7 @@ local function render(update_names)
       if has_icons then
         local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
         iconPrefix = icon .. hl(is_inactive and 'BufferInactive' or iconHl)
-        icon = iconChar .. ' '
+        icon = (has_numbers and '' or ' ') .. iconChar .. ' '
       end
     end
 
@@ -171,9 +171,16 @@ local function render(update_names)
     local padding = string.rep(' ', layout.padding_width)
 
     local width =
-      buffer_data.width ~= nil and
-        buffer_data.width or
-        (layout.base_widths[i] + 2 * layout.padding_width)
+      buffer_data.width or
+      (layout.base_widths[i] + 2 * layout.padding_width)
+
+    if has_icons and not has_numbers then
+      width = width + 2
+    elseif has_icons then
+      width = width + 1
+    end
+
+    if has_numbers then width = width + #tostring(buffer_number) + 1 end
 
     local item = {
       width = width,
@@ -208,8 +215,7 @@ local function render(update_names)
   -- Create actual tabline string
   local result = ''
 
-  local max_scroll = math.max(layout.used_width - layout.buffers_width, 0)
-  local scroll = math.min(state.scroll_current, max_scroll)
+  local scroll = state.scroll_current
   local accumulated_width = 0
   local needed_width = scroll
 
@@ -234,10 +240,10 @@ local function render(update_names)
   end
 
   -- To prevent the expansion of the last click group
-  result = result .. '%0@BufferlineMainClickHandler@'
+  result = result .. '%0@BufferlineMainClickHandler@' .. hl('BufferTabpageFill')
 
   if layout.actual_width + 1 <= layout.buffers_width and len(items) > 0 then
-    result = result .. hl('BufferTabpageFill') .. icons.separator_inactive
+    result = result .. icons.separator_inactive
   end
 
   local current_tabpage = vim.fn.tabpagenr()

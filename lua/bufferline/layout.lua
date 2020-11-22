@@ -21,8 +21,6 @@ end
 local function calculate_buffers_width(state, base_width)
   local sum = 0
 
-  sum = sum + calculate_tabpages_width(state)
-
   local widths = {}
 
   for i, buffer_number in ipairs(state.buffers) do
@@ -56,7 +54,7 @@ local function calculate(state)
   local available_width = vim.o.columns
 
   local used_width, base_widths = calculate_buffers_width(state, base_width)
-  local tabpages_width = calculate_tabpages_width(state, base_width)
+  local tabpages_width = calculate_tabpages_width(state)
 
   local buffers_width = available_width - tabpages_width
 
