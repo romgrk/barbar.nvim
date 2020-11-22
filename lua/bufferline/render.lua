@@ -131,30 +131,26 @@ local function render(update_names)
         -- Prefix
         hl('Buffer' .. status .. 'Target'),
         -- Icon
-        (letter ~= nil and letter or ' ') ..
-        (has_numbers and ' ' or '') ..
-        (has_icons and ' ' or '')
+        letter and letter or '',
       }
-    else
-      if has_numbers then
-        local number_text = tostring(i)
-        buffer_icons[#buffer_icons+1] = {
-          -- Prefix
-          '',
-          -- Icon
-          number_text .. ' '
-        }
-      end
+    elseif has_numbers then
+      local number_text = tostring(i)
+      buffer_icons[#buffer_icons+1] = {
+        -- Prefix
+        '',
+        -- Icon
+        number_text .. ' '
+      }
+    end
 
-      if has_icons then
-        local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
-        buffer_icons[#buffer_icons+1] = {
-          --[[Prefix]]
-          hl(is_inactive and 'BufferInactive' or iconHl),
-          -- Icon
-          (has_numbers and '' or ' ') .. iconChar .. ' '
-        }
-      end
+    if has_icons then
+      local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
+      buffer_icons[#buffer_icons+1] = {
+        --[[Prefix]]
+        hl(is_inactive and 'BufferInactive' or iconHl),
+        -- Icon
+        (has_numbers and '' or ' ') .. iconChar .. ' '
+      }
     end
 
     local closePrefix = ''

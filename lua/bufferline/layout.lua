@@ -20,7 +20,8 @@ local function calculate_tabpages_width()
 end
 
 local function calculate_buffers_width(state, base_width)
-  local Buffer = require'bufferline.buffer'
+  local get_activity = require'bufferline.buffer'.get_activity
+  local get_letter = require'bufferline.jump_mode'.get_letter
   local opts = vim.g.bufferline
   local sum = 0
   local widths = {}
@@ -34,12 +35,16 @@ local function calculate_buffers_width(state, base_width)
       width = buffer_data.dimensions[1] + buffer_data.dimensions[2]
     else
       width = base_width
-        + len(Buffer.get_activity(buffer_number) > 0 -- separator
+        + len(get_activity(buffer_number) > 0 -- separator
             and opts.icon_separator_active
             or opts.icon_separator_inactive)
         + len(buffer_name) -- name
 
-      if opts.icons == 'both' or opts.icons == 'numbers' then
+      if state.is_picking_buffer then
+        local letter = get_letter(buffer_number)
+        width = width
+          + (letter and len(letter) or 0) -- buffer-letter
+      elseif opts.icons == 'both' or opts.icons == 'numbers' then
         width = width
           + len(tostring(i)) -- buffer-index
           + 1 -- space-after-buffer-index
