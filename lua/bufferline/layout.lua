@@ -8,6 +8,7 @@ local api = vim.api
 local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local len = utils.len
+local strlen = vim.fn.strwidth
 
 local function calculate_tabpages_width(state)
   local current = vim.fn.tabpagenr()
@@ -15,12 +16,13 @@ local function calculate_tabpages_width(state)
   if not vim.g.bufferline.tabpages or total == 1 then
     return 0
   end
-  return 1 + #tostring(current) + 1 + #tostring(total) + 1
+  return 1 + strlen(tostring(current)) + 1 + strlen(tostring(total)) + 1
 end
 
 local function calculate_buffers_width(state, base_width)
+  local Buffer = require'bufferline.buffer'
+  local opts = vim.g.bufferline
   local sum = 0
-
   local widths = {}
 
   for i, buffer_number in ipairs(state.buffers) do
@@ -31,7 +33,24 @@ local function calculate_buffers_width(state, base_width)
     if buffer_data.closing then
       width = buffer_data.dimensions[1] + buffer_data.dimensions[2]
     else
-      width = base_width + len(buffer_name)
+      width = base_width + strlen(buffer_name)
+        + strlen(Buffer.get_activity(buffer_number) > 0
+            and opts.icon_separator_active
+            or opts.icon_separator_inactive
+          )
+
+      if opts.closable then
+        width = width
+          + strlen(not nvim.buf_get_option(buffer_number, 'modified')
+              and opts.icon_close_tab
+              or opts.icon_close_tab_modified
+            )
+          + 1
+      end
+
+      if opts.icons == 'both' or opts.icons == 'numbers' then
+        width = width + strlen(tostring(i)) + 2
+      end
     end
     sum = sum + width
     table.insert(widths, width)
@@ -43,13 +62,15 @@ end
 local function calculate(state)
   local opts = vim.g.bufferline
 
-  -- separator + icon + space-after-icon + space-after-name
+  local has_icons = (opts.icons == true) or (opts.icons == 'both')
+  local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
+
+  -- separator [+ space-before-icon] [+ icon] + space-after-icon + space-after-name [+ close-button]
   local base_width =
-      1 -- sign
-    + (opts.icons and 2 or 0)
+    (has_numbers and 0 or 1) -- space-before-icon
+    + (has_icons and 2 or 0) -- icon
         -- name
     + 1 -- space after name
-    + (opts.closable and 2 or 0)
 
   local available_width = vim.o.columns
 
@@ -79,7 +100,7 @@ local function calculate(state)
 end
 
 local function calculate_dimensions(buffer_name, base_width, padding_width)
-  return { len(buffer_name), base_width + padding_width * 2 }
+  return { strlen(buffer_name), base_width + padding_width * 2 }
 end
 
 local exports = {

@@ -131,12 +131,13 @@ local function render(update_names)
       iconPrefix = hl('Buffer' .. status .. 'Target')
       icon =
         (letter ~= nil and letter or ' ') ..
+        (has_numbers and ' ' or '') ..
         (has_icons and ' ' or '')
     else
       if has_numbers then
         local number_text = tostring(i)
         iconPrefix = ''
-        icon = icon .. number_text .. ' '
+        icon = ' ' .. number_text .. ' '
       end
 
       if has_icons then
@@ -170,22 +171,8 @@ local function render(update_names)
 
     local padding = string.rep(' ', layout.padding_width)
 
-    local width = buffer_data.width
-
-    if not width then
-      width = layout.base_widths[i] + 2 * layout.padding_width
-
-      if has_icons and not has_numbers then
-        width = width + 2
-      elseif has_icons then
-        width = width + 1
-      end
-
-      if has_numbers then width = width + len(tostring(i)) + 1 end
-    end
-
     local item = {
-      width = width,
+      width = buffer_data.width or (layout.base_widths[i] + 2 * layout.padding_width),
       groups = {
         { clickable,       ''},
         { separatorPrefix, separator},
@@ -217,7 +204,8 @@ local function render(update_names)
   -- Create actual tabline string
   local result = ''
 
-  local scroll = state.scroll_current
+  local max_scroll = math.max(layout.used_width - layout.buffers_width, 0)
+  local scroll = math.min(state.scroll_current, max_scroll)
   local accumulated_width = 0
   local needed_width = scroll
 
