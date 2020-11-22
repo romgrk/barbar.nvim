@@ -170,17 +170,19 @@ local function render(update_names)
 
     local padding = string.rep(' ', layout.padding_width)
 
-    local width =
-      buffer_data.width or
-      (layout.base_widths[i] + 2 * layout.padding_width)
+    local width = buffer_data.width
 
-    if has_icons and not has_numbers then
-      width = width + 2
-    elseif has_icons then
-      width = width + 1
+    if not width then
+      width = layout.base_widths[i] + 2 * layout.padding_width
+
+      if has_icons and not has_numbers then
+        width = width + 2
+      elseif has_icons then
+        width = width + 1
+      end
+
+      if has_numbers then width = width + len(tostring(i)) + 1 end
     end
-
-    if has_numbers then width = width + len(tostring(i)) + 1 end
 
     local item = {
       width = width,
