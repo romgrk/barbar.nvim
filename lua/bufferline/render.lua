@@ -180,7 +180,7 @@ local function render(update_names)
       width = width + 1
     end
 
-    if has_numbers then width = width + #tostring(buffer_number) + 1 end
+    if has_numbers then width = width + len(tostring(buffer_number)) + 1 end
 
     local item = {
       width = width,
