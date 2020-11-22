@@ -88,15 +88,14 @@ local function calculate(state)
   local actual_width                 = used_width + (padding_width * buffers_length * SIDES_OF_BUFFER)
 
   return {
+    actual_width = actual_width,
     available_width = available_width,
+    base_width = base_width,
+    base_widths = base_widths,
     buffers_width = buffers_width,
+    padding_width = padding_width,
     tabpages_width = tabpages_width,
     used_width = used_width,
-    base_width = base_width,
-    padding_width = padding_width,
-    actual_width = actual_width,
-    base_widths = base_widths,
-    buffers_length = buffers_length,
   }
 end
 
