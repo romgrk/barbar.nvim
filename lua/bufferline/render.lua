@@ -134,7 +134,7 @@ local function render(update_names)
         (has_icons and ' ' or '')
     else
       if has_numbers then
-        local number_text = tostring(buffer_number)
+        local number_text = tostring(i)
         iconPrefix = ''
         icon = icon .. number_text .. ' '
       end
@@ -180,7 +180,7 @@ local function render(update_names)
       width = width + 1
     end
 
-    if has_numbers then width = width + len(tostring(buffer_number)) + 1 end
+    if has_numbers then width = width + len(tostring(i)) + 1 end
 
     local item = {
       width = width,
