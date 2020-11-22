@@ -9,9 +9,12 @@ local bufname = vim.fn.bufname
 local fnamemodify = vim.fn.fnamemodify
 local split = vim.split
 local join = table.concat
+local strwidth = vim.fn.strwidth
+
+local TYPE_STRING = 'string'
 
 local function len(value)
-  return #value
+  return type(value) == TYPE_STRING and strwidth(value) or #value
 end
 
 local function index(tbl, n)
@@ -24,7 +27,7 @@ local function index(tbl, n)
 end
 
 local function slice(tbl, first, last)
-  if type(tbl) == 'string' then
+  if type(tbl) == TYPE_STRING then
     return string.sub(tbl, first, last)
   end
 

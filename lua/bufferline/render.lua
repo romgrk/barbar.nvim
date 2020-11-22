@@ -206,8 +206,9 @@ local function render(update_names)
 
   local max_scroll = math.max(layout.used_width - layout.buffers_width, 0)
   local scroll = math.min(state.scroll_current, max_scroll)
-  local accumulated_width = 0
   local needed_width = scroll
+
+  accumulated_width = 0
 
   for i, item in ipairs(items) do
     if needed_width > 0 then

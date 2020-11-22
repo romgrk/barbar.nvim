@@ -12,7 +12,7 @@ function! bufferline#tabpages#width()
 
   let current = tabpagenr()
 
-  return 2 + len(string(current)) + len(string(last))
+  return 2 + strwidth(string(current)) + strwidth(string(last))
 endfunc
 
 function! bufferline#tabpages#render()

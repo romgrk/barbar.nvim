@@ -69,10 +69,10 @@ function! s:get_unique_name (first, second)
    let length = 1
    let first_result  = join(first_parts[-length:], '/')
    let second_result = join(second_parts[-length:], '/')
-   while first_result == second_result && length < max([len(first_parts), len(second_parts)])
+   while first_result == second_result && length < max([strwidth(first_parts), strwidth(second_parts)])
       let length = length + 1
-      let first_result  = join(first_parts[-min([len(first_parts), length]):], '/')
-      let second_result = join(second_parts[-min([len(second_parts), length]):], '/')
+      let first_result  = join(first_parts[-min([strwidth(first_parts), length]):], '/')
+      let second_result = join(second_parts[-min([strwidth(second_parts), length]):], '/')
    endwhile
 
    return [first_result, second_result]

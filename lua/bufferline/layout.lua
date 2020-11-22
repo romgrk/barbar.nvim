@@ -8,7 +8,6 @@ local api = vim.api
 local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local len = utils.len
-local strlen = vim.fn.strwidth
 
 local function calculate_tabpages_width(state)
   local current = vim.fn.tabpagenr()
@@ -16,7 +15,7 @@ local function calculate_tabpages_width(state)
   if not vim.g.bufferline.tabpages or total == 1 then
     return 0
   end
-  return 1 + strlen(tostring(current)) + 1 + strlen(tostring(total)) + 1
+  return 1 + len(tostring(current)) + 1 + len(tostring(total)) + 1
 end
 
 local function calculate_buffers_width(state, base_width)
@@ -33,15 +32,15 @@ local function calculate_buffers_width(state, base_width)
     if buffer_data.closing then
       width = buffer_data.dimensions[1] + buffer_data.dimensions[2]
     else
-      width = base_width + strlen(buffer_name)
-        + strlen(Buffer.get_activity(buffer_number) > 0
+      width = base_width + len(buffer_name)
+        + len(Buffer.get_activity(buffer_number) > 0
             and opts.icon_separator_active
             or opts.icon_separator_inactive
           )
 
       if opts.closable then
         width = width
-          + strlen(not nvim.buf_get_option(buffer_number, 'modified')
+          + len(not nvim.buf_get_option(buffer_number, 'modified')
               and opts.icon_close_tab
               or opts.icon_close_tab_modified
             )
@@ -49,7 +48,7 @@ local function calculate_buffers_width(state, base_width)
       end
 
       if opts.icons == 'both' or opts.icons == 'numbers' then
-        width = width + strlen(tostring(i)) + 2
+        width = width + len(tostring(i)) + 2
       end
     end
     sum = sum + width
@@ -100,7 +99,7 @@ local function calculate(state)
 end
 
 local function calculate_dimensions(buffer_name, base_width, padding_width)
-  return { strlen(buffer_name), base_width + padding_width * 2 }
+  return { len(buffer_name), base_width + padding_width * 2 }
 end
 
 local exports = {
