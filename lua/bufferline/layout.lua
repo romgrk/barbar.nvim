@@ -8,6 +8,8 @@ local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local len = utils.len
 
+local SIDES_OF_BUFFER = 2
+
 local function calculate_tabpages_width()
   local current = vim.fn.tabpagenr()
   local total   = vim.fn.tabpagenr('$')
@@ -31,23 +33,24 @@ local function calculate_buffers_width(state, base_width)
     if buffer_data.closing then
       width = buffer_data.dimensions[1] + buffer_data.dimensions[2]
     else
-      width = base_width + len(buffer_name)
-        + len(Buffer.get_activity(buffer_number) > 0
+      width = base_width
+        + len(Buffer.get_activity(buffer_number) > 0 -- separator
             and opts.icon_separator_active
-            or opts.icon_separator_inactive
-          )
+            or opts.icon_separator_inactive)
+        + len(buffer_name) -- name
+
+      if opts.icons == 'both' or opts.icons == 'numbers' then
+        width = width
+          + len(tostring(i)) -- buffer-index
+          + 1 -- space-after-buffer-index
+      end
 
       if opts.closable then
         width = width
-          + len(not nvim.buf_get_option(buffer_number, 'modified')
+          + len(not nvim.buf_get_option(buffer_number, 'modified') -- close-icon
               and opts.icon_close_tab
-              or opts.icon_close_tab_modified
-            )
-          + 1
-      end
-
-      if opts.icons == 'both' or opts.icons == 'numbers' then
-        width = width + len(tostring(i)) + 1
+              or opts.icon_close_tab_modified)
+          + 1 -- space-after-close-icon
       end
     end
     sum = sum + width
@@ -63,12 +66,12 @@ local function calculate(state)
   local has_icons = (opts.icons == true) or (opts.icons == 'both')
   local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
 
-  -- separator [+ space-before-icon] [+ icon] + space-after-icon + space-after-name [+ close-button]
+  -- separator [+ space-before-icon] [+ icon + space-after-icon] + name + space-after-name
   local base_width =
     (has_numbers and 0 or 1) -- space-before-icon
-    + (has_icons and 2 or 0) -- icon
+    + (has_icons and (1 + 1) or 0) -- icon + space-after-icon
         -- name
-    + 1 -- space after name
+    + 1 -- space-after-name
 
   local available_width = vim.o.columns
 
@@ -80,10 +83,9 @@ local function calculate(state)
   local buffers_length               = len(state.buffers)
   local remaining_width              = math.max(buffers_width - used_width, 0)
   local remaining_width_per_buffer   = math.floor(remaining_width / buffers_length)
-  local remaining_padding_per_buffer = math.floor(remaining_width_per_buffer / 2)
+  local remaining_padding_per_buffer = math.floor(remaining_width_per_buffer / SIDES_OF_BUFFER)
   local padding_width                = math.min(remaining_padding_per_buffer, opts.maximum_padding)
-  local actual_width                 = used_width + padding_width * buffers_length
-
+  local actual_width                 = used_width + (padding_width * buffers_length * SIDES_OF_BUFFER)
 
   return {
     available_width = available_width,
@@ -94,11 +96,12 @@ local function calculate(state)
     padding_width = padding_width,
     actual_width = actual_width,
     base_widths = base_widths,
+    buffers_length = buffers_length,
   }
 end
 
 local function calculate_dimensions(buffer_name, base_width, padding_width)
-  return { len(buffer_name), base_width + padding_width * 2 }
+  return { len(buffer_name), base_width + padding_width * SIDES_OF_BUFFER }
 end
 
 local exports = {
