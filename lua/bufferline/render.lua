@@ -137,7 +137,7 @@ local function render(update_names)
       if has_numbers then
         local number_text = tostring(i)
         iconPrefix = ''
-        icon = ' ' .. number_text .. ' '
+        icon = number_text .. ' '
       end
 
       if has_icons then

@@ -9,7 +9,7 @@ local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local len = utils.len
 
-local function calculate_tabpages_width(state)
+local function calculate_tabpages_width()
   local current = vim.fn.tabpagenr()
   local total   = vim.fn.tabpagenr('$')
   if not vim.g.bufferline.tabpages or total == 1 then
@@ -48,7 +48,7 @@ local function calculate_buffers_width(state, base_width)
       end
 
       if opts.icons == 'both' or opts.icons == 'numbers' then
-        width = width + len(tostring(i)) + 2
+        width = width + len(tostring(i)) + 1
       end
     end
     sum = sum + width
@@ -74,7 +74,7 @@ local function calculate(state)
   local available_width = vim.o.columns
 
   local used_width, base_widths = calculate_buffers_width(state, base_width)
-  local tabpages_width = calculate_tabpages_width(state)
+  local tabpages_width = calculate_tabpages_width()
 
   local buffers_width = available_width - tabpages_width
 
