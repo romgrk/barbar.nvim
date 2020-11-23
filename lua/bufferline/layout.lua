@@ -21,7 +21,6 @@ end
 
 local function calculate_buffers_width(state, base_width)
   local get_activity = require'bufferline.buffer'.get_activity
-  local get_letter = require'bufferline.jump_mode'.get_letter
   local opts = vim.g.bufferline
   local sum = 0
   local widths = {}
@@ -40,15 +39,9 @@ local function calculate_buffers_width(state, base_width)
             or opts.icon_separator_inactive)
         + len(buffer_name) -- name
 
-      if state.is_picking_buffer then
-        local letter = get_letter(buffer_number)
-        width = width
-          + (letter and len(letter) or 0) -- buffer-letter
-          + (letter and 1 or 0) -- space-after-buffer-letter
-      elseif opts.icons == 'both' or opts.icons == 'numbers' then
+      if opts.icons == 'both' or opts.icons == 'numbers' then
         width = width
           + len(tostring(i)) -- buffer-index
-          + 1 -- space-after-buffer-index
       end
 
       if opts.closable then
@@ -71,10 +64,10 @@ local function calculate(state)
 
   local has_icons = (opts.icons == true) or (opts.icons == 'both')
 
-  -- separator [+ icon + space-after-icon] + name + space-after-name
+  -- [icon + space-after-icon] + space-after-name
   local base_width =
-    (has_icons and (1 + 1) or 0) -- icon + space-after-icon
-        -- name
+    1 -- space-for-buffer-identifier
+    + (has_icons and (1 + 1) or 0) -- icon + space-after-icon
     + 1 -- space-after-name
 
   local available_width = vim.o.columns

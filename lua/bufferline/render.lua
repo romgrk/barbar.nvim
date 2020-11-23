@@ -124,33 +124,32 @@ local function render(update_names)
         slice(buffer_name, 1) or
         buffer_name
 
-    local buffer_icons = {}
+    -- Either the buffer name or buffer id
+    local bufferIdPrefix = ''
+    local bufferId = ' '
+    -- The devicon
+    local iconPrefix = ''
+    local icon = ''
+
     if state.is_picking_buffer then
       local letter = JumpMode.get_letter(buffer_number)
-      buffer_icons[#buffer_icons+1] = {
-        -- Prefix
-        hl('Buffer' .. status .. 'Target'),
-        -- Icon
-        letter and letter..' ' or '',
-      }
-    elseif has_numbers then
-      local number_text = tostring(i)
-      buffer_icons[#buffer_icons+1] = {
-        -- Prefix
-        '',
-        -- Icon
-        number_text .. ' '
-      }
-    end
+      local number_length = has_numbers and len(tostring(i)) or 0
+      bufferIdPrefix = hl('Buffer' .. status .. 'Target')
+      bufferId = (letter or ' ') ..
+        string.rep(' ', number_length) ..
+        (has_icons and '  ' or '')
+    else
+      if has_numbers then
+        local number_text = tostring(i)
+        bufferIdPrefix = hl('Buffer' .. status .. 'Target')
+        bufferId = number_text .. ' '
+      end
 
-    if has_icons then
-      local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
-      buffer_icons[#buffer_icons+1] = {
-        --[[Prefix]]
-        hl(is_inactive and 'BufferInactive' or iconHl),
-        -- Icon
-        iconChar .. ' '
-      }
+      if has_icons then
+        local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
+        iconPrefix = hl(is_inactive and 'BufferInactive' or iconHl)
+        icon = iconChar .. ' '
+      end
     end
 
     local closePrefix = ''
@@ -180,16 +179,17 @@ local function render(update_names)
     local item = {
       width = buffer_data.width
         or (layout.padding_width + layout.base_widths[i] + layout.padding_width),
-      groups = vim.list_extend({
+      groups = {
         { clickable,       ''},
         { separatorPrefix, separator},
-        { '',              padding}
-      }, vim.list_extend(buffer_icons, {
+        { '',              padding},
+        { bufferIdPrefix,  bufferId},
+        { iconPrefix,      icon},
         { namePrefix,      name},
         { '',              padding},
         { '',              ' '},
         { closePrefix,     close},
-      }))
+      }
     }
 
     if is_current then
