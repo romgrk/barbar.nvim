@@ -43,6 +43,7 @@ local function calculate_buffers_width(state, base_width)
       if opts.icons == 'both' or opts.icons == 'numbers' then
         width = width
           + len(tostring(i)) -- buffer-index
+          + 1 -- space-after-buffer-index
       end
 
       if opts.closable then
@@ -67,8 +68,7 @@ local function calculate(state)
 
   -- [icon + space-after-icon] + space-after-name
   local base_width =
-    1 -- space-for-buffer-identifier
-    + (has_icons and (1 + 1) or 0) -- icon + space-after-icon
+    (has_icons and (1 + 1) or 0) -- icon + space-after-icon
     + 1 -- space-after-name
 
   local available_width = vim.o.columns

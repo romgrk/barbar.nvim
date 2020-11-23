@@ -120,25 +120,33 @@ local function render(update_names)
       icons.separator_active
 
     local namePrefix = hl('Buffer' .. status .. mod)
-    local name =
-      (not has_icons and state.is_picking_buffer) and
-        slice(buffer_name, 1) or
-        buffer_name
+    local name = buffer_name
 
     -- Either the buffer name or buffer id
     local bufferIdPrefix = ''
-    local bufferId = ' '
+    local bufferId = ''
     -- The devicon
     local iconPrefix = ''
     local icon = ''
 
     if state.is_picking_buffer then
+      local REDUCE_WIDTH = -1
+
       local letter = JumpMode.get_letter(buffer_number)
-      local number_length = has_numbers and strwidth(tostring(i)) or 0
+      local buffer_index_width = has_numbers and strwidth(tostring(i)) or REDUCE_WIDTH
+
+      -- Replace first character of buf name with jump letter
+      if letter and not (has_icons or has_numbers) then
+        name = slice(name, 2)
+      end
+
       bufferIdPrefix = hl('Buffer' .. status .. 'Target')
-      bufferId = (letter or ' ') ..
-        string.rep(' ', number_length) ..
-        (has_icons and '  ' or '')
+      bufferId =
+        string.rep(' ', buffer_index_width + (has_icons and 1 or REDUCE_WIDTH)) .. -- buffer-index-without-letter
+        (letter or ((has_icons or has_numbers) -- letter-over-icon
+          and ' ' -- one space when there's an icon
+          or '')) .. -- no space when there are no icons
+        ((has_icons or has_numbers) and ' ' or '') -- space-after-icon
     else
       if has_numbers then
         local number_text = tostring(i)
