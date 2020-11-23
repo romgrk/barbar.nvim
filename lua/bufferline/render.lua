@@ -179,7 +179,8 @@ local function render(update_names)
 
     local item = {
       width = buffer_data.width
-        or (layout.padding_width + layout.base_widths[i] + layout.padding_width),
+        -- <padding> <base_widths[i]> <padding>
+        or layout.base_widths[i] + (2 * layout.padding_width),
       groups = {
         { clickable,       ''},
         { separatorPrefix, separator},
@@ -212,11 +213,10 @@ local function render(update_names)
   -- Create actual tabline string
   local result = ''
 
+  local accumulated_width = 0
   local max_scroll = math.max(layout.used_width - layout.buffers_width, 0)
   local scroll = math.min(state.scroll_current, max_scroll)
   local needed_width = scroll
-
-  accumulated_width = 0
 
   for i, item in ipairs(items) do
     if needed_width > 0 then
