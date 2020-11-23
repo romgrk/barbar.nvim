@@ -24,8 +24,7 @@ function! bufferline#enable()
    function! s:did_load (...)
       augroup bufferline_update
          au!
-         au BufNew                 * call bufferline#update()
-         au BufNewFile             * call bufferline#update(v:true)
+         au BufNew                 * call bufferline#update(v:true)
          au BufEnter               * call bufferline#update()
          au BufWipeout             * call bufferline#update()
          au BufWinEnter            * call bufferline#update()
