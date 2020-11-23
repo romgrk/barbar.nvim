@@ -238,15 +238,17 @@ local function render(update_names)
   end
 
   -- To prevent the expansion of the last click group
-  result = result .. '%0@BufferlineMainClickHandler@' .. hl('BufferTabpageFill')
-
-  if layout.actual_width + len(icons.separator_inactive) <= layout.buffers_width and len(items) > 0 then
-    result = result .. icons.separator_inactive
-  end
+  result = result .. '%0@BufferlineMainClickHandler@'
 
   local current_tabpage = vim.fn.tabpagenr()
   local total_tabpages  = vim.fn.tabpagenr('$')
   if layout.tabpages_width > 0 then
+    result = result .. hl('BufferTabpageFill')
+
+    if layout.actual_width + len(icons.separator_inactive) <= layout.buffers_width and len(items) > 0 then
+      result = result .. icons.separator_inactive
+    end
+
     result = result .. '%=%#BufferTabpages# ' .. tostring(current_tabpage) .. '/' .. tostring(total_tabpages) .. ' '
   end
 
