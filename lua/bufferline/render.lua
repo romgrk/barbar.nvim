@@ -10,6 +10,7 @@ local utils = require'bufferline.utils'
 local get_icon = require'bufferline.get-icon'
 local len = utils.len
 local slice = utils.slice
+local strwidth = nvim.strwidth
 local reverse = utils.reverse
 local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
@@ -133,7 +134,7 @@ local function render(update_names)
 
     if state.is_picking_buffer then
       local letter = JumpMode.get_letter(buffer_number)
-      local number_length = has_numbers and len(tostring(i)) or 0
+      local number_length = has_numbers and strwidth(tostring(i)) or 0
       bufferIdPrefix = hl('Buffer' .. status .. 'Target')
       bufferId = (letter or ' ') ..
         string.rep(' ', number_length) ..
@@ -245,7 +246,7 @@ local function render(update_names)
   if layout.tabpages_width > 0 then
     result = result .. hl('BufferTabpageFill')
 
-    if layout.actual_width + len(icons.separator_inactive) <= layout.buffers_width and len(items) > 0 then
+    if layout.actual_width + strwidth(icons.separator_inactive) <= layout.buffers_width and len(items) > 0 then
       result = result .. icons.separator_inactive
     end
 

@@ -8,6 +8,7 @@ local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local len = utils.len
 local slice = utils.slice
+local strwidth = nvim.strwidth
 local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
 local fnamemodify = vim.fn.fnamemodify
@@ -47,7 +48,7 @@ local function assign_next_letter(bufnr)
   if vim.g.bufferline.semantic_letters == true then
     local name = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t:r')
 
-    for i = 1, len(name) do
+    for i = 1, strwidth(name) do
       local letter = string.lower(slice(name, i, i))
 
       if INDEX_BY_LETTER[letter] ~= nil then
