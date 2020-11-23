@@ -147,23 +147,6 @@ function! bufferline#render(update_names) abort
    echohl None
 endfu
 
-function! bufferline#session (...)
-   let name = ''
-
-   if exists('g:xolox#session#current_session_name')
-      let name = g:xolox#session#current_session_name
-   end
-
-   if empty(name)
-      let name = substitute(getcwd(), $HOME, '~', '')
-      if len(name) > 30
-         let name = pathshorten(name)
-      end
-   end
-
-   return '%#BufferPart#%( ' . name . ' %)'
-endfunc
-
 function! bufferline#pick_buffer()
    call luaeval("require'bufferline.jump_mode'.activate()")
 endfunc
