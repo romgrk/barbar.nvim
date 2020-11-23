@@ -10,10 +10,8 @@ local fnamemodify = vim.fn.fnamemodify
 local split = vim.split
 local join = table.concat
 
-local TYPE_STRING = 'string'
-
 local function len(value)
-  return type(value) == TYPE_STRING and nvim.strwidth(value) or #value
+  return type(value) == 'string' and nvim.strwidth(value) or #value
 end
 
 local function index(tbl, n)
@@ -26,7 +24,7 @@ local function index(tbl, n)
 end
 
 local function slice(tbl, first, last)
-  if type(tbl) == TYPE_STRING then
+  if type(tbl) == 'string' then
     return string.sub(tbl, first, last)
   end
 
