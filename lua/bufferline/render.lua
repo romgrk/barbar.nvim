@@ -150,7 +150,7 @@ local function render(update_names)
     else
       if has_numbers then
         local number_text = tostring(i)
-        bufferIndexPrefix = hl('Buffer' .. status .. 'Target')
+        bufferIndexPrefix = hl('Buffer' .. status .. 'Index')
         bufferIndex = number_text .. ' '
       end
 
