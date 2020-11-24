@@ -247,9 +247,7 @@ local function render(update_names)
   end
 
   -- To prevent the expansion of the last click group
-  result = result .. '%0@BufferlineMainClickHandler@'
-
-  result = result .. hl(layout.tabpages_width > 0 and 'BufferTabpageFill' or 'TabLineFill')
+  result = result .. '%0@BufferlineMainClickHandler@' .. hl('BufferTabpageFill')
 
   if layout.actual_width + strwidth(icons.separator_inactive) <= layout.buffers_width and len(items) > 0 then
     result = result .. icons.separator_inactive
@@ -269,7 +267,7 @@ local function render(update_names)
   --   accumulated_width = accumulated_width,
   -- }
 
-  result = result .. hl('TabLineFill')
+  result = result .. hl('BufferTabpageFill')
 
   return result
 end
