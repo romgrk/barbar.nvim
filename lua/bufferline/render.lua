@@ -123,8 +123,8 @@ local function render(update_names)
     local name = buffer_name
 
     -- Either the buffer name or buffer id
-    local bufferIdPrefix = ''
-    local bufferId = ''
+    local bufferIndexPrefix = ''
+    local bufferIndex = ''
     -- The devicon
     local iconPrefix = ''
     local icon = ''
@@ -140,8 +140,8 @@ local function render(update_names)
         name = slice(name, 2)
       end
 
-      bufferIdPrefix = hl('Buffer' .. status .. 'Target')
-      bufferId =
+      bufferIndexPrefix = hl('Buffer' .. status .. 'Target')
+      bufferIndex =
         string.rep(' ', buffer_index_width + (has_icons and 1 or REDUCE_WIDTH)) .. -- buffer-index-without-letter
         (letter or ((has_icons or has_numbers) -- letter-over-icon
           and ' ' -- one space when there's an icon
@@ -150,8 +150,8 @@ local function render(update_names)
     else
       if has_numbers then
         local number_text = tostring(i)
-        bufferIdPrefix = hl('Buffer' .. status .. 'Target')
-        bufferId = number_text .. ' '
+        bufferIndexPrefix = hl('Buffer' .. status .. 'Target')
+        bufferIndex = number_text .. ' '
       end
 
       if has_icons then
@@ -193,7 +193,7 @@ local function render(update_names)
         { clickable,       ''},
         { separatorPrefix, separator},
         { '',              padding},
-        { bufferIdPrefix,  bufferId},
+        { bufferIndexPrefix,  bufferIndex},
         { iconPrefix,      icon},
         { namePrefix,      name},
         { '',              padding},
