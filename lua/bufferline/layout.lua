@@ -6,8 +6,10 @@
 local vim = vim
 local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
+local Buffer = require'bufferline.buffer'
 local len = utils.len
 local strwidth = nvim.strwidth
+
 
 local SIDES_OF_BUFFER = 2
 
@@ -21,7 +23,6 @@ local function calculate_tabpages_width()
 end
 
 local function calculate_buffers_width(state, base_width)
-  local get_activity = require'bufferline.buffer'.get_activity
   local opts = vim.g.bufferline
   local has_numbers = opts.icons == 'both' or opts.icons == 'numbers'
 
@@ -37,7 +38,7 @@ local function calculate_buffers_width(state, base_width)
       width = buffer_data.dimensions[1] + buffer_data.dimensions[2]
     else
       width = base_width
-        + strwidth(get_activity(buffer_number) > 0 -- separator
+        + strwidth(Buffer.get_activity(buffer_number) > 0 -- separator
             and opts.icon_separator_active
             or opts.icon_separator_inactive)
         + strwidth(buffer_name) -- name
