@@ -82,11 +82,11 @@ function get_unique_name (first, second)
   local second_result = join(slice(second_parts, -length), '/')
 
   while first_result == second_result and
-        length < math.max(strwidth(first_parts), strwidth(second_parts))
+        length < math.max(len(first_parts), len(second_parts))
   do
     length = length + 1
-    first_result  = join(slice(first_parts,  -math.min(strwidth(first_parts), length)), '/')
-    second_result = join(slice(second_parts, -math.min(strwidth(second_parts), length)), '/')
+    first_result  = join(slice(first_parts,  -math.min(len(first_parts), length)), '/')
+    second_result = join(slice(second_parts, -math.min(len(second_parts), length)), '/')
   end
 
   return first_result, second_result
