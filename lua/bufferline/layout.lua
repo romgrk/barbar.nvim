@@ -23,6 +23,8 @@ end
 local function calculate_buffers_width(state, base_width)
   local get_activity = require'bufferline.buffer'.get_activity
   local opts = vim.g.bufferline
+  local has_numbers = opts.icons == 'both' or opts.icons == 'numbers'
+
   local sum = 0
   local widths = {}
 
@@ -40,7 +42,7 @@ local function calculate_buffers_width(state, base_width)
             or opts.icon_separator_inactive)
         + strwidth(buffer_name) -- name
 
-      if opts.icons == 'both' or opts.icons == 'numbers' then
+      if has_numbers then
         width = width
           + len(tostring(i)) -- buffer-index
           + 1 -- space-after-buffer-index
