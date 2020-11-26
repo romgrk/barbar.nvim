@@ -80,6 +80,9 @@ command! -bang -complete=buffer -nargs=?
 command! -bang -complete=buffer -nargs=?
                       \ BufferWipeout          call bufferline#bbye#delete('bwipeout', <q-bang>, <q-args>)
 
+command!                BufferCloseAllButCurrent   lua require'bufferline.state'.close_all_but_current()
+command!                BufferCloseBuffersRight    lua require'bufferline.state'.close_buffers_right()
+
 "=================
 " Section: Options
 "=================

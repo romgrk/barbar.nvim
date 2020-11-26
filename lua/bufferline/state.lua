@@ -8,6 +8,7 @@ local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local Layout = require'bufferline.layout'
 local len = utils.len
+local index = utils.index
 local reverse = utils.reverse
 local filter = vim.tbl_filter
 local includes = vim.tbl_contains
@@ -359,6 +360,31 @@ local function goto_buffer_relative (direction)
 end
 
 
+-- Close commands
+
+local function close_all_but_current()
+  local current = nvim.get_current_buf()
+  local buffers = m.buffers
+  for i, number in ipairs(buffers) do
+    if number ~= current then
+      vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(number))
+    end
+  end
+  vim.fn['bufferline#update']()
+end
+
+local function close_buffers_right()
+  local idx = index(m.buffers, nvim.get_current_buf()) + 1
+  if idx == nil then
+    return
+  end
+  for i = idx, len(m.buffers) do
+    vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(m.buffers[i]))
+  end
+  vim.fn['bufferline#update']()
+end
+
+
 -- Ordering
 
 local function is_relative_path(path)
@@ -398,6 +424,8 @@ m.set_scroll = set_scroll
 
 m.close_buffer = close_buffer
 m.close_buffer_animated = close_buffer_animated
+m.close_all_but_current = close_all_but_current
+m.close_buffers_right = close_buffers_right
 
 m.move_current_buffer = move_current_buffer
 m.goto_buffer = goto_buffer
