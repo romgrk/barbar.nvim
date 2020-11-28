@@ -310,6 +310,8 @@ local function goto_buffer (number)
   local idx
   if number == -1 then
     idx = len(m.buffers)
+  elseif number > len(m.buffers) then
+    return
   else
     idx = number
   end
