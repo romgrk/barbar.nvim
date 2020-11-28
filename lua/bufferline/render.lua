@@ -122,37 +122,36 @@ local function render(update_names)
     local namePrefix = hl('Buffer' .. status .. mod)
     local name = buffer_name
 
-    -- Either the buffer name or buffer id
+    -- The buffer name
     local bufferIndexPrefix = ''
     local bufferIndex = ''
+
+	 -- The jump letter
+	 local jumpLetterPrefix = ''
+	 local jumpLetter = ''
+
     -- The devicon
     local iconPrefix = ''
     local icon = ''
 
-    if state.is_picking_buffer then
-      local REDUCE_WIDTH = -1
+    if has_numbers then
+      local number_text = tostring(i)
+      bufferIndexPrefix = hl('Buffer' .. status .. 'Index')
+      bufferIndex = number_text .. ' '
+    end
 
+    if state.is_picking_buffer then
       local letter = JumpMode.get_letter(buffer_number)
-      local buffer_index_width = has_numbers and strwidth(tostring(i)) or REDUCE_WIDTH
 
       -- Replace first character of buf name with jump letter
-      if letter and not (has_icons or has_numbers) then
+      if letter and not has_icons then
         name = slice(name, 2)
       end
 
-      bufferIndexPrefix = hl('Buffer' .. status .. 'Target')
-      bufferIndex =
-        string.rep(' ', buffer_index_width + (has_icons and 1 or REDUCE_WIDTH)) .. -- buffer-index-without-letter
-        (letter or ((has_icons or has_numbers) -- letter-over-icon
-          and ' ' -- one space when there's an icon
-          or '')) .. -- no space when there are no icons
-        ((has_icons or has_numbers) and ' ' or '') -- space-after-icon
+      jumpLetterPrefix = hl('Buffer' .. status .. 'Target')
+      jumpLetter = (letter or '') ..
+        (has_icons and (' ' .. (letter and '' or ' ')) or '')
     else
-      if has_numbers then
-        local number_text = tostring(i)
-        bufferIndexPrefix = hl('Buffer' .. status .. 'Index')
-        bufferIndex = number_text .. ' '
-      end
 
       if has_icons then
         local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
@@ -190,15 +189,16 @@ local function render(update_names)
         -- <padding> <base_widths[i]> <padding>
         or layout.base_widths[i] + (2 * layout.padding_width),
       groups = {
-        { clickable,       ''},
-        { separatorPrefix, separator},
-        { '',              padding},
-        { bufferIndexPrefix,  bufferIndex},
-        { iconPrefix,      icon},
-        { namePrefix,      name},
-        { '',              padding},
-        { '',              ' '},
-        { closePrefix,     close},
+        {clickable,          ''},
+        {separatorPrefix,    separator},
+        {'',                 padding},
+        {bufferIndexPrefix,  bufferIndex},
+        {iconPrefix,         icon},
+        {jumpLetterPrefix,   jumpLetter},
+        {namePrefix,         name},
+        {'',                 padding},
+        {'',                 ' '},
+        {closePrefix,        close},
       }
     }
 
