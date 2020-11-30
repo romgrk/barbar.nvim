@@ -4,11 +4,11 @@
 --
 
 local vim = vim
-local api = vim.api
 local bufname = vim.fn.bufname
 local fnamemodify = vim.fn.fnamemodify
 local split = vim.split
 local join = table.concat
+local strwidth = vim.api.nvim_strwidth
 
 local function len(value)
   return #value

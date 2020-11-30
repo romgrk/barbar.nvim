@@ -125,7 +125,32 @@ Here are the groups that you should define if you'd like to style Barbar.
 `g:bufferline.icons`		boolean, string	(default v:true)
 
 	Controls if icons are rendered on each tab.
-	If set to "numbers", will show buffer index in the tabline
+
+	- If `v:false`, show neither |devicons| nor buffer numbers.
+	- If `v:true`, show |devicons| for each buffer's |'filetype'|.
+	- If `"numbers"`, show the buffer number for current buffer.
+	- If `"both"`, show the buffer number and |devicons|.
+
+			               *g:bufferline.icon_separator_active*
+`g:bufferline.icon_separator_active`	string (default '▎')
+
+	The separator for active and visible buffers.
+
+			             *g:bufferline.icon_separator_inactive*
+`g:bufferline.icon_separator_inactive`	string (default '▎')
+
+	The separator for inactive buffers and the `BufferTabpageFill`.
+
+					      *g:bufferline.icon_close_tab*
+`g:bufferline.icon_close_tab`		string (default '')
+
+	The button used to close the tab.
+
+			             *g:bufferline.icon_close_tab_modified*
+`g:bufferline.icon_close_tab_modified`		string (default '●')
+
+	The button used to close the tab when it has been modified since
+	last save.
 
 						    *g:bufferline.closable*
 `g:bufferline.closable`		boolean	(default v:true)

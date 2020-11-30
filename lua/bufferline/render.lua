@@ -10,6 +10,7 @@ local utils = require'bufferline.utils'
 local get_icon = require'bufferline.get-icon'
 local len = utils.len
 local slice = utils.slice
+local strwidth = nvim.strwidth
 local reverse = utils.reverse
 local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
@@ -82,12 +83,12 @@ local function render(update_names)
   end
 
   local opts = vim.g.bufferline
-  local icons = vim.g.icons
+  local icons = setmetatable(opts, {__index = function(_, k) return opts['icon_'..k] end})
 
   local click_enabled = vim.fn.has('tablineat') and opts.clickable
-  local has_icons = opts.icons ~= false
-  local has_numbers = opts.icons == 'numbers'
   local has_close = opts.closable
+  local has_icons = (opts.icons == true) or (opts.icons == 'both')
+  local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
 
   local layout = Layout.calculate(state)
 
@@ -103,6 +104,7 @@ local function render(update_names)
       buffer_name, layout.base_width, layout.padding_width)
 
     local activity = Buffer.get_activity(buffer_number)
+    local is_inactive = activity == 0
     local is_visible = activity == 1
     local is_current = activity == 2
     -- local is_inactive = activity == 0
@@ -113,32 +115,47 @@ local function render(update_names)
     local mod = is_modified and 'Mod' or ''
 
     local separatorPrefix = hl('Buffer' .. status .. 'Sign')
-    local separator = status == 'Inactive' and
-      icons.bufferline_separator_inactive or
-      icons.bufferline_separator_active
+    local separator = is_inactive and
+      icons.separator_inactive or
+      icons.separator_active
 
     local namePrefix = hl('Buffer' .. status .. mod)
-    local name =
-      (not has_icons and state.is_picking_buffer) and
-        slice(buffer_name, 1) or
-        buffer_name
+    local name = buffer_name
 
+    -- The buffer name
+    local bufferIndexPrefix = ''
+    local bufferIndex = ''
+
+	 -- The jump letter
+	 local jumpLetterPrefix = ''
+	 local jumpLetter = ''
+
+    -- The devicon
     local iconPrefix = ''
     local icon = ''
+
+    if has_numbers then
+      local number_text = tostring(i)
+      bufferIndexPrefix = hl('Buffer' .. status .. 'Index')
+      bufferIndex = number_text .. ' '
+    end
+
     if state.is_picking_buffer then
       local letter = JumpMode.get_letter(buffer_number)
-      iconPrefix = hl('Buffer' .. status .. 'Target')
-      icon =
-        (letter ~= nil and letter or ' ') ..
-        (has_icons and ' ' or '')
-    elseif has_icons then
-      if has_numbers then
-        local number_text = tostring(i)
-        iconPrefix = ''
-        icon = number_text .. (#number_text > 1 and '' or ' ')
-      else
+
+      -- Replace first character of buf name with jump letter
+      if letter and not has_icons then
+        name = slice(name, 2)
+      end
+
+      jumpLetterPrefix = hl('Buffer' .. status .. 'Target')
+      jumpLetter = (letter or '') ..
+        (has_icons and (' ' .. (letter and '' or ' ')) or '')
+    else
+
+      if has_icons then
         local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
-        iconPrefix = hl(status ~= 'Inactive' and iconHl or 'BufferInactive')
+        iconPrefix = hl(is_inactive and 'BufferInactive' or iconHl)
         icon = iconChar .. ' '
       end
     end
@@ -148,8 +165,8 @@ local function render(update_names)
     if has_close then
       local icon =
         (not is_modified and
-          icons.bufferline_close_tab or
-          icons.bufferline_close_tab_modified)
+          icons.close_tab or
+          icons.close_tab_modified)
 
       closePrefix = namePrefix
       close = icon .. ' '
@@ -167,22 +184,21 @@ local function render(update_names)
 
     local padding = string.rep(' ', layout.padding_width)
 
-    local width =
-      buffer_data.width ~= nil and
-        buffer_data.width or
-        (layout.base_widths[i] + 2 * layout.padding_width)
-
     local item = {
-      width = width,
+      width = buffer_data.width
+        -- <padding> <base_widths[i]> <padding>
+        or layout.base_widths[i] + (2 * layout.padding_width),
       groups = {
-        { clickable,       ''},
-        { separatorPrefix, separator},
-        { '',              padding},
-        { iconPrefix,      icon},
-        { namePrefix,      name},
-        { '',              padding},
-        { '',              ' '},
-        { closePrefix,     close},
+        {clickable,          ''},
+        {separatorPrefix,    separator},
+        {'',                 padding},
+        {bufferIndexPrefix,  bufferIndex},
+        {iconPrefix,         icon},
+        {jumpLetterPrefix,   jumpLetter},
+        {namePrefix,         name},
+        {'',                 padding},
+        {'',                 ' '},
+        {closePrefix,        close},
       }
     }
 
@@ -205,9 +221,9 @@ local function render(update_names)
   -- Create actual tabline string
   local result = ''
 
+  local accumulated_width = 0
   local max_scroll = math.max(layout.used_width - layout.buffers_width, 0)
   local scroll = math.min(state.scroll_current, max_scroll)
-  local accumulated_width = 0
   local needed_width = scroll
 
   for i, item in ipairs(items) do
@@ -231,10 +247,10 @@ local function render(update_names)
   end
 
   -- To prevent the expansion of the last click group
-  result = result .. '%0@BufferlineMainClickHandler@'
+  result = result .. '%0@BufferlineMainClickHandler@' .. hl('BufferTabpageFill')
 
-  if layout.actual_width + 1 <= layout.buffers_width and len(items) > 0 then
-    result = result .. hl('BufferTabpageFill') .. icons.bufferline_separator_inactive
+  if layout.actual_width + strwidth(icons.separator_inactive) <= layout.buffers_width and len(items) > 0 then
+    result = result .. icons.separator_inactive
   end
 
   local current_tabpage = vim.fn.tabpagenr()
@@ -251,7 +267,7 @@ local function render(update_names)
   --   accumulated_width = accumulated_width,
   -- }
 
-  result = result .. hl('TabLineFill')
+  result = result .. hl('BufferTabpageFill')
 
   return result
 end

@@ -4,10 +4,7 @@
 
 
 local vim = vim
-local api = vim.api
 local nvim = require'bufferline.nvim'
-local utils = require'bufferline.utils'
-local state = require'bufferline.state'
 
 
 -- returns 0: none, 1: active, 2: current

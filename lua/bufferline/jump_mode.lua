@@ -8,6 +8,7 @@ local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local len = utils.len
 local slice = utils.slice
+local strwidth = nvim.strwidth
 local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
 local fnamemodify = vim.fn.fnamemodify
@@ -47,7 +48,7 @@ local function assign_next_letter(bufnr)
   if vim.g.bufferline.semantic_letters == true then
     local name = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t:r')
 
-    for i = 1, len(name) do
+    for i = 1, strwidth(name) do
       local letter = string.lower(slice(name, i, i))
 
       if INDEX_BY_LETTER[letter] ~= nil then
@@ -107,7 +108,7 @@ end
 
 -- local function update_buffer_letters()
 --   local assigned_letters = {}
--- 
+--
 --   for index, bufnr in range(len(state.get_buffers())) do
 --     local letter_from_buffer = get_letter(bufnr)
 --     if letter_from_buffer == nil or assigned_letters[letter_from_buffer] ~= nil then
@@ -117,18 +118,18 @@ end
 --     end
 --     if letter_from_buffer ~= nil then
 --         let bufnr_from_state = get(s:m.buffer_by_letter, letter_from_buffer, nil)
--- 
+--
 --         if bufnr_from_state ~= bufnr
 --           let s:m.buffer_by_letter[letter_from_buffer] = bufnr
 --           if has_key(s:m.buffer_by_letter, bufnr_from_state)
 --               call remove(s:m.buffer_by_letter, bufnr_from_state)
 --           end
 --         end
--- 
+--
 --         let assigned_letters[letter_from_buffer] = 1
 --     end
 --   end
--- 
+--
 --   let index = 0
 --   for index in range(len(s:LETTERS))
 --     let letter = s:LETTERS[index]
@@ -145,7 +146,7 @@ end
 -- print(vim.inspect(unassign_letter('j')))
 -- print(vim.inspect(m.letter_status))
 
--- 
+--
 -- local function shadow_open()
 --    if !g:bufferline.shadow
 --       return
@@ -162,7 +163,7 @@ end
 --    call setwinvar(s:shadow_winid, '&winhighlight', 'Normal:BufferShadow,NormalNC:BufferShadow,EndOfBuffer:BufferShadow')
 --    call setwinvar(s:shadow_winid, '&winblend', 80)
 -- end
--- 
+--
 -- local function shadow_close()
 --    if !g:bufferline.shadow
 --       return

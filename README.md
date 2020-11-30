@@ -148,8 +148,15 @@ let bufferline = {}
 let bufferline.animation = v:true
 
 " Enable/disable icons
-" if set to "numbers", will show buffer index in the tabline
+" if set to 'numbers', will show buffer index in the tabline
+" if set to 'both', will show buffer index and icons in the tabline
 let bufferline.icons = v:true
+
+" Configure icons on the bufferline.
+let buffline.icon_separator_active = '▎'
+let buffline.icon_separator_inactive = '▎'
+let buffline.icon_close_tab = ''
+let buffline.icon_close_tab_modified = '●'
 
 " Enable/disable close button
 let bufferline.closable = v:true
@@ -237,5 +244,5 @@ No, barbar has nothing to do with barbarians.
 
 ## License
 
-barbar.nvim: Distributed under the terms of the JSON license.  
-bbye.vim: Distributed under the terms of the GNU Affero license.  
+barbar.nvim: Distributed under the terms of the JSON license.  
+bbye.vim: Distributed under the terms of the GNU Affero license.  

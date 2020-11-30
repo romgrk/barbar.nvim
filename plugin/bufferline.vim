@@ -24,14 +24,14 @@ function! bufferline#enable()
    function! s:did_load (...)
       augroup bufferline_update
          au!
-         au BufNew                 * call bufferline#update()
-         au BufNewFile             * call bufferline#update(v:true)
+         au BufNew                 * call bufferline#update(v:true)
          au BufEnter               * call bufferline#update()
          au BufWipeout             * call bufferline#update()
          au BufWinEnter            * call bufferline#update()
          au BufWinLeave            * call bufferline#update()
          au BufWritePost           * call bufferline#update()
          au SessionLoadPost        * call bufferline#update()
+         au VimResized             * call bufferline#update()
          au WinEnter               * call bufferline#update()
          au WinLeave               * call bufferline#update()
          au WinClosed              * call bufferline#update_async()
@@ -88,28 +88,21 @@ command!                BufferCloseBuffersRight    lua require'bufferline.state'
 "=================
 
 let bufferline = extend({
-\ 'shadow': v:true,
 \ 'animation': v:true,
-\ 'icons': v:true,
-\ 'closable': v:true,
-\ 'semantic_letters': v:true,
 \ 'clickable': v:true,
+\ 'closable': v:true,
+\ 'icon_close_tab': '',
+\ 'icon_close_tab_modified': '●',
+\ 'icon_separator_active':   '▎',
+\ 'icon_separator_inactive': '▎',
+\ 'icons': v:true,
+\ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \ 'maximum_padding': 4,
+\ 'semantic_letters': v:true,
+\ 'shadow': v:true,
 \ 'tabpages': v:true,
 \ 'unsafe': v:false,
-\ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \}, get(g:, 'bufferline', {}))
-
-" Default icons
-let icons = extend({
-\ 'bufferline_default_file': '',
-\ 'bufferline_separator_active':   '▎',
-\ 'bufferline_separator_inactive': '▎',
-\ 'bufferline_close_tab': '',
-\ 'bufferline_close_tab_modified': '●',
-\ 'bufferline_arrow_left': '',
-\ 'bufferline_arrow_right': '',
-\}, get(g:, 'icons', {})) " 
 
 "==========================
 " Section: Bufferline state
@@ -153,23 +146,6 @@ function! bufferline#render(update_names) abort
    echom "Include this in your report: " . string(error)
    echohl None
 endfu
-
-function! bufferline#session (...)
-   let name = ''
-
-   if exists('g:xolox#session#current_session_name')
-      let name = g:xolox#session#current_session_name
-   end
-
-   if empty(name)
-      let name = substitute(getcwd(), $HOME, '~', '')
-      if len(name) > 30
-         let name = pathshorten(name)
-      end
-   end
-
-   return '%#BufferPart#%( ' . name . ' %)'
-endfunc
 
 function! bufferline#pick_buffer()
    call luaeval("require'bufferline.jump_mode'.activate()")
