@@ -126,9 +126,9 @@ local function render(update_names)
     local bufferIndexPrefix = ''
     local bufferIndex = ''
 
-	 -- The jump letter
-	 local jumpLetterPrefix = ''
-	 local jumpLetter = ''
+    -- The jump letter
+    local jumpLetterPrefix = ''
+    local jumpLetter = ''
 
     -- The devicon
     local iconPrefix = ''
