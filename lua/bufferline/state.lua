@@ -349,7 +349,7 @@ local function goto_buffer_relative(steps)
     print("Couldn't find buffer " .. current .. " in the list: " .. vim.inspect(m.buffers))
     return
   else
-    idx = (idx + steps - 1) % len(m.buffers) + 1 -- Lua is indexed from 1
+    idx = (idx + steps - 1) % len(m.buffers) + 1
   end
 
   nvim.command('silent buffer ' .. m.buffers[idx])
