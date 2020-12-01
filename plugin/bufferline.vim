@@ -59,8 +59,8 @@ call bufferline#enable()
 command!                BarbarEnable           call bufferline#enable()
 command!                BarbarDisable          call bufferline#disable()
 
-command!          -bang BufferNext             call s:goto_buffer_relative(+1)
-command!          -bang BufferPrevious         call s:goto_buffer_relative(-1)
+command! -count   -bang BufferNext             call s:goto_buffer_relative(v:count1)
+command! -count   -bang BufferPrevious         call s:goto_buffer_relative(-v:count1)
 
 command! -nargs=1 -bang BufferGoto             call s:goto_buffer(<f-args>)
 command!          -bang BufferLast             call s:goto_buffer(-1)
@@ -206,18 +206,17 @@ endfunction
 
 " Buffer movement
 
-function! s:move_current_buffer (direction)
+function! s:move_current_buffer(direction)
    call luaeval("require'bufferline.state'.move_current_buffer(_A)", a:direction)
 endfunc
 
-function! s:goto_buffer (number)
+function! s:goto_buffer(number)
    call luaeval("require'bufferline.state'.goto_buffer(_A)", a:number)
 endfunc
 
-function! s:goto_buffer_relative (direction)
-   call luaeval("require'bufferline.state'.goto_buffer_relative(_A)", a:direction)
+function! s:goto_buffer_relative(steps)
+   call luaeval("require'bufferline.state'.goto_buffer_relative(_A)", a:steps)
 endfunc
-
 
 " Final setup
 
