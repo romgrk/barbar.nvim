@@ -153,10 +153,10 @@ let bufferline.animation = v:true
 let bufferline.icons = v:true
 
 " Configure icons on the bufferline.
-let buffline.icon_separator_active = '▎'
-let buffline.icon_separator_inactive = '▎'
-let buffline.icon_close_tab = ''
-let buffline.icon_close_tab_modified = '●'
+let bufferline.icon_separator_active = '▎'
+let bufferline.icon_separator_inactive = '▎'
+let bufferline.icon_close_tab = ''
+let bufferline.icon_close_tab_modified = '●'
 
 " Enable/disable close button
 let bufferline.closable = v:true
