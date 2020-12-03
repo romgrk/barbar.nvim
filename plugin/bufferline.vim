@@ -87,7 +87,7 @@ command!                BufferCloseBuffersRight    lua require'bufferline.state'
 " Section: Options
 "=================
 
-let bufferline = extend({
+let s:DEFAULT_OPTIONS = {
 \ 'animation': v:true,
 \ 'clickable': v:true,
 \ 'closable': v:true,
@@ -99,10 +99,12 @@ let bufferline = extend({
 \ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
 \ 'maximum_padding': 4,
 \ 'semantic_letters': v:true,
-\ 'shadow': v:true,
 \ 'tabpages': v:true,
-\ 'unsafe': v:false,
-\}, get(g:, 'bufferline', {}))
+\}
+
+let bufferline = extend(s:DEFAULT_OPTIONS, get(g:, 'bufferline', {}))
+
+call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
 
 "==========================
 " Section: Bufferline state
@@ -188,6 +190,7 @@ endfunc
 
 " Needs to be global -_-
 function! BufferlineOnOptionChanged(d, k, z)
+   let g:bufferline = extend(s:DEFAULT_OPTIONS, get(g:, 'bufferline', {}))
    if a:k == 'letters'
       call luaeval("require'bufferline.jump_mode'.initialize_indexes()")
    end
