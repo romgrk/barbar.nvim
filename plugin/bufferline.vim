@@ -187,6 +187,13 @@ function! s:check_modified()
 endfunc
 
 " Needs to be global -_-
+function! BufferlineOnOptionChanged(d, k, z)
+   if a:k == 'letters'
+      call luaeval("require'bufferline.jump_mode'.initialize_indexes()")
+   end
+endfunc
+
+" Needs to be global -_-
 function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
    if a:minwid == 0
       return

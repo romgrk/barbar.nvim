@@ -18,22 +18,30 @@ local bufname = vim.fn.bufname
 -- Section: Buffer-picking mode state --
 ----------------------------------------
 
--- Constants
-local LETTERS = vim.g.bufferline.letters
-local INDEX_BY_LETTER = {}
-
 local m = {
+  letters = vim.g.bufferline.letters, -- array
+  index_by_letter = {}, -- object
   letter_status = {}, -- array
   buffer_by_letter = {}, -- object
   letter_by_buffer = {}, -- object
 }
 
--- Initialize INDEX_BY_LETTER
-for index = 1, len(LETTERS) do
-  local letter = slice(LETTERS, index, index)
-  INDEX_BY_LETTER[letter] = index
-  m.letter_status[index] = false
+-- Initialize m.index_by_letter
+local function initialize_indexes()
+  print('initialize_indexes', vim.inspect(m.letters))
+  m.index_by_letter = {}
+  m.letter_status = {}
+  m.buffer_by_letter = {}
+  m.letter_by_buffer = {}
+
+  for index = 1, len(m.letters) do
+    local letter = slice(m.letters, index, index)
+    m.index_by_letter[letter] = index
+    m.letter_status[index] = false
+  end
 end
+
+initialize_indexes()
 
 -- local empty_bufnr = nvim.create_buf(0, 1)
 
@@ -51,12 +59,12 @@ local function assign_next_letter(bufnr)
     for i = 1, strwidth(name) do
       local letter = string.lower(slice(name, i, i))
 
-      if INDEX_BY_LETTER[letter] ~= nil then
-        local index = INDEX_BY_LETTER[letter]
+      if m.index_by_letter[letter] ~= nil then
+        local index = m.index_by_letter[letter]
         local status = m.letter_status[index]
         if status == false then
           m.letter_status[index] = true
-          -- letter = LETTERS[index]
+          -- letter = m.letters[index]
           m.buffer_by_letter[letter] = bufnr
           m.letter_by_buffer[bufnr] = letter
           return letter
@@ -67,8 +75,8 @@ local function assign_next_letter(bufnr)
 
   -- Otherwise, assign a letter by usable order
   for i, status in ipairs(m.letter_status) do
-    if status == 0 then
-      local letter = LETTERS[i]
+    if status == false then
+      local letter = m.letters:sub(i, i)
       m.letter_status[i] = true
       m.buffer_by_letter[letter] = bufnr
       m.letter_by_buffer[bufnr] = letter
@@ -84,7 +92,7 @@ local function unassign_letter(letter)
     return
   end
 
-  local index = INDEX_BY_LETTER[letter]
+  local index = m.index_by_letter[letter]
 
   m.letter_status[index] = false
 
@@ -105,74 +113,6 @@ end
 local function unassign_letter_for(bufnr)
   unassign_letter(get_letter(bufnr))
 end
-
--- local function update_buffer_letters()
---   local assigned_letters = {}
---
---   for index, bufnr in range(len(state.get_buffers())) do
---     local letter_from_buffer = get_letter(bufnr)
---     if letter_from_buffer == nil or assigned_letters[letter_from_buffer] ~= nil then
---         letter_from_buffer = assign_next_letter(bufnr)
---     else
---         m.letter_status[index] = true
---     end
---     if letter_from_buffer ~= nil then
---         let bufnr_from_state = get(s:m.buffer_by_letter, letter_from_buffer, nil)
---
---         if bufnr_from_state ~= bufnr
---           let s:m.buffer_by_letter[letter_from_buffer] = bufnr
---           if has_key(s:m.buffer_by_letter, bufnr_from_state)
---               call remove(s:m.buffer_by_letter, bufnr_from_state)
---           end
---         end
---
---         let assigned_letters[letter_from_buffer] = 1
---     end
---   end
---
---   let index = 0
---   for index in range(len(s:LETTERS))
---     let letter = s:LETTERS[index]
---     let status = s:m.letter_status[index]
---     if status && !has_key(assigned_letters, letter)
---         call s:unassign_letter(letter)
---     end
---   end
--- end
-
--- print(vim.inspect(get_letter(nvim.get_current_buf())))
--- print(vim.inspect(get_letter(nvim.get_current_buf())))
--- print(vim.inspect(m.letter_status))
--- print(vim.inspect(unassign_letter('j')))
--- print(vim.inspect(m.letter_status))
-
---
--- local function shadow_open()
---    if !g:bufferline.shadow
---       return
---    end
---    let opts =  {
---    \ 'relative': 'editor',
---    \ 'style': 'minimal',
---    \ 'width': &columns,
---    \ 'height': &lines - 2,
---    \ 'row': 2,
---    \ 'col': 0,
---    \ }
---    let s:shadow_winid = nvim_open_win(s:empty_bufnr, false, opts)
---    call setwinvar(s:shadow_winid, '&winhighlight', 'Normal:BufferShadow,NormalNC:BufferShadow,EndOfBuffer:BufferShadow')
---    call setwinvar(s:shadow_winid, '&winblend', 80)
--- end
---
--- local function shadow_close()
---    if !g:bufferline.shadow
---       return
---    end
---    if s:shadow_winid ~= nil && nvim_win_is_valid(s:shadow_winid)
---       call nvim_win_close(s:shadow_winid, true)
---    end
---    let s:shadow_winid = nil
--- end
 
 
 local function activate()
@@ -207,4 +147,6 @@ m.get_letter = get_letter
 m.unassign_letter = unassign_letter
 m.unassign_letter_for = unassign_letter_for
 m.assign_next_letter = assign_next_letter
+m.initialize_indexes = initialize_indexes
+
 return m
