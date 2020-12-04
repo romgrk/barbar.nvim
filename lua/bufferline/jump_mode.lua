@@ -28,7 +28,6 @@ local m = {
 
 -- Initialize m.index_by_letter
 local function initialize_indexes()
-  print('initialize_indexes', vim.inspect(m.letters))
   m.index_by_letter = {}
   m.letter_status = {}
   m.buffer_by_letter = {}
