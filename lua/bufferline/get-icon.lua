@@ -23,16 +23,28 @@ local function get_icon(buffer_name, filetype, buffer_status)
 
   local basename
   local extension
+  local iconChar
+  local iconHl
 
-  if filetype == 'fugitive' or filetype == 'gitcommit' then
-    basename = 'git'
-    extension = 'git'
+  -- nvim-web-devicon only handles filetype icons, not other types (eg directory)
+  -- thus we need to do some work here
+  if
+    filetype == 'netrw' or
+    filetype == 'LuaTree'
+  then
+    iconChar = ''
+    iconHl = 'Directory'
   else
-    basename = vim.fn.fnamemodify(buffer_name, ':t')
-    extension = vim.fn.matchstr(basename, [[\v\.@<=\w+$]], '', '')
-  end
+    if filetype == 'fugitive' or filetype == 'gitcommit' then
+      basename = 'git'
+      extension = 'git'
+    else
+      basename = vim.fn.fnamemodify(buffer_name, ':t')
+      extension = vim.fn.matchstr(basename, [[\v\.@<=\w+$]], '', '')
+    end
 
-  local iconChar, iconHl = web.get_icon(basename, extension, { default = true })
+    iconChar, iconHl = web.get_icon(basename, extension, { default = true })
+  end
 
   if iconHl and vim.fn.hlexists(iconHl..buffer_status) < 1 then
     nvim.command(
