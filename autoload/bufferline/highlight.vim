@@ -41,6 +41,8 @@ function bufferline#highlight#setup()
    \ ['BufferTabpages',       fg_special,  bg_inactive, 'bold'],
    \ ['BufferTabpageFill',    fg_inactive, bg_inactive],
    \ ])
+
+   lua require'bufferline.icons'.set_highlights()
 endfunc
 
 function! s:fg(groups, default)
