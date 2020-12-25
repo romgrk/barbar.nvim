@@ -121,6 +121,11 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	Enables animations.
 
+					            *g:bufferline.auto_hide*
+`g:bufferline.auto_hide`	boolean	(default v:false)
+
+	Enable/disable auto-hiding the tab bar when there is a single buffer.
+
 							*g:bufferline.icons*
 `g:bufferline.icons`		boolean, string	(default v:true)
 

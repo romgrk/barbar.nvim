@@ -70,7 +70,21 @@ local function slice_groups_left(groups, width)
 end
 
 local function render(update_names)
+  local opts = vim.g.bufferline
   local buffer_numbers = state.get_updated_buffers(update_names)
+
+  if opts.auto_hide then
+    if len(buffer_numbers) <= 1 then
+      if vim.o.showtabline == 2 then
+        vim.o.showtabline = 0
+      end
+      return
+    end
+    if vim.o.showtabline == 0 then
+      vim.o.showtabline = 2
+    end
+  end
+
   local current = vim.fn.bufnr('%')
 
   -- Store current buffer to open new ones next to this one
@@ -83,9 +97,7 @@ local function render(update_names)
     end
   end
 
-  local opts = vim.g.bufferline
   local icons = setmetatable(opts, {__index = function(_, k) return opts['icon_'..k] end})
-
   local click_enabled = vim.fn.has('tablineat') and opts.clickable
   local has_close = opts.closable
   local has_icons = (opts.icons == true) or (opts.icons == 'both')

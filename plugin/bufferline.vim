@@ -89,6 +89,7 @@ command!                BufferCloseBuffersRight    lua require'bufferline.state'
 
 let s:DEFAULT_OPTIONS = {
 \ 'animation': v:true,
+\ 'auto_hide': v:false,
 \ 'clickable': v:true,
 \ 'closable': v:true,
 \ 'icon_close_tab': '',
