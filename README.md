@@ -179,7 +179,7 @@ let bufferline.semantic_letters = v:true
 " optimal for the qwerty keyboard layout but might need adjustement
 " for other layouts.
 let bufferline.letters =
-  \ 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP'
+  \ 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP'
 
 " Sets the maximum padding width with which to surround each tab
 let bufferline.maximum_padding = 4

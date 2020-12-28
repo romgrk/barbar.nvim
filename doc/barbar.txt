@@ -172,14 +172,14 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 					             *g:bufferline.letters*
 `g:bufferline.letters`			string	(default
-		     'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP')
+		     'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP')
 
 	New buffer letters are assigned in this order. This order is
 	optimal for the qwerty keyboard layout but might need adjustement
 	for other layouts.
 >
         let g:bufferline.letters =
-	  \ 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP'
+	  \ 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP'
 <
 
 					           *g:bufferline.clickable*

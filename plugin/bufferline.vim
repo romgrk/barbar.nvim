@@ -97,7 +97,7 @@ let s:DEFAULT_OPTIONS = {
 \ 'icon_separator_active':   '▎',
 \ 'icon_separator_inactive': '▎',
 \ 'icons': v:true,
-\ 'letters': 'asdfjkl;ghnmxcbziowerutyqpASDFJKLGHNMXCBZIOWERUTYQP',
+\ 'letters': 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
 \ 'maximum_padding': 4,
 \ 'semantic_letters': v:true,
 \ 'tabpages': v:true,
