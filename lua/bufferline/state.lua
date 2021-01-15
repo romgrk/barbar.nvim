@@ -371,6 +371,17 @@ local function close_all_but_current()
   vim.fn['bufferline#update']()
 end
 
+local function close_buffers_left()
+  local idx = index(m.buffers, nvim.get_current_buf()) - 1
+  if idx == nil then
+    return
+  end
+  for i = idx, 1, -1 do
+    vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(m.buffers[i]))
+  end
+  vim.fn['bufferline#update']()
+end
+
 local function close_buffers_right()
   local idx = index(m.buffers, nvim.get_current_buf()) + 1
   if idx == nil then
@@ -424,6 +435,7 @@ m.close_buffer = close_buffer
 m.close_buffer_animated = close_buffer_animated
 m.close_all_but_current = close_all_but_current
 m.close_buffers_right = close_buffers_right
+m.close_buffers_left = close_buffers_left
 
 m.move_current_buffer = move_current_buffer
 m.goto_buffer = goto_buffer
