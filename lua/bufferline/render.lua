@@ -168,7 +168,8 @@ local function render(update_names)
 
       if has_icons then
         local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
-        iconPrefix = hl(is_inactive and 'BufferInactive' or iconHl)
+        local hlName = is_inactive and 'BufferInactive' or iconHl
+        iconPrefix = hlName and hl(hlName) or namePrefix
         icon = iconChar .. ' '
       end
     end
