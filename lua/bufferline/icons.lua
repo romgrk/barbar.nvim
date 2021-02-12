@@ -65,6 +65,12 @@ local function get_icon(buffer_name, filetype, buffer_status)
 
   if icon_hl and vim.fn.hlexists(icon_hl..buffer_status) < 1 then
     local hl_group = icon_hl .. buffer_status
+
+    -- XXX: hotfix for https://github.com/kyazdani42/nvim-web-devicons/issues/41
+    if vim.fn.hlexists(icon_hl) < 1 then
+        return icon_char, 'Buffer'..buffer_status
+    end
+
     nvim.command(
       'hi! ' .. hl_group ..
       ' guifg=' .. get_attr(icon_hl, 'foreground') ..
