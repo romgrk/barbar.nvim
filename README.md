@@ -190,7 +190,8 @@ let bufferline.maximum_padding = 4
 ### Highlighting
 
 For the highlight groups, here are the default ones. Your colorscheme
-can override them by defining them.
+can override them by defining them. See the "Meaning of terms" comment
+inside the example below.
 
 ```vim
 let fg_target = 'red'
@@ -208,12 +209,15 @@ let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
 let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
 
 " Meaning of terms:
-"      Current: current buffer
-"      Visible: visible but not current buffer
-"     Inactive: invisible but not current buffer
-"         -Mod: when modified
-"        -Sign: the separator between buffers
-"      -Target: letter in buffer-picking mode
+"     *Current: current buffer
+"     *Visible: visible but not current buffer
+"    *Inactive: invisible but not current buffer
+"         *Mod: when modified
+"        *Sign: the separator between buffers
+"      *Target: letter in buffer-picking mode
+
+" BufferTabpages: tabpage indicator
+" BufferTabpageFill: filler after the buffer section
 
 call s:hi_all([
 \ ['BufferCurrent',        fg_current,  bg_current],
@@ -236,6 +240,8 @@ call s:hi_all([
 " of s:fg(), s:bg() and s:hi_all() is left as an exercice for the
 " reader.
 ```
+
+[See code for the example above](https://github.com/romgrk/barbar.nvim/blob/master/autoload/bufferline/highlight.vim)
 
 You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see
