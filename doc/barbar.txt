@@ -87,12 +87,15 @@ Here are the groups that you should define if you'd like to style Barbar.
    let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
 
    " Meaning of terms:
-   "      Current: current buffer
-   "      Visible: visible but not current buffer
-   "     Inactive: invisible but not current buffer
-   "         -Mod: when modified
-   "        -Sign: the separator between buffers
-   "      -Target: letter in buffer-picking mode
+   "     *Current: current buffer
+   "     *Visible: visible but not current buffer
+   "    *Inactive: invisible but not current buffer
+   "         *Mod: when modified
+   "        *Sign: the separator between buffers
+   "      *Target: letter in buffer-picking mode
+
+   " BufferTabpages: tabpage indicator
+   " BufferTabpageFill: filler after the buffer section
 
    call s:hi_all([
    \ ['BufferCurrent',        fg_current,  bg_current],
