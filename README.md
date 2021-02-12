@@ -241,6 +241,14 @@ You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see
 in the demos above.
 
+## Known Issues
+
+#### Netrw
+
+`BufferNext/BufferPrevious` don't work in netrw buffer due to an issue in
+netrw. See [this comment](https://github.com/romgrk/barbar.nvim/issues/82#issuecomment-748498951)
+for a workaround.
+
 ## About
 
 Barbar is called barbar because it's a bar, but it's also more than a bar:
