@@ -98,6 +98,7 @@ let s:DEFAULT_OPTIONS = {
 \ 'icon_separator_active':   '▎',
 \ 'icon_separator_inactive': '▎',
 \ 'icons': v:true,
+\ 'icon_custom_colors': v:false,
 \ 'letters': 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
 \ 'maximum_padding': 4,
 \ 'semantic_letters': v:true,
