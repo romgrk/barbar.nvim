@@ -155,6 +155,11 @@ let bufferline.auto_hide = v:false
 " if set to 'both', will show buffer index and icons in the tabline
 let bufferline.icons = v:true
 
+" If set, the icon color will follow its corresponding buffer highlight group
+" (see Highlighting below). Otherwise, it will take its default value as defined
+" by kyazdani42/nvim-web-devicons.
+let bufferline.icon_custom_colors = v:false
+
 " Configure icons on the bufferline.
 let bufferline.icon_separator_active = '▎'
 let bufferline.icon_separator_inactive = '▎'
@@ -211,6 +216,8 @@ let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
 "     *Current: current buffer
 "     *Visible: visible but not current buffer
 "    *Inactive: invisible but not current buffer
+"        *Icon: filetype icon
+"       *Index: buffer index
 "         *Mod: when modified
 "        *Sign: the separator between buffers
 "      *Target: letter in buffer-picking mode
@@ -220,14 +227,20 @@ let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
 
 call s:hi_all([
 \ ['BufferCurrent',        fg_current,  bg_current],
+\ ['BufferCurrentIcon',    fg_current,  bg_current],
+\ ['BufferCurrentIndex',   fg_special,  bg_current],
 \ ['BufferCurrentMod',     fg_modified, bg_current],
 \ ['BufferCurrentSign',    fg_special,  bg_current],
 \ ['BufferCurrentTarget',  fg_target,   bg_current,   'bold'],
 \ ['BufferVisible',        fg_visible,  bg_visible],
+\ ['BufferVisibleIcon',    fg_visible,  bg_visible],
+\ ['BufferVisibleIndex',   fg_visible,  bg_visible],
 \ ['BufferVisibleMod',     fg_modified, bg_visible],
 \ ['BufferVisibleSign',    fg_visible,  bg_visible],
 \ ['BufferVisibleTarget',  fg_target,   bg_visible,   'bold'],
 \ ['BufferInactive',       fg_inactive, bg_inactive],
+\ ['BufferInactiveIcon',   fg_inactive, bg_inactive],
+\ ['BufferInactiveIndex',  fg_subtle,   bg_inactive],
 \ ['BufferInactiveMod',    fg_modified, bg_inactive],
 \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
 \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
