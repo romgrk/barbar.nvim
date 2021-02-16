@@ -26,25 +26,28 @@ function bufferline#highlight#setup()
    "      -Target: letter in buffer-picking mode
    call s:hi_all([
    \ ['BufferCurrent',        fg_current,  bg_current],
-   \ ['BufferCurrentIcon',    fg_current,  bg_current],
    \ ['BufferCurrentIndex',   fg_special,  bg_current],
    \ ['BufferCurrentMod',     fg_modified, bg_current],
    \ ['BufferCurrentSign',    fg_special,  bg_current],
    \ ['BufferCurrentTarget',  fg_target,   bg_current,   'bold'],
    \ ['BufferVisible',        fg_visible,  bg_visible],
-   \ ['BufferVisibleIcon',    fg_visible,  bg_visible],
    \ ['BufferVisibleIndex',   fg_visible,  bg_visible],
    \ ['BufferVisibleMod',     fg_modified, bg_visible],
    \ ['BufferVisibleSign',    fg_visible,  bg_visible],
    \ ['BufferVisibleTarget',  fg_target,   bg_visible,   'bold'],
    \ ['BufferInactive',       fg_inactive, bg_inactive],
-   \ ['BufferInactiveIcon',   fg_inactive, bg_inactive],
    \ ['BufferInactiveIndex',  fg_subtle,   bg_inactive],
    \ ['BufferInactiveMod',    fg_modified, bg_inactive],
    \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
    \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
    \ ['BufferTabpages',       fg_special,  bg_inactive, 'bold'],
    \ ['BufferTabpageFill',    fg_inactive, bg_inactive],
+   \ ])
+
+   call s:hi_link([
+   \ ['BufferCurrentIcon',  'BufferCurrent'],
+   \ ['BufferVisibleIcon',  'BufferVisible'],
+   \ ['BufferInactiveIcon', 'BufferInactive'],
    \ ])
 
    lua require'bufferline.icons'.set_highlights()
@@ -73,6 +76,12 @@ endfunc
 function! s:hi_all(groups)
    for group in a:groups
       call call(function('s:hi'), group)
+   endfor
+endfunc
+
+function! s:hi_link(pairs)
+   for pair in a:pairs
+      execute 'hi default link ' . join(pair)
    endfor
 endfunc
 
