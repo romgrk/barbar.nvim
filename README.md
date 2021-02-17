@@ -155,9 +155,10 @@ let bufferline.auto_hide = v:false
 " if set to 'both', will show buffer index and icons in the tabline
 let bufferline.icons = v:true
 
-" If set, the icon color will follow its corresponding buffer highlight group
-" (see Highlighting below). Otherwise, it will take its default value as defined
-" by kyazdani42/nvim-web-devicons.
+" If set, the icon color will follow its corresponding buffer
+" highlight group. By default, the Buffer*Icon group is linked to the
+" Buffer* group (see Highlighting below). Otherwise, it will take its
+" default value as defined by devicons.
 let bufferline.icon_custom_colors = v:false
 
 " Configure icons on the bufferline.
@@ -227,19 +228,16 @@ let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
 
 call s:hi_all([
 \ ['BufferCurrent',        fg_current,  bg_current],
-\ ['BufferCurrentIcon',    fg_current,  bg_current],
 \ ['BufferCurrentIndex',   fg_special,  bg_current],
 \ ['BufferCurrentMod',     fg_modified, bg_current],
 \ ['BufferCurrentSign',    fg_special,  bg_current],
 \ ['BufferCurrentTarget',  fg_target,   bg_current,   'bold'],
 \ ['BufferVisible',        fg_visible,  bg_visible],
-\ ['BufferVisibleIcon',    fg_visible,  bg_visible],
 \ ['BufferVisibleIndex',   fg_visible,  bg_visible],
 \ ['BufferVisibleMod',     fg_modified, bg_visible],
 \ ['BufferVisibleSign',    fg_visible,  bg_visible],
 \ ['BufferVisibleTarget',  fg_target,   bg_visible,   'bold'],
 \ ['BufferInactive',       fg_inactive, bg_inactive],
-\ ['BufferInactiveIcon',   fg_inactive, bg_inactive],
 \ ['BufferInactiveIndex',  fg_subtle,   bg_inactive],
 \ ['BufferInactiveMod',    fg_modified, bg_inactive],
 \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
@@ -248,9 +246,15 @@ call s:hi_all([
 \ ['BufferTabpageFill',    fg_inactive, bg_inactive],
 \ ])
 
-" NOTE: this is an example taken from the source, implementation
-" of s:fg(), s:bg() and s:hi_all() is left as an exercice for the
-" reader.
+call s:hi_link([
+\ ['BufferCurrentIcon',  'BufferCurrent'],
+\ ['BufferVisibleIcon',  'BufferVisible'],
+\ ['BufferInactiveIcon', 'BufferInactive'],
+\ ])
+
+" NOTE: this is an example taken from the source, implementation of
+" s:fg(), s:bg(), s:hi_all() and s:hi_link() is left as an exercise
+" for the reader.
 ```
 
 [See code for the example above](https://github.com/romgrk/barbar.nvim/blob/master/autoload/bufferline/highlight.vim)
