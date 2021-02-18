@@ -19,6 +19,8 @@ function bufferline#highlight#setup()
    "      Current: current buffer
    "      Visible: visible but not current buffer
    "     Inactive: invisible but not current buffer
+   "        -Icon: filetype icon
+   "       -Index: buffer index
    "         -Mod: when modified
    "        -Sign: the separator between buffers
    "      -Target: letter in buffer-picking mode
@@ -40,6 +42,12 @@ function bufferline#highlight#setup()
    \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
    \ ['BufferTabpages',       fg_special,  bg_inactive, 'bold'],
    \ ['BufferTabpageFill',    fg_inactive, bg_inactive],
+   \ ])
+
+   call s:hi_link([
+   \ ['BufferCurrentIcon',  'BufferCurrent'],
+   \ ['BufferVisibleIcon',  'BufferVisible'],
+   \ ['BufferInactiveIcon', 'BufferInactive'],
    \ ])
 
    lua require'bufferline.icons'.set_highlights()
@@ -68,6 +76,12 @@ endfunc
 function! s:hi_all(groups)
    for group in a:groups
       call call(function('s:hi'), group)
+   endfor
+endfunc
+
+function! s:hi_link(pairs)
+   for pair in a:pairs
+      execute 'hi default link ' . join(pair)
    endfor
 endfunc
 
