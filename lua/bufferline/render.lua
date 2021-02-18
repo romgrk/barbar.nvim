@@ -101,6 +101,7 @@ local function render(update_names)
   local click_enabled = vim.fn.has('tablineat') and opts.clickable
   local has_close = opts.closable
   local has_icons = (opts.icons == true) or (opts.icons == 'both')
+  local has_icon_custom_colors = opts.icon_custom_colors
   local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
 
   local layout = Layout.calculate(state)
@@ -169,7 +170,7 @@ local function render(update_names)
       if has_icons then
         local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
         local hlName = is_inactive and 'BufferInactive' or iconHl
-        iconPrefix = hlName and hl(hlName) or namePrefix
+        iconPrefix = has_icon_custom_colors and hl('Buffer' .. status .. 'Icon') or hlName and hl(hlName) or namePrefix
         icon = iconChar .. ' '
       end
     end
