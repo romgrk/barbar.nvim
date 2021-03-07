@@ -230,7 +230,7 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	Sets the name of unsaved buffer
 >
-        let g:bufferline.no_name_title = 'No Name'
+        let g:bufferline.no_name_title = v:null
 <
 
  vim:tw=78:ts=8:ft=help:norl:

@@ -67,8 +67,8 @@ end
 
 local function get_buffer_name(number)
   local name = bufname(number)
-  local opts = vim.g.bufferline
   if name == '' then
+    local opts = vim.g.bufferline
     return opts.no_name_title or ('[buffer ' .. number .. ']')
   end
   return basename(name)
