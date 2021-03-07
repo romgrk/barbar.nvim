@@ -104,7 +104,6 @@ let s:DEFAULT_OPTIONS = {
 \ 'maximum_padding': 4,
 \ 'semantic_letters': v:true,
 \ 'tabpages': v:true,
-\ 'buffer_name': 'No Name',
 \}
 
 let bufferline = extend(s:DEFAULT_OPTIONS, get(g:, 'bufferline', {}))

@@ -191,7 +191,7 @@ let bufferline.letters =
 let bufferline.maximum_padding = 4
 
 " Sets the name of unsaved buffer
-let bufferline.buffer_name = 'No Name'
+let bufferline.no_name_title = 'No Name'
 
 ```
 
