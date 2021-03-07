@@ -225,5 +225,12 @@ Here are the groups that you should define if you'd like to style Barbar.
         let g:bufferline.maximum_padding = 4
 <
 
+					           *g:bufferline.no_name_title*
+`g:bufferline.no_name_title`		string (default empty)
+
+	Sets the name of unsaved buffer
+>
+        let g:bufferline.no_name_title = v:null
+<
 
  vim:tw=78:ts=8:ft=help:norl:
