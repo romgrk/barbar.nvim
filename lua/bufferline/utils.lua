@@ -9,6 +9,7 @@ local fnamemodify = vim.fn.fnamemodify
 local split = vim.split
 local join = table.concat
 local strwidth = vim.api.nvim_strwidth
+local opts = vim.g.bufferline
 
 local function len(value)
   return #value
@@ -68,7 +69,7 @@ end
 local function get_buffer_name(number)
   local name = bufname(number)
   if name == '' then
-    return '[buffer ' .. number .. ']'
+        return opts.buffer_name
   end
   return basename(name)
 end
