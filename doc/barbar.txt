@@ -228,7 +228,7 @@ Here are the groups that you should define if you'd like to style Barbar.
 					           *g:bufferline.no_name_title*
 `g:bufferline.no_name_title`		string (default empty)
 
-	Sets the name of unsaved buffer
+	Sets the name of unsaved buffers
 >
         let g:bufferline.no_name_title = v:null
 <

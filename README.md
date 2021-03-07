@@ -190,8 +190,8 @@ let bufferline.letters =
 " Sets the maximum padding width with which to surround each tab
 let bufferline.maximum_padding = 4
 
-" Sets the name of unsaved buffer
-let bufferline.no_name_title = 'No Name'
+" Sets the name of unsaved buffers
+let bufferline.no_name_title = v:null
 
 ```
 
