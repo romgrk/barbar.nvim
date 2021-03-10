@@ -1,20 +1,24 @@
 
 ![header](./static/header.gif)
 
-# barbar.nvim
+<h1 align="center">
+  barbar.nvim
+</h1>
 
-> Tabs, as understood by any other editor.
+<p align="center">
+  <b>Tabs, as understood by any other editor.</b>
+</p>
 
-`barbar.nvim` is a tabline plugin with re-orderable auto-sizing clickable tabs, icons,
-nice highlighting, sort-by commands and a magic jump-to-buffer mode. Plus the tab
-names are made unique when two filenames match.
+`barbar.nvim` is a tabline plugin with re-orderable, auto-sizing, clickable tabs,
+icons, nice highlighting, sort-by commands and a magic jump-to-buffer mode. Plus
+the tab names are made unique when two filenames match.
 
 In jump-to-buffer mode, tabs display a target letter instead of their icon. Jump to
 any buffer by simply typing their target letter. Even better, the target letter
 stays constant for the lifetime of the buffer, so if you're working with a set of
 files you can even type the letter ahead from memory.
 
-**/!\ NOTE: RECENT NEOVIM NIGHTLY BUILD (0.5) REQUIRED**
+**⚠️  NOTE: Recent neovim nightly build (0.5) required (november 2020 & up)**
 
 
 ##### Table of content
@@ -70,21 +74,18 @@ as `BufferClose` and `bufferline#bbye#delete(buf)`.
 
 ## Install
 
-Is ~~two~~ one dependency a lot for one plugin? Yes it is. But is Barbar a very good
+Is one dependency bad for one plugin? Yes it is. But is Barbar a very good
 tabline plugin? Also yes. Do you now understand why the Install section is
 strategically placed after the cool demos? Yes again.
 
 ```vim
 Plug 'kyazdani42/nvim-web-devicons'
-" Plug 'romgrk/lib.kom' -- removed! You can remove it from your vimrc
 Plug 'romgrk/barbar.nvim'
 ```
-You can skip the dependency on `'kyazdani42/nvim-web-devicons'` if you
-[disable icons](#options).
 
-I might remove the dependencies in the future if I have enough time to port the
-required functions, or if you complain loud enough. If you want the icons, don't
-forget to install [nerd fonts](https://www.nerdfonts.com/).
+You can skip the dependency on `'kyazdani42/nvim-web-devicons'` if you
+[disable icons](#options).  If you want the icons, don't forget to
+install [nerd fonts](https://www.nerdfonts.com/).
 
 ##### Requirements
  - Neovim `0.5`
@@ -98,11 +99,6 @@ the `BufferClose` command to close buffers instead of `bdelete` because it will
 not mess your window layout.
 
 ```vim
-" Magic buffer-picking mode
-nnoremap <silent> <C-s> :BufferPick<CR>
-" Sort automatically by...
-nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
-nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
 " Move to previous/next
 nnoremap <silent>    <A-,> :BufferPrevious<CR>
 nnoremap <silent>    <A-.> :BufferNext<CR>
@@ -127,6 +123,11 @@ nnoremap <silent>    <A-c> :BufferClose<CR>
 "                          :BufferCloseAllButCurrent<CR>
 "                          :BufferCloseBuffersLeft<CR>
 "                          :BufferCloseBuffersRight<CR>
+" Magic buffer-picking mode
+nnoremap <silent> <C-s>    :BufferPick<CR>
+" Sort automatically by...
+nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
+nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
 
 " Other:
 " :BarbarEnable - enables barbar (enabled by default)
@@ -150,15 +151,21 @@ let bufferline.animation = v:true
 " Enable/disable auto-hiding the tab bar when there is a single buffer
 let bufferline.auto_hide = v:false
 
+" Enable/disable close button
+let bufferline.closable = v:true
+
+" Enables/disable clickable tabs
+"  - left-click: go to buffer
+"  - middle-click: delete buffer
+let bufferline.clickable = v:true
+
 " Enable/disable icons
 " if set to 'numbers', will show buffer index in the tabline
 " if set to 'both', will show buffer index and icons in the tabline
 let bufferline.icons = v:true
 
-" If set, the icon color will follow its corresponding buffer
-" highlight group. By default, the Buffer*Icon group is linked to the
-" Buffer* group (see Highlighting below). Otherwise, it will take its
-" default value as defined by devicons.
+" Sets the icon's highlight group.
+" If false, will use nvim-web-devicons colors
 let bufferline.icon_custom_colors = v:false
 
 " Configure icons on the bufferline.
@@ -167,13 +174,8 @@ let bufferline.icon_separator_inactive = '▎'
 let bufferline.icon_close_tab = ''
 let bufferline.icon_close_tab_modified = '●'
 
-" Enable/disable close button
-let bufferline.closable = v:true
-
-" Enables/disable clickable tabs
-"  - left-click: go to buffer
-"  - middle-click: delete buffer
-let bufferline.clickable = v:true
+" Sets the maximum padding width with which to surround each tab
+let bufferline.maximum_padding = 4
 
 " If set, the letters for each buffer in buffer-pick mode will be
 " assigned based on their name. Otherwise or in case all letters are
@@ -187,10 +189,8 @@ let bufferline.semantic_letters = v:true
 let bufferline.letters =
   \ 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP'
 
-" Sets the maximum padding width with which to surround each tab
-let bufferline.maximum_padding = 4
-
-" Sets the name of unsaved buffers
+" Sets the name of unnamed buffers. By default format is "[Buffer X]"
+" where X is the buffer number. But only a static string is accepted here.
 let bufferline.no_name_title = v:null
 
 ```
@@ -217,15 +217,21 @@ let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
 let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
 
 " Meaning of terms:
+"
+" format: "Buffer" + status + part
+"
+" status:
 "     *Current: current buffer
 "     *Visible: visible but not current buffer
 "    *Inactive: invisible but not current buffer
+"
+" part:
 "        *Icon: filetype icon
 "       *Index: buffer index
 "         *Mod: when modified
 "        *Sign: the separator between buffers
 "      *Target: letter in buffer-picking mode
-
+"
 " BufferTabpages: tabpage indicator
 " BufferTabpageFill: filler after the buffer section
 
