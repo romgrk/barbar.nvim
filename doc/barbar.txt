@@ -154,6 +154,11 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	Enable/disable auto-hiding the tab bar when there is a single buffer.
 
+                                                     *g:bufferline.tabpages*
+`g:bufferline.tabpages`         boolean (default v:true)
+
+        Enable/disable current/total tabpages indicator (top right corner).
+
 							*g:bufferline.icons*
 `g:bufferline.icons`		boolean, string	(default v:true)
 

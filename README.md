@@ -151,6 +151,9 @@ let bufferline.animation = v:true
 " Enable/disable auto-hiding the tab bar when there is a single buffer
 let bufferline.auto_hide = v:false
 
+" Enable/disable current/total tabpages indicator (top right corner)
+let bufferline.tabpages = v:true
+
 " Enable/disable close button
 let bufferline.closable = v:true
 
