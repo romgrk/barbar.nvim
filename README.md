@@ -152,7 +152,7 @@ let bufferline.animation = v:true
 let bufferline.auto_hide = v:false
 
 " Enable/disable current/total tabpages indicator (top right corner)
-let bufferline.tabpages = v:false
+let bufferline.tabpages = v:true
 
 " Enable/disable close button
 let bufferline.closable = v:true
