@@ -8,8 +8,9 @@ assignees: ''
 ---
 
 Preamble (you can delete this section):
- - Are you using a RECENT BUILD of neovim 0.5?
+ - Are you using a recent build (november 2020 & up) of neovim 0.5?
  - If not, rebuild it now before reporting the issue.
+ - Do you certify having read the [readme](https://github.com/romgrk/barbar.nvim#readme) or are ready for being shamed for not having read the manual?
 
 **Description**
 
