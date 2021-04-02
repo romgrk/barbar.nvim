@@ -26,6 +26,7 @@ files you can even type the letter ahead from memory.
  - [Install](#install)
  - [Usage](#usage)
  - [Options](#options)
+ - [Known Issues](#known-issues)
  - [About Barbar](#about)
 
 ## Features
