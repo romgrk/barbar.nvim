@@ -12,6 +12,7 @@ function! bufferline#enable()
       au BufReadPost    * call <SID>on_buffer_open(expand('<abuf>'))
       au BufNewFile     * call <SID>on_buffer_open(expand('<abuf>'))
       au BufDelete      * call <SID>on_buffer_close(expand('<abuf>'))
+      au VimEnter       * call bufferline#highlight#setup()
       au ColorScheme    * call bufferline#highlight#setup()
       if exists('##BufModifiedSet')
       au BufModifiedSet * call <SID>check_modified()
@@ -21,28 +22,24 @@ function! bufferline#enable()
       end
    augroup END
 
-   function! s:did_load (...)
-      augroup bufferline_update
-         au!
-         au BufNew                 * call bufferline#update(v:true)
-         au BufEnter               * call bufferline#update()
-         au BufWipeout             * call bufferline#update()
-         au BufWinEnter            * call bufferline#update()
-         au BufWinLeave            * call bufferline#update()
-         au BufWritePost           * call bufferline#update()
-         au SessionLoadPost        * call bufferline#update()
-         au OptionSet      buflisted call bufferline#update()
-         au VimResized             * call bufferline#update()
-         au WinEnter               * call bufferline#update()
-         au WinLeave               * call bufferline#update()
-         au WinClosed              * call bufferline#update_async()
-      augroup END
-
-      call bufferline#update()
-   endfunc
-   call timer_start(1, function('s:did_load'))
+   augroup bufferline_update
+      au!
+      au BufNew                 * call bufferline#update(v:true)
+      au BufEnter               * call bufferline#update()
+      au BufWipeout             * call bufferline#update()
+      au BufWinEnter            * call bufferline#update()
+      au BufWinLeave            * call bufferline#update()
+      au BufWritePost           * call bufferline#update()
+      au SessionLoadPost        * call bufferline#update()
+      au OptionSet      buflisted call bufferline#update()
+      au VimResized             * call bufferline#update()
+      au WinEnter               * call bufferline#update()
+      au WinLeave               * call bufferline#update()
+      au WinClosed              * call bufferline#update_async()
+   augroup END
 
    call bufferline#highlight#setup()
+   call bufferline#update()
 endfunc
 
 function! bufferline#disable()
@@ -50,8 +47,6 @@ function! bufferline#disable()
    augroup bufferline_update | au! | augroup END
    let &tabline = ''
 endfunc
-
-call bufferline#enable()
 
 "=================
 " Section: Commands
@@ -234,6 +229,6 @@ endfunc
 
 " Final setup
 
-call luaeval("require'bufferline.state'.get_updated_buffers()")
+call bufferline#enable()
 
 let g:bufferline# = s:
