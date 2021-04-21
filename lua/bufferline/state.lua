@@ -316,7 +316,7 @@ local function goto_buffer (number)
     idx = number
   end
 
-  nvim.command('silent buffer ' .. m.buffers[idx])
+  nvim.command('buffer ' .. m.buffers[idx])
 end
 
 local function goto_buffer_relative(steps)
@@ -328,7 +328,7 @@ local function goto_buffer_relative(steps)
 
   -- Check previous window first
   if not is_listed then
-    nvim.command('silent wincmd p')
+    nvim.command('wincmd p')
     current = vim.fn.bufnr('%')
     is_listed = nvim.buf_get_option(current, 'buflisted')
   end
@@ -354,7 +354,7 @@ local function goto_buffer_relative(steps)
     idx = (idx + steps - 1) % len(m.buffers) + 1
   end
 
-  nvim.command('silent buffer ' .. m.buffers[idx])
+  nvim.command('buffer ' .. m.buffers[idx])
 end
 
 
