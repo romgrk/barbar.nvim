@@ -66,7 +66,7 @@ local function basename(path)
 end
 
 local function terminalname(name)                                   
-  result = matchlist(name, [===[term://.\\{-}//\\d\\+:\\(.*\\)]===])
+  local result = matchlist(name, [===[term://.\\{-}//\\d\\+:\\(.*\\)]===])
   if next(result) == nil then                                       
     return name                                                     
   else                                                              
