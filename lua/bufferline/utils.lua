@@ -9,6 +9,7 @@ local fnamemodify = vim.fn.fnamemodify
 local split = vim.split
 local join = table.concat
 local strwidth = vim.api.nvim_strwidth
+local nvim_buf_get_option = vim.api.nvim_buf_get_option
 
 local function len(value)
   return #value
