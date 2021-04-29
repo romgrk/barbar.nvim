@@ -6,6 +6,7 @@
 local vim = vim
 local bufname = vim.fn.bufname
 local fnamemodify = vim.fn.fnamemodify
+local matchlist = vim.fn.matchlist
 local split = vim.split
 local join = table.concat
 local strwidth = vim.api.nvim_strwidth
