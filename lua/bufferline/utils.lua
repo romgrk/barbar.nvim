@@ -6,9 +6,11 @@
 local vim = vim
 local bufname = vim.fn.bufname
 local fnamemodify = vim.fn.fnamemodify
+local matchlist = vim.fn.matchlist
 local split = vim.split
 local join = table.concat
 local strwidth = vim.api.nvim_strwidth
+local nvim_buf_get_option = vim.api.nvim_buf_get_option
 
 local function len(value)
   return #value
@@ -65,14 +67,28 @@ local function basename(path)
    return fnamemodify(path, ':t')
 end
 
-local function get_buffer_name(number)
-  local name = bufname(number)
-  if name == '' then
-    local opts = vim.g.bufferline
-    return opts.no_name_title or ('[buffer ' .. number .. ']')
-  end
-  return basename(name)
-end
+local function terminalname(name)                                   
+  local result = matchlist(name, [===[term://.\\{-}//\\d\\+:\\(.*\\)]===])
+  if next(result) == nil then                                       
+    return name                                                     
+  else                                                              
+    return result[2]                                                
+  end                                                               
+end                                                                 
+                                                                    
+local function get_buffer_name(number)                              
+  local name = bufname(number)                                      
+  if name == '' then                                                
+    local opts = vim.g.bufferline                                   
+    return opts.no_name_title or ('[buffer ' .. number .. ']')      
+  end                                                               
+  local buftype = nvim_buf_get_option(number, 'buftype')            
+  if buftype == 'terminal' then                                     
+    return terminalname(name)                                       
+  else                                                              
+    return basename(name)                                           
+  end                                                               
+end                                                                 
 
 function get_unique_name (first, second)
   local first_parts  = split(first, '/')
