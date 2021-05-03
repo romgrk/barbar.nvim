@@ -12,9 +12,9 @@ function bufferline#highlight#setup()
    let fg_special  = s:fg(['Special'], '#599eff')
    let fg_subtle   = s:fg(['NonText', 'Comment'], '#555555')
 
-   let bg_current  = s:bg(['Normal'], '#000000')
-   let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
-   let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
+   let bg_current  = s:bg(['Normal'], 'none')
+   let bg_visible  = s:bg(['TabLineSel', 'Normal'], 'none')
+   let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], 'none')
 
    "      Current: current buffer
    "      Visible: visible but not current buffer
