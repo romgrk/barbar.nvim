@@ -67,28 +67,28 @@ local function basename(path)
    return fnamemodify(path, ':t')
 end
 
-local function terminalname(name)                                   
+local function terminalname(name)
   local result = matchlist(name, [===[term://.\\{-}//\\d\\+:\\(.*\\)]===])
-  if next(result) == nil then                                       
-    return name                                                     
-  else                                                              
-    return result[2]                                                
-  end                                                               
-end                                                                 
-                                                                    
-local function get_buffer_name(number)                              
-  local name = bufname(number)                                      
-  if name == '' then                                                
-    local opts = vim.g.bufferline                                   
-    return opts.no_name_title or ('[buffer ' .. number .. ']')      
-  end                                                               
-  local buftype = nvim_buf_get_option(number, 'buftype')            
-  if buftype == 'terminal' then                                     
-    return terminalname(name)                                       
-  else                                                              
-    return basename(name)                                           
-  end                                                               
-end                                                                 
+  if next(result) == nil then
+    return name
+  else
+    return result[2]
+  end
+end
+
+local function get_buffer_name(number)
+  local name = bufname(number)
+  if name == '' then
+    local opts = vim.g.bufferline
+    return opts.no_name_title or ('[buffer ' .. number .. ']')
+  end
+  local buftype = nvim_buf_get_option(number, 'buftype')
+  if buftype == 'terminal' then
+    return terminalname(name)
+  else
+    return basename(name)
+  end
+end
 
 function get_unique_name (first, second)
   local first_parts  = split(first, '/')
