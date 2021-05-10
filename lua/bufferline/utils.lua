@@ -90,20 +90,21 @@ local function get_buffer_name(number)
   end
 end
 
-function get_unique_name (first, second)
-  local first_parts  = split(first, '/')
-  local second_parts = split(second, '/')
+local separator = package.config:sub(1,1)
+local function get_unique_name (first, second)
+  local first_parts  = split(first,  separator)
+  local second_parts = split(second, separator)
 
   local length = 1
-  local first_result  = join(slice(first_parts, -length), '/')
-  local second_result = join(slice(second_parts, -length), '/')
+  local first_result  = join(slice(first_parts, -length),  separator)
+  local second_result = join(slice(second_parts, -length), separator)
 
   while first_result == second_result and
         length < math.max(len(first_parts), len(second_parts))
   do
     length = length + 1
-    first_result  = join(slice(first_parts,  -math.min(len(first_parts), length)), '/')
-    second_result = join(slice(second_parts, -math.min(len(second_parts), length)), '/')
+    first_result  = join(slice(first_parts,  -math.min(len(first_parts), length)),  separator)
+    second_result = join(slice(second_parts, -math.min(len(second_parts), length)), separator)
   end
 
   return first_result, second_result
