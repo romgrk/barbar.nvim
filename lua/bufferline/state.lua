@@ -279,6 +279,13 @@ function m.get_updated_buffers(update_names)
   return m.buffers
 end
 
+local function set_offset(offset)
+  local offset_number = tonumber(offset)
+  if offset_number then
+      m.offset = offset_number
+      vim.fn['bufferline#update']()
+  end
+end
 
 -- Movement & tab manipulation
 
@@ -428,20 +435,10 @@ local function order_by_language()
 end
 
 
--- offset
-
-function m.set_offset(offset)
-  local offset_number = tonumber(offset)
-  if offset_number then
-      m.offset = offset_number
-      vim.fn['bufferline#update']()
-  end
-end
-
-
 -- Exports
 
 m.set_scroll = set_scroll
+m.set_offset = set_offset
 
 m.close_buffer = close_buffer
 m.close_buffer_animated = close_buffer_animated

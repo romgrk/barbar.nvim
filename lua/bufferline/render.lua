@@ -237,9 +237,7 @@ local function render(update_names)
   local result = ''
   local offset = tonumber(state.offset)
   if offset then
-     for i = 1, offset, 1 do
-         result = result..' '
-     end
+    result = string.rep(' ', offset)
   end
 
   local accumulated_width = 0
