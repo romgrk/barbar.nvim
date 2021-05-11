@@ -75,6 +75,9 @@ local function calculate(state)
     + 1 -- space-after-name
 
   local available_width = vim.o.columns
+  if state.offset then
+    available_width = available_width - state.offset
+  end
 
   local used_width, base_widths = calculate_buffers_width(state, base_width)
   local tabpages_width = calculate_tabpages_width()

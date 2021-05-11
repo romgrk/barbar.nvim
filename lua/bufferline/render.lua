@@ -235,6 +235,9 @@ local function render(update_names)
 
   -- Create actual tabline string
   local result = ''
+  if state.offset then
+      result = hl('BufferTabpageFill') .. string.rep(' ', state.offset)
+  end
 
   local accumulated_width = 0
   local max_scroll = math.max(layout.used_width - layout.buffers_width, 0)
