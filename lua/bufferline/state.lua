@@ -31,6 +31,7 @@ local m = {
   scroll_current = 0,
   buffers = {},
   buffers_by_id = {},
+  offset = 0,
 }
 
 function m.new_buffer_data()
@@ -424,6 +425,17 @@ local function order_by_language()
     return na < nb
   end)
   vim.fn['bufferline#update']()
+end
+
+
+-- offset
+
+function m.set_offset(offset)
+  local offset_number = tonumber(offset)
+  if offset_number then
+      m.offset = offset_number
+      vim.fn['bufferline#update']()
+  end
 end
 
 

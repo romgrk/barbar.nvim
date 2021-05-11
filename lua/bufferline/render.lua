@@ -235,6 +235,12 @@ local function render(update_names)
 
   -- Create actual tabline string
   local result = ''
+  local offset = tonumber(state.offset)
+  if offset then
+     for i = 1, offset, 1 do
+         result = result..' '
+     end
+  end
 
   local accumulated_width = 0
   local max_scroll = math.max(layout.used_width - layout.buffers_width, 0)
