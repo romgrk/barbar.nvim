@@ -236,7 +236,7 @@ local function render(update_names)
   -- Create actual tabline string
   local result = ''
   if state.offset then
-      result = hl('BufferTabpageFill')..string.rep(' ', state.offset)
+      result = hl('BufferTabpageFill') .. string.rep(' ', state.offset)
   end
 
   local accumulated_width = 0

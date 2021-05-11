@@ -246,5 +246,24 @@ Here are the groups that you should define if you'd like to style Barbar.
 >
         let g:bufferline.no_name_title = v:null
 <
+==============================================================================
+5. Integrations                                             *barbar-settings*
+
+with filetree plugins
+
+bind open and close commands to (e.g. nvim-tree):
+
+local tree = {}
+tree.open = function ()
+   require'bufferline.state'.set_offset(31)
+   require'nvim-tree'.find_file(true)
+end
+
+tree.close = function ()
+   require'bufferline.state'.set_offset(0)
+   require'nvim-tree'.close()
+end
+
+return tree
 
  vim:tw=78:ts=8:ft=help:norl:

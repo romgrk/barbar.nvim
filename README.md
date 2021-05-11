@@ -135,6 +135,29 @@ nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
 " :BarbarDisable - very bad command, should never be used
 ```
 
+### Integration with filetree plugins
+
+To ensure tabs begin with the shown buffer you can set an offset for the tabline.
+
+![filetree-with-offset](./static/filetree-with-offset.png)
+
+Add tree.lua to your configuration and use the given functions to open and close the file tree. Nvim-tree is used in the given example.
+
+```lua
+local tree ={}
+tree.open = function ()
+   require'bufferline.state'.set_offset(31)
+   require'nvim-tree'.find_file(true)
+end
+
+tree.close = function ()
+   require'bufferline.state'.set_offset(0)
+   require'nvim-tree'.close()
+end
+
+return tree 
+```
+
 ## Options
 
 NOTE: Until [#13167](https://github.com/neovim/neovim/pull/13167) is merged,
