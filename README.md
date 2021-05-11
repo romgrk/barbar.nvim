@@ -26,6 +26,8 @@ files you can even type the letter ahead from memory.
  - [Install](#install)
  - [Usage](#usage)
  - [Options](#options)
+ - [Highlighting](#highlighting)
+ - [Integration with filetree plugins](#integration-with-filetree-plugins)
  - [Known Issues](#known-issues)
  - [About Barbar](#about)
 
@@ -135,35 +137,7 @@ nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
 " :BarbarDisable - very bad command, should never be used
 ```
 
-### Integration with filetree plugins
-
-To ensure tabs begin with the shown buffer you can set an offset for the tabline.
-
-![filetree-with-offset](./static/filetree-with-offset.png)
-
-Add tree.lua to your configuration and use the given functions to open and close the file tree. Nvim-tree is used in the given example.
-
-```lua
-local tree ={}
-tree.open = function ()
-   require'bufferline.state'.set_offset(31)
-   require'nvim-tree'.find_file(true)
-end
-
-tree.close = function ()
-   require'bufferline.state'.set_offset(0)
-   require'nvim-tree'.close()
-end
-
-return tree 
-```
-
 ## Options
-
-NOTE: Until [#13167](https://github.com/neovim/neovim/pull/13167) is merged,
-having too many tabline items shows as "E541" :/ If this happens a lot to you,
-you can disable the options `clickable`, `closable`, or `icons` to reduce
-the number of items you have.
 
 ```vim
 " NOTE: If barbar's option dict isn't created yet, create it
@@ -299,6 +273,29 @@ You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see
 in the demos above.
 
+### Integration with filetree plugins
+
+To ensure tabs begin with the shown buffer you can set an offset for the tabline.
+
+![filetree-with-offset](./static/filetree-with-offset.png)
+
+Add tree.lua to your configuration and use the given functions to open and close the file tree. Nvim-tree is used in the given example.
+
+```lua
+local tree ={}
+tree.open = function ()
+   require'bufferline.state'.set_offset(31)
+   require'nvim-tree'.find_file(true)
+end
+
+tree.close = function ()
+   require'bufferline.state'.set_offset(0)
+   require'nvim-tree'.close()
+end
+
+return tree 
+```
+
 ## Known Issues
 
 #### Netrw
@@ -318,5 +315,5 @@ No, barbar has nothing to do with barbarians.
 
 ## License
 
-barbar.nvim: Distributed under the terms of the JSON license.  
-bbye.vim: Distributed under the terms of the GNU Affero license.  
+barbar.nvim: Distributed under the terms of the JSON license.  
+bbye.vim: Distributed under the terms of the GNU Affero license.  
