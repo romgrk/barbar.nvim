@@ -247,7 +247,7 @@ Here are the groups that you should define if you'd like to style Barbar.
         let g:bufferline.no_name_title = v:null
 <
 ==============================================================================
-5. Integrations                                             *barbar-settings*
+5. Integrations					    *barbar-integrations*
 
 with filetree plugins
 
