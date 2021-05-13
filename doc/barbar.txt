@@ -10,6 +10,7 @@ Help on barbar.vim   			         		*barbar*
 2. Mappings & Commands          |barbar-mappings| |barbar-commands|
 3. Highlights                   |barbar-highlights|
 4. Settings                     |barbar-settings|
+5. Integrations                 |barbar-integrations|
 
 ==============================================================================
 1. Intro  					          *barbar-intro*
