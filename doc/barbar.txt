@@ -13,13 +13,13 @@ Help on barbar.vim   			         		*barbar*
 5. Integrations                 |barbar-integrations|
 
 ==============================================================================
-1. Intro  					          *barbar-intro*
+1. Intro                                                        *barbar-intro*
 
 Barbar is a tabline plugin. It's called Barbar because it deals with the bar
 at the top of your window. And it does it well so it's more than a bar. Barbar.
 
 ==============================================================================
-2. Mappings & Commands	               *barbar-mappings* *barbar-commands*
+2. Mappings & Commands                     *barbar-mappings* *barbar-commands*
 
 The plugin doesn't provide default mappings as there isn't any standard. The
 list below is the mappings I use. It is recommended to use the `BufferClose`
@@ -71,7 +71,7 @@ The name of each command should be descriptive enough for you to use it.
 <
 
 ==============================================================================
-3. Highlights	                                          *barbar-highlights*
+3. Highlights                                              *barbar-highlights*
 ~
 
 Here are the groups that you should define if you'd like to style Barbar.
@@ -142,7 +142,7 @@ Here are the groups that you should define if you'd like to style Barbar.
 <
 
 ==============================================================================
-4. Settings                                                 *barbar-settings*
+4. Settings                                                  *barbar-settings*
 ~
 
 					            *g:bufferline.animation*
@@ -248,7 +248,7 @@ Here are the groups that you should define if you'd like to style Barbar.
         let g:bufferline.no_name_title = v:null
 <
 ==============================================================================
-5. Integrations					    *barbar-integrations*
+5. Integrations                                          *barbar-integrations*
 
 with filetree plugins
 
