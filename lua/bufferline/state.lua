@@ -208,11 +208,12 @@ end
 -- Update state
 
 function m.update_names()
+  local opts = vim.g.bufferline
   local buffer_index_by_name = {}
 
   -- Compute names
   for i, buffer_n in ipairs(m.buffers) do
-    local name = utils.get_buffer_name(buffer_n)
+    local name = utils.get_buffer_name(opts, buffer_n)
 
     if buffer_index_by_name[name] == nil then
       buffer_index_by_name[name] = i

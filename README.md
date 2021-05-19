@@ -175,8 +175,11 @@ let bufferline.icon_separator_inactive = '▎'
 let bufferline.icon_close_tab = ''
 let bufferline.icon_close_tab_modified = '●'
 
-" Sets the maximum padding width with which to surround each tab
+" Sets the maximum padding width with which to surround each tab.
 let bufferline.maximum_padding = 4
+
+" Sets the maximum buffer name length.
+let bufferline.maximum_length = 30
 
 " If set, the letters for each buffer in buffer-pick mode will be
 " assigned based on their name. Otherwise or in case all letters are

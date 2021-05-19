@@ -1,4 +1,3 @@
--- !::exe [luafile %]
 --
 -- utils.lua
 --
@@ -76,18 +75,25 @@ local function terminalname(name)
   end
 end
 
-local function get_buffer_name(number)
+local function get_buffer_name(opts, number)
   local name = bufname(number)
+
   if name == '' then
-    local opts = vim.g.bufferline
-    return opts.no_name_title or ('[buffer ' .. number .. ']')
-  end
-  local buftype = nvim_buf_get_option(number, 'buftype')
-  if buftype == 'terminal' then
-    return terminalname(name)
+    name = opts.no_name_title or ('[buffer ' .. number .. ']')
   else
-    return basename(name)
+    local buftype = nvim_buf_get_option(number, 'buftype')
+    if buftype == 'terminal' then
+      name = terminalname(name)
+    else
+      name = basename(name)
+    end
   end
+
+  if len(name) > opts.maximum_length then
+    name = '…' .. slice(name, -opts.maximum_length, -1)
+  end
+
+  return name
 end
 
 local separator = package.config:sub(1,1)

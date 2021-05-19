@@ -234,9 +234,17 @@ Here are the groups that you should define if you'd like to style Barbar.
 					           *g:bufferline.maximum_padding*
 `g:bufferline.maximum_padding`		int	(default 4)
 
-	Sets the maximum padding width with which to surround each tab
+	Sets the maximum padding width with which to surround each tab.
 >
         let g:bufferline.maximum_padding = 4
+<
+
+					           *g:bufferline.maximum_length*
+`g:bufferline.maximum_length`		int	(default 30)
+
+	Sets the maximum buffer name length.
+>
+        let g:bufferline.maximum_length = 30
 <
 
 					           *g:bufferline.no_name_title*
