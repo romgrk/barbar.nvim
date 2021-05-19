@@ -238,6 +238,7 @@ let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
 "
 " BufferTabpages: tabpage indicator
 " BufferTabpageFill: filler after the buffer section
+" BufferOffset: offset section, created with set_offset()
 
 call s:hi_all([
 \ ['BufferCurrent',        fg_current,  bg_current],
@@ -263,6 +264,7 @@ call s:hi_link([
 \ ['BufferCurrentIcon',  'BufferCurrent'],
 \ ['BufferVisibleIcon',  'BufferVisible'],
 \ ['BufferInactiveIcon', 'BufferInactive'],
+\ ['BufferOffset',       'BufferTabpageFill'],
 \ ])
 
 " NOTE: this is an example taken from the source, implementation of

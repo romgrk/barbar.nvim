@@ -109,6 +109,7 @@ Here are the groups that you should define if you'd like to style Barbar.
    "
    " BufferTabpages: tabpage indicator
    " BufferTabpageFill: filler after the buffer section
+   " BufferOffset: offset section, created with set_offset()
 
    call s:hi_all([
    \ ['BufferCurrent',        fg_current,  bg_current],
@@ -134,6 +135,7 @@ Here are the groups that you should define if you'd like to style Barbar.
    \ ['BufferCurrentIcon',  'BufferCurrent'],
    \ ['BufferVisibleIcon',  'BufferVisible'],
    \ ['BufferInactiveIcon', 'BufferInactive'],
+   \ ['BufferOffset',       'BufferTabpageFill'],
    \ ])
 
    " NOTE: this is an example taken from the source, implementation of
