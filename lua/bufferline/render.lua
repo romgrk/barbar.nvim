@@ -235,8 +235,15 @@ local function render(update_names)
 
   -- Create actual tabline string
   local result = ''
-  if state.offset then
-      result = hl('BufferTabpageFill') .. string.rep(' ', state.offset)
+  if state.offset and state.offset > 0 then
+    local offset_available_width = state.offset - 2
+    local groups = {
+      {hl('BufferOffset'), ' '},
+      {'',                 state.offset_text},
+    }
+    result = result .. slice_groups_right(groups, offset_available_width)
+    result = result .. string.rep(' ', offset_available_width - len(state.offset_text))
+    result = result .. ' '
   end
 
   local accumulated_width = 0

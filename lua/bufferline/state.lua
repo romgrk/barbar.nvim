@@ -32,6 +32,7 @@ local m = {
   buffers = {},
   buffers_by_id = {},
   offset = 0,
+  offset_text = '',
 }
 
 function m.new_buffer_data()
@@ -280,10 +281,11 @@ function m.get_updated_buffers(update_names)
   return m.buffers
 end
 
-local function set_offset(offset)
+local function set_offset(offset, offset_text)
   local offset_number = tonumber(offset)
   if offset_number then
       m.offset = offset_number
+      m.offset_text = offset_text or ''
       vim.fn['bufferline#update']()
   end
 end

@@ -48,6 +48,7 @@ function bufferline#highlight#setup()
    \ ['BufferCurrentIcon',  'BufferCurrent'],
    \ ['BufferVisibleIcon',  'BufferVisible'],
    \ ['BufferInactiveIcon', 'BufferInactive'],
+   \ ['BufferOffset',       'BufferTabpageFill'],
    \ ])
 
    lua require'bufferline.icons'.set_highlights()
