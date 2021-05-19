@@ -287,7 +287,7 @@ Add tree.lua to your configuration and use the given functions to open and close
 ```lua
 local tree ={}
 tree.open = function ()
-   require'bufferline.state'.set_offset(31)
+   require'bufferline.state'.set_offset(31, 'FileTree')
    require'nvim-tree'.find_file(true)
 end
 
