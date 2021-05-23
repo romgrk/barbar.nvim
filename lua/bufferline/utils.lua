@@ -79,7 +79,13 @@ local function get_buffer_name(opts, number)
   local name = bufname(number)
 
   if name == '' then
-    name = opts.no_name_title or ('[buffer ' .. number .. ']')
+    if opts.no_name_title ~= nil and
+       opts.no_name_title ~= vim.NIL
+    then
+      name = opts.no_name_title
+    else
+      name = '[buffer ' .. number .. ']'
+    end
   else
     local buftype = nvim_buf_get_option(number, 'buftype')
     if buftype == 'terminal' then

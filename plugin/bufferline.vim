@@ -98,6 +98,7 @@ let s:DEFAULT_OPTIONS = {
 \ 'letters': 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
 \ 'maximum_padding': 4,
 \ 'maximum_length': 30,
+\ 'no_name_title': v:null,
 \ 'semantic_letters': v:true,
 \ 'tabpages': v:true,
 \}
