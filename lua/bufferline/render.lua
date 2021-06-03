@@ -298,7 +298,7 @@ local function render(update_names)
 end
 
 local function render_safe(update_names)
-  local ok, result = pcall(render, update_names)
+  local ok, result = xpcall(render, debug.traceback, update_names)
   return {ok, tostring(result)}
 end
 
