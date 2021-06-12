@@ -61,8 +61,8 @@ command! -count   -bang BufferPrevious         call s:goto_buffer_relative(-v:co
 command! -nargs=1 -bang BufferGoto             call s:goto_buffer(<f-args>)
 command!          -bang BufferLast             call s:goto_buffer(-1)
 
-command!          -bang BufferMoveNext         call s:move_current_buffer(+1)
-command!          -bang BufferMovePrevious     call s:move_current_buffer(-1)
+command! -count   -bang BufferMoveNext         call s:move_current_buffer(v:count1)
+command! -count   -bang BufferMovePrevious     call s:move_current_buffer(-v:count1)
 
 command!          -bang BufferPick             call bufferline#pick_buffer()
 
@@ -217,8 +217,8 @@ endfunction
 
 " Buffer movement
 
-function! s:move_current_buffer(direction)
-   call luaeval("require'bufferline.state'.move_current_buffer(_A)", a:direction)
+function! s:move_current_buffer(steps)
+   call luaeval("require'bufferline.state'.move_current_buffer(_A)", a:steps)
 endfunc
 
 function! s:goto_buffer(number)
