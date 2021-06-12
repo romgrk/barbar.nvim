@@ -148,6 +148,10 @@ local function render(update_names)
     local iconPrefix = ''
     local icon = ''
 
+    -- The pin icon
+    local pinPrefix = ''
+    local pin = ''
+
     if has_numbers then
       local number_text = tostring(i)
       bufferIndexPrefix = hl('Buffer' .. status .. 'Index')
@@ -172,6 +176,15 @@ local function render(update_names)
         local hlName = is_inactive and 'BufferInactive' or iconHl
         iconPrefix = has_icon_custom_colors and hl('Buffer' .. status .. 'Icon') or hlName and hl(hlName) or namePrefix
         icon = iconChar .. ' '
+      end
+
+      if state.is_pinned(buffer_number) then
+        pinPrefix = namePrefix
+        if opts.pin_status == 'icon' then
+          pin = ' ' .. icons.pinned
+        else
+          pin = ' ' .. opts.pin_status
+        end
       end
     end
 
@@ -211,6 +224,7 @@ local function render(update_names)
         {iconPrefix,         icon},
         {jumpLetterPrefix,   jumpLetter},
         {namePrefix,         name},
+        {pinPrefix,          pin},
         {'',                 padding},
         {'',                 ' '},
         {closePrefix,        close},

@@ -20,6 +20,7 @@ local ANIMATION_OPEN_DURATION  = 150
 local ANIMATION_OPEN_DELAY     =  50
 local ANIMATION_CLOSE_DURATION = 100
 local ANIMATION_SCROLL_DURATION = 200
+local PIN = "bufferline_pin"
 
 --------------------------------
 -- Section: Application state --
@@ -56,6 +57,32 @@ function m.get_buffer_data(id)
   return m.buffers_by_id[id]
 end
 
+-- Pinned buffers
+
+local function is_pinned(bufnr)
+  local ok, val = pcall(vim.api.nvim_buf_get_var, bufnr, PIN)
+  return ok and val
+end
+
+local function sort_pins_to_left()
+  local pinned = {}
+  local unpinned = {}
+  for _, bufnr in ipairs(m.buffers) do
+    if is_pinned(bufnr) then
+      table.insert(pinned, bufnr)
+    else
+      table.insert(unpinned, bufnr)
+    end
+  end
+  m.buffers = vim.list_extend(pinned, unpinned)
+end
+
+local function toggle_pin(bufnr)
+  bufnr = bufnr or 0
+  vim.api.nvim_buf_set_var(bufnr, PIN, not is_pinned(bufnr))
+  sort_pins_to_left()
+  vim.fn["bufferline#update"]()
+end
 
 -- Scrolling
 
@@ -139,6 +166,8 @@ local function open_buffers(new_buffers)
       table.insert(m.buffers, actual_index, new_buffer)
     end
   end
+
+  sort_pins_to_left()
 
   -- We're done if there is no animations
   if vim.g.bufferline.animation == false then
@@ -338,6 +367,7 @@ local function move_buffer(from_idx, to_idx)
   local bufnr = m.buffers[from_idx]
   table.remove(m.buffers, from_idx)
   table.insert(m.buffers, to_idx, bufnr)
+  sort_pins_to_left()
 
   vim.fn['bufferline#update']()
 end
@@ -457,34 +487,54 @@ end
 
 -- Ordering
 
+local function with_pin_order(order_func)
+  return function(a, b)
+    local a_pinned = is_pinned(a)
+    local b_pinned = is_pinned(b)
+    if a_pinned and not b_pinned then
+      return true
+    elseif b_pinned and not a_pinned then
+      return false
+    else
+      return order_func(a, b)
+    end
+  end
+end
+
 local function is_relative_path(path)
    return fnamemodify(path, ':p') ~= path
 end
 
 local function order_by_directory()
-  table.sort(m.buffers, function(a, b)
-    local na = bufname(a)
-    local nb = bufname(b)
-    local ra = is_relative_path(na)
-    local rb = is_relative_path(nb)
-    if ra and not rb then
-      return true
-    end
-    if not ra and rb then
-      return false
-    end
-    return na < nb
-  end)
-  vim.fn['bufferline#update']()
+  table.sort(
+    m.buffers,
+    with_pin_order(function(a, b)
+      local na = bufname(a)
+      local nb = bufname(b)
+      local ra = is_relative_path(na)
+      local rb = is_relative_path(nb)
+      if ra and not rb then
+        return true
+      end
+      if not ra and rb then
+        return false
+      end
+      return na < nb
+    end)
+  )
+  vim.fn["bufferline#update"]()
 end
 
 local function order_by_language()
-  table.sort(m.buffers, function(a, b)
-    local na = fnamemodify(bufname(a), ':e')
-    local nb = fnamemodify(bufname(b), ':e')
-    return na < nb
-  end)
-  vim.fn['bufferline#update']()
+  table.sort(
+    m.buffers,
+    with_pin_order(function(a, b)
+      local na = fnamemodify(bufname(a), ":e")
+      local nb = fnamemodify(bufname(b), ":e")
+      return na < nb
+    end)
+  )
+  vim.fn["bufferline#update"]()
 end
 
 
@@ -556,11 +606,13 @@ m.close_all_but_current = close_all_but_current
 m.close_buffers_right = close_buffers_right
 m.close_buffers_left = close_buffers_left
 
+m.is_pinned = is_pinned
 m.move_current_buffer_to = move_current_buffer_to
 m.move_current_buffer = move_current_buffer
 m.goto_buffer = goto_buffer
 m.goto_buffer_relative = goto_buffer_relative
 
+m.toggle_pin = toggle_pin
 m.order_by_directory = order_by_directory
 m.order_by_language = order_by_language
 
