@@ -292,23 +292,19 @@ end
 
 -- Movement & tab manipulation
 
-local function move_current_buffer (direction)
+local function move_current_buffer (steps)
   m.get_updated_buffers()
 
   local currentnr = nvim.get_current_buf()
   local idx = utils.index(m.buffers, currentnr)
 
-  if idx == 1 and direction == -1 then
-    return
-  end
-  if idx == len(m.buffers) and direction == 1 then
+  local newidx = math.max(1, math.min(len(m.buffers), idx + steps))
+  if idx == newidx then
     return
   end
 
-  local othernr = m.buffers[idx + direction]
-
-  m.buffers[idx] = othernr
-  m.buffers[idx + direction] = currentnr
+  table.remove(m.buffers, idx)
+  table.insert(m.buffers, newidx, currentnr)
 
   vim.fn['bufferline#update']()
 end
