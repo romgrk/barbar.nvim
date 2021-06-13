@@ -145,6 +145,7 @@ nnoremap <silent> <C-s>    :BufferPick<CR>
 " Sort automatically by...
 nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
 nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
+nnoremap <silent> <Space>bt :BufferOrderByTime<CR>
 
 " Other:
 " :BarbarEnable - enables barbar (enabled by default)
@@ -238,6 +239,10 @@ let bufferline.icon_close_tab = ''
 let bufferline.icon_close_tab_modified = '●'
 let bufferline.icon_pinned = '車'
 
+" After this long with no activity, consider the user idle
+" (used for BufferOrderByTime)
+let bufferline.idle_timeout = 5
+
 " Sets the maximum padding width with which to surround each tab.
 let bufferline.maximum_padding = 4
 
@@ -249,6 +254,10 @@ let bufferline.maximum_length = 30
 " already assigned, the behavior is to assign letters in order of
 " usability (see order below)
 let bufferline.semantic_letters = v:true
+
+" How fast the "time" score for a buffer decays (used for BufferOrderByTime)
+" This number is how long it takes for the buffer to lose half its score.
+let bufferline.time_decay_rate = 10
 
 " New buffer letters are assigned in this order. This order is
 " optimal for the qwerty keyboard layout but might need adjustement

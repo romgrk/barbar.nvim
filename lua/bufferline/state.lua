@@ -6,6 +6,7 @@ local vim = vim
 local api = vim.api
 local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
+local timing = require'bufferline.timing'
 local Layout = require'bufferline.layout'
 local len = utils.len
 local index = utils.index
@@ -537,6 +538,18 @@ local function order_by_language()
   vim.fn["bufferline#update"]()
 end
 
+local function order_by_time()
+  table.sort(
+    m.buffers,
+    with_pin_order(function(a, b)
+      local a_score = timing.get_score(a)
+      local b_score = timing.get_score(b)
+      return a_score > b_score
+    end)
+  )
+  vim.fn['bufferline#update']()
+end
+
 
 -- vim-session integration
 
@@ -615,6 +628,7 @@ m.goto_buffer_relative = goto_buffer_relative
 m.toggle_pin = toggle_pin
 m.order_by_directory = order_by_directory
 m.order_by_language = order_by_language
+m.order_by_time = order_by_time
 
 m.on_pre_save = on_pre_save
 m.restore_buffers = restore_buffers

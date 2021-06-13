@@ -40,13 +40,19 @@ function! bufferline#enable()
       au TermOpen               * call bufferline#update_async(v:true, 500)
    augroup END
 
+   augroup bufferline_time
+      au BufEnter               * lua require'bufferline.timing'.on_enter_buf()
+      au CursorMoved            * lua require'bufferline.userclock'.report_activity()
+      au CursorMovedI           * lua require'bufferline.userclock'.report_activity()
+   augroup END
+
    call bufferline#highlight#setup()
    call bufferline#update()
 endfunc
 
 function! bufferline#disable()
    augroup bufferline | au! | augroup END
-   augroup bufferline_update | au! | augroup END
+   augroup bufferline_time | au! | augroup END
    let &tabline = ''
 endfunc
 
@@ -72,6 +78,7 @@ command!                BufferPin              lua require'bufferline.state'.tog
 
 command!          -bang BufferOrderByDirectory call bufferline#order_by_directory()
 command!          -bang BufferOrderByLanguage  call bufferline#order_by_language()
+command!          -bang BufferOrderByTime      call bufferline#order_by_time()
 
 command! -bang -complete=buffer -nargs=?
                       \ BufferClose            call bufferline#bbye#delete('bdelete', <q-bang>, <q-args>)
@@ -102,11 +109,13 @@ let s:DEFAULT_OPTIONS = {
 \ 'icon_separator_inactive': '▎',
 \ 'icons': v:true,
 \ 'icon_custom_colors': v:false,
+\ 'idle_timeout': 5,
 \ 'letters': 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
 \ 'maximum_padding': 4,
 \ 'maximum_length': 30,
 \ 'no_name_title': v:null,
 \ 'semantic_letters': v:true,
+\ 'time_decay_rate': 10,
 \ 'tabpages': v:true,
 \}
 
@@ -172,6 +181,10 @@ endfunc
 
 function! bufferline#order_by_language()
    call luaeval("require'bufferline.state'.order_by_language()")
+endfunc
+
+function! bufferline#order_by_time()
+   call luaeval("require'bufferline.state'.order_by_time()")
 endfunc
 
 function! bufferline#close(abuf)
