@@ -434,6 +434,63 @@ local function order_by_language()
 end
 
 
+-- vim-session integration
+
+local function on_pre_save()
+  -- We're allowed to use relative paths for buffers iff there are no tabpages
+  -- or windows with a local directory (:tcd and :lcd)
+  local use_relative_file_paths = true
+  for tabnr,tabpage in ipairs(vim.api.nvim_list_tabpages()) do
+    if not use_relative_file_paths or vim.fn.haslocaldir(-1, tabnr) == 1 then
+      use_relative_file_paths = false
+      break
+    end
+    for _,win in ipairs(vim.api.nvim_tabpage_list_wins(tabpage)) do
+      if vim.fn.haslocaldir(win, tabnr) == 1 then
+        use_relative_file_paths = false
+        break
+      end
+    end
+  end
+
+  local bufnames = {}
+  for _,bufnr in ipairs(m.buffers) do
+    local name = vim.api.nvim_buf_get_name(bufnr)
+    if use_relative_file_paths then
+      name = vim.fn.fnamemodify(name, ":~:.")
+    end
+    -- escape quotes
+    name = string.gsub(name, '"', '\\"')
+    table.insert(bufnames, string.format('"%s"', name))
+  end
+  local bufarr = string.format("{%s}", table.concat(bufnames, ","))
+  local commands = vim.g.session_save_commands
+  table.insert(commands, '" barbar.nvim')
+  table.insert(commands,
+    string.format([[lua require'bufferline.state'.restore_buffers(%s)]], bufarr))
+  vim.g.session_save_commands = commands
+end
+
+local function restore_buffers(bufnames)
+  -- Close all empty buffers. Loading a session may call :tabnew several times
+  -- and create useless empty buffers.
+  for _,bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.fn.bufname(bufnr) == ''
+      and vim.api.nvim_buf_get_option(bufnr, 'buftype') == ''
+      and vim.api.nvim_buf_line_count(bufnr) == 1
+      and vim.api.nvim_buf_get_lines(bufnr, 0, 1, true)[1] == "" then
+        vim.api.nvim_buf_delete(bufnr, {})
+    end
+  end
+
+  m.buffers = {}
+  for _,name in ipairs(bufnames) do
+    local bufnr = vim.fn.bufadd(name)
+    table.insert(m.buffers, bufnr)
+  end
+  vim.fn['bufferline#update']()
+end
+
 -- Exports
 
 m.set_scroll = set_scroll
@@ -451,5 +508,8 @@ m.goto_buffer_relative = goto_buffer_relative
 
 m.order_by_directory = order_by_directory
 m.order_by_language = order_by_language
+
+m.on_pre_save = on_pre_save
+m.restore_buffers = restore_buffers
 
 return m
