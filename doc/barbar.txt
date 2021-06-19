@@ -147,6 +147,12 @@ Here are the groups that you should define if you'd like to style Barbar.
 4. Settings                                                  *barbar-settings*
 ~
 
+					            *g:bufferline.add_in_buff_num_order*
+`g:bufferline.add_in_buff_num_order`	boolean	(default v:false)
+
+	New tabs are opened next to the currently selected tab.
+	Enable to insert them in buffer number order.
+
 					            *g:bufferline.animation*
 `g:bufferline.animation`	boolean	(default v:true)
 
