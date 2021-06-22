@@ -66,6 +66,7 @@ command! -count   -bang BufferMovePrevious     call s:move_current_buffer(-v:cou
 
 command!          -bang BufferPick             call bufferline#pick_buffer()
 
+command!          -bang BufferOrderByBuffNum   call bufferline#order_by_buff_num()
 command!          -bang BufferOrderByDirectory call bufferline#order_by_directory()
 command!          -bang BufferOrderByLanguage  call bufferline#order_by_language()
 
@@ -153,6 +154,10 @@ endfu
 
 function! bufferline#pick_buffer()
    call luaeval("require'bufferline.jump_mode'.activate()")
+endfunc
+
+function! bufferline#order_by_buff_num()
+   call luaeval("require'bufferline.state'.order_by_buff_num()")
 endfunc
 
 function! bufferline#order_by_directory()

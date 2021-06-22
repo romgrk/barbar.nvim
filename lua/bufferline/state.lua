@@ -420,6 +420,13 @@ local function is_relative_path(path)
    return fnamemodify(path, ':p') ~= path
 end
 
+local function order_by_buff_num()
+  table.sort(m.buffers, function(a, b)
+    return a < b
+  end)
+  vim.fn['bufferline#update']()
+end
+
 local function order_by_directory()
   table.sort(m.buffers, function(a, b)
     local na = bufname(a)
@@ -462,6 +469,7 @@ m.move_current_buffer = move_current_buffer
 m.goto_buffer = goto_buffer
 m.goto_buffer_relative = goto_buffer_relative
 
+m.order_by_buff_num = order_by_buff_num
 m.order_by_directory = order_by_directory
 m.order_by_language = order_by_language
 

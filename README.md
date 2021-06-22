@@ -53,7 +53,7 @@ letters are assigned based on usability: home row (`asdfjkl;gh`) first, then oth
 
 ![jump](./static/sort.gif)
 
-`:BufferOrderByDirectory` and `:BufferOrderByLanguage`
+`:BufferOrderByBuffNum`, `:BufferOrderByDirectory` and `:BufferOrderByLanguage`
 
 ##### Clickable & closable tabs
 
@@ -129,6 +129,7 @@ nnoremap <silent>    <A-c> :BufferClose<CR>
 " Magic buffer-picking mode
 nnoremap <silent> <C-s>    :BufferPick<CR>
 " Sort automatically by...
+nnoremap <silent> <Space>bb :BufferOrderByBuffNum<CR>
 nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
 nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
 
