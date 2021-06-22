@@ -176,8 +176,9 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	- If `v:false`, show neither |devicons| nor buffer numbers.
 	- If `v:true`, show |devicons| for each buffer's |'filetype'|.
-	- If `"numbers"`, show the buffer number for current buffer.
-	- If `"both"`, show the buffer number and |devicons|.
+	- If `"buff_num"`, show the buffer number for current buffer.
+	- If `"numbers"`, show the buffer index for current buffer.
+	- If `"both"`, show the buffer index and |devicons|.
 
 					   *g:bufferline.icon_custom_colors*
 `g:bufferline.icon_custom_colors`	boolean, string (default v:false)

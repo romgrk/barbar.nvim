@@ -166,6 +166,7 @@ let bufferline.closable = v:true
 let bufferline.clickable = v:true
 
 " Enable/disable icons
+" if set to 'buff_num', will show buffer number in the tabline
 " if set to 'numbers', will show buffer index in the tabline
 " if set to 'both', will show buffer index and icons in the tabline
 let bufferline.icons = v:true
