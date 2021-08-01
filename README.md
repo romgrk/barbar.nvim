@@ -59,7 +59,7 @@ letters are assigned based on usability: home row (`asdfjkl;gh`) first, then oth
 
 ![click](./static/click.gif)
 
-Left-click to go, middle-click or close button to close.
+Left-click to go, middle-click or close button to close. Don't forget to `set mouse+=a`.
 
 ##### Unique names when filenames match
 
