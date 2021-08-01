@@ -92,6 +92,7 @@ install [nerd fonts](https://www.nerdfonts.com/).
 
 ##### Requirements
  - Neovim `0.5`
+ - `set termguicolors`
 
 ## Usage
 
