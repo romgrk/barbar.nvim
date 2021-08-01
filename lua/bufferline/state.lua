@@ -292,21 +292,38 @@ end
 
 -- Movement & tab manipulation
 
+local function move_buffer(from_idx, to_idx)
+  to_idx = math.max(1, math.min(len(m.buffers), to_idx))
+  if to_idx == from_idx then
+    return
+  end
+
+  local bufnr = m.buffers[from_idx]
+  table.remove(m.buffers, from_idx)
+  table.insert(m.buffers, to_idx, bufnr)
+
+  vim.fn['bufferline#update']()
+end
+
+local function move_current_buffer_to(number)
+  number = tonumber(number)
+  m.get_updated_buffers()
+  if number == -1 then
+    number = len(m.buffers)
+  end
+
+  local currentnr = nvim.get_current_buf()
+  local idx = utils.index(m.buffers, currentnr)
+  move_buffer(idx, number)
+end
+
 local function move_current_buffer (steps)
   m.get_updated_buffers()
 
   local currentnr = nvim.get_current_buf()
   local idx = utils.index(m.buffers, currentnr)
 
-  local newidx = math.max(1, math.min(len(m.buffers), idx + steps))
-  if idx == newidx then
-    return
-  end
-
-  table.remove(m.buffers, idx)
-  table.insert(m.buffers, newidx, currentnr)
-
-  vim.fn['bufferline#update']()
+  move_buffer(idx, idx + steps)
 end
 
 local function goto_buffer (number)
@@ -445,6 +462,7 @@ m.close_all_but_current = close_all_but_current
 m.close_buffers_right = close_buffers_right
 m.close_buffers_left = close_buffers_left
 
+m.move_current_buffer_to = move_current_buffer_to
 m.move_current_buffer = move_current_buffer
 m.goto_buffer = goto_buffer
 m.goto_buffer_relative = goto_buffer_relative
