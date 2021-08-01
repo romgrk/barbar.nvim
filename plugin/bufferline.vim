@@ -20,6 +20,7 @@ function! bufferline#enable()
       au BufWritePost   * call <SID>check_modified()
       au TextChanged    * call <SID>check_modified()
       end
+      au User SessionSavePre lua require'bufferline.state'.on_pre_save()
    augroup END
 
    augroup bufferline_update
@@ -124,6 +125,9 @@ let s:last_tabline = ''
 "========================
 
 function! bufferline#update(...)
+   if get(g:, 'SessionLoad')
+      return
+   endif
    let new_value = bufferline#render(a:0 > 0 ? a:1 : v:false)
    if new_value == s:last_tabline
       return
