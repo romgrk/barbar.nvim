@@ -36,6 +36,7 @@ function! bufferline#enable()
       au WinEnter               * call bufferline#update()
       au WinLeave               * call bufferline#update()
       au WinClosed              * call bufferline#update_async()
+      au TermOpen               * call bufferline#update_async(v:true, 500)
    augroup END
 
    call bufferline#highlight#setup()
@@ -131,7 +132,9 @@ function! bufferline#update(...)
 endfu
 
 function! bufferline#update_async(...)
-   call timer_start(1, {->bufferline#update(a:0 > 0 ? a:1 : v:false)})
+   let update_names = a:0 > 0 ? a:1 : v:false
+   let delay = a:0 > 1 ? a:2 : 1
+   call timer_start(delay, {->bufferline#update(a:0 > 0 ? a:1 : v:false)})
 endfu
 
 function! bufferline#render(update_names) abort
