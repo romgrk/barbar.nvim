@@ -24,6 +24,10 @@ local function index(tbl, n)
   return nil
 end
 
+local function has(tbl, n)
+  return index(tbl, n) ~= nil
+end
+
 local function slice(tbl, first, last)
   if type(tbl) == 'string' then
     return string.sub(tbl, first, last)
@@ -127,9 +131,11 @@ end
 return {
   len = len,
   index = index,
+  has = has,
   slice = slice,
   reverse = reverse,
   collect = collect,
+  basename = basename,
   get_buffer_name = get_buffer_name,
   get_unique_name = get_unique_name,
 }

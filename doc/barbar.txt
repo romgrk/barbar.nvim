@@ -233,6 +233,22 @@ Here are the groups that you should define if you'd like to style Barbar.
         let g:bufferline.clickable = v:true
 <
 
+					           *g:bufferline.exclude_ft*
+`g:bufferline.exclude_ft`		string[] (default v:null)
+
+	Excludes filetypes from appearing in the tabs.
+>
+        let g:bufferline.exclude_ft = ['javascript']
+<
+
+					           *g:bufferline.exclude_name*
+`g:bufferline.exclude_name`		string[] (default v:null)
+
+	Excludes buffers matching name from appearing in the tabs.
+>
+        let g:bufferline.exclude_name = ['package.json']
+<
+
 					           *g:bufferline.maximum_padding*
 `g:bufferline.maximum_padding`		int	(default 4)
 

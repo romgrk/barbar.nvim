@@ -216,6 +216,10 @@ let bufferline.closable = v:true
 "  - middle-click: delete buffer
 let bufferline.clickable = v:true
 
+" Excludes buffers from the tabline
+let bufferline.exclude_ft = ['javascript']
+let bufferline.exclude_name = ['package.json']
+
 " Enable/disable icons
 " if set to 'numbers', will show buffer index in the tabline
 " if set to 'both', will show buffer index and icons in the tabline
@@ -276,6 +280,10 @@ vim.g.bufferline = {
   --  - left-click: go to buffer
   --  - middle-click: delete buffer
   clickable = true,
+
+  -- Excludes buffers from the tabline
+  exclude_ft = ['javascript'],
+  exclude_name = ['package.json'],
 
   -- Enable/disable icons
   -- if set to 'numbers', will show buffer index in the tabline

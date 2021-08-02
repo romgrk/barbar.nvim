@@ -208,6 +208,43 @@ end
 
 -- Update state
 
+local function get_buffer_list()
+  local opts = vim.g.bufferline
+  local buffers = nvim.list_bufs()
+  local result = {}
+
+  local exclude_ft   = opts.exclude_ft
+  local exclude_name = opts.exclude_name
+
+  for i, buffer in ipairs(buffers) do
+
+    if not nvim.buf_get_option(buffer, 'buflisted') then
+      goto continue
+    end
+
+    if exclude_ft ~= vim.NIL then
+      local ft = nvim.buf_get_option(buffer, 'filetype')
+      if utils.has(exclude_ft, ft) then
+        goto continue
+      end
+    end
+
+    if exclude_name ~= vim.NIL then
+      local fullname = nvim.nvim_buf_get_name(buffer)
+      local name = utils.basename(fullname)
+      if utils.has(exclude_name, name) then
+        goto continue
+      end
+    end
+
+    table.insert(result, buffer)
+
+    ::continue::
+  end
+
+  return result
+end
+
 function m.update_names()
   local opts = vim.g.bufferline
   local buffer_index_by_name = {}
@@ -238,7 +275,7 @@ function m.update_names()
 end
 
 function m.get_updated_buffers(update_names)
-  local current_buffers = vim.fn['bufferline#filter']('&buflisted')
+  local current_buffers = get_buffer_list()
   local new_buffers =
     filter(
       function(b) return not includes(m.buffers, b) end,
