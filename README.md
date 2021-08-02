@@ -244,11 +244,6 @@ let bufferline.maximum_padding = 4
 " Sets the maximum buffer name length.
 let bufferline.maximum_length = 30
 
-" Configure the pinned buffer indicator
-" if set to 'icon', will use bufferline.icon_pinned
-" if set to anything else (e.g. '*'), will use that character
-let bufferline.pin_status = 'icon'
-
 " If set, the letters for each buffer in buffer-pick mode will be
 " assigned based on their name. Otherwise or in case all letters are
 " already assigned, the behavior is to assign letters in order of
@@ -309,6 +304,7 @@ vim.g.bufferline = {
   icon_separator_inactive = '▎',
   icon_close_tab = '',
   icon_close_tab_modified = '●',
+  icon_pinned = '車',
 
   -- Sets the maximum padding width with which to surround each tab
   maximum_padding = 1,

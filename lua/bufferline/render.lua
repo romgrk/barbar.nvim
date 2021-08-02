@@ -180,11 +180,7 @@ local function render(update_names)
 
       if state.is_pinned(buffer_number) then
         pinPrefix = namePrefix
-        if opts.pin_status == 'icon' then
-          pin = ' ' .. icons.pinned
-        else
-          pin = ' ' .. opts.pin_status
-        end
+        pin = ' ' .. icons.pinned
       end
     end
 

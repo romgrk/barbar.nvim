@@ -205,14 +205,6 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	The icon used to indicate that a buffer is pinned.
 
-			                          *g:bufferline.pin_status*
-`g:bufferline.pin_status`                           string (default 'icon')
-
-        Controls display of the 'pinned' status of a buffer. The default value
-        of 'icon' will use |g:bufferline.icon_pinned| (requires a patched
-        font).  When set to anything else (e.g. '*'), that string will be used
-        to show that a buffer is pinned.
-
 						    *g:bufferline.closable*
 `g:bufferline.closable`		boolean	(default v:true)
 

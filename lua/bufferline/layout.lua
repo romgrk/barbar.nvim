@@ -50,15 +50,9 @@ local function calculate_buffers_width(state, base_width)
       end
 
       if state.is_pinned(buffer_number) then
-        if opts.pin_status == 'icon' then
-          width = width
-            + 1 -- spacing after filename
-            + 2 -- pin icon is 2 characters wide
-        else
-          width = width
-            + 1 -- spacing after filename
-            + strwidth(opts.pin_status)
-        end
+        width = width
+          + 1 -- spacing after filename
+          + strwidth(opts.icon_pinned)
       end
 
       if opts.closable then

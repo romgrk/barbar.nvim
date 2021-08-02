@@ -106,7 +106,6 @@ let s:DEFAULT_OPTIONS = {
 \ 'maximum_padding': 4,
 \ 'maximum_length': 30,
 \ 'no_name_title': v:null,
-\ 'pin_status': 'icon',
 \ 'semantic_letters': v:true,
 \ 'tabpages': v:true,
 \}
