@@ -80,11 +80,11 @@ local function set_active_buffer(bufnr)
   active_buffer = bufnr
 end
 
-local function on_enter_buf()
+local function on_enter_buffer()
   set_active_buffer(nvim.get_current_buf())
 end
 
 return {
   get_score = get_score,
-  on_enter_buf = on_enter_buf,
+  on_enter_buffer = on_enter_buffer,
 }
