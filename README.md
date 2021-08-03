@@ -315,6 +315,10 @@ vim.g.bufferline = {
   icon_close_tab_modified = '●',
   icon_pinned = '車',
 
+  -- After this long with no activity, consider the user idle
+  -- (used for BufferOrderByTime)
+  idle_timeout = 5,
+
   -- Sets the maximum padding width with which to surround each tab
   maximum_padding = 1,
 
@@ -326,6 +330,10 @@ vim.g.bufferline = {
   -- already assigned, the behavior is to assign letters in order of
   -- usability (see order below)
   semantic_letters = true,
+
+  -- How fast the "time" score for a buffer decays (used for BufferOrderByTime)
+  -- This number is how long it takes for the buffer to lose half its score.
+  time_decay_rate = 10,
 
   -- New buffer letters are assigned in this order. This order is
   -- optimal for the qwerty keyboard layout but might need adjustement
