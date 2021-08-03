@@ -130,6 +130,8 @@ nnoremap <silent>    <A-6> :BufferGoto 6<CR>
 nnoremap <silent>    <A-7> :BufferGoto 7<CR>
 nnoremap <silent>    <A-8> :BufferGoto 8<CR>
 nnoremap <silent>    <A-9> :BufferLast<CR>
+" Pin/unpin buffer
+nnoremap <silent>    <A-p> :BufferPin<CR>
 " Close buffer
 nnoremap <silent>    <A-c> :BufferClose<CR>
 " Wipeout buffer
@@ -234,6 +236,7 @@ let bufferline.icon_separator_active = '▎'
 let bufferline.icon_separator_inactive = '▎'
 let bufferline.icon_close_tab = ''
 let bufferline.icon_close_tab_modified = '●'
+let bufferline.icon_pinned = '車'
 
 " Sets the maximum padding width with which to surround each tab.
 let bufferline.maximum_padding = 4
@@ -301,6 +304,7 @@ vim.g.bufferline = {
   icon_separator_inactive = '▎',
   icon_close_tab = '',
   icon_close_tab_modified = '●',
+  icon_pinned = '車',
 
   -- Sets the maximum padding width with which to surround each tab
   maximum_padding = 1,

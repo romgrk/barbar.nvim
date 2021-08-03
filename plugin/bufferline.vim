@@ -68,6 +68,7 @@ command! -count   -bang BufferMovePrevious     call s:move_current_buffer(-v:cou
 command! -nargs=1 -bang BufferMove             call s:move_current_buffer_to(<f-args>)
 
 command!          -bang BufferPick             call bufferline#pick_buffer()
+command!                BufferPin              lua require'bufferline.state'.toggle_pin()
 
 command!          -bang BufferOrderByDirectory call bufferline#order_by_directory()
 command!          -bang BufferOrderByLanguage  call bufferline#order_by_language()
@@ -96,6 +97,7 @@ let s:DEFAULT_OPTIONS = {
 \ 'exclude_name': v:null,
 \ 'icon_close_tab': '',
 \ 'icon_close_tab_modified': '●',
+\ 'icon_pinned': '車',
 \ 'icon_separator_active':   '▎',
 \ 'icon_separator_inactive': '▎',
 \ 'icons': v:true,

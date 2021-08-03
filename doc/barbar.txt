@@ -47,7 +47,8 @@ The name of each command should be descriptive enough for you to use it.
    nnoremap <silent>    <A-7> :BufferGoto 7<CR>
    nnoremap <silent>    <A-8> :BufferGoto 8<CR>
    nnoremap <silent>    <A-9> :BufferLast<CR>
-
+   " Pin/unpin buffer
+   nnoremap <silent>    <A-p> :BufferPin<CR>
    " Close buffer
    nnoremap <silent>    <A-c> :BufferClose<CR>
 
@@ -198,6 +199,11 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	The button used to close the tab when it has been modified since
 	last save.
+
+			                         *g:bufferline.icon_pinned*
+`g:bufferline.icon_pinned`                            string (default '車')
+
+	The icon used to indicate that a buffer is pinned.
 
 						    *g:bufferline.closable*
 `g:bufferline.closable`		boolean	(default v:true)
