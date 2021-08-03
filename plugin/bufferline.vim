@@ -41,6 +41,7 @@ function! bufferline#enable()
    augroup END
 
    augroup bufferline_time
+      au!
       au BufEnter               * lua require'bufferline.timing'.on_enter_buffer()
       au CursorMoved            * lua require'bufferline.userclock'.report_activity()
       au CursorMovedI           * lua require'bufferline.userclock'.report_activity()

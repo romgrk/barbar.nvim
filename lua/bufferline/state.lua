@@ -243,33 +243,10 @@ local function get_buffer_list()
   local buffers = nvim.list_bufs()
   local result = {}
 
-  local exclude_ft   = opts.exclude_ft
-  local exclude_name = opts.exclude_name
-
   for i, buffer in ipairs(buffers) do
-
-    if not nvim.buf_get_option(buffer, 'buflisted') then
-      goto continue
+    if utils.is_displayed(opts, buffer) then
+      table.insert(result, buffer)
     end
-
-    if exclude_ft ~= vim.NIL then
-      local ft = nvim.buf_get_option(buffer, 'filetype')
-      if utils.has(exclude_ft, ft) then
-        goto continue
-      end
-    end
-
-    if exclude_name ~= vim.NIL then
-      local fullname = nvim.nvim_buf_get_name(buffer)
-      local name = utils.basename(fullname)
-      if utils.has(exclude_name, name) then
-        goto continue
-      end
-    end
-
-    table.insert(result, buffer)
-
-    ::continue::
   end
 
   return result

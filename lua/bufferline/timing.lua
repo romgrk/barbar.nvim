@@ -1,13 +1,10 @@
 local nvim = require'bufferline.nvim'
 local clock = require'bufferline.userclock'
+local utils = require'bufferline.utils'
 local active_buffer = -1
 local LAST_DECAY_TIME = 'bufferline_last_decay_time'
 local TIME_SCORE = 'bufferline_time_score'
 local TIME_ACTIVATED = 'bufferline_time_activated'
-
-local function is_listed(bufnr)
-  return nvim.buf_is_valid(bufnr) and nvim.buf_get_option(bufnr, 'buflisted')
-end
 
 local function get_last_decay_time(bufnr, now)
   local ok, val = pcall(nvim.buf_get_var, bufnr, LAST_DECAY_TIME)
@@ -55,7 +52,7 @@ local function get_score(bufnr)
 end
 
 local function on_leave_buffer()
-  if is_listed(active_buffer) then
+  if utils.is_displayed(vim.g.bufferline, active_buffer) then
     local now = clock.time()
     local score = get_stored_score(active_buffer)
     local time_activated = get_time_activated(active_buffer, now)
@@ -71,7 +68,8 @@ local function set_active_buffer(bufnr)
     on_leave_buffer()
   end
 
-  if not is_listed(bufnr) or bufnr == active_buffer then
+  local opts = vim.g.bufferline
+  if bufnr == active_buffer or not utils.is_displayed(opts, bufnr) then
     return
   end
   local now = clock.time()

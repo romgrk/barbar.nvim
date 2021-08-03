@@ -3,6 +3,7 @@
 --
 
 local vim = vim
+local nvim = require'bufferline.nvim'
 local bufname = vim.fn.bufname
 local fnamemodify = vim.fn.fnamemodify
 local matchlist = vim.fn.matchlist
@@ -126,6 +127,33 @@ local function get_unique_name (first, second)
   return first_result, second_result
 end
 
+local function is_displayed(opts, buffer)
+  local exclude_ft   = opts.exclude_ft
+  local exclude_name = opts.exclude_name
+
+  if not nvim.buf_is_valid(buffer) then
+    return false
+  elseif not nvim.buf_get_option(buffer, 'buflisted') then
+    return false
+  end
+
+  if exclude_ft ~= vim.NIL then
+    local ft = nvim.buf_get_option(buffer, 'filetype')
+    if has(exclude_ft, ft) then
+      return false
+    end
+  end
+
+  if exclude_name ~= vim.NIL then
+    local fullname = nvim.nvim_buf_get_name(buffer)
+    local name = basename(fullname)
+    if has(exclude_name, name) then
+      return false
+    end
+  end
+  return true
+end
+
 -- print(vim.inspect(get_buffer_names(vim.g['bufferline#'].buffers)))
 
 return {
@@ -138,4 +166,5 @@ return {
   basename = basename,
   get_buffer_name = get_buffer_name,
   get_unique_name = get_unique_name,
+  is_displayed = is_displayed,
 }
