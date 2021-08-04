@@ -539,11 +539,14 @@ local function order_by_language()
 end
 
 local function order_by_window_number()
-  table.sort(m.buffers, function(a, b)
-    local na = bufwinnr(bufname(a))
-    local nb = bufwinnr(bufname(b))
-    return na < nb
-  end)
+  table.sort(
+    m.buffers,
+    with_pin_order(function(a, b)
+      local na = bufwinnr(bufname(a))
+      local nb = bufwinnr(bufname(b))
+      return na < nb
+    end)
+  )
   vim.fn['bufferline#update']()
 end
 
