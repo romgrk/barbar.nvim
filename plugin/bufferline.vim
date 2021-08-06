@@ -104,6 +104,7 @@ let s:DEFAULT_OPTIONS = {
 \ 'icon_separator_inactive': '▎',
 \ 'icons': v:true,
 \ 'icon_custom_colors': v:false,
+\ 'insert_at_end': v:false,
 \ 'letters': 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
 \ 'maximum_padding': 4,
 \ 'maximum_length': 30,

@@ -144,6 +144,7 @@ end
 
 local function open_buffers(new_buffers)
   local initial_buffers = len(m.buffers)
+  local opts = vim.g.bufferline
 
   -- Open next to the currently opened tab
   -- Find the new index where the tab will be inserted
@@ -156,14 +157,21 @@ local function open_buffers(new_buffers)
 
   -- Insert the buffers where they go
   for i, new_buffer in ipairs(new_buffers) do
+
     if utils.index(m.buffers, new_buffer) == nil then
       local actual_index = new_index
+
+      local should_insert_at_end =
+        opts.insert_at_end or
+        vim.fn.getbufvar(new_buffer, '&buftype') ~= ''
+
       -- For special buffers, we add them at the end
-      if vim.fn.getbufvar(new_buffer, '&buftype') ~= '' then
+      if should_insert_at_end then
         actual_index = len(m.buffers) + 1
       else
         new_index = new_index + 1
       end
+
       table.insert(m.buffers, actual_index, new_buffer)
     end
   end
@@ -171,7 +179,7 @@ local function open_buffers(new_buffers)
   sort_pins_to_left()
 
   -- We're done if there is no animations
-  if vim.g.bufferline.animation == false then
+  if opts.animation == false then
     return
   end
 

@@ -238,6 +238,10 @@ let bufferline.icon_close_tab = ''
 let bufferline.icon_close_tab_modified = '●'
 let bufferline.icon_pinned = '車'
 
+" If true, new buffers will be inserted at the end of the list.
+" Default is to insert after current buffer.
+let bufferline.insert_at_end = v:false
+
 " Sets the maximum padding width with which to surround each tab.
 let bufferline.maximum_padding = 4
 
@@ -305,6 +309,10 @@ vim.g.bufferline = {
   icon_close_tab = '',
   icon_close_tab_modified = '●',
   icon_pinned = '車',
+
+  -- If true, new buffers will be inserted at the end of the list.
+  -- Default is to insert after current buffer.
+  insert_at_end = false,
 
   -- Sets the maximum padding width with which to surround each tab
   maximum_padding = 1,
