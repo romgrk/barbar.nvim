@@ -15,6 +15,10 @@ local function len(value)
   return #value
 end
 
+local function is_nil(value)
+  return value == nil or value == vim.NIL
+end
+
 local function index(tbl, n)
   for i, value in ipairs(tbl) do
     if value == n then
@@ -130,6 +134,7 @@ end
 
 return {
   len = len,
+  is_nil = is_nil,
   index = index,
   has = has,
   slice = slice,
