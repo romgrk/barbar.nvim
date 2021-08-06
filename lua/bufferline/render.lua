@@ -177,11 +177,11 @@ local function render(update_names)
         iconPrefix = has_icon_custom_colors and hl('Buffer' .. status .. 'Icon') or hlName and hl(hlName) or namePrefix
         icon = iconChar .. ' '
       end
+    end
 
-      if state.is_pinned(buffer_number) then
-        pinPrefix = namePrefix
-        pin = ' ' .. icons.pinned
-      end
+    if state.is_pinned(buffer_number) then
+      pinPrefix = namePrefix
+      pin = ' ' .. icons.pinned
     end
 
     local closePrefix = ''
