@@ -1,5 +1,5 @@
 
-![header](./static/header.gif)
+![demo](./static/demo.gif)
 
 <h1 align="center">
   barbar.nvim
@@ -18,12 +18,9 @@ any buffer by simply typing their target letter. Even better, the target letter
 stays constant for the lifetime of the buffer, so if you're working with a set of
 files you can even type the letter ahead from memory.
 
-**⚠️  NOTE: Recent neovim build (0.5) required (november 2020 & up)**
-
-
 ##### Table of content
- - [Features](#features)
  - [Install](#install)
+ - [Features](#features)
  - [Usage](#usage)
  - [Options](#options)
  - [Highlighting](#highlighting)
@@ -31,55 +28,7 @@ files you can even type the letter ahead from memory.
  - [Known Issues](#known-issues)
  - [About Barbar](#about)
 
-## Features
-
-##### Re-order tabs
-
-![reorder](./static/reorder.gif)
-
-##### Auto-sizing tabs, fill the space when available
-
-![resize](./static/resize.gif)
-
-##### Jump-to-buffer
-
-![jump](./static/jump.gif)
-
-Letters stay constant for the lifetime of the buffer. By default, letters are assigned
-based on buffer name, eg **README** will get letter **r**. You can change this so that
-letters are assigned based on usability: home row (`asdfjkl;gh`) first, then other rows.
-
-##### Sort tabs automatically
-
-![jump](./static/sort.gif)
-
-`:BufferOrderByDirectory` and `:BufferOrderByLanguage`
-
-##### Clickable & closable tabs
-
-![click](./static/click.gif)
-
-Left-click to go, middle-click or close button to close. Don't forget to `set mouse+=a`.
-
-##### Unique names when filenames match
-
-![unique-name](./static/unique-name.png)
-
-##### bbye.vim for closing buffers
-
-A modified version of [bbye.vim](https://github.com/moll/vim-bbye) is included in this
-plugin to close buffers without messing with your window layout and more. Available
-as `BufferClose` and `bufferline#bbye#delete(buf)`.
-
-##### Scrollable tabs, to always show the current buffer
-
-![scroll](./static/scroll.gif)
-
 ## Install
-
-Is one dependency bad for one plugin? Yes it is. But is Barbar a very good
-tabline plugin? Also yes. Do you now understand why the Install section is
-strategically placed after the cool demos? Yes again.
 
 #### Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```vim
@@ -102,6 +51,55 @@ install [nerd fonts](https://www.nerdfonts.com/).
 ##### Requirements
  - Neovim `0.5`
  - `set termguicolors`
+
+## Features
+
+##### Re-order tabs
+
+![reorder](./static/reorder.gif)
+
+##### Auto-sizing tabs, fill the space when available
+
+![resize](./static/resize.gif)
+
+##### Jump-to-buffer mode
+
+![jump](./static/jump.gif)
+
+Type a letter to jump to a buffer. Letters stay constant for the lifetime of the buffer.
+By default, letters are assigned based on buffer name, eg `README.md` will get letter `r`.
+You can change this so that letters are assigned based on usability:
+home row (`asdfjkl;gh`) first, then other rows.
+
+##### Sort tabs automatically
+
+![jump](./static/sort.gif)
+
+`:BufferOrderByDirectory`, `:BufferOrderByLanguage`, `:BufferOrderByWindowNumber`
+
+##### Clickable & closable tabs
+
+![click](./static/click.gif)
+
+Left-click to go, middle-click or close button to close. Don't forget to `set mouse+=a`.
+
+##### Unique names when filenames match
+
+![unique-name](./static/unique-name.png)
+
+##### Pinned buffers
+
+![pinned](./static/pinned.png)
+
+##### bbye.vim for closing buffers
+
+A modified version of [bbye.vim](https://github.com/moll/vim-bbye) is included in this
+plugin to close buffers without messing with your window layout and more. Available
+as `BufferClose` and `bufferline#bbye#delete(buf)`.
+
+##### Scrollable tabs, to always show the current buffer
+
+![scroll](./static/scroll.gif)
 
 ## Usage
 
@@ -146,6 +144,7 @@ nnoremap <silent> <C-s>    :BufferPick<CR>
 " Sort automatically by...
 nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
 nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
+nnoremap <silent> <Space>bw :BufferOrderByWindowNumber<CR>
 
 " Other:
 " :BarbarEnable - enables barbar (enabled by default)

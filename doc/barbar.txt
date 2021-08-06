@@ -66,6 +66,7 @@ The name of each command should be descriptive enough for you to use it.
    " Sort automatically by...
    nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
    nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
+   nnoremap <silent> <Space>bw :BufferOrderByWindowNumber<CR>
 
    " Other:
    " :BarbarEnable - enables barbar (enabled by default)
