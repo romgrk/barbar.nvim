@@ -14,6 +14,7 @@ local filter = vim.tbl_filter
 local includes = vim.tbl_contains
 local bufname = vim.fn.bufname
 local fnamemodify = vim.fn.fnamemodify
+local bufwinnr = vim.fn.bufwinnr
 
 
 local ANIMATION_OPEN_DURATION  = 150
@@ -537,6 +538,17 @@ local function order_by_language()
   vim.fn["bufferline#update"]()
 end
 
+local function order_by_window_number()
+  table.sort(
+    m.buffers,
+    with_pin_order(function(a, b)
+      local na = bufwinnr(bufname(a))
+      local nb = bufwinnr(bufname(b))
+      return na < nb
+    end)
+  )
+  vim.fn['bufferline#update']()
+end
 
 -- vim-session integration
 
@@ -615,6 +627,7 @@ m.goto_buffer_relative = goto_buffer_relative
 m.toggle_pin = toggle_pin
 m.order_by_directory = order_by_directory
 m.order_by_language = order_by_language
+m.order_by_window_number = order_by_window_number
 
 m.on_pre_save = on_pre_save
 m.restore_buffers = restore_buffers

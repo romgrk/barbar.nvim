@@ -72,6 +72,7 @@ command!                BufferPin              lua require'bufferline.state'.tog
 
 command!          -bang BufferOrderByDirectory call bufferline#order_by_directory()
 command!          -bang BufferOrderByLanguage  call bufferline#order_by_language()
+command!          -bang BufferOrderByWindowNumber    call bufferline#order_by_window_number()
 
 command! -bang -complete=buffer -nargs=?
                       \ BufferClose            call bufferline#bbye#delete('bdelete', <q-bang>, <q-args>)
@@ -172,6 +173,10 @@ endfunc
 
 function! bufferline#order_by_language()
    call luaeval("require'bufferline.state'.order_by_language()")
+endfunc
+
+function! bufferline#order_by_window_number()
+   call luaeval("require'bufferline.state'.order_by_window_number()")
 endfunc
 
 function! bufferline#close(abuf)
