@@ -92,7 +92,6 @@ command!                BufferCloseBuffersRight    lua require'bufferline.state'
 "=================
 
 let s:DEFAULT_OPTIONS = {
-\ 'add_in_buffer_number_order': v:false,
 \ 'animation': v:true,
 \ 'auto_hide': v:false,
 \ 'clickable': v:true,

@@ -160,17 +160,6 @@ local function open_buffers(new_buffers)
   -- Insert the buffers where they go
   for i, new_buffer in ipairs(new_buffers) do
 
-    if opts.add_in_buffer_number_order then
-      new_index = 0
-      for j, buffer_n in ipairs(m.buffers) do
-        if new_buffer < buffer_n then
-          break
-        end
-        new_index = new_index + 1
-      end
-      new_index = new_index + 1
-    end
-
     if utils.index(m.buffers, new_buffer) == nil then
       local actual_index = new_index
 
