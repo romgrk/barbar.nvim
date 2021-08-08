@@ -75,7 +75,12 @@ function! bufferline#bbye#delete(action, bang, buffer_name)
     " Using buflisted() over bufexists() because bufhidden=delete causes the
     " buffer to still _exist_ even though it won't be :bdelete-able.
     if buflisted(buffer) && buffer != bufnr("%")
-        exe a:action . a:bang . " " . buffer
+        try
+            exe a:action . a:bang . " " . buffer
+        catch /^Vim([^)]*):E516:/ " E516: No buffers were deleted
+            " Canceled by `set confirm`
+            exe buffer . 'b'
+        endtry
     endif
 
     doautocmd BufWinEnter
