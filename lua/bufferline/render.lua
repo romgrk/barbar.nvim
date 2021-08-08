@@ -102,6 +102,7 @@ local function render(update_names)
   local has_close = opts.closable
   local has_icons = (opts.icons == true) or (opts.icons == 'both')
   local has_icon_custom_colors = opts.icon_custom_colors
+  local has_buffer_number = (opts.icons == 'buffer_numbers')
   local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
 
   local layout = Layout.calculate(state)
@@ -152,8 +153,12 @@ local function render(update_names)
     local pinPrefix = ''
     local pin = ''
 
-    if has_numbers then
-      local number_text = tostring(i)
+    if has_buffer_number or has_numbers then
+      local number_text = 
+        has_buffer_number and
+          tostring(buffer_number) or
+          tostring(i)
+
       bufferIndexPrefix = hl('Buffer' .. status .. 'Index')
       bufferIndex = number_text .. ' '
     end

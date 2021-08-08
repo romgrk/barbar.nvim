@@ -64,6 +64,7 @@ The name of each command should be descriptive enough for you to use it.
    nnoremap <silent> <C-s>    :BufferPick<CR>
 
    " Sort automatically by...
+   nnoremap <silent> <Space>bb :BufferOrderByBufferNumber<CR>
    nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
    nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
    nnoremap <silent> <Space>bw :BufferOrderByWindowNumber<CR>
@@ -172,8 +173,9 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	- If `v:false`, show neither |devicons| nor buffer numbers.
 	- If `v:true`, show |devicons| for each buffer's |'filetype'|.
-	- If `"numbers"`, show the buffer number for current buffer.
-	- If `"both"`, show the buffer number and |devicons|.
+	- If `"buffer_numbers"`, show the buffer number for current buffer.
+	- If `"numbers"`, show the buffer index for current buffer.
+	- If `"both"`, show the buffer index and |devicons|.
 
 					   *g:bufferline.icon_custom_colors*
 `g:bufferline.icon_custom_colors`	boolean, string (default v:false)

@@ -144,6 +144,7 @@ local function open_buffer_start_animation(layout, buffer_number)
 end
 
 local function open_buffers(new_buffers)
+  local opts = vim.g.bufferline
   local initial_buffers = len(m.buffers)
   local opts = vim.g.bufferline
 
@@ -525,6 +526,13 @@ local function is_relative_path(path)
    return fnamemodify(path, ':p') ~= path
 end
 
+local function order_by_buffer_number()
+  table.sort(m.buffers, function(a, b)
+    return a < b
+  end)
+  vim.fn['bufferline#update']()
+end
+
 local function order_by_directory()
   table.sort(
     m.buffers,
@@ -645,6 +653,7 @@ m.goto_buffer = goto_buffer
 m.goto_buffer_relative = goto_buffer_relative
 
 m.toggle_pin = toggle_pin
+m.order_by_buffer_number = order_by_buffer_number
 m.order_by_directory = order_by_directory
 m.order_by_language = order_by_language
 m.order_by_window_number = order_by_window_number
