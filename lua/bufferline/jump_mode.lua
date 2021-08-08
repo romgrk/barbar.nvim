@@ -116,7 +116,7 @@ end
 
 local function activate()
   state.is_picking_buffer = true
-  vim.fn['bufferline#update']()
+  state.update()
   nvim.command('redraw')
   state.is_picking_buffer = false
 
@@ -137,7 +137,7 @@ local function activate()
     end
   end
 
-  vim.fn['bufferline#update']()
+  state.update()
   nvim.command('redraw')
 end
 

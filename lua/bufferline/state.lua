@@ -60,6 +60,11 @@ function m.get_buffer_data(id)
   return m.buffers_by_id[id]
 end
 
+function m.update()
+  vim.fn['bufferline#update']()
+end
+
+
 -- Pinned buffers
 
 local function is_pinned(bufnr)
@@ -84,7 +89,7 @@ local function toggle_pin(bufnr)
   bufnr = bufnr or 0
   vim.api.nvim_buf_set_var(bufnr, PIN, not is_pinned(bufnr))
   sort_pins_to_left()
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 -- Scrolling
@@ -96,7 +101,7 @@ local function set_scroll_tick(new_scroll, animation)
   if animation.running == false then
     scroll_animation = nil
   end
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 local function set_scroll(target)
@@ -121,7 +126,7 @@ local function open_buffer_animated_tick(buffer_number, new_width, animation)
   else
     buffer_data.width = nil
   end
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 local function open_buffer_start_animation(layout, buffer_number)
@@ -213,14 +218,14 @@ local function close_buffer(buffer_number, should_update_names)
   if should_update_names then
     m.update_names()
   end
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 local function close_buffer_animated_tick(buffer_number, new_width, animation)
   if new_width > 0 and m.buffers_by_id[buffer_number] ~= nil then
     local buffer_data = m.get_buffer_data(buffer_number)
     buffer_data.width = new_width
-    vim.fn['bufferline#update']()
+    m.update()
     return
   end
   vim.fn['bufferline#animate#stop'](animation)
@@ -364,7 +369,7 @@ local function set_offset(offset, offset_text)
   if offset_number then
       m.offset = offset_number
       m.offset_text = offset_text or ''
-      vim.fn['bufferline#update']()
+      m.update()
   end
 end
 
@@ -381,7 +386,7 @@ local function move_buffer(from_idx, to_idx)
   table.insert(m.buffers, to_idx, bufnr)
   sort_pins_to_left()
 
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 local function move_current_buffer_to(number)
@@ -471,7 +476,7 @@ local function close_all_but_current()
       vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(number))
     end
   end
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 local function close_all_but_pinned()
@@ -481,7 +486,7 @@ local function close_all_but_pinned()
       vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(number))
     end
   end
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 local function close_buffers_left()
@@ -492,7 +497,7 @@ local function close_buffers_left()
   for i = idx, 1, -1 do
     vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(m.buffers[i]))
   end
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 local function close_buffers_right()
@@ -503,7 +508,7 @@ local function close_buffers_right()
   for i = idx, len(m.buffers) do
     vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(m.buffers[i]))
   end
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 
@@ -531,7 +536,7 @@ local function order_by_buffer_number()
   table.sort(m.buffers, function(a, b)
     return a < b
   end)
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 local function order_by_directory()
@@ -551,7 +556,7 @@ local function order_by_directory()
       return na < nb
     end)
   )
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 local function order_by_language()
@@ -563,7 +568,7 @@ local function order_by_language()
       return na < nb
     end)
   )
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 local function order_by_window_number()
@@ -575,7 +580,7 @@ local function order_by_window_number()
       return na < nb
     end)
   )
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 -- vim-session integration
@@ -632,7 +637,7 @@ local function restore_buffers(bufnames)
     local bufnr = vim.fn.bufadd(name)
     table.insert(m.buffers, bufnr)
   end
-  vim.fn['bufferline#update']()
+  m.update()
 end
 
 -- Exports
