@@ -64,7 +64,7 @@ The name of each command should be descriptive enough for you to use it.
    nnoremap <silent> <C-s>    :BufferPick<CR>
 
    " Sort automatically by...
-   nnoremap <silent> <Space>bb :BufferOrderByBuffNum<CR>
+   nnoremap <silent> <Space>bb :BufferOrderByBufferNumber<CR>
    nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
    nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
    nnoremap <silent> <Space>bw :BufferOrderByWindowNumber<CR>

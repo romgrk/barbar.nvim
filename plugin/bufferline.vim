@@ -70,7 +70,7 @@ command! -nargs=1 -bang BufferMove             call s:move_current_buffer_to(<f-
 command!          -bang BufferPick             call bufferline#pick_buffer()
 command!                BufferPin              lua require'bufferline.state'.toggle_pin()
 
-command!          -bang BufferOrderByBuffNum   call bufferline#order_by_buffer_number()
+command!          -bang BufferOrderByBufferNumber   call bufferline#order_by_buffer_number()
 command!          -bang BufferOrderByDirectory call bufferline#order_by_directory()
 command!          -bang BufferOrderByLanguage  call bufferline#order_by_language()
 command!          -bang BufferOrderByWindowNumber    call bufferline#order_by_window_number()

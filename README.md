@@ -142,7 +142,7 @@ nnoremap <silent>    <A-c> :BufferClose<CR>
 " Magic buffer-picking mode
 nnoremap <silent> <C-s>    :BufferPick<CR>
 " Sort automatically by...
-nnoremap <silent> <Space>bb :BufferOrderByBuffNum<CR>
+nnoremap <silent> <Space>bb :BufferOrderByBufferNumber<CR>
 nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
 nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
 nnoremap <silent> <Space>bw :BufferOrderByWindowNumber<CR>
@@ -186,6 +186,7 @@ map('n', '<A-c>', ':BufferClose<CR>', opts)
 -- Magic buffer-picking mode
 map('n', '<C-p>', ':BufferPick<CR>', opts)
 -- Sort automatically by...
+map('n', '<Space>bb', ':BufferOrderByBufferNumber<CR>', opts)
 map('n', '<Space>bd', ':BufferOrderByDirectory<CR>', opts)
 map('n', '<Space>bl', ':BufferOrderByLanguage<CR>', opts)
 
