@@ -6,6 +6,7 @@ local vim = vim
 local api = vim.api
 local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
+local Buffer = require'bufferline.buffer'
 local Layout = require'bufferline.layout'
 local len = utils.len
 local is_nil = utils.is_nil
@@ -22,7 +23,7 @@ local ANIMATION_OPEN_DURATION  = 150
 local ANIMATION_OPEN_DELAY     =  50
 local ANIMATION_CLOSE_DURATION = 100
 local ANIMATION_SCROLL_DURATION = 200
-local PIN = "bufferline_pin"
+local PIN = 'bufferline_pin'
 
 --------------------------------
 -- Section: Application state --
@@ -83,7 +84,7 @@ local function toggle_pin(bufnr)
   bufnr = bufnr or 0
   vim.api.nvim_buf_set_var(bufnr, PIN, not is_pinned(bufnr))
   sort_pins_to_left()
-  vim.fn["bufferline#update"]()
+  vim.fn['bufferline#update']()
 end
 
 -- Scrolling
@@ -291,7 +292,7 @@ function m.update_names()
 
   -- Compute names
   for i, buffer_n in ipairs(m.buffers) do
-    local name = utils.get_buffer_name(opts, buffer_n)
+    local name = Buffer.get_name(opts, buffer_n)
 
     if buffer_index_by_name[name] == nil then
       buffer_index_by_name[name] = i
@@ -300,7 +301,7 @@ function m.update_names()
       local other_i = buffer_index_by_name[name]
       local other_n = m.buffers[other_i]
       local new_name, new_other_name =
-        utils.get_unique_name(
+        Buffer.get_unique_name(
           bufname(buffer_n),
           bufname(m.buffers[other_i]))
 
@@ -450,7 +451,7 @@ local function goto_buffer_relative(steps)
   local idx = utils.index(m.buffers, current)
 
   if idx == nil then
-    print("Couldn't find buffer " .. current .. " in the list: " .. vim.inspect(m.buffers))
+    print('Couldn\'t find buffer ' .. current .. ' in the list: ' .. vim.inspect(m.buffers))
     return
   else
     idx = (idx + steps - 1) % len(m.buffers) + 1
@@ -550,19 +551,19 @@ local function order_by_directory()
       return na < nb
     end)
   )
-  vim.fn["bufferline#update"]()
+  vim.fn['bufferline#update']()
 end
 
 local function order_by_language()
   table.sort(
     m.buffers,
     with_pin_order(function(a, b)
-      local na = fnamemodify(bufname(a), ":e")
-      local nb = fnamemodify(bufname(b), ":e")
+      local na = fnamemodify(bufname(a), ':e')
+      local nb = fnamemodify(bufname(b), ':e')
       return na < nb
     end)
   )
-  vim.fn["bufferline#update"]()
+  vim.fn['bufferline#update']()
 end
 
 local function order_by_window_number()
@@ -600,13 +601,13 @@ local function on_pre_save()
   for _,bufnr in ipairs(m.buffers) do
     local name = vim.api.nvim_buf_get_name(bufnr)
     if use_relative_file_paths then
-      name = vim.fn.fnamemodify(name, ":~:.")
+      name = vim.fn.fnamemodify(name, ':~:.')
     end
     -- escape quotes
     name = string.gsub(name, '"', '\\"')
     table.insert(bufnames, string.format('"%s"', name))
   end
-  local bufarr = string.format("{%s}", table.concat(bufnames, ","))
+  local bufarr = string.format('{%s}', table.concat(bufnames, ','))
   local commands = vim.g.session_save_commands
   table.insert(commands, '" barbar.nvim')
   table.insert(commands,
@@ -621,7 +622,7 @@ local function restore_buffers(bufnames)
     if vim.fn.bufname(bufnr) == ''
       and vim.api.nvim_buf_get_option(bufnr, 'buftype') == ''
       and vim.api.nvim_buf_line_count(bufnr) == 1
-      and vim.api.nvim_buf_get_lines(bufnr, 0, 1, true)[1] == "" then
+      and vim.api.nvim_buf_get_lines(bufnr, 0, 1, true)[1] == '' then
         vim.api.nvim_buf_delete(bufnr, {})
     end
   end
