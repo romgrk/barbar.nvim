@@ -20,6 +20,7 @@ function! bufferline#enable()
       au BufWritePost   * call <SID>check_modified()
       au TextChanged    * call <SID>check_modified()
       end
+      au User SessionSavePre lua require'bufferline.state'.on_pre_save()
    augroup END
 
    augroup bufferline_update
@@ -36,6 +37,7 @@ function! bufferline#enable()
       au WinEnter               * call bufferline#update()
       au WinLeave               * call bufferline#update()
       au WinClosed              * call bufferline#update_async()
+      au TermOpen               * call bufferline#update_async(v:true, 500)
    augroup END
 
    call bufferline#highlight#setup()
@@ -63,12 +65,15 @@ command!          -bang BufferLast             call s:goto_buffer(-1)
 
 command! -count   -bang BufferMoveNext         call s:move_current_buffer(v:count1)
 command! -count   -bang BufferMovePrevious     call s:move_current_buffer(-v:count1)
+command! -nargs=1 -bang BufferMove             call s:move_current_buffer_to(<f-args>)
 
 command!          -bang BufferPick             call bufferline#pick_buffer()
+command!                BufferPin              lua require'bufferline.state'.toggle_pin()
 
-command!          -bang BufferOrderByBuffNum   call bufferline#order_by_buff_num()
+command!          -bang BufferOrderByBuffNum   call bufferline#order_by_buffer_number()
 command!          -bang BufferOrderByDirectory call bufferline#order_by_directory()
 command!          -bang BufferOrderByLanguage  call bufferline#order_by_language()
+command!          -bang BufferOrderByWindowNumber    call bufferline#order_by_window_number()
 
 command! -bang -complete=buffer -nargs=?
                       \ BufferClose            call bufferline#bbye#delete('bdelete', <q-bang>, <q-args>)
@@ -78,6 +83,7 @@ command! -bang -complete=buffer -nargs=?
                       \ BufferWipeout          call bufferline#bbye#delete('bwipeout', <q-bang>, <q-args>)
 
 command!                BufferCloseAllButCurrent   lua require'bufferline.state'.close_all_but_current()
+command!                BufferCloseAllButPinned    lua require'bufferline.state'.close_all_but_pinned()
 command!                BufferCloseBuffersLeft     lua require'bufferline.state'.close_buffers_left()
 command!                BufferCloseBuffersRight    lua require'bufferline.state'.close_buffers_right()
 
@@ -86,17 +92,21 @@ command!                BufferCloseBuffersRight    lua require'bufferline.state'
 "=================
 
 let s:DEFAULT_OPTIONS = {
-\ 'add_in_buff_num_order': v:false,
+\ 'add_in_buffer_number_order': v:false,
 \ 'animation': v:true,
 \ 'auto_hide': v:false,
 \ 'clickable': v:true,
 \ 'closable': v:true,
+\ 'exclude_ft': v:null,
+\ 'exclude_name': v:null,
 \ 'icon_close_tab': '',
 \ 'icon_close_tab_modified': '●',
+\ 'icon_pinned': '車',
 \ 'icon_separator_active':   '▎',
 \ 'icon_separator_inactive': '▎',
 \ 'icons': v:true,
 \ 'icon_custom_colors': v:false,
+\ 'insert_at_end': v:false,
 \ 'letters': 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
 \ 'maximum_padding': 4,
 \ 'maximum_length': 30,
@@ -124,6 +134,9 @@ let s:last_tabline = ''
 "========================
 
 function! bufferline#update(...)
+   if get(g:, 'SessionLoad')
+      return
+   endif
    let new_value = bufferline#render(a:0 > 0 ? a:1 : v:false)
    if new_value == s:last_tabline
       return
@@ -133,7 +146,9 @@ function! bufferline#update(...)
 endfu
 
 function! bufferline#update_async(...)
-   call timer_start(1, {->bufferline#update(a:0 > 0 ? a:1 : v:false)})
+   let update_names = a:0 > 0 ? a:1 : v:false
+   let delay = a:0 > 1 ? a:2 : 1
+   call timer_start(delay, {->bufferline#update(a:0 > 0 ? a:1 : v:false)})
 endfu
 
 function! bufferline#render(update_names) abort
@@ -156,8 +171,8 @@ function! bufferline#pick_buffer()
    call luaeval("require'bufferline.jump_mode'.activate()")
 endfunc
 
-function! bufferline#order_by_buff_num()
-   call luaeval("require'bufferline.state'.order_by_buff_num()")
+function! bufferline#order_by_buffer_number()
+   call luaeval("require'bufferline.state'.order_by_buffer_number()")
 endfunc
 
 function! bufferline#order_by_directory()
@@ -166,6 +181,10 @@ endfunc
 
 function! bufferline#order_by_language()
    call luaeval("require'bufferline.state'.order_by_language()")
+endfunc
+
+function! bufferline#order_by_window_number()
+   call luaeval("require'bufferline.state'.order_by_window_number()")
 endfunc
 
 function! bufferline#close(abuf)
@@ -225,6 +244,10 @@ endfunction
 
 function! s:move_current_buffer(steps)
    call luaeval("require'bufferline.state'.move_current_buffer(_A)", a:steps)
+endfunc
+
+function! s:move_current_buffer_to(number)
+   call luaeval("require'bufferline.state'.move_current_buffer_to(_A)", a:number)
 endfunc
 
 function! s:goto_buffer(number)

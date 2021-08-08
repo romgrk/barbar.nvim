@@ -102,7 +102,7 @@ local function render(update_names)
   local has_close = opts.closable
   local has_icons = (opts.icons == true) or (opts.icons == 'both')
   local has_icon_custom_colors = opts.icon_custom_colors
-  local has_buffnum = (opts.icons == 'buffnum')
+  local has_buffer_number = (opts.icons == 'buffer_numbers')
   local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
 
   local layout = Layout.calculate(state)
@@ -149,11 +149,16 @@ local function render(update_names)
     local iconPrefix = ''
     local icon = ''
 
-    if has_buffnum or has_numbers then
-      local number_text = tostring(buffer_number)
-      if has_numbers then
-        number_text = tostring(i)
-      end
+    -- The pin icon
+    local pinPrefix = ''
+    local pin = ''
+
+    if has_buffer_number or has_numbers then
+      local number_text = 
+        has_buffer_number and
+          tostring(buffer_number) or
+          tostring(i)
+
       bufferIndexPrefix = hl('Buffer' .. status .. 'Index')
       bufferIndex = number_text .. ' '
     end
@@ -177,6 +182,11 @@ local function render(update_names)
         iconPrefix = has_icon_custom_colors and hl('Buffer' .. status .. 'Icon') or hlName and hl(hlName) or namePrefix
         icon = iconChar .. ' '
       end
+    end
+
+    if state.is_pinned(buffer_number) then
+      pinPrefix = namePrefix
+      pin = ' ' .. icons.pinned
     end
 
     local closePrefix = ''
@@ -215,6 +225,7 @@ local function render(update_names)
         {iconPrefix,         icon},
         {jumpLetterPrefix,   jumpLetter},
         {namePrefix,         name},
+        {pinPrefix,          pin},
         {'',                 padding},
         {'',                 ' '},
         {closePrefix,        close},
