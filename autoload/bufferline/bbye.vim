@@ -25,20 +25,24 @@
 
 function! bufferline#bbye#delete(action, bang, buffer_name)
     let buffer = s:str2bufnr(a:buffer_name)
-    let w:bbye_back = 1
 
     if buffer < 0
         return s:error("E516: No buffers were deleted. No match for ".a:buffer_name)
     endif
 
-    if getbufvar(buffer, "&modified") && empty(a:bang)
+    let is_modified = nvim_buf_get_option(buffer, 'modified')
+    let has_confirm = nvim_get_option('confirm')
+
+    if is_modified && empty(a:bang) && !has_confirm
         let error = "E89: No write since last change for buffer "
         return s:error(error . buffer . " (add ! to override)")
     endif
 
+    let w:bbye_back = 1
+
     " If the buffer is set to delete and it contains changes, we can't switch
     " away from it. Hide it before eventual deleting:
-    if getbufvar(buffer, "&modified") && !empty(a:bang)
+    if is_modified && !empty(a:bang)
         call setbufvar(buffer, "&bufhidden", "hide")
     endif
 
