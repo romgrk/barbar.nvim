@@ -13,6 +13,7 @@ local slice = utils.slice
 local basename = utils.basename
 local bufname = vim.fn.bufname
 local bufwinnr = vim.fn.bufwinnr
+local matchlist = vim.fn.matchlist
 local nvim_buf_get_option = vim.api.nvim_buf_get_option
 local nvim_get_current_buf = vim.api.nvim_get_current_buf
 
