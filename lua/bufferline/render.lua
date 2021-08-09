@@ -8,15 +8,21 @@ local api = vim.api
 local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local icons = require'bufferline.icons'
+local state = require'bufferline.state'
+local Buffer = require'bufferline.buffer'
+local Layout = require'bufferline.layout'
+local JumpMode = require'bufferline.jump_mode'
 local get_icon = icons.get_icon
 local len = utils.len
 local slice = utils.slice
 local strwidth = nvim.strwidth
 local reverse = utils.reverse
-local state = require'bufferline.state'
-local Buffer = require'bufferline.buffer'
-local Layout = require'bufferline.layout'
-local JumpMode = require'bufferline.jump_mode'
+local has = vim.fn.has
+local bufnr = vim.fn.bufnr
+local strcharpart = vim.fn.strcharpart
+local getbufvar = vim.fn.getbufvar
+local tabpagenr = vim.fn.tabpagenr
+
 
 local HL_BY_ACTIVITY = {
   [0] = 'Inactive',
@@ -40,7 +46,7 @@ local function slice_groups_right(groups, width)
 
     if accumulated_width >= width then
       local diff = text_width - (accumulated_width - width)
-      result = result .. hl .. vim.fn.strcharpart(text, 0, diff)
+      result = result .. hl .. strcharpart(text, 0, diff)
       break
     end
     result = result .. hl .. text
@@ -61,7 +67,7 @@ local function slice_groups_left(groups, width)
     if accumulated_width >= width then
       local length = text_width - (accumulated_width - width)
       local start = text_width - length
-      result = hl .. vim.fn.strcharpart(text, start, length) .. result
+      result = hl .. strcharpart(text, start, length) .. result
       break
     end
     result = hl .. text .. result
@@ -85,7 +91,7 @@ local function render(update_names)
     end
   end
 
-  local current = vim.fn.bufnr('%')
+  local current = bufnr('%')
 
   -- Store current buffer to open new ones next to this one
   if nvim.buf_get_option(current, 'buflisted') then
@@ -98,7 +104,7 @@ local function render(update_names)
   end
 
   local icons = setmetatable(opts, {__index = function(_, k) return opts['icon_'..k] end})
-  local click_enabled = vim.fn.has('tablineat') and opts.clickable
+  local click_enabled = has('tablineat') and opts.clickable
   local has_close = opts.closable
   local has_icons = (opts.icons == true) or (opts.icons == 'both')
   local has_icon_custom_colors = opts.icon_custom_colors
@@ -177,7 +183,7 @@ local function render(update_names)
     else
 
       if has_icons then
-        local iconChar, iconHl = get_icon(buffer_name, vim.fn.getbufvar(buffer_number, '&filetype'), status)
+        local iconChar, iconHl = get_icon(buffer_name, getbufvar(buffer_number, '&filetype'), status)
         local hlName = is_inactive and 'BufferInactive' or iconHl
         iconPrefix = has_icon_custom_colors and hl('Buffer' .. status .. 'Icon') or hlName and hl(hlName) or namePrefix
         icon = iconChar .. ' '
@@ -293,8 +299,8 @@ local function render(update_names)
     result = result .. icons.separator_inactive
   end
 
-  local current_tabpage = vim.fn.tabpagenr()
-  local total_tabpages  = vim.fn.tabpagenr('$')
+  local current_tabpage = tabpagenr()
+  local total_tabpages  = tabpagenr('$')
   if layout.tabpages_width > 0 then
     result = result .. '%=%#BufferTabpages# ' .. tostring(current_tabpage) .. '/' .. tostring(total_tabpages) .. ' '
   end
