@@ -100,7 +100,7 @@ let s:DEFAULT_OPTIONS = {
 \ 'exclude_name': v:null,
 \ 'icon_close_tab': '',
 \ 'icon_close_tab_modified': '●',
-\ 'icon_pinned': '車',
+\ 'icon_pinned': '',
 \ 'icon_separator_active':   '▎',
 \ 'icon_separator_inactive': '▎',
 \ 'icons': v:true,

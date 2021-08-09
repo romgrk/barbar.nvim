@@ -238,6 +238,7 @@ local function render(update_names)
     -- local is_inactive = activity == 0
     local is_modified = nvim.buf_get_option(buffer_number, 'modified')
     local is_closing = buffer_data.closing
+    local is_pinned = state.is_pinned(buffer_number)
 
     local status = HL_BY_ACTIVITY[activity]
     local mod = is_modified and 'Mod' or ''
@@ -261,10 +262,6 @@ local function render(update_names)
     -- The devicon
     local iconPrefix = ''
     local icon = ''
-
-    -- The pin icon
-    local pinPrefix = ''
-    local pin = ''
 
     if has_buffer_number or has_numbers then
       local number_text = 
@@ -297,15 +294,12 @@ local function render(update_names)
       end
     end
 
-    if state.is_pinned(buffer_number) then
-      pinPrefix = namePrefix
-      pin = ' ' .. icons.pinned
-    end
-
     local closePrefix = ''
     local close = ''
-    if has_close then
+    if has_close or is_pinned then
       local icon =
+        is_pinned and
+          icons.pinned or
         (not is_modified and
           icons.close_tab or
           icons.close_tab_modified)
@@ -340,7 +334,6 @@ local function render(update_names)
         {iconPrefix,         icon},
         {jumpLetterPrefix,   jumpLetter},
         {namePrefix,         name},
-        {pinPrefix,          pin},
         {'',                 padding},
         {'',                 ' '},
         {closePrefix,        close},
@@ -355,10 +348,8 @@ local function render(update_names)
       local end_  = current_position + item.width
 
       if state.scroll > start then
-        print(vim.inspect({'start', start}))
         state.set_scroll(start)
       elseif state.scroll + layout.buffers_width < end_ then
-        print(vim.inspect({'end', state.scroll + (end_ - (state.scroll + layout.buffers_width))}))
         state.set_scroll(state.scroll + (end_ - (state.scroll + layout.buffers_width)))
       end
     end
@@ -397,12 +388,11 @@ local function render(update_names)
     bufferline_groups = groups_insert(bufferline_groups, item.position, item.groups)
   end
 
-
+  -- Crop to scroll region
   local max_scroll = math.max(layout.actual_width - layout.buffers_width, 0)
   local scroll = math.min(state.scroll_current, max_scroll)
   local buffers_end = layout.actual_width - scroll
 
-  -- print(vim.inspect({ layout.actual_width, layout.buffers_width, buffers_end, scroll }))
   if buffers_end > layout.buffers_width then
     bufferline_groups = slice_groups_right(bufferline_groups, scroll + layout.buffers_width)
   end
@@ -410,6 +400,7 @@ local function render(update_names)
     bufferline_groups = slice_groups_left(bufferline_groups, layout.buffers_width)
   end
 
+  -- Render bufferline string
   result = result .. groups_to_string(bufferline_groups)
 
   -- To prevent the expansion of the last click group
@@ -424,14 +415,6 @@ local function render(update_names)
   if layout.tabpages_width > 0 then
     result = result .. '%=%#BufferTabpages# ' .. tostring(current_tabpage) .. '/' .. tostring(total_tabpages) .. ' '
   end
-
-  -- vim.g.layout = {
-  --   scroll = state.scroll,
-  --   max_scroll = max_scroll,
-  --   layout = layout,
-  --   needed_width = needed_width,
-  --   accumulated_width = accumulated_width,
-  -- }
 
   result = result .. hl('BufferTabpageFill')
 

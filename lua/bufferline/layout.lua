@@ -48,17 +48,20 @@ local function calculate_buffers_width(state, base_width)
           + 1 -- space-after-buffer-index
       end
 
-      if state.is_pinned(buffer_number) then
-        width = width
-          + 1 -- spacing after filename
-          + strwidth(opts.icon_pinned)
-      end
+      local is_pinned = state.is_pinned(buffer_number)
 
-      if opts.closable then
+      if opts.closable or is_pinned then
+        local is_modified = nvim.buf_get_option(buffer_number, 'modified')
+        local icon =
+          is_pinned
+            and opts.icon_pinned
+            or
+          (not is_modified -- close-icon
+            and opts.icon_close_tab
+             or opts.icon_close_tab_modified)
+
         width = width
-          + strwidth(not nvim.buf_get_option(buffer_number, 'modified') -- close-icon
-              and opts.icon_close_tab
-              or opts.icon_close_tab_modified)
+          + strwidth(icon)
           + 1 -- space-after-close-icon
       end
     end
