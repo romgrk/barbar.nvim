@@ -17,7 +17,7 @@ local function is_nil(value)
   return value == nil or value == vim.NIL
 end
 
-local function index(tbl, n)
+local function index_of(tbl, n)
   for i, value in ipairs(tbl) do
     if value == n then
       return i
@@ -27,7 +27,7 @@ local function index(tbl, n)
 end
 
 local function has(tbl, n)
-  return index(tbl, n) ~= nil
+  return index_of(tbl, n) ~= nil
 end
 
 local function slice(tbl, first, last)
@@ -77,7 +77,7 @@ end
 return {
   len = len,
   is_nil = is_nil,
-  index = index,
+  index_of = index_of,
   has = has,
   slice = slice,
   reverse = reverse,

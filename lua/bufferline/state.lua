@@ -11,7 +11,7 @@ local Layout = require'bufferline.layout'
 local animate = require'bufferline.animate'
 local len = utils.len
 local is_nil = utils.is_nil
-local index = utils.index
+local index_of = utils.index_of
 local reverse = utils.reverse
 local filter = vim.tbl_filter
 local includes = vim.tbl_contains
@@ -157,7 +157,7 @@ local function open_buffers(new_buffers)
 
   -- Open next to the currently opened tab
   -- Find the new index where the tab will be inserted
-  local new_index = utils.index(m.buffers, m.last_current_buffer)
+  local new_index = index_of(m.buffers, m.last_current_buffer)
   if new_index ~= nil then
     new_index = new_index + 1
   else
@@ -167,7 +167,7 @@ local function open_buffers(new_buffers)
   -- Insert the buffers where they go
   for i, new_buffer in ipairs(new_buffers) do
 
-    if utils.index(m.buffers, new_buffer) == nil then
+    if index_of(m.buffers, new_buffer) == nil then
       local actual_index = new_index
 
       local should_insert_at_end =
@@ -416,7 +416,7 @@ local function move_buffer_animated(from_idx, to_idx)
 
   sort_pins_to_left()
 
-  local current_index = utils.index(m.buffers, buffer_number)
+  local current_index = index_of(m.buffers, buffer_number)
 
   local start_index = math.min(from_idx, current_index)
   local end_index   = math.max(from_idx, current_index)
@@ -484,7 +484,7 @@ local function move_current_buffer_to(number)
   end
 
   local currentnr = nvim.get_current_buf()
-  local idx = utils.index(m.buffers, currentnr)
+  local idx = index_of(m.buffers, currentnr)
   move_buffer(idx, number)
 end
 
@@ -492,7 +492,7 @@ local function move_current_buffer (steps)
   m.get_updated_buffers()
 
   local currentnr = nvim.get_current_buf()
-  local idx = utils.index(m.buffers, currentnr)
+  local idx = index_of(m.buffers, currentnr)
 
   move_buffer(idx, idx + steps)
 end
@@ -540,7 +540,7 @@ local function goto_buffer_relative(steps)
     end
   end
 
-  local idx = utils.index(m.buffers, current)
+  local idx = index_of(m.buffers, current)
 
   if idx == nil then
     print('Couldn\'t find buffer ' .. current .. ' in the list: ' .. vim.inspect(m.buffers))
@@ -577,7 +577,7 @@ local function close_all_but_pinned()
 end
 
 local function close_buffers_left()
-  local idx = index(m.buffers, nvim.get_current_buf()) - 1
+  local idx = index_of(m.buffers, nvim.get_current_buf()) - 1
   if idx == nil then
     return
   end
@@ -588,7 +588,7 @@ local function close_buffers_left()
 end
 
 local function close_buffers_right()
-  local idx = index(m.buffers, nvim.get_current_buf()) + 1
+  local idx = index_of(m.buffers, nvim.get_current_buf()) + 1
   if idx == nil then
     return
   end
