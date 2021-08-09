@@ -6,6 +6,7 @@ local vim = vim
 local bufname = vim.fn.bufname
 local fnamemodify = vim.fn.fnamemodify
 local matchlist = vim.fn.matchlist
+local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 
 local function len(value)
@@ -31,7 +32,9 @@ end
 
 local function slice(tbl, first, last)
   if type(tbl) == 'string' then
-    return string.sub(tbl, first, last)
+    local start = first - 1
+    local length = last - first + 1
+    return strcharpart(tbl, start, length)
   end
 
   if first < 0 then

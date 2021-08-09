@@ -20,11 +20,13 @@ local bufwinnr = vim.fn.bufwinnr
 local fnamemodify = vim.fn.fnamemodify
 
 
-local ANIMATION_OPEN_DURATION  = 150
-local ANIMATION_OPEN_DELAY     =  50
-local ANIMATION_CLOSE_DURATION = 150
-local ANIMATION_SCROLL_DURATION = 200
 local PIN = 'bufferline_pin'
+
+local ANIMATION_OPEN_DURATION   = 150
+local ANIMATION_OPEN_DELAY      = 50
+local ANIMATION_CLOSE_DURATION  = 150
+local ANIMATION_SCROLL_DURATION = 200
+local ANIMATION_MOVE_DURATION   = 150
 
 --------------------------------
 -- Section: Application state --
@@ -46,9 +48,7 @@ function m.new_buffer_data()
     width = nil,
     position = nil,
     closing = false,
-    moving = false,
     real_width = nil,
-    real_position = nil,
   }
 end
 
@@ -154,7 +154,6 @@ end
 local function open_buffers(new_buffers)
   local opts = vim.g.bufferline
   local initial_buffers = len(m.buffers)
-  local opts = vim.g.bufferline
 
   -- Open next to the currently opened tab
   -- Find the new index where the tab will be inserted
@@ -239,8 +238,7 @@ local function close_buffer_animated(buffer_number)
     return close_buffer(buffer_number)
   end
   local buffer_data = m.get_buffer_data(buffer_number)
-  local current_width =
-    buffer_data.real_width
+  local current_width = buffer_data.real_width
 
   buffer_data.closing = true
   buffer_data.width = current_width
@@ -374,7 +372,96 @@ local function set_offset(offset, offset_text)
   end
 end
 
+
 -- Movement & tab manipulation
+
+local move_animation = nil
+local move_animation_data = nil
+
+local function move_buffer_animated_tick(ratio, current_animation)
+  local data = move_animation_data
+
+  for i, current_number in ipairs(m.buffers) do
+    local current_data = m.get_buffer_data(current_number)
+
+    if current_animation.running == true then
+      current_data.position = animate.lerp(
+        ratio,
+        data.previous_positions[current_number],
+        data.next_positions[current_number]
+      )
+    else
+      current_data.position = nil
+      current_data.moving = false
+    end
+  end
+
+  m.update()
+
+  if current_animation.running == false then
+    move_animation = nil
+    move_animation_data = nil
+  end
+end
+
+local function move_buffer_animated(from_idx, to_idx)
+  local buffer_number = m.buffers[from_idx]
+  local buffer_data = m.get_buffer_data(buffer_number)
+
+  local layout = Layout.calculate(m)
+  local previous_positions = Layout.calculate_buffers_position_by_buffer_number(m, layout)
+
+  table.remove(m.buffers, from_idx)
+  table.insert(m.buffers, to_idx, buffer_number)
+
+  sort_pins_to_left()
+
+  local current_index = utils.index(m.buffers, buffer_number)
+
+  local start_index = math.min(from_idx, current_index)
+  local end_index   = math.max(from_idx, current_index)
+
+  if start_index == end_index then return end
+
+  if move_animation ~= nil then
+    animate.stop(move_animation)
+  end
+
+  local layout = Layout.calculate(m)
+  local next_positions = Layout.calculate_buffers_position_by_buffer_number(m, layout)
+
+  for i, current_number in ipairs(m.buffers) do
+    local current_number = m.buffers[i]
+    local current_data = m.get_buffer_data(current_number)
+
+    local previous_position = previous_positions[current_number]
+    local next_position     = next_positions[current_number]
+
+    if next_position ~= previous_position then
+      current_data.position = previous_positions[current_number]
+      current_data.moving = true
+    end
+  end
+
+  move_animation_data = {
+    previous_positions = previous_positions,
+    next_positions = next_positions,
+  }
+  move_animation =
+    animate.start(ANIMATION_MOVE_DURATION, 0, 1, vim.v.t_float,
+      function(ratio, current_animation) move_buffer_animated_tick(ratio, current_animation) end)
+
+  m.update()
+end
+
+local function move_buffer_direct(from_idx, to_idx)
+  local buffer_number = m.buffers[from_idx]
+  table.remove(m.buffers, from_idx)
+  table.insert(m.buffers, to_idx, buffer_number)
+  sort_pins_to_left()
+
+  m.update()
+end
 
 local function move_buffer(from_idx, to_idx)
   to_idx = math.max(1, math.min(len(m.buffers), to_idx))
@@ -382,12 +469,11 @@ local function move_buffer(from_idx, to_idx)
     return
   end
 
-  local bufnr = m.buffers[from_idx]
-  table.remove(m.buffers, from_idx)
-  table.insert(m.buffers, to_idx, bufnr)
-  sort_pins_to_left()
-
-  m.update()
+  if vim.g.bufferline.animation == false then
+    move_buffer_direct(from_idx, to_idx)
+  else
+    move_buffer_animated(from_idx, to_idx)
+  end
 end
 
 local function move_current_buffer_to(number)

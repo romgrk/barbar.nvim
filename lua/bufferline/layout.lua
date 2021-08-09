@@ -1,4 +1,3 @@
--- !::exe [luafile %]
 --
 -- layout.lua
 --
@@ -70,6 +69,19 @@ local function calculate_buffers_width(state, base_width)
   return sum, widths
 end
 
+local function calculate_buffers_position_by_buffer_number(state, layout)
+  local current_position = 0
+  local positions = {}
+
+  for i, buffer_number in ipairs(state.buffers) do
+    positions[buffer_number] = current_position
+    local width = layout.base_widths[i] + (2 * layout.padding_width)
+    current_position = current_position + width
+  end
+
+  return positions
+end
+
 local function calculate(state)
   local opts = vim.g.bufferline
 
@@ -95,7 +107,7 @@ local function calculate(state)
   local remaining_width_per_buffer   = math.floor(remaining_width / buffers_length)
   local remaining_padding_per_buffer = math.floor(remaining_width_per_buffer / SIDES_OF_BUFFER)
   local padding_width                = math.min(remaining_padding_per_buffer, opts.maximum_padding)
-  local actual_width                 = used_width + (padding_width * buffers_length * SIDES_OF_BUFFER)
+  local actual_width                 = used_width + (buffers_length * padding_width * SIDES_OF_BUFFER)
 
   return {
     actual_width = actual_width,
@@ -116,6 +128,7 @@ end
 local exports = {
   calculate = calculate,
   calculate_buffers_width = calculate_buffers_width,
+  calculate_buffers_position_by_buffer_number = calculate_buffers_position_by_buffer_number,
   calculate_width = calculate_width,
 }
 

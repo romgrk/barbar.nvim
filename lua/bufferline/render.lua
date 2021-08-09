@@ -34,45 +34,150 @@ local function hl(name)
    return '%#' .. name .. '#'
 end
 
-local function slice_groups_right(groups, width)
+-- A "group" is an array with the format { HL_GROUP, TEXT_CONTENT }
+
+local function groups_to_string(groups)
   local result = ''
-  local accumulated_width = 0
+
   for i, group in ipairs(groups) do
     local hl   = group[1]
     local text = group[2]
-    local text_width = nvim.strwidth(text)
+    result = result .. hl .. text
+  end
+
+  return result
+end
+
+local function groups_to_raw_string(groups)
+  local result = ''
+
+  for i, group in ipairs(groups) do
+    local text = group[2]
+    result = result .. text
+  end
+
+  return result
+end
+
+local function groups_insert(groups, position, others)
+  local current_position = 0
+
+  local new_groups = {}
+
+  local i = 1
+  while i <= len(groups) do
+    local group = groups[i]
+    local group_width = strwidth(group[2])
+
+    -- While we haven't found the position...
+    if current_position + group_width <= position then
+      table.insert(new_groups, group)
+      i = i + 1
+      current_position = current_position + group_width
+
+    -- When we found the position...
+    else
+      local available_width = position - current_position
+
+      -- Slice current group if it `position` is inside it
+      if available_width > 0 then
+        local new_group = { group[1], slice(group[2], 1, available_width) }
+        table.insert(new_groups, new_group)
+      end
+
+      -- Add new other groups
+      local others_width = 0
+      for j, other in ipairs(others) do
+        local other_width = strwidth(other[2])
+        others_width = others_width + other_width
+        table.insert(new_groups, other)
+      end
+
+      local end_position = position + others_width
+
+      -- Then, resume adding previous groups
+      -- table.insert(new_groups, 'then')
+      while i <= len(groups) do
+        local group = groups[i]
+        local group_width = strwidth(group[2])
+        local group_start_position = current_position
+        local group_end_position   = current_position + group_width
+
+        if group_end_position <= end_position then
+          -- table.insert(new_groups, 'continue')
+          -- continue
+        elseif group_start_position >= end_position then
+          -- table.insert(new_groups, 'direct')
+          table.insert(new_groups, group)
+        else
+          local remaining_width = group_end_position - end_position
+          local start = group_width + 1 - remaining_width
+          local end_  = group_width
+          local new_group = { group[1], slice(group[2], start, end_) }
+          -- table.insert(new_groups, { group_start_position, group_end_position, end_position })
+          table.insert(new_groups, new_group)
+        end
+
+        i = i + 1
+        current_position = current_position + group_width
+      end
+
+      break
+    end
+  end
+
+  return new_groups
+end
+
+local function slice_groups_right(groups, width)
+  local accumulated_width = 0
+
+  local new_groups = {}
+
+  for i, group in ipairs(groups) do
+    local hl   = group[1]
+    local text = group[2]
+    local text_width = strwidth(text)
 
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
       local diff = text_width - (accumulated_width - width)
-      result = result .. hl .. strcharpart(text, 0, diff)
+      local new_group = {hl, strcharpart(text, 0, diff)}
+      table.insert(new_groups, new_group)
       break
     end
-    result = result .. hl .. text
+
+    table.insert(new_groups, group)
   end
-  return result
+
+  return new_groups
 end
 
 local function slice_groups_left(groups, width)
-  local result = ''
   local accumulated_width = 0
+
+  local new_groups = {}
+
   for i, group in ipairs(reverse(groups)) do
     local hl   = group[1]
     local text = group[2]
-    local text_width = nvim.strwidth(text)
+    local text_width = strwidth(text)
 
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
       local length = text_width - (accumulated_width - width)
       local start = text_width - length
-      result = hl .. strcharpart(text, start, length) .. result
+      local new_group = {hl, strcharpart(text, start, length)}
+      table.insert(new_groups, 1, new_group)
       break
     end
-    result = hl .. text .. result
+
+    table.insert(new_groups, 1, group)
   end
-  return result
+
+  return new_groups
 end
 
 local function render(update_names)
@@ -115,14 +220,16 @@ local function render(update_names)
 
   local items = {}
 
-  local accumulated_width = 0
+  local current_buffer_index = nil
+  local current_buffer_position = 0
+  local current_position = 0
   for i, buffer_number in ipairs(buffer_numbers) do
 
     local buffer_data = state.get_buffer_data(buffer_number)
     local buffer_name = buffer_data.name or '[no name]'
 
-    buffer_data.real_width = Layout.calculate_width(
-      buffer_name, layout.base_width, layout.padding_width)
+    buffer_data.real_width    = Layout.calculate_width(buffer_name, layout.base_width, layout.padding_width)
+    buffer_data.real_position = current_position
 
     local activity = Buffer.get_activity(buffer_number)
     local is_inactive = activity == 0
@@ -220,9 +327,11 @@ local function render(update_names)
     local padding = string.rep(' ', layout.padding_width)
 
     local item = {
+      is_current = is_current,
       width = buffer_data.width
         -- <padding> <base_widths[i]> <padding>
         or layout.base_widths[i] + (2 * layout.padding_width),
+      position = buffer_data.position or buffer_data.real_position,
       groups = {
         {clickable,          ''},
         {separatorPrefix,    separator},
@@ -239,58 +348,69 @@ local function render(update_names)
     }
 
     if is_current then
-      state.index = i
-      local start = accumulated_width
-      local end_  = accumulated_width + item.width
+      current_buffer_index = i
+      current_buffer_position = buffer_data.real_position
+
+      local start = current_position
+      local end_  = current_position + item.width
 
       if state.scroll > start then
+        print(vim.inspect({'start', start}))
         state.set_scroll(start)
       elseif state.scroll + layout.buffers_width < end_ then
+        print(vim.inspect({'end', state.scroll + (end_ - (state.scroll + layout.buffers_width))}))
         state.set_scroll(state.scroll + (end_ - (state.scroll + layout.buffers_width)))
       end
     end
 
     table.insert(items, item)
-    accumulated_width = accumulated_width + item.width
+    current_position = current_position + item.width
   end
 
   -- Create actual tabline string
   local result = ''
+
+  -- Add offset filler & text (for filetree/sidebar plugins)
   if state.offset and state.offset > 0 then
     local offset_available_width = state.offset - 2
     local groups = {
       {hl('BufferOffset'), ' '},
       {'',                 state.offset_text},
     }
-    result = result .. slice_groups_right(groups, offset_available_width)
+    result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
     result = result .. string.rep(' ', offset_available_width - len(state.offset_text))
     result = result .. ' '
   end
 
-  local accumulated_width = 0
-  local max_scroll = math.max(layout.used_width - layout.buffers_width, 0)
-  local scroll = math.min(state.scroll_current, max_scroll)
-  local needed_width = scroll
+  -- Add bufferline
+  local bufferline_groups = {
+    { hl('BufferTabpageFill'), string.rep(' ', layout.actual_width) }
+  }
 
   for i, item in ipairs(items) do
-    if needed_width > 0 then
-      needed_width = needed_width - item.width
-      if needed_width < 0 then
-        local diff = -needed_width
-        result = result .. slice_groups_left(item.groups, diff)
-        accumulated_width = accumulated_width + diff
-      end
-    else
-      if accumulated_width + item.width > layout.buffers_width then
-        local diff = layout.buffers_width - accumulated_width
-        result = result .. slice_groups_right(item.groups, diff)
-        accumulated_width = accumulated_width + diff
-        break
-      end
-      result = result .. slice_groups_right(item.groups, item.width)
-      accumulated_width = accumulated_width + item.width
+    if i ~= current_buffer_index then
+      bufferline_groups = groups_insert(bufferline_groups, item.position, item.groups)
     end
   end
+  if current_buffer_index ~= nil then
+    local item = items[current_buffer_index]
+    bufferline_groups = groups_insert(bufferline_groups, item.position, item.groups)
+  end
+
+
+  local max_scroll = math.max(layout.actual_width - layout.buffers_width, 0)
+  local scroll = math.min(state.scroll_current, max_scroll)
+  local buffers_end = layout.actual_width - scroll
+
+  -- print(vim.inspect({ layout.actual_width, layout.buffers_width, buffers_end, scroll }))
+  if buffers_end > layout.buffers_width then
+    bufferline_groups = slice_groups_right(bufferline_groups, scroll + layout.buffers_width)
+  end
+  if scroll > 0 then
+    bufferline_groups = slice_groups_left(bufferline_groups, layout.buffers_width)
+  end
+
+  result = result .. groups_to_string(bufferline_groups)
 
   -- To prevent the expansion of the last click group
   result = result .. '%0@BufferlineMainClickHandler@' .. hl('BufferTabpageFill')
