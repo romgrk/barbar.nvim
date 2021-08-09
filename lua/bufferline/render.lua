@@ -121,7 +121,7 @@ local function render(update_names)
     local buffer_data = state.get_buffer_data(buffer_number)
     local buffer_name = buffer_data.name or '[no name]'
 
-    buffer_data.dimensions = Layout.calculate_dimensions(
+    buffer_data.real_width = Layout.calculate_width(
       buffer_name, layout.base_width, layout.padding_width)
 
     local activity = Buffer.get_activity(buffer_number)

@@ -35,7 +35,7 @@ local function calculate_buffers_width(state, base_width)
 
     local width
     if buffer_data.closing then
-      width = buffer_data.dimensions[1] + buffer_data.dimensions[2]
+      width = buffer_data.real_width
     else
       width = base_width
         + strwidth(Buffer.get_activity(buffer_number) > 0 -- separator
@@ -109,14 +109,14 @@ local function calculate(state)
   }
 end
 
-local function calculate_dimensions(buffer_name, base_width, padding_width)
-  return { strwidth(buffer_name), base_width + padding_width * SIDES_OF_BUFFER }
+local function calculate_width(buffer_name, base_width, padding_width)
+  return strwidth(buffer_name) + base_width + padding_width * SIDES_OF_BUFFER
 end
 
 local exports = {
   calculate = calculate,
   calculate_buffers_width = calculate_buffers_width,
-  calculate_dimensions = calculate_dimensions,
+  calculate_width = calculate_width,
 }
 
 return exports

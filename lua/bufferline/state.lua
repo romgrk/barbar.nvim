@@ -44,8 +44,11 @@ function m.new_buffer_data()
   return {
     name = nil,
     width = nil,
+    position = nil,
     closing = false,
-    dimensions = nil,
+    moving = false,
+    real_width = nil,
+    real_position = nil,
   }
 end
 
@@ -132,12 +135,10 @@ end
 
 local function open_buffer_start_animation(layout, buffer_number)
   local buffer_data = m.get_buffer_data(buffer_number)
-  buffer_data.dimensions = Layout.calculate_dimensions(
+  buffer_data.real_width = Layout.calculate_width(
     buffer_data.name, layout.base_width, layout.padding_width)
 
-  local target_width =
-    buffer_data.dimensions[1] +
-    buffer_data.dimensions[2]
+  local target_width = buffer_data.real_width
 
   buffer_data.width = 1
 
@@ -239,8 +240,7 @@ local function close_buffer_animated(buffer_number)
   end
   local buffer_data = m.get_buffer_data(buffer_number)
   local current_width =
-    buffer_data.dimensions[1] +
-    buffer_data.dimensions[2]
+    buffer_data.real_width
 
   buffer_data.closing = true
   buffer_data.width = current_width
@@ -340,7 +340,7 @@ function m.get_updated_buffers(update_names)
     if not buffer_data.closing then
       did_change = true
 
-      if buffer_data.dimensions == nil then
+      if buffer_data.real_width == nil then
         close_buffer(buffer_number)
       else
         close_buffer_animated(buffer_number)
