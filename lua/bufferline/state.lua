@@ -8,6 +8,7 @@ local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local Buffer = require'bufferline.buffer'
 local Layout = require'bufferline.layout'
+local animate = require'bufferline.animate'
 local len = utils.len
 local is_nil = utils.is_nil
 local index = utils.index
@@ -21,7 +22,7 @@ local fnamemodify = vim.fn.fnamemodify
 
 local ANIMATION_OPEN_DURATION  = 150
 local ANIMATION_OPEN_DELAY     =  50
-local ANIMATION_CLOSE_DURATION = 100
+local ANIMATION_CLOSE_DURATION = 150
 local ANIMATION_SCROLL_DURATION = 200
 local PIN = 'bufferline_pin'
 
@@ -108,10 +109,10 @@ local function set_scroll(target)
   m.scroll = target
 
   if scroll_animation ~= nil then
-    vim.fn['bufferline#animate#stop'](scroll_animation)
+    animate.stop(scroll_animation)
   end
 
-  scroll_animation = vim.fn['bufferline#animate#start'](
+  scroll_animation = animate.start(
     ANIMATION_SCROLL_DURATION, m.scroll_current, target, vim.v.t_number,
     set_scroll_tick)
 end
@@ -141,7 +142,7 @@ local function open_buffer_start_animation(layout, buffer_number)
   buffer_data.width = 1
 
   vim.fn.timer_start(ANIMATION_OPEN_DELAY, function()
-    vim.fn['bufferline#animate#start'](
+    animate.start(
       ANIMATION_OPEN_DURATION, 1, target_width, vim.v.t_number,
       function(new_width, animation)
         open_buffer_animated_tick(buffer_number, new_width, animation)
@@ -228,7 +229,7 @@ local function close_buffer_animated_tick(buffer_number, new_width, animation)
     m.update()
     return
   end
-  vim.fn['bufferline#animate#stop'](animation)
+  animate.stop(animation)
   close_buffer(buffer_number, true)
 end
 
@@ -244,7 +245,7 @@ local function close_buffer_animated(buffer_number)
   buffer_data.closing = true
   buffer_data.width = current_width
 
-  vim.fn['bufferline#animate#start'](
+  animate.start(
     ANIMATION_CLOSE_DURATION, current_width, 0, vim.v.t_number,
     function(new_width, m)
       close_buffer_animated_tick(buffer_number, new_width, m)
