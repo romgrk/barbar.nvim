@@ -103,8 +103,7 @@ local function groups_insert(groups, position, others)
         local group_start_position = current_position
         local group_end_position   = current_position + group_width
 
-        if group_end_position <= end_position then
-          -- table.insert(new_groups, 'continue')
+        if group_end_position <= end_position and group_width ~= 0 then
           -- continue
         elseif group_start_position >= end_position then
           -- table.insert(new_groups, 'direct')
@@ -179,6 +178,8 @@ local function slice_groups_left(groups, width)
 
   return new_groups
 end
+
+-- Rendering
 
 local function render(update_names)
   local opts = vim.g.bufferline
