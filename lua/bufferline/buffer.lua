@@ -19,7 +19,7 @@ local nvim_get_current_buf = vim.api.nvim_get_current_buf
 
 
 local function terminalname(name)
-  local result = matchlist(name, [===[term://.\\{-}//\\d\\+:\\(.*\\)]===])
+  local result = matchlist(name, [===[term://.\{-}//\d\+:\(.*\)]===])
   if next(result) == nil then
     return name
   else
