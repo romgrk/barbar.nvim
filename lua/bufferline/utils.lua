@@ -32,9 +32,14 @@ end
 
 local function slice(tbl, first, last)
   if type(tbl) == 'string' then
-    local start = first - 1
-    local length = last - first + 1
-    return strcharpart(tbl, start, length)
+    if last == nil then
+      local start = first - 1
+      return strcharpart(tbl, start)
+    else
+      local start = first - 1
+      local length = last - first + 1
+      return strcharpart(tbl, start, length)
+    end
   end
 
   if first < 0 then
