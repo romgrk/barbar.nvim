@@ -406,9 +406,10 @@ end
 
 local function move_buffer_animated(from_idx, to_idx)
   local buffer_number = m.buffers[from_idx]
-  local buffer_data = m.get_buffer_data(buffer_number)
 
-  local layout = Layout.calculate(m)
+  local layout
+
+  layout = Layout.calculate(m)
   local previous_positions = Layout.calculate_buffers_position_by_buffer_number(m, layout)
 
   table.remove(m.buffers, from_idx)
@@ -427,10 +428,10 @@ local function move_buffer_animated(from_idx, to_idx)
     animate.stop(move_animation)
   end
 
-  local layout = Layout.calculate(m)
+  layout = Layout.calculate(m)
   local next_positions = Layout.calculate_buffers_position_by_buffer_number(m, layout)
 
-  for i, current_number in ipairs(m.buffers) do
+  for i, _ in ipairs(m.buffers) do
     local current_number = m.buffers[i]
     local current_data = m.get_buffer_data(current_number)
 
@@ -518,7 +519,6 @@ local function goto_buffer_relative(steps)
   m.get_updated_buffers()
 
   local current = vim.fn.bufnr('%')
-  local current_win = nvim.get_current_win()
   local is_listed = nvim.buf_get_option(current, 'buflisted')
 
   -- Check previous window first
@@ -530,7 +530,7 @@ local function goto_buffer_relative(steps)
   -- Check all windows now
   if not is_listed then
     local wins = nvim.list_wins()
-    for i, win in ipairs(wins) do
+    for _, win in ipairs(wins) do
       current = nvim.win_get_buf(win)
       is_listed = nvim.buf_get_option(current, 'buflisted')
       if is_listed then

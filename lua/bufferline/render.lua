@@ -39,7 +39,7 @@ end
 local function groups_to_string(groups)
   local result = ''
 
-  for i, group in ipairs(groups) do
+  for _, group in ipairs(groups) do
     local hl   = group[1]
     local text = group[2]
     result = result .. hl .. text
@@ -51,7 +51,7 @@ end
 local function groups_to_raw_string(groups)
   local result = ''
 
-  for i, group in ipairs(groups) do
+  for _, group in ipairs(groups) do
     local text = group[2]
     result = result .. text
   end
@@ -209,7 +209,6 @@ local function render(update_names)
     end
   end
 
-  local icons = setmetatable(opts, {__index = function(_, k) return opts['icon_'..k] end})
   local click_enabled = has('tablineat') and opts.clickable
   local has_close = opts.closable
   local has_icons = (opts.icons == true) or (opts.icons == 'both')
@@ -222,7 +221,6 @@ local function render(update_names)
   local items = {}
 
   local current_buffer_index = nil
-  local current_buffer_position = 0
   local current_position = 0
   for i, buffer_number in ipairs(buffer_numbers) do
 
@@ -236,7 +234,6 @@ local function render(update_names)
     local is_inactive = activity == 0
     local is_visible = activity == 1
     local is_current = activity == 2
-    -- local is_inactive = activity == 0
     local is_modified = nvim.buf_get_option(buffer_number, 'modified')
     local is_closing = buffer_data.closing
     local is_pinned = state.is_pinned(buffer_number)
@@ -246,8 +243,8 @@ local function render(update_names)
 
     local separatorPrefix = hl('Buffer' .. status .. 'Sign')
     local separator = is_inactive and
-      icons.separator_inactive or
-      icons.separator_active
+      opts.icon_separator_inactive or
+      opts.icon_separator_active
 
     local namePrefix = hl('Buffer' .. status .. mod)
     local name = buffer_name
@@ -265,7 +262,7 @@ local function render(update_names)
     local icon = ''
 
     if has_buffer_number or has_numbers then
-      local number_text = 
+      local number_text =
         has_buffer_number and
           tostring(buffer_number) or
           tostring(i)
@@ -298,15 +295,15 @@ local function render(update_names)
     local closePrefix = ''
     local close = ''
     if has_close or is_pinned then
-      local icon =
+      local closeIcon =
         is_pinned and
-          icons.pinned or
+          opts.icon_pinned or
         (not is_modified and
-          icons.close_tab or
-          icons.close_tab_modified)
+          opts.icon_close_tab or
+          opts.icon_close_tab_modified)
 
       closePrefix = namePrefix
-      close = icon .. ' '
+      close = closeIcon .. ' '
 
       if click_enabled then
         closePrefix =
@@ -407,8 +404,8 @@ local function render(update_names)
   -- To prevent the expansion of the last click group
   result = result .. '%0@BufferlineMainClickHandler@' .. hl('BufferTabpageFill')
 
-  if layout.actual_width + strwidth(icons.separator_inactive) <= layout.buffers_width and len(items) > 0 then
-    result = result .. icons.separator_inactive
+  if layout.actual_width + strwidth(opts.icon_separator_inactive) <= layout.buffers_width and len(items) > 0 then
+    result = result .. opts.icon_separator_inactive
   end
 
   local current_tabpage = tabpagenr()
