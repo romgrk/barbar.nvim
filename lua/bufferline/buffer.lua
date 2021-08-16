@@ -4,7 +4,6 @@
 
 
 local vim = vim
-local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local split = vim.split
 local join = table.concat
