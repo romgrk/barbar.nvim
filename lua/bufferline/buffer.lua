@@ -59,7 +59,15 @@ local function get_name(opts, number)
   end
 
   if len(name) > opts.maximum_length then
-    name = '…' .. slice(name, -opts.maximum_length, -1)
+    local ext_index = string.find(string.reverse(name), '%.')
+    local trimmed_name = string.sub(name, 1, opts.maximum_length - (ext_index or 0))
+
+    if ext_index ~= nil then
+      local extension = string.sub(name, len(name) - ext_index + 1, -1)
+      name =  trimmed_name .. '…' .. extension
+    else
+      name = trimmed_name .. '…'
+    end
   end
 
   return name
