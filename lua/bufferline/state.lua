@@ -211,17 +211,36 @@ local function open_buffers(new_buffers)
   end
 end
 
-local function open_buffer_in_listed_window(buffer_number)
-  local wins = vim.api.nvim_list_wins()
-  for _, win in ipairs(wins) do
-    local current = vim.api.nvim_win_get_buf(win)
-    local is_listed = vim.api.nvim_buf_get_option(current, 'buflisted')
-    if is_listed then
-      vim.api.nvim_win_set_buf(win, buffer_number)
-      vim.api.nvim_set_current_win(win)
-      break
+local function set_current_win_listed_buffer()
+  local current = vim.fn.bufnr('%')
+  local is_listed = nvim.buf_get_option(current, 'buflisted')
+
+  -- Check previous window first
+  if not is_listed then
+    nvim.command('wincmd p')
+    current = vim.fn.bufnr('%')
+    is_listed = nvim.buf_get_option(current, 'buflisted')
+  end
+  -- Check all windows now
+  if not is_listed then
+    local wins = nvim.list_wins()
+    for _, win in ipairs(wins) do
+      current = nvim.win_get_buf(win)
+      is_listed = nvim.buf_get_option(current, 'buflisted')
+      if is_listed then
+        nvim.set_current_win(win)
+        break
+      end
     end
   end
+
+  return current
+end
+
+local function open_buffer_in_listed_window(buffer_number)
+  set_current_win_listed_buffer()
+
+  nvim.command('buffer ' .. buffer_number)
 end
 
 -- Close & cleanup buffers
@@ -531,27 +550,7 @@ end
 local function goto_buffer_relative(steps)
   m.get_updated_buffers()
 
-  local current = vim.fn.bufnr('%')
-  local is_listed = nvim.buf_get_option(current, 'buflisted')
-
-  -- Check previous window first
-  if not is_listed then
-    nvim.command('wincmd p')
-    current = vim.fn.bufnr('%')
-    is_listed = nvim.buf_get_option(current, 'buflisted')
-  end
-  -- Check all windows now
-  if not is_listed then
-    local wins = nvim.list_wins()
-    for _, win in ipairs(wins) do
-      current = nvim.win_get_buf(win)
-      is_listed = nvim.buf_get_option(current, 'buflisted')
-      if is_listed then
-        nvim.set_current_win(win)
-        break
-      end
-    end
-  end
+  local current = set_current_win_listed_buffer()
 
   local idx = index_of(m.buffers, current)
 
