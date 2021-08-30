@@ -229,7 +229,7 @@ function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
    if a:btn =~ 'm'
       call bufferline#bbye#delete('bdelete', '', a:minwid)
    else
-      execute 'buffer ' . a:minwid
+      call luaeval("require'bufferline.state'.open_buffer_in_listed_window(_A)", a:minwid)
    end
 endfunction
 

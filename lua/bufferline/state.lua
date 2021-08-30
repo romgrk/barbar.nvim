@@ -211,6 +211,19 @@ local function open_buffers(new_buffers)
   end
 end
 
+local function open_buffer_in_listed_window(buffer_number)
+  local wins = vim.api.nvim_list_wins()
+  for _, win in ipairs(wins) do
+    local current = vim.api.nvim_win_get_buf(win)
+    local is_listed = vim.api.nvim_buf_get_option(current, 'buflisted')
+    if is_listed then
+      vim.api.nvim_win_set_buf(win, buffer_number)
+      vim.api.nvim_set_current_win(win)
+      break
+    end
+  end
+end
+
 -- Close & cleanup buffers
 
 local function close_buffer(buffer_number, should_update_names)
@@ -731,6 +744,8 @@ end
 
 m.set_scroll = set_scroll
 m.set_offset = set_offset
+
+m.open_buffer_in_listed_window = open_buffer_in_listed_window
 
 m.close_buffer = close_buffer
 m.close_buffer_animated = close_buffer_animated
