@@ -23,7 +23,13 @@
 " For the full copy of the GNU Affero General Public License see:
 " http://www.gnu.org/licenses.
 
-function! bufferline#bbye#delete(action, bang, buffer_name)
+function! bufferline#bbye#delete(action, bang, buffer_name, ...)
+    if a:0 == 0
+        let l:mods = ""
+    else
+        let l:mods = a:1
+    endif
+
     let buffer = s:str2bufnr(a:buffer_name)
 
     if buffer < 0
@@ -31,7 +37,7 @@ function! bufferline#bbye#delete(action, bang, buffer_name)
     endif
 
     let is_modified = nvim_buf_get_option(buffer, 'modified')
-    let has_confirm = nvim_get_option('confirm')
+    let has_confirm = nvim_get_option('confirm') || (match(l:mods, 'conf') != -1)
 
     if is_modified && empty(a:bang) && !has_confirm
         let error = "E89: No write since last change for buffer "
@@ -76,7 +82,7 @@ function! bufferline#bbye#delete(action, bang, buffer_name)
     " buffer to still _exist_ even though it won't be :bdelete-able.
     if buflisted(buffer) && buffer != bufnr("%")
         try
-            exe a:action . a:bang . " " . buffer
+            exe l:mods . " " . a:action . a:bang . " " . buffer
         catch /^Vim([^)]*):E516:/ " E516: No buffers were deleted
             " Canceled by `set confirm`
             exe buffer . 'b'
