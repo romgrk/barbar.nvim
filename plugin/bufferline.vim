@@ -76,11 +76,11 @@ command!          -bang BufferOrderByLanguage  call bufferline#order_by_language
 command!          -bang BufferOrderByWindowNumber    call bufferline#order_by_window_number()
 
 command! -bang -complete=buffer -nargs=?
-                      \ BufferClose            call bufferline#bbye#delete('bdelete', <q-bang>, <q-args>)
+                      \ BufferClose            call bufferline#bbye#delete('bdelete', <q-bang>, <q-args>, <q-mods>)
 command! -bang -complete=buffer -nargs=?
-                      \ BufferDelete           call bufferline#bbye#delete('bdelete', <q-bang>, <q-args>)
+                      \ BufferDelete           call bufferline#bbye#delete('bdelete', <q-bang>, <q-args>, <q-mods>)
 command! -bang -complete=buffer -nargs=?
-                      \ BufferWipeout          call bufferline#bbye#delete('bwipeout', <q-bang>, <q-args>)
+                      \ BufferWipeout          call bufferline#bbye#delete('bwipeout', <q-bang>, <q-args>, <q-mods>)
 
 command!                BufferCloseAllButCurrent   lua require'bufferline.state'.close_all_but_current()
 command!                BufferCloseAllButPinned    lua require'bufferline.state'.close_all_but_pinned()
