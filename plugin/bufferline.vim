@@ -204,6 +204,7 @@ endfunc
 
 function! s:on_buffer_close(bufnr)
    call luaeval("require'bufferline.jump_mode'.unassign_letter_for(_A)", a:bufnr)
+   call bufferline#update_async() " BufDelete is called before buffer deletion
 endfunc
 
 function! s:check_modified()
