@@ -209,6 +209,13 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	The icon used to indicate that a buffer is pinned.
 
+			                         *g:bufferline.insert_at_start*
+`g:bufferline.insert_at_start`                         boolean (default v:false)
+
+	If true, new buffers appear at the start of the list. Default is to
+	open after the current buffer.
+	Has priority over `g:bufferline.insert_at_end`
+
 			                         *g:bufferline.insert_at_end*
 `g:bufferline.insert_at_end`                         boolean (default v:false)
 

@@ -165,17 +165,21 @@ local function open_buffers(new_buffers)
   end
 
   -- Insert the buffers where they go
-  for i, new_buffer in ipairs(new_buffers) do
+  for _, new_buffer in ipairs(new_buffers) do
 
     if index_of(m.buffers, new_buffer) == nil then
       local actual_index = new_index
 
+      local should_insert_at_start = opts.insert_at_start
       local should_insert_at_end =
         opts.insert_at_end or
+        -- We add special buffers at the end
         vim.fn.getbufvar(new_buffer, '&buftype') ~= ''
 
-      -- For special buffers, we add them at the end
-      if should_insert_at_end then
+      if should_insert_at_start then
+        actual_index = 1
+        new_index = new_index + 1
+      elseif should_insert_at_end then
         actual_index = len(m.buffers) + 1
       else
         new_index = new_index + 1
