@@ -693,12 +693,12 @@ local function on_pre_save()
   -- or windows with a local directory (:tcd and :lcd)
   local use_relative_file_paths = true
   for tabnr,tabpage in ipairs(vim.api.nvim_list_tabpages()) do
-    if not use_relative_file_paths or vim.fn.haslocaldir(-1, tabnr) == 1 then
+    if not use_relative_file_paths or vim.fn.haslocaldir(-1, tabnr) ~= 0 then
       use_relative_file_paths = false
       break
     end
     for _,win in ipairs(vim.api.nvim_tabpage_list_wins(tabpage)) do
-      if vim.fn.haslocaldir(win, tabnr) == 1 then
+      if vim.fn.haslocaldir(win, tabnr) ~= 0 then
         use_relative_file_paths = false
         break
       end
