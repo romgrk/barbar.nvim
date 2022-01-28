@@ -211,9 +211,9 @@ local function render(update_names)
 
   local click_enabled = has('tablineat') and opts.clickable
   local has_close = opts.closable
-  local has_icons = (opts.icons == true) or (opts.icons == 'both')
+  local has_icons = (opts.icons == true) or (opts.icons == 'both') or (opts.icons == 'buffer_numbers_with_icons')
   local has_icon_custom_colors = opts.icon_custom_colors
-  local has_buffer_number = (opts.icons == 'buffer_numbers')
+  local has_buffer_number = (opts.icons == 'buffer_numbers') or (opts.icons == 'buffer_numbers_with_icons')
   local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
 
   local layout = Layout.calculate(state)

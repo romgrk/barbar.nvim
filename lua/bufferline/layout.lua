@@ -88,7 +88,7 @@ end
 local function calculate(state)
   local opts = vim.g.bufferline
 
-  local has_icons = (opts.icons == true) or (opts.icons == 'both')
+  local has_icons = (opts.icons == true) or (opts.icons == 'both') or (opts.icons == 'buffer_numbers_with_icons') 
 
   -- [icon + space-after-icon] + space-after-name
   local base_width =
