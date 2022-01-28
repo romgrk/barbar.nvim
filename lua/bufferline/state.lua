@@ -608,7 +608,7 @@ local function close_buffers_right()
   if idx == nil then
     return
   end
-  for i = idx, len(m.buffers) do
+  for i = len(m.buffers), idx, -1 do
     vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(m.buffers[i]))
   end
   m.update()
