@@ -176,7 +176,7 @@ Here are the groups that you should define if you'd like to style Barbar.
 	- If `"buffer_numbers"`, show the buffer number for current buffer.
 	- If `"numbers"`, show the buffer index for current buffer.
 	- If `"both"`, show the buffer index and |devicons|.
-	- If `"buffer_numbers_with_icons"`, show the buffer number for current buffer and |devicons|.
+	- If `"buffer_number_with_icon"`, show the buffer number for current buffer and |devicons|.
 
 					   *g:bufferline.icon_custom_colors*
 `g:bufferline.icon_custom_colors`	boolean, string (default v:false)
