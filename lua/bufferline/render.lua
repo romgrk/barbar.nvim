@@ -293,18 +293,16 @@ local function render(update_names)
       end
     end
 
+    local trailingIcon =
+      (is_pinned and opts.icon_pinned) or
+      (has_modified and is_modified and opts.icon_close_tab_modified) or
+      (has_close and opts.icon_close_tab)
+
     local closePrefix = ''
     local close = ''
-    if has_close or has_modified or is_pinned then
-      local closeIcon =
-        is_pinned and
-          opts.icon_pinned or
-        (not is_modified and
-          opts.icon_close_tab or
-          opts.icon_close_tab_modified)
-
+    if trailingIcon then
       closePrefix = namePrefix
-      close = closeIcon .. ' '
+      close = trailingIcon .. ' '
 
       if click_enabled then
         closePrefix =
