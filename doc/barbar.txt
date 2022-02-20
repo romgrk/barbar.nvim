@@ -225,7 +225,13 @@ Here are the groups that you should define if you'd like to style Barbar.
 						    *g:bufferline.closable*
 `g:bufferline.closable`		boolean	(default v:true)
 
-	Controls if close buttons are shown.
+	Controls if close button is shown when file is not modified.
+
+						    *g:bufferline.show_modified_icon*
+`g:bufferline.show_modified_icon`		boolean	(default v:true)
+
+	Controls if close button is shown as the modified icon
+	when file is modified.
 
 					    *g:bufferline.semantic_letters*
 `g:bufferline.semantic_letters`		boolean	(default v:true)
