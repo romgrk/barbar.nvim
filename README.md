@@ -219,6 +219,9 @@ let bufferline.tabpages = v:true
 " Enable/disable close button
 let bufferline.closable = v:true
 
+" Enable/disable modified buffer icon
+let bufferline.show_modified_icon = v:true
+
 " Enables/disable clickable tabs
 "  - left-click: go to buffer
 "  - middle-click: delete buffer
