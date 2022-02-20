@@ -211,6 +211,7 @@ local function render(update_names)
 
   local click_enabled = has('tablineat') and opts.clickable
   local has_close = opts.closable
+  local has_modified = opts.show_modified_icon
   local has_icons = (opts.icons == true) or (opts.icons == 'both')
   local has_icon_custom_colors = opts.icon_custom_colors
   local has_buffer_number = (opts.icons == 'buffer_numbers')
@@ -294,7 +295,7 @@ local function render(update_names)
 
     local closePrefix = ''
     local close = ''
-    if has_close or is_pinned then
+    if has_close or has_modified or is_pinned then
       local closeIcon =
         is_pinned and
           opts.icon_pinned or
