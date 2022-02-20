@@ -60,7 +60,7 @@ local function calculate_buffers_width(state, base_width)
 
         width = width
           + strwidth(icon)
-          + 1 -- space-after-close-icon
+          + (icon == '' and 0 or 1) -- space-after-close-icon but only if icon is not empty string
       end
     end
     sum = sum + width
