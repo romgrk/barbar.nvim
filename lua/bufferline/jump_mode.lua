@@ -120,21 +120,25 @@ local function activate()
   nvim.command('redraw')
   state.is_picking_buffer = false
 
-  local char = vim.fn.getchar()
-  local letter = vim.fn.nr2char(char)
+  local ok, char = pcall(vim.fn.getchar)
 
-  local did_switch = false
+  if ok then
+    local letter = vim.fn.nr2char(char)
 
-  if letter ~= '' then
-    if m.buffer_by_letter[letter] ~= nil then
-      local bufnr = m.buffer_by_letter[letter]
-      nvim.command('buffer' .. bufnr)
-      did_switch = true
-    else
-      nvim.command('echohl WarningMsg')
-      nvim.command([[echom "Couldn't find buffer"]])
-      nvim.command('echohl None')
+    if letter ~= '' then
+      if m.buffer_by_letter[letter] ~= nil then
+        local bufnr = m.buffer_by_letter[letter]
+        nvim.command('buffer' .. bufnr)
+      else
+        nvim.command('echohl WarningMsg')
+        nvim.command([[echom "Couldn't find buffer"]])
+        nvim.command('echohl None')
+      end
     end
+  else
+    nvim.command('echohl WarningMsg')
+    nvim.command([[echom "Invalid input"]])
+    nvim.command('echohl None')
   end
 
   state.update()
