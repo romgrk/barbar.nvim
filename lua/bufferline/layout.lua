@@ -56,11 +56,11 @@ local function calculate_buffers_width(state, base_width)
           (is_pinned and opts.icon_pinned) or
           (opts.always_show_modified and is_modified and opts.icon_close_tab_modified) or
           (opts.closable and opts.icon_close_tab) or
-          ''
+          nil
 
         width = width
-          + strwidth(icon)
-          + (icon == '' and 0 or 1) -- space-after-close-icon but only if icon is not empty string
+          + strwidth(icon or '')
+          + (icon and 1 or 0) -- space-after-close-icon but only if icon is not nil
       end
     end
     sum = sum + width
