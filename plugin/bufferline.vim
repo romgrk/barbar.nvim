@@ -96,7 +96,7 @@ let s:DEFAULT_OPTIONS = {
 \ 'auto_hide': v:false,
 \ 'clickable': v:true,
 \ 'closable': v:true,
-\ 'show_modified_icon': v:true,
+\ 'always_show_modified': v:true,
 \ 'exclude_ft': v:null,
 \ 'exclude_name': v:null,
 \ 'icon_close_tab': '',

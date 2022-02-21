@@ -50,11 +50,11 @@ local function calculate_buffers_width(state, base_width)
 
       local is_pinned = state.is_pinned(buffer_number)
 
-      if opts.closable or is_pinned or opts.show_modified_icon then
+      if opts.closable or is_pinned or opts.always_show_modified then
         local is_modified = nvim.buf_get_option(buffer_number, 'modified')
         local icon =
           (is_pinned and opts.icon_pinned) or
-          (opts.show_modified_icon and is_modified and opts.icon_close_tab_modified) or
+          (opts.always_show_modified and is_modified and opts.icon_close_tab_modified) or
           (opts.closable and opts.icon_close_tab) or
           ''
 

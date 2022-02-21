@@ -227,8 +227,8 @@ Here are the groups that you should define if you'd like to style Barbar.
 
 	Controls if close button is shown when file is not modified.
 
-						    *g:bufferline.show_modified_icon*
-`g:bufferline.show_modified_icon`		boolean	(default v:true)
+						    *g:bufferline.always_show_modified*
+`g:bufferline.always_show_modified`		boolean	(default v:true)
 
 	Controls if close button is shown as the modified icon
 	when file is modified.

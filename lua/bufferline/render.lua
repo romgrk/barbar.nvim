@@ -211,7 +211,7 @@ local function render(update_names)
 
   local click_enabled = has('tablineat') and opts.clickable
   local has_close = opts.closable
-  local has_modified = opts.show_modified_icon
+  local has_modified = opts.always_show_modified
   local has_icons = (opts.icons == true) or (opts.icons == 'both')
   local has_icon_custom_colors = opts.icon_custom_colors
   local has_buffer_number = (opts.icons == 'buffer_numbers')
