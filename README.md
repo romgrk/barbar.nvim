@@ -448,6 +448,28 @@ end
 return tree 
 ```
 
+And add a mapping to use the above functions:
+
+```vim
+noremap <silent> <C-n> :lua require'tree'.toggle()<CR>
+```
+
+In the case of `nvim-tree`, there is an even simpler solution because it exposes an events API.
+You can add the following functions and then use `nvim-tree` mappings:
+
+```lua
+local nvim_tree_events = require('nvim-tree.events')
+local bufferline_state = require('bufferline.state')
+
+nvim_tree_events.on_tree_open(function ()
+    bufferline_state.set_offset(31, "File Tree")
+end)
+
+nvim_tree_events.on_tree_close(function ()
+    bufferline_state.set_offset(0)
+end)
+```
+
 ## Known Issues
 
 #### Netrw
