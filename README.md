@@ -485,6 +485,14 @@ end)
 netrw. See [this comment](https://github.com/romgrk/barbar.nvim/issues/82#issuecomment-748498951)
 for a workaround.
 
+#### Lightline
+
+Barbar doesn't show up because lightline changes the tabline setting. Add:
+
+```vim
+let g:lightline={ 'enable': {'statusline': 1, 'tabline': 0} }
+```
+
 ## About
 
 Barbar is called barbar because it's a bar, but it's also more than a bar:
