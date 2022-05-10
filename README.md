@@ -233,6 +233,7 @@ let bufferline.exclude_name = ['package.json']
 " if set to 'buffer_number', will show buffer number in the tabline
 " if set to 'numbers', will show buffer index in the tabline
 " if set to 'both', will show buffer index and icons in the tabline
+" if set to 'buffer_number_with_icon', will show buffer number and icons in the tabline
 let bufferline.icons = v:true
 
 " Sets the icon's highlight group.
