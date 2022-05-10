@@ -84,19 +84,19 @@ vim.api.nvim_create_user_command(
 
 vim.api.nvim_create_user_command(
   'BufferClose',
-  function(tbl) vim.fn['bufferline#bbye#delete']('bdelete', tbl.bang and '!' or '', tbl.args, tbl.mods) end,
+  function(tbl) require'bbye'.delete('bdelete', tbl.bang and '!' or '', tbl.args, tbl.mods) end,
   {bang = true, complete = 'buffer', desc = 'Close the current buffer.', nargs = '?'}
 )
 
 vim.api.nvim_create_user_command(
   'BufferDelete',
-  function(tbl) vim.fn['bufferline#bbye#delete']('bdelete', tbl.bang and '!' or '', tbl.args, tbl.mods) end,
+  function(tbl) require'bbye'.delete('bdelete', tbl.bang and '!' or '', tbl.args, tbl.mods) end,
   {bang = true, complete = 'buffer', desc = 'Synonym for `:BufferClose`', nargs = '?'}
 )
 
 vim.api.nvim_create_user_command(
   'BufferWipeout',
-  function(tbl) vim.fn['bufferline#bbye#delete']('bwipeout', tbl.bang and '!' or '', tbl.args, tbl.mods) end,
+  function(tbl) require'bbye'.delete('bwipeout', tbl.bang and '!' or '', tbl.args, tbl.mods) end,
   {bang = true, complete = 'buffer', desc = 'Wipe out the buffer', nargs = '?'}
 )
 
@@ -187,7 +187,7 @@ function BufferlineMainClickHandler(minwid, _, btn, _)
 
   -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
   if btn == 'm' then
-    vim.fn['bufferline#bbye#delete']('bdelete', '', minwid)
+    require'bbye'.delete('bdelete', '', minwid)
   else
     require'bufferline.state'.open_buffer_in_listed_window(minwid)
   end
@@ -197,7 +197,7 @@ end
 --- Needs to be global -_-
 --- @param minwid number
 function BufferlineCloseClickHandler(minwid, _, _, _)
-  vim.fn['bufferline#bbye#delete']('bdelete', '', minwid)
+  require'bbye'.delete('bdelete', '', minwid)
 end
 
 

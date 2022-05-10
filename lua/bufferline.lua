@@ -105,7 +105,7 @@ end
 --- Disable the bufferline.
 function bufferline.disable()
   create_augroups()
-   vim.opt.tabline = ''
+  vim.opt.tabline = ''
 end
 
 ----------------------------

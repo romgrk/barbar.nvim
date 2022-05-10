@@ -210,7 +210,7 @@ local function open_buffers(new_buffers)
 
   local layout = Layout.calculate(m)
 
-  for i, buffer_number in ipairs(new_buffers) do
+  for _, buffer_number in ipairs(new_buffers) do
     open_buffer_start_animation(layout, buffer_number)
   end
 end
@@ -297,7 +297,7 @@ local function get_buffer_list()
   local exclude_ft   = opts.exclude_ft
   local exclude_name = opts.exclude_name
 
-  for i, buffer in ipairs(buffers) do
+  for _, buffer in ipairs(buffers) do
 
     if not nvim.buf_get_option(buffer, 'buflisted') then
       goto continue
@@ -369,7 +369,7 @@ function m.get_updated_buffers(update_names)
   local closed_buffers =
     filter(function(b) return not includes(current_buffers, b) end, m.buffers)
 
-  for i, buffer_number in ipairs(closed_buffers) do
+  for _, buffer_number in ipairs(closed_buffers) do
     local buffer_data = m.get_buffer_data(buffer_number)
     if not buffer_data.closing then
       did_change = true
@@ -417,7 +417,7 @@ local move_animation_data = nil
 local function move_buffer_animated_tick(ratio, current_animation)
   local data = move_animation_data
 
-  for i, current_number in ipairs(m.buffers) do
+  for _, current_number in ipairs(m.buffers) do
     local current_data = m.get_buffer_data(current_number)
 
     if current_animation.running == true then
@@ -574,9 +574,9 @@ end
 local function close_all_but_current()
   local current = nvim.get_current_buf()
   local buffers = m.buffers
-  for i, number in ipairs(buffers) do
+  for _, number in ipairs(buffers) do
     if number ~= current then
-      vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(number))
+      require'bbye'.delete('bdelete', '', bufname(number))
     end
   end
   m.update()
@@ -584,9 +584,9 @@ end
 
 local function close_all_but_pinned()
   local buffers = m.buffers
-  for i, number in ipairs(buffers) do
+  for _, number in ipairs(buffers) do
     if not is_pinned(number) then
-      vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(number))
+      require'bbye'.delete('bdelete', '', bufname(number))
     end
   end
   m.update()
@@ -595,9 +595,9 @@ end
 local function close_all_but_current_or_pinned()
   local buffers = m.buffers
   local current = nvim.get_current_buf()
-  for i, number in ipairs(buffers) do
+  for _, number in ipairs(buffers) do
     if not is_pinned(number) and number ~= current then
-      vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(number))
+      require'bbye'.delete('bdelete', '', bufname(number))
     end
   end
   m.update()
@@ -609,7 +609,7 @@ local function close_buffers_left()
     return
   end
   for i = idx, 1, -1 do
-    vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(m.buffers[i]))
+    require'bbye'.delete('bdelete', '', bufname(m.buffers[i]))
   end
   m.update()
 end
@@ -620,7 +620,7 @@ local function close_buffers_right()
     return
   end
   for i = len(m.buffers), idx, -1 do
-    vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(m.buffers[i]))
+    require'bbye'.delete('bdelete', '', bufname(m.buffers[i]))
   end
   m.update()
 end
