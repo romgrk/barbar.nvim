@@ -50,9 +50,9 @@ end
 local empty_buffer = nil
 
 --- Create a new buffer.
---- @param bang string either `'!'` or `''`.
-local function new(bang)
-  vim.api.nvim_command("enew" .. bang)
+--- @param force boolean if `true`, forcefully create the new buffer
+local function new(force)
+  vim.api.nvim_command("enew" .. (force and '!' or ''))
 
   empty_buffer = vim.api.nvim_get_current_buf()
   vim.b.empty_buffer = true
@@ -81,11 +81,12 @@ local bbye = {}
 
 --- Delete a buffer
 --- @param action string the command to use to delete the buffer (e.g. `'bdelete'`)
---- @param bang string either `'!'` or `''`
+--- @param force boolean if true, forcefully delete the buffer
 --- @param buffer_name string the name of the buffer.
 --- @param mods string the modifiers to the command (e.g. `'verbose'`)
-function bbye.delete(action, bang, buffer_name, mods)
+function bbye.delete(action, force, buffer_name, mods)
   local buffer_number = str2bufnr(buffer_name)
+  mods = mods or ''
 
   if buffer_number < 0 then
     err("E516: No buffers were deleted. No match for " .. buffer_name)
@@ -95,7 +96,7 @@ function bbye.delete(action, bang, buffer_name, mods)
   local is_modified = vim.bo[buffer_number].modified
   local has_confirm = vim.o.confirm or (string.match(mods, 'conf') ~= nil)
 
-  if is_modified and vim.fn.empty(bang) and not has_confirm then
+  if is_modified and not (force or has_confirm) then
     err("E89: No write since last change for buffer " .. buffer_number .. " (add ! to override)")
     return
   end
@@ -104,23 +105,22 @@ function bbye.delete(action, bang, buffer_name, mods)
 
   -- If the buffer is set to delete and it contains changes, we can't switch
   -- away from it. Hide it before eventual deleting:
-  if is_modified and not vim.fn.empty(bang) then
+  if is_modified and force then
     vim.bo[buffer_number].bufhidden = 'hide'
   end
 
   -- For cases where adding buffers causes new windows to appear or hiding some
   -- causes windows to disappear and thereby decrement, loop backwards.
-  local windows = vim.api.nvim_list_wins()
-  local windows_reversed = {}
-  while #windows_reversed < #windows do
-    windows_reversed[#windows_reversed + 1] = windows[#windows - #windows_reversed]
+  local window_numbers = vim.api.nvim_list_wins()
+  local window_numbers_reversed = {}
+  while #window_numbers_reversed < #window_numbers do
+    window_numbers_reversed[#window_numbers_reversed + 1] = window_numbers[#window_numbers - #window_numbers_reversed]
   end
 
-
-  for _, window in ipairs(windows_reversed) do
+  for _, window_number in ipairs(window_numbers_reversed) do
     -- For invalid window numbers, winbufnr returns -1.
-    if vim.api.nvim_win_get_buf(window) == buffer_number then
-      vim.api.nvim_command(window .. "wincmd w")
+    if vim.api.nvim_win_get_buf(window_number) == buffer_number then
+      vim.api.nvim_command(window_number .. "wincmd w")
 
       -- Bprevious also wraps around the buffer list, if necessary:
       local no_errors = pcall(function()
@@ -139,14 +139,14 @@ function bbye.delete(action, bang, buffer_name, mods)
 
       -- If found a new buffer for this window, mission accomplished:
       if vim.api.nvim_get_current_buf() == buffer_number then
-        new(bang)
+        new(force)
       end
     end
   end
 
   -- Because tabbars and other appearing/disappearing windows change
   -- the window numbers, find where we were manually:
-  for _, window in ipairs(windows) do
+  for _, window in ipairs(window_numbers) do
     if vim.w[window].bbye_back then
       vim.api.nvim_command(vim.w[window].bbye_back .. 'wincmd w')
       vim.w.bbye_back = nil
@@ -160,7 +160,7 @@ function bbye.delete(action, bang, buffer_name, mods)
   -- buffer to still _exist_ even though it won't be :bdelete-able.
   if vim.api.nvim_buf_is_loaded(buffer_number) and buffer_number ~= vim.api.nvim_get_current_buf() then
     local no_errors = pcall(function()
-      vim.api.nvim_command(mods .. " " .. action .. bang .. " " .. buffer_number)
+      vim.api.nvim_command(mods .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
     end)
 
     if not no_errors then
@@ -175,3 +175,5 @@ function bbye.delete(action, bang, buffer_name, mods)
 
   vim.api.nvim_exec_autocmds('BufWinEnter', {})
 end
+
+return bbye

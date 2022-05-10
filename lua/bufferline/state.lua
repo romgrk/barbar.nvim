@@ -576,7 +576,7 @@ local function close_all_but_current()
   local buffers = m.buffers
   for _, number in ipairs(buffers) do
     if number ~= current then
-      require'bbye'.delete('bdelete', '', bufname(number))
+      require'bbye'.delete('bdelete', false, bufname(number))
     end
   end
   m.update()
@@ -586,7 +586,7 @@ local function close_all_but_pinned()
   local buffers = m.buffers
   for _, number in ipairs(buffers) do
     if not is_pinned(number) then
-      require'bbye'.delete('bdelete', '', bufname(number))
+      require'bbye'.delete('bdelete', false, bufname(number))
     end
   end
   m.update()
@@ -597,7 +597,7 @@ local function close_all_but_current_or_pinned()
   local current = nvim.get_current_buf()
   for _, number in ipairs(buffers) do
     if not is_pinned(number) and number ~= current then
-      require'bbye'.delete('bdelete', '', bufname(number))
+      require'bbye'.delete('bdelete', false, bufname(number))
     end
   end
   m.update()
@@ -609,7 +609,7 @@ local function close_buffers_left()
     return
   end
   for i = idx, 1, -1 do
-    require'bbye'.delete('bdelete', '', bufname(m.buffers[i]))
+    require'bbye'.delete('bdelete', false, bufname(m.buffers[i]))
   end
   m.update()
 end
@@ -620,7 +620,7 @@ local function close_buffers_right()
     return
   end
   for i = len(m.buffers), idx, -1 do
-    require'bbye'.delete('bdelete', '', bufname(m.buffers[i]))
+    require'bbye'.delete('bdelete', false, bufname(m.buffers[i]))
   end
   m.update()
 end
