@@ -57,7 +57,7 @@ vim.api.nvim_create_user_command(
 
 vim.api.nvim_create_user_command(
   'BufferPick',
-  'call bufferline#pick_buffer()',
+  function() require'bufferline.jump_mode'.activate() end,
   {bang = true, description = 'Pick a buffer'}
 )
 
@@ -69,28 +69,27 @@ vim.api.nvim_create_user_command(
 
 vim.api.nvim_create_user_command(
   'BufferOrderByBufferNumber',
-  'call bufferline#order_by_buffer_number()',
+  function() require'bufferline.state'.order_by_buffer_number() end,
   {bang = true, description = 'Order the bufferline by buffer number'}
 )
 
 vim.api.nvim_create_user_command(
   'BufferOrderByDirectory',
-  'call bufferline#order_by_directory()',
+  function() require'bufferline.state'.order_by_directory() end,
   {bang = true, description = 'Order the bufferline by directory'}
 )
 
 vim.api.nvim_create_user_command(
   'BufferOrderByLanguage',
-  'call bufferline#order_by_language()',
+  function() require'bufferline.state'.order_by_language() end,
   {bang = true, description = 'Order the bufferline by language'}
 )
 
 vim.api.nvim_create_user_command(
   'BufferOrderByWindowNumber',
-  'call bufferline#order_by_window_number()',
+  function() require'bufferline.state'.order_by_window_number() end,
   {bang = true, description = 'Order the bufferline by window number'}
 )
-
 
 vim.api.nvim_create_user_command(
   'BufferClose',
