@@ -592,6 +592,17 @@ local function close_all_but_pinned()
   m.update()
 end
 
+local function close_all_but_current_or_pinned()
+  local buffers = m.buffers
+  local current = nvim.get_current_buf()
+  for i, number in ipairs(buffers) do
+    if not is_pinned(number) and number ~= current then
+      vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(number))
+    end
+  end
+  m.update()
+end
+
 local function close_buffers_left()
   local idx = index_of(m.buffers, nvim.get_current_buf()) - 1
   if idx == nil then
@@ -608,7 +619,7 @@ local function close_buffers_right()
   if idx == nil then
     return
   end
-  for i = idx, len(m.buffers) do
+  for i = len(m.buffers), idx, -1 do
     vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(m.buffers[i]))
   end
   m.update()
@@ -754,6 +765,7 @@ m.close_buffer = close_buffer
 m.close_buffer_animated = close_buffer_animated
 m.close_all_but_current = close_all_but_current
 m.close_all_but_pinned = close_all_but_pinned
+m.close_all_but_current_or_pinned = close_all_but_current_or_pinned
 m.close_buffers_right = close_buffers_right
 m.close_buffers_left = close_buffers_left
 

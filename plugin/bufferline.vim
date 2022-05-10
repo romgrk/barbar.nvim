@@ -82,10 +82,11 @@ command! -bang -complete=buffer -nargs=?
 command! -bang -complete=buffer -nargs=?
                       \ BufferWipeout          call bufferline#bbye#delete('bwipeout', <q-bang>, <q-args>, <q-mods>)
 
-command!                BufferCloseAllButCurrent   lua require'bufferline.state'.close_all_but_current()
-command!                BufferCloseAllButPinned    lua require'bufferline.state'.close_all_but_pinned()
-command!                BufferCloseBuffersLeft     lua require'bufferline.state'.close_buffers_left()
-command!                BufferCloseBuffersRight    lua require'bufferline.state'.close_buffers_right()
+command!                BufferCloseAllButCurrent            lua require'bufferline.state'.close_all_but_current()
+command!                BufferCloseAllButPinned             lua require'bufferline.state'.close_all_but_pinned()
+command!                BufferCloseAllButCurrentOrPinned    lua require'bufferline.state'.close_all_but_current_or_pinned()
+command!                BufferCloseBuffersLeft              lua require'bufferline.state'.close_buffers_left()
+command!                BufferCloseBuffersRight             lua require'bufferline.state'.close_buffers_right()
 
 "=================
 " Section: Options

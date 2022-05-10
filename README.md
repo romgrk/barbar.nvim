@@ -137,6 +137,7 @@ nnoremap <silent>    <A-c> :BufferClose<CR>
 " Close commands
 "                          :BufferCloseAllButCurrent<CR>
 "                          :BufferCloseAllButPinned<CR>
+"                          :BufferCloseAllButCurrentOrPinned<CR>
 "                          :BufferCloseBuffersLeft<CR>
 "                          :BufferCloseBuffersRight<CR>
 " Magic buffer-picking mode
