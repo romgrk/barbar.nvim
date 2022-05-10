@@ -137,6 +137,7 @@ nnoremap <silent>    <A-c> :BufferClose<CR>
 " Close commands
 "                          :BufferCloseAllButCurrent<CR>
 "                          :BufferCloseAllButPinned<CR>
+"                          :BufferCloseAllButCurrentOrPinned<CR>
 "                          :BufferCloseBuffersLeft<CR>
 "                          :BufferCloseBuffersRight<CR>
 " Magic buffer-picking mode
@@ -232,6 +233,7 @@ let bufferline.exclude_name = ['package.json']
 " if set to 'buffer_number', will show buffer number in the tabline
 " if set to 'numbers', will show buffer index in the tabline
 " if set to 'both', will show buffer index and icons in the tabline
+" if set to 'buffer_number_with_icon', will show buffer number and icons in the tabline
 let bufferline.icons = v:true
 
 " Sets the icon's highlight group.
@@ -431,21 +433,26 @@ To ensure tabs begin with the shown buffer you can set an offset for the tabline
 
 ![filetree-with-offset](./static/filetree-with-offset.png)
 
-Add tree.lua to your configuration and use the given functions to open and close the file tree. Nvim-tree is used in the given example.
+Add this autocmds to your configuration.
 
 ```lua
-local tree ={}
-tree.open = function ()
-   require'bufferline.state'.set_offset(31, 'FileTree')
-   require'nvim-tree'.find_file(true)
-end
+vim.api.nvim_create_autocmd('BufWinEnter', {
+	pattern = '*',
+	callback = function()
+		if vim.bo.filetype == 'NvimTree' then
+			require'bufferline.state'.set_offset(31, 'FileTree')
+		end
+	end
+})
 
-tree.close = function ()
-   require'bufferline.state'.set_offset(0)
-   require'nvim-tree'.close()
-end
-
-return tree 
+vim.api.nvim_create_autocmd('BufWinLeave', {
+	pattern = '*',
+	callback = function()
+		if vim.fn.expand('<afile>'):match('NvimTree') then
+			require'bufferline.state'.set_offset(0)
+		end
+	end
+})
 ```
 
 And add a mapping to use the above functions:
