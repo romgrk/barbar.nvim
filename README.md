@@ -49,7 +49,7 @@ You can skip the dependency on `'kyazdani42/nvim-web-devicons'` if you
 install [nerd fonts](https://www.nerdfonts.com/).
 
 ##### Requirements
- - Neovim `0.5`
+ - Neovim `0.7`
  - `set termguicolors`
 
 ## Features
@@ -504,5 +504,5 @@ No, barbar has nothing to do with barbarians.
 
 ## License
 
-barbar.nvim: Distributed under the terms of the JSON license.  
-bbye.vim: Distributed under the terms of the GNU Affero license.  
+barbar.nvim: Distributed under the terms of the JSON license.
+bbye.vim: Distributed under the terms of the GNU Affero license.
