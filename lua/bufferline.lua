@@ -38,6 +38,7 @@ end
 --- Enable the bufferline.
 function bufferline.enable()
   local augroup_bufferline, augroup_bufferline_update = create_augroups()
+  local highlight = require 'bufferline.highlight'
 
   vim.api.nvim_create_autocmd({'BufNewFile', 'BufReadPost'}, {
     callback = function(tbl) require'bufferline.jump_mode'.assign_next_letter(tbl.buf) end,
@@ -50,7 +51,7 @@ function bufferline.enable()
   })
 
   vim.api.nvim_create_autocmd({'ColorScheme', 'VimEnter'}, {
-    callback = function() vim.fn['bufferline#highlight#setup']() end,
+    callback = highlight.setup,
     group = augroup_bufferline,
   })
 
@@ -97,7 +98,7 @@ function bufferline.enable()
     group = augroup_bufferline_update,
   })
 
-  vim.fn['bufferline#highlight#setup']()
+  highlight.setup()
   bufferline.update()
 end
 
