@@ -120,8 +120,7 @@ function bbye.delete(action, force, buffer, mods)
   for _, window_number in ipairs(window_numbers_reversed) do
     -- For invalid window numbers, winbufnr returns -1.
     if vim.api.nvim_win_get_buf(window_number) == buffer_number then
-      -- NOTE: the `- 999` is because `winnr()` starts at 1, but `nvim_list_wins` starts at 1000. `wincmd` goes by `winnr()`
-      vim.api.nvim_command((window_number - 999) .. "wincmd w")
+      vim.api.nvim_set_current_win(window_number)
 
       -- Bprevious also wraps around the buffer list, if necessary:
       local no_errors = pcall(function()
