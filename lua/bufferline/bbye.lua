@@ -66,7 +66,7 @@ local function new(force)
   vim.opt_local.bufhidden = 'wipe'
 
   vim.api.nvim_create_autocmd('BufWipeout', {
-    buffer = true,
+    buffer = 0,
     callback = function() require'bufferline.state'.close_buffer(empty_buffer) end,
     group = vim.api.nvim_create_augroup('bbye_empty_buffer', {})
   })
