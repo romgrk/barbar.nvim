@@ -19,7 +19,7 @@ local includes = vim.tbl_contains
 local bufname = vim.fn.bufname
 local bufwinnr = vim.fn.bufwinnr
 local fnamemodify = vim.fn.fnamemodify
-
+local bufferline = require'bufferline'
 
 local PIN = 'bufferline_pin'
 
@@ -66,7 +66,7 @@ function m.get_buffer_data(id)
 end
 
 function m.update()
-  vim.fn['bufferline#update']()
+  bufferline.update()
 end
 
 
