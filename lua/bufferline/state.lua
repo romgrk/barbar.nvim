@@ -554,7 +554,7 @@ local function goto_buffer_relative(steps)
     idx = (idx + steps - 1) % utils.len(M.buffers) + 1
   end
 
-  vim.api.nvim_set_curent_buf(M.buffers[idx])
+  vim.api.nvim_set_current_buf(M.buffers[idx])
 end
 
 
