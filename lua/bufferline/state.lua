@@ -233,7 +233,7 @@ end
 local function open_buffer_in_listed_window(buffer_number)
   set_current_win_listed_buffer()
 
-  vim.api.nvim_command('buffer ' .. buffer_number)
+  vim.api.nvim_set_current_buf(buffer_number)
 end
 
 -- Close & cleanup buffers
@@ -537,7 +537,7 @@ local function goto_buffer (number)
     idx = number
   end
 
-  vim.api.nvim_command('buffer ' .. M.buffers[idx])
+  vim.api.nvim_set_current_buf(M.buffers[idx])
 end
 
 local function goto_buffer_relative(steps)
@@ -554,7 +554,7 @@ local function goto_buffer_relative(steps)
     idx = (idx + steps - 1) % utils.len(M.buffers) + 1
   end
 
-  vim.api.nvim_command('buffer ' .. M.buffers[idx])
+  vim.api.nvim_set_curent_buf(M.buffers[idx])
 end
 
 
