@@ -6,8 +6,8 @@
 
 --- Generate a color.
 --- @param index string where to look for the color.
---- @param groups table<string> the groups to source the foreground color from.
---- @param default string the foreground color to use if no `groups` have a valid foreground color.
+--- @param groups table<string> the groups to source the color from.
+--- @param default string the foreground color to use if no `groups` have a valid color.
 --- @return string color
 local function color(index, groups, default)
   for _, group in ipairs(groups) do
