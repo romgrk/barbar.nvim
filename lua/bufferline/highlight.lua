@@ -10,10 +10,11 @@
 --- @param default string the foreground color to use if no `groups` have a valid color.
 --- @return string color
 local function color(index, groups, default)
+  local guicolors = vim.go.termguicolors
   for _, group in ipairs(groups) do
-    local hl = vim.api.nvim_get_hl_by_name(group, true)
+    local hl = vim.api.nvim_get_hl_by_name(group, guicolors)
     if hl[index] then
-      return string.format('#%06x', hl[index])
+      return guicolors and string.format('#%06x', hl[index]) or hl[index]
     end
   end
   return default
@@ -44,15 +45,17 @@ local highlight = {}
 
 -- Initialize highlights
 function highlight.setup()
+  local guicolors = vim.go.termguicolors
+
   local fg_target = 'red'
 
-  local fg_current  = fg({'Normal'}, '#efefef')
-  local fg_visible  = fg({'TabLineSel'}, '#efefef')
-  local fg_inactive = fg({'TabLineFill'}, '#888888')
+  local fg_current  = fg({'Normal'}, guicolors and '#efefef' or 255)
+  local fg_visible  = fg({'TabLineSel'}, guicolors and '#efefef' or 255)
+  local fg_inactive = fg({'TabLineFill'}, guicolors and '#888888' or 102)
 
-  local fg_modified = fg({'WarningMsg'}, '#E5AB0E')
-  local fg_special  = fg({'Special'}, '#599eff')
-  local fg_subtle = fg({'NonText', 'Comment'}, '#555555')
+  local fg_modified = fg({'WarningMsg'}, guicolors and '#E5AB0E' or 178)
+  local fg_special  = fg({'Special'}, guicolors and '#599eff' or 75)
+  local fg_subtle = fg({'NonText', 'Comment'}, guicolors and '#555555' or 240)
 
   local bg_current  = bg({'Normal'}, 'none')
   local bg_visible  = bg({'TabLineSel', 'Normal'}, 'none')
