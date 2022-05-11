@@ -502,6 +502,5 @@ No, barbar has nothing to do with barbarians.
 
 ## License
 
-barbar.nvim: Distributed under the terms of the JSON license.
-
+barbar.nvim: Distributed under the terms of the JSON license.  
 bbye.vim: Distributed under the terms of the GNU Affero license.
