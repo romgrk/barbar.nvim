@@ -65,7 +65,7 @@ local function get_icon(buffer_name, filetype, buffer_status)
 
   if icon_hl and vim.fn.hlexists(icon_hl .. buffer_status) < 1 then
     local hl_group = icon_hl .. buffer_status
-    vim.api.nvim_set_hl(0, hl_group {
+    vim.api.nvim_set_hl(0, hl_group, {
       bg = get_attr('Buffer' .. buffer_status, 'background'),
       fg = get_attr(icon_hl, 'foreground'),
     })
