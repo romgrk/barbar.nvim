@@ -62,7 +62,7 @@ local function groups_insert(groups, position, others)
 
       -- Slice current group if it `position` is inside it
       if available_width > 0 then
-        local new_group = { group[1], vim.list_slice(group[2], 1, available_width) }
+        local new_group = { group[1], string.sub(group[2], 1, available_width) }
         table.insert(new_groups, new_group)
       end
 
@@ -93,7 +93,7 @@ local function groups_insert(groups, position, others)
           local remaining_width = previous_group_end_position - end_position
           local start = previous_group_width + 1 - remaining_width
           local end_  = previous_group_width
-          local new_group = { previous_group[1], vim.list_slice(previous_group[2], start, end_) }
+          local new_group = { previous_group[1], string.sub(previous_group[2], start, end_) }
           -- table.insert(new_groups, { group_start_position, group_end_position, end_position })
           table.insert(new_groups, new_group)
         end
