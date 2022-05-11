@@ -2,17 +2,8 @@
 -- jump_mode.lua
 --
 
-local vim = vim
-local api = vim.api
-local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
-local len = utils.len
-local slice = utils.slice
-local strwidth = nvim.strwidth
 local state = require'bufferline.state'
-local Buffer = require'bufferline.buffer'
-local fnamemodify = vim.fn.fnamemodify
-local bufname = vim.fn.bufname
 
 ----------------------------------------
 -- Section: Buffer-picking mode state --
@@ -33,8 +24,8 @@ local function initialize_indexes()
   m.buffer_by_letter = {}
   m.letter_by_buffer = {}
 
-  for index = 1, len(m.letters) do
-    local letter = slice(m.letters, index, index)
+  for index = 1, utils.len(m.letters) do
+    local letter = string.sub(m.letters, index, index)
     m.index_by_letter[letter] = index
     m.letter_status[index] = false
   end
@@ -42,7 +33,7 @@ end
 
 initialize_indexes()
 
--- local empty_bufnr = nvim.create_buf(0, 1)
+-- local empty_bufnr = vim.api.nvim_create_buf(0, 1)
 
 local function assign_next_letter(bufnr)
   bufnr = tonumber(bufnr)
@@ -55,8 +46,8 @@ local function assign_next_letter(bufnr)
   if vim.g.bufferline.semantic_letters == true then
     local name = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t:r')
 
-    for i = 1, strwidth(name) do
-      local letter = string.lower(slice(name, i, i))
+    for i = 1, vim.api.nvim_strwidth(name) do
+      local letter = string.lower(string.sub(name, i, i))
 
       if m.index_by_letter[letter] ~= nil then
         local index = m.index_by_letter[letter]
@@ -117,7 +108,7 @@ end
 local function activate()
   state.is_picking_buffer = true
   state.update()
-  nvim.command('redraw')
+  vim.api.nvim_command('redraw')
   state.is_picking_buffer = false
 
   local ok, char = pcall(vim.fn.getchar)
@@ -127,22 +118,17 @@ local function activate()
 
     if letter ~= '' then
       if m.buffer_by_letter[letter] ~= nil then
-        local bufnr = m.buffer_by_letter[letter]
-        nvim.command('buffer' .. bufnr)
+        vim.api.nvim_set_current_buf(m.buffer_by_letter[letter])
       else
-        nvim.command('echohl WarningMsg')
-        nvim.command([[echom "Couldn't find buffer"]])
-        nvim.command('echohl None')
+        vim.notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
       end
     end
   else
-    nvim.command('echohl WarningMsg')
-    nvim.command([[echom "Invalid input"]])
-    nvim.command('echohl None')
+    vim.notify("Invalid input", vim.log.levels.WARN, {title = 'barbar.nvim'})
   end
 
   state.update()
-  nvim.command('redraw')
+  vim.api.nvim_command('redraw')
 end
 
 m.activate = activate
