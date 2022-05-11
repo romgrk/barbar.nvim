@@ -1,5 +1,7 @@
 -- !::exe [So]
 
+local icons = require 'bufferline.icons'
+
 -------------------
 -- Section: helpers
 -------------------
@@ -93,7 +95,7 @@ function highlight.setup()
   hl(0, 'BufferVisibleIcon', {default = true, link = 'BufferVisible'})
   hl(0, 'BufferOffset', {default = true, link = 'BufferTabpageFill'})
 
-  require'bufferline.icons'.set_highlights()
+  icons.set_highlights()
 end
 
 return highlight
