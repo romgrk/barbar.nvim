@@ -24,5 +24,5 @@
 " http://www.gnu.org/licenses.
 
 function! bufferline#bbye#delete(action, bang, buffer_name, ...)
-  lua require'bbye'.delete(a:action, a:bang, a:buffer_name, ...)
+  lua require'bufferline.bbye'.delete(a:action, a:bang, a:buffer_name, ...)
 endfunction
