@@ -307,13 +307,13 @@ local function render(update_names)
 
       if click_enabled then
         closePrefix =
-            '%' .. buffer_number .. '@v:lua.BufferlineCloseClickHandler@' .. closePrefix
+            '%' .. buffer_number .. '@BufferlineCloseClickHandler@' .. closePrefix
       end
     end
 
     local clickable = ''
     if click_enabled then
-      clickable = '%' .. buffer_number .. '@v:lua.BufferlineMainClickHandler@'
+      clickable = '%' .. buffer_number .. '@BufferlineMainClickHandler@'
     end
 
     local padding = string.rep(' ', layout.padding_width)
@@ -402,7 +402,7 @@ local function render(update_names)
   result = result .. groups_to_string(bufferline_groups)
 
   -- To prevent the expansion of the last click group
-  result = result .. '%0@v:lua.BufferlineMainClickHandler@' .. hl('BufferTabpageFill')
+  result = result .. '%0@BufferlineMainClickHandler@' .. hl('BufferTabpageFill')
 
   if layout.actual_width + strwidth(opts.icon_separator_inactive) <= layout.buffers_width and len(items) > 0 then
     result = result .. opts.icon_separator_inactive

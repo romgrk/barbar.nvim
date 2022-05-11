@@ -23,6 +23,6 @@
 " For the full copy of the GNU Affero General Public License see:
 " http://www.gnu.org/licenses.
 
-function! bufferline#bbye#delete(action, bang, buffer_name, ...)
-  lua require'bufferline.bbye'.delete(a:action, a:bang, a:buffer_name, ...)
+function! bufferline#bbye#delete(action, bang, buffer, ...)
+  lua require'bufferline.bbye'.delete(a:action, a:bang, a:buffer, ...)
 endfunction

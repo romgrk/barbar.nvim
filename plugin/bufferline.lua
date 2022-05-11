@@ -134,72 +134,27 @@ vim.api.nvim_create_user_command(
 -- Section: Options
 -------------------
 
-local DEFAULT_OPTIONS = {
-  animation = true,
-  auto_hide = false,
-  clickable = true,
-  closable = true,
-  exclude_ft = nil,
-  exclude_name = nil,
-  icon_close_tab = '',
-  icon_close_tab_modified = '●',
-  icon_pinned = '',
-  icon_separator_active =   '▎',
-  icon_separator_inactive = '▎',
-  icons = true,
-  icon_custom_colors = false,
-  insert_at_start = false,
-  insert_at_end = false,
-  letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
-  maximum_padding = 4,
-  maximum_length = 30,
-  no_name_title = nil,
-  semantic_letters = true,
-  tabpages = true,
-}
+vim.g.bufferline = vim.tbl_extend('keep', vim.g.bufferline or {}, bufferline.DEFAULT_OPTIONS)
 
-vim.g.bufferline = vim.tbl_extend('keep', vim.g.bufferline or {}, DEFAULT_OPTIONS)
+-- These functions must be available in VimScript. `v:lua` doesn't work.
+vim.cmd [[
+  " Must be global -_-
+  function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
+    call luaeval("require'bufferline.bbye'.delete('bdelete', false, _A, nil)", a:minwid)
+  endfunction
 
-vim.fn.dictwatcheradd(vim.g.bufferline, '*', 'v:lua.BufferlineOnOptionChanged')
+  " Must be global -_-
+  function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
+    call luaeval("require'bufferline'.main_click_handler(_A[1], nil, _A[2], nil)", [a:minwid, a:btn])
+  endfunction
 
---------------------------
--- Section: Event handlers
---------------------------
+  " Must be global -_-
+  function! BufferlineOnOptionChanged(dict, key, changes) abort
+    call luaeval("require'bufferline'.on_option_changed(nil, _A, nil)", a:key)
+  endfunction
 
---- What to do when `vim.g.bufferline` is changed.
---- Needs to be global -_-
---- @param key string what option was changed.
-function BufferlineOnOptionChanged(_, key, _)
-  vim.g.bufferline = vim.tbl_extend('keep', vim.g.bufferline or {}, DEFAULT_OPTIONS)
-  if key == 'letters' then
-    require'bufferline.jump_mode'.initialize_indexes()
-  end
-end
-
---- What to do when clicking.
---- Needs to be global -_-
---- @param btn string
---- @param minwid number
-function BufferlineMainClickHandler(minwid, _, btn, _)
-  if minwid == 0 then
-    return
-  end
-
-  -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
-  if btn == 'm' then
-    require'bufferline.bbye'.delete('bdelete', false, minwid, nil)
-  else
-    require'bufferline.state'.open_buffer_in_listed_window(minwid)
-  end
-end
-
---- What to do when clicking the close button.
---- Needs to be global -_-
---- @param minwid number
-function BufferlineCloseClickHandler(minwid, _, _, _)
-  require'bufferline.bbye'.delete('bdelete', false, minwid, nil)
-end
-
+  call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
+]]
 
 -- Final setup
 bufferline.enable()

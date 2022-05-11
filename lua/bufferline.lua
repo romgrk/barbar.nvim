@@ -3,7 +3,32 @@
 -------------------------------
 
 --- @class bufferline
-local bufferline = {}
+--- @field DEFAULT_OPTIONS table
+local bufferline = {
+  DEFAULT_OPTIONS = {
+    animation = true,
+    auto_hide = false,
+    clickable = true,
+    closable = true,
+    exclude_ft = nil,
+    exclude_name = nil,
+    icon_close_tab = '',
+    icon_close_tab_modified = '●',
+    icon_pinned = '',
+    icon_separator_active =   '▎',
+    icon_separator_inactive = '▎',
+    icons = true,
+    icon_custom_colors = false,
+    insert_at_start = false,
+    insert_at_end = false,
+    letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
+    maximum_padding = 4,
+    maximum_length = 30,
+    no_name_title = nil,
+    semantic_letters = true,
+    tabpages = true,
+  },
+}
 
 --------------------------
 -- Section: Helpers
@@ -164,6 +189,35 @@ function bufferline.render(update_names)
     vim.log.levels.ERROR,
     {title = 'barbar.nvim'}
   )
+end
+
+--------------------------
+-- Section: Event handlers
+--------------------------
+
+--- What to do when clicking.
+--- @param btn string
+--- @param minwid number
+function bufferline.main_click_handler(minwid, _, btn, _)
+  if minwid == 0 then
+    return
+  end
+
+  -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
+  if btn == 'm' then
+    require'bufferline.bbye'.delete('bdelete', false, minwid, nil)
+  else
+    require'bufferline.state'.open_buffer_in_listed_window(minwid)
+  end
+end
+
+--- What to do when `vim.g.bufferline` is changed.
+--- @param key string what option was changed.
+function bufferline.on_option_changed(_, key, _)
+  vim.g.bufferline = vim.tbl_extend('keep', vim.g.bufferline or {}, bufferline.DEFAULT_OPTIONS)
+  if key == 'letters' then
+    require'bufferline.jump_mode'.initialize_indexes()
+  end
 end
 
 return bufferline

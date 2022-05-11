@@ -82,14 +82,14 @@ local bbye = {}
 --- Delete a buffer
 --- @param action string the command to use to delete the buffer (e.g. `'bdelete'`)
 --- @param force boolean if true, forcefully delete the buffer
---- @param buffer_name string the name of the buffer.
+--- @param buffer nil|number|string the name of the buffer.
 --- @param mods string the modifiers to the command (e.g. `'verbose'`)
-function bbye.delete(action, force, buffer_name, mods)
-  local buffer_number = str2bufnr(buffer_name)
+function bbye.delete(action, force, buffer, mods)
+  local buffer_number = type(buffer) == 'string' and str2bufnr(buffer) or buffer
   mods = mods or ''
 
   if buffer_number < 0 then
-    err("E516: No buffers were deleted. No match for " .. buffer_name)
+    err("E516: No buffers were deleted. No match for " .. buffer)
     return
   end
 
