@@ -133,13 +133,13 @@ nnoremap <silent>    <A-p> <Cmd>BufferPin<CR>
 " Close buffer
 nnoremap <silent>    <A-c> <Cmd>BufferClose<CR>
 " Wipeout buffer
-"                          :BufferWipeout<CR>
+"                          :BufferWipeout
 " Close commands
-"                          :BufferCloseAllButCurrent<CR>
-"                          :BufferCloseAllButPinned<CR>
-"                          :BufferCloseAllButCurrentOrPinned<CR>
-"                          :BufferCloseBuffersLeft<CR>
-"                          :BufferCloseBuffersRight<CR>
+"                          :BufferCloseAllButCurrent
+"                          :BufferCloseAllButPinned
+"                          :BufferCloseAllButCurrentOrPinned
+"                          :BufferCloseBuffersLeft
+"                          :BufferCloseBuffersRight
 " Magic buffer-picking mode
 nnoremap <silent> <C-p>    <Cmd>BufferPick<CR>
 " Sort automatically by...
@@ -181,13 +181,13 @@ map('n', '<A-p>', '<Cmd>BufferPin<CR>', opts)
 -- Close buffer
 map('n', '<A-c>', '<Cmd>BufferClose<CR>', opts)
 -- Wipeout buffer
---                 :BufferWipeout<CR>
+--                 :BufferWipeout
 -- Close commands
---                 :BufferCloseAllButCurrent<CR>
---                 :BufferCloseAllButPinned<CR>
---                 :BufferCloseAllButCurrentOrPinned<CR>
---                 :BufferCloseBuffersLeft<CR>
---                 :BufferCloseBuffersRight<CR>
+--                 :BufferCloseAllButCurrent
+--                 :BufferCloseAllButPinned
+--                 :BufferCloseAllButCurrentOrPinned
+--                 :BufferCloseBuffersLeft
+--                 :BufferCloseBuffersRight
 -- Magic buffer-picking mode
 map('n', '<C-p>', '<Cmd>BufferPick<CR>', opts)
 -- Sort automatically by...
@@ -481,7 +481,7 @@ end)
 
 #### Netrw
 
-`BufferNext/BufferPrevious` don't work in netrw buffer due to an issue in
+`:BufferNext`/`:BufferPrevious` don't work in netrw buffer due to an issue in
 netrw. See [this comment](https://github.com/romgrk/barbar.nvim/issues/82#issuecomment-748498951)
 for a workaround.
 
