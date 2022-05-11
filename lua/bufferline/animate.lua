@@ -2,38 +2,18 @@
 -- animate.lua
 --
 
-local float2nr = vim.fn.float2nr
-local reltime = vim.fn.reltime
-local reltimefloat = vim.fn.reltimefloat
-
-
-
 local animation_frequency = 50
 
-function start(duration, initial, final, type, callback)
-  local ticks = (duration / animation_frequency) + 10
+local function lerp(ratio, initial, final, delta_type)
+  delta_type = delta_type or vim.v.t_number
 
-  local state = {}
-  state.running = true
-  state.fn = callback
-  state.type = type
-  state.step = (final - initial) / ticks
-  state.duration = duration
-  state.current = initial
-  state.initial = initial
-  state.final = final
-  state.start = reltime()
-  state.timer = vim.loop.new_timer()
+  local range = final - initial
+  local delta = delta_type == vim.v.t_number and math.floor(ratio * range) or (ratio * range)
 
-  state.timer:start(0, animation_frequency, vim.schedule_wrap(function()
-    animate_tick(state.timer, state)
-  end))
-
-  state.fn(state.current, state)
-  return state
+  return initial + delta
 end
 
-function animate_tick(timer, state)
+local function animate_tick(timer, state)
   -- Alternative to finding current value:
   --
   --   let state.current += state.step
@@ -46,7 +26,7 @@ function animate_tick(timer, state)
   -- on time, because we know if we have run for too long.
 
   local duration = state.duration
-  local elapsed = reltimefloat(reltime(state.start)) * 1000
+  local elapsed = vim.fn.reltimefloat(vim.fn.reltime(state.start)) * 1000
   local ratio = elapsed / duration
 
   -- We're still good here
@@ -61,21 +41,31 @@ function animate_tick(timer, state)
   end
 end
 
-function stop(state)
-  state.timer:stop()
+local function start(duration, initial, final, type, callback)
+  local ticks = (duration / animation_frequency) + 10
+
+  local state = {}
+  state.running = true
+  state.fn = callback
+  state.type = type
+  state.step = (final - initial) / ticks
+  state.duration = duration
+  state.current = initial
+  state.initial = initial
+  state.final = final
+  state.start = vim.fn.reltime()
+  state.timer = vim.loop.new_timer()
+
+  state.timer:start(0, animation_frequency, vim.schedule_wrap(function()
+    animate_tick(state.timer, state)
+  end))
+
+  state.fn(state.current, state)
+  return state
 end
 
-function lerp(ratio, initial, final, ...)
-  local arg = {...}
-  local type = (#arg > 0) and arg[1] or vim.v.t_number
-
-  local range = final - initial
-  local delta =
-    (type == vim.v.t_number) and
-      float2nr(ratio * range) or
-              (ratio * range)
-
-  return initial + delta
+local function stop(state)
+  state.timer:stop()
 end
 
 
