@@ -182,8 +182,7 @@ local function render(update_names)
 
   -- Store current buffer to open new ones next to this one
   if vim.bo[current].buflisted then
-    local ok, is_empty = pcall(vim.api.nvim_buf_get_var, current, 'empty_buffer')
-    if ok and is_empty then
+    if vim.b.empty_buffer then
       state.last_current_buffer = nil
     else
       state.last_current_buffer = current
