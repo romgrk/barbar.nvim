@@ -156,7 +156,7 @@ function bufferline.render(update_names)
 
   local err = result[2]
 
-  vim.api.nvim_command 'BarbarDisable'
+  bufferline.disable()
   vim.notify(
     "Barbar detected an error while running. Barbar disabled itself :/" ..
       "Include this in your report: " ..
