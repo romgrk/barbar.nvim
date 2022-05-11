@@ -50,7 +50,6 @@ install [nerd fonts](https://www.nerdfonts.com/).
 
 ##### Requirements
  - Neovim `0.7`
- - `set termguicolors`
 
 ## Features
 
