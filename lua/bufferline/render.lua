@@ -9,7 +9,6 @@ local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
 local Layout = require'bufferline.layout'
 local JumpMode = require'bufferline.jump_mode'
-local get_icon = icons.get_icon
 
 
 local HL_BY_ACTIVITY = {
@@ -267,7 +266,7 @@ local function render(update_names)
     else
 
       if has_icons then
-        local iconChar, iconHl = get_icon(buffer_name, vim.bo[buffer_number].filetype, status)
+        local iconChar, iconHl = icons.get_icon(buffer_name, vim.bo[buffer_number].filetype, status)
         local hlName = is_inactive and 'BufferInactive' or iconHl
         iconPrefix = has_icon_custom_colors and tabline_hl('Buffer' .. status .. 'Icon') or hlName and tabline_hl(hlName) or namePrefix
         icon = iconChar .. ' '

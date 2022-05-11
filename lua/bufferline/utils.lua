@@ -2,13 +2,6 @@
 -- utils.lua
 --
 
-local vim = vim
-local bufname = vim.fn.bufname
-local fnamemodify = vim.fn.fnamemodify
-local matchlist = vim.fn.matchlist
-local strcharpart = vim.fn.strcharpart
-local strwidth = vim.api.nvim_strwidth
-
 local function len(value)
   return #value
 end
@@ -34,11 +27,11 @@ local function slice(tbl, first, last)
   if type(tbl) == 'string' then
     if last == nil then
       local start = first - 1
-      return strcharpart(tbl, start)
+      return string.sub(tbl, start)
     else
       local start = first - 1
       local length = last - first + 1
-      return strcharpart(tbl, start, length)
+      return string.sub(tbl, start, length)
     end
   end
 
@@ -67,16 +60,8 @@ local function reverse(tbl)
   return result
 end
 
-local function collect(iterator)
-  local result = {}
-  for it, v in iterator do
-    table.insert(result, v)
-  end
-  return result
-end
-
 local function basename(path)
-   return fnamemodify(path, ':t')
+   return vim.fn.fnamemodify(path, ':t')
 end
 
 return {
@@ -86,6 +71,5 @@ return {
   has = has,
   slice = slice,
   reverse = reverse,
-  collect = collect,
   basename = basename,
 }

@@ -2,11 +2,8 @@
 -- layout.lua
 --
 
-local vim = vim
 local utils = require'bufferline.utils'
 local Buffer = require'bufferline.buffer'
-local len = utils.len
-local strwidth = vim.api.nvim_strwidth
 
 
 local SIDES_OF_BUFFER = 2
@@ -17,7 +14,7 @@ local function calculate_tabpages_width()
   if not vim.g.bufferline.tabpages or total == 1 then
     return 0
   end
-  return 1 + strwidth(tostring(current)) + 1 + strwidth(tostring(total)) + 1
+  return 1 + vim.api.nvim_strwidth(tostring(current)) + 1 + vim.api.nvim_strwidth(tostring(total)) + 1
 end
 
 local function calculate_buffers_width(state, base_width)
@@ -36,14 +33,14 @@ local function calculate_buffers_width(state, base_width)
       width = buffer_data.real_width
     else
       width = base_width
-        + strwidth(Buffer.get_activity(buffer_number) > 0 -- separator
+        + vim.api.nvim_strwidth(Buffer.get_activity(buffer_number) > 0 -- separator
             and opts.icon_separator_active
             or opts.icon_separator_inactive)
-        + strwidth(buffer_name) -- name
+        + vim.api.nvim_strwidth(buffer_name) -- name
 
       if has_numbers then
         width = width
-          + len(tostring(i)) -- buffer-index
+          + utils.len(tostring(i)) -- buffer-index
           + 1 -- space-after-buffer-index
       end
 
@@ -60,7 +57,7 @@ local function calculate_buffers_width(state, base_width)
              or opts.icon_close_tab_modified)
 
         width = width
-          + strwidth(icon)
+          + vim.api.nvim_strwidth(icon)
           + 1 -- space-after-close-icon
       end
     end
@@ -104,7 +101,7 @@ local function calculate(state)
 
   local buffers_width = available_width - tabpages_width
 
-  local buffers_length               = len(state.buffers)
+  local buffers_length               = utils.len(state.buffers)
   local remaining_width              = math.max(buffers_width - used_width, 0)
   local remaining_width_per_buffer   = math.floor(remaining_width / buffers_length)
   local remaining_padding_per_buffer = math.floor(remaining_width_per_buffer / SIDES_OF_BUFFER)
@@ -124,7 +121,7 @@ local function calculate(state)
 end
 
 local function calculate_width(buffer_name, base_width, padding_width)
-  return strwidth(buffer_name) + base_width + padding_width * SIDES_OF_BUFFER
+  return vim.api.nvim_strwidth(buffer_name) + base_width + padding_width * SIDES_OF_BUFFER
 end
 
 local exports = {
