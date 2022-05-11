@@ -3,11 +3,10 @@
 --
 
 local vim = vim
-local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local Buffer = require'bufferline.buffer'
 local len = utils.len
-local strwidth = nvim.strwidth
+local strwidth = vim.api.nvim_strwidth
 
 
 local SIDES_OF_BUFFER = 2
@@ -51,7 +50,7 @@ local function calculate_buffers_width(state, base_width)
       local is_pinned = state.is_pinned(buffer_number)
 
       if opts.closable or is_pinned then
-        local is_modified = nvim.buf_get_option(buffer_number, 'modified')
+        local is_modified = vim.api.nvim_buf_get_option(buffer_number, 'modified')
         local icon =
           is_pinned
             and opts.icon_pinned
@@ -88,7 +87,7 @@ end
 local function calculate(state)
   local opts = vim.g.bufferline
 
-  local has_icons = (opts.icons == true) or (opts.icons == 'both') or (opts.icons == 'buffer_number_with_icon') 
+  local has_icons = (opts.icons == true) or (opts.icons == 'both') or (opts.icons == 'buffer_number_with_icon')
 
   -- [icon + space-after-icon] + space-after-name
   local base_width =

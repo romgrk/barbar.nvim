@@ -4,7 +4,6 @@
 
 local vim = vim
 local api = vim.api
-local nvim = require'bufferline.nvim'
 local utils = require'bufferline.utils'
 local Buffer = require'bufferline.buffer'
 local Layout = require'bufferline.layout'
@@ -218,22 +217,22 @@ end
 
 local function set_current_win_listed_buffer()
   local current = vim.fn.bufnr('%')
-  local is_listed = nvim.buf_get_option(current, 'buflisted')
+  local is_listed = vim.api.nvim_buf_get_option(current, 'buflisted')
 
   -- Check previous window first
   if not is_listed then
-    nvim.command('wincmd p')
+    vim.api.nvim_command('wincmd p')
     current = vim.fn.bufnr('%')
-    is_listed = nvim.buf_get_option(current, 'buflisted')
+    is_listed = vim.api.nvim_buf_get_option(current, 'buflisted')
   end
   -- Check all windows now
   if not is_listed then
-    local wins = nvim.list_wins()
+    local wins = vim.api.nvim_list_wins()
     for _, win in ipairs(wins) do
-      current = nvim.win_get_buf(win)
-      is_listed = nvim.buf_get_option(current, 'buflisted')
+      current = vim.api.nvim_win_get_buf(win)
+      is_listed = vim.api.nvim_buf_get_option(current, 'buflisted')
       if is_listed then
-        nvim.set_current_win(win)
+        vim.api.nvim_set_current_win(win)
         break
       end
     end
@@ -245,7 +244,7 @@ end
 local function open_buffer_in_listed_window(buffer_number)
   set_current_win_listed_buffer()
 
-  nvim.command('buffer ' .. buffer_number)
+  vim.api.nvim_command('buffer ' .. buffer_number)
 end
 
 -- Close & cleanup buffers
@@ -292,7 +291,7 @@ end
 
 local function get_buffer_list()
   local opts = vim.g.bufferline
-  local buffers = nvim.list_bufs()
+  local buffers = vim.api.nvim_list_bufs()
   local result = {}
 
   local exclude_ft   = opts.exclude_ft
@@ -300,19 +299,19 @@ local function get_buffer_list()
 
   for _, buffer in ipairs(buffers) do
 
-    if not nvim.buf_get_option(buffer, 'buflisted') then
+    if not vim.api.nvim_buf_get_option(buffer, 'buflisted') then
       goto continue
     end
 
     if not is_nil(exclude_ft) then
-      local ft = nvim.buf_get_option(buffer, 'filetype')
+      local ft = vim.api.nvim_buf_get_option(buffer, 'filetype')
       if utils.has(exclude_ft, ft) then
         goto continue
       end
     end
 
     if not is_nil(exclude_name) then
-      local fullname = nvim.buf_get_name(buffer)
+      local fullname = vim.api.nvim_buf_get_name(buffer)
       local name = utils.basename(fullname)
       if utils.has(exclude_name, name) then
         goto continue
@@ -391,7 +390,7 @@ function m.get_updated_buffers(update_names)
   end
 
   m.buffers =
-    filter(function(b) return nvim.buf_is_valid(b) end, m.buffers)
+    filter(function(b) return vim.api.nvim_buf_is_valid(b) end, m.buffers)
 
   if did_change or update_names then
     m.update_names()
@@ -521,7 +520,7 @@ local function move_current_buffer_to(number)
     number = len(m.buffers)
   end
 
-  local currentnr = nvim.get_current_buf()
+  local currentnr = vim.api.nvim_get_current_buf()
   local idx = index_of(m.buffers, currentnr)
   move_buffer(idx, number)
 end
@@ -529,7 +528,7 @@ end
 local function move_current_buffer (steps)
   m.get_updated_buffers()
 
-  local currentnr = nvim.get_current_buf()
+  local currentnr = vim.api.nvim_get_current_buf()
   local idx = index_of(m.buffers, currentnr)
 
   move_buffer(idx, idx + steps)
@@ -549,7 +548,7 @@ local function goto_buffer (number)
     idx = number
   end
 
-  nvim.command('buffer ' .. m.buffers[idx])
+  vim.api.nvim_command('buffer ' .. m.buffers[idx])
 end
 
 local function goto_buffer_relative(steps)
@@ -566,18 +565,18 @@ local function goto_buffer_relative(steps)
     idx = (idx + steps - 1) % len(m.buffers) + 1
   end
 
-  nvim.command('buffer ' .. m.buffers[idx])
+  vim.api.nvim_command('buffer ' .. m.buffers[idx])
 end
 
 
 -- Close commands
 
 local function close_all_but_current()
-  local current = nvim.get_current_buf()
+  local current = vim.api.nvim_get_current_buf()
   local buffers = m.buffers
   for _, number in ipairs(buffers) do
     if number ~= current then
-      bbye.delete('bdelete', false, number, nil)
+      vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(number))
     end
   end
   m.update()
@@ -587,7 +586,7 @@ local function close_all_but_pinned()
   local buffers = m.buffers
   for _, number in ipairs(buffers) do
     if not is_pinned(number) then
-      bbye.delete('bdelete', false, number, nil)
+      vim.fn['bufferline#bbye#delete']('bdelete', '', bufname(number))
     end
   end
   m.update()
@@ -595,7 +594,7 @@ end
 
 local function close_all_but_current_or_pinned()
   local buffers = m.buffers
-  local current = nvim.get_current_buf()
+  local current = vim.api.nvim_get_current_buf()
   for _, number in ipairs(buffers) do
     if not is_pinned(number) and number ~= current then
       bbye.delete('bdelete', false, number, nil)
