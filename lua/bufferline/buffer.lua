@@ -2,9 +2,11 @@
 -- buffer.lua
 --
 
-
+local concat = table.concat
+local list_slice = vim.list_slice
+local substring = string.sub
 local utils = require'bufferline.utils'
-
+local len = utils.len
 
 local function terminalname(name)
   local result = vim.fn.matchlist(name, [===[term://.\{-}//\d\+:\(.*\)]===])
@@ -14,7 +16,6 @@ local function terminalname(name)
     return result[2]
   end
 end
-
 
 -- returns 0: none, 1: active, 2: current
 local function get_activity(number)
@@ -53,34 +54,34 @@ local function get_name(opts, number)
     local ext_index = string.find(string.reverse(name), '%.')
 
     if ext_index ~= nil and (ext_index < max_len - #ellipsis) then
-      local extension = string.sub(name, -ext_index)
-      name = string.sub(name, 1, max_len - #ellipsis - #extension) .. ellipsis .. extension
+      local extension = substring(name, -ext_index)
+      name = substring(name, 1, max_len - #ellipsis - #extension) .. ellipsis .. extension
     else
-      name = string.sub(name, 1, max_len - #ellipsis) .. ellipsis
+      name = substring(name, 1, max_len - #ellipsis) .. ellipsis
     end
 
     -- safety to prevent recursion in any future edge case
-    name = string.sub(name, 1, max_len)
+    name = substring(name, 1, max_len)
   end
 
   return name
 end
 
 local separator = package.config:sub(1,1)
-local function get_unique_name (first, second)
+local function get_unique_name(first, second)
   local first_parts  = vim.split(first,  separator)
   local second_parts = vim.split(second, separator)
 
   local length = 1
-  local first_result  = table.concat(vim.list_slice(first_parts, -length),  separator)
-  local second_result = table.concat(vim.list_slice(second_parts, -length), separator)
+  local first_result  = concat(list_slice(first_parts, -length),  separator)
+  local second_result = concat(list_slice(second_parts, -length), separator)
 
   while first_result == second_result and
-        length < math.max(utils.len(first_parts), utils.len(second_parts))
+        length < math.max(len(first_parts), len(second_parts))
   do
     length = length + 1
-    first_result  = table.concat(vim.list_slice(first_parts,  -math.min(utils.len(first_parts), length)),  separator)
-    second_result = table.concat(vim.list_slice(second_parts, -math.min(utils.len(second_parts), length)), separator)
+    first_result  = concat(list_slice(first_parts,  -math.min(len(first_parts), length)),  separator)
+    second_result = concat(list_slice(second_parts, -math.min(len(second_parts), length)), separator)
   end
 
   return first_result, second_result

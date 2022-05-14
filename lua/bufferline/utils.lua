@@ -23,41 +23,12 @@ local function has(tbl, n)
   return index_of(tbl, n) ~= nil
 end
 
-local function slice(tbl, first, last)
-  if type(tbl) == 'string' then
-    if last == nil then
-      local start = first - 1
-      return string.sub(tbl, start)
-    else
-      local start = first - 1
-      local length = last - first + 1
-      return string.sub(tbl, start, length)
-    end
-  end
-
-  if first < 0 then
-    first = #tbl + 1 + first
-  end
-
-  if last ~= nil and last < 0 then
-    last = #tbl + 1 + last
-  end
-
-  local sliced = {}
-
-  for i = first or 1, last or #tbl do
-    sliced[#sliced+1] = tbl[i]
-  end
-
-  return sliced
-end
-
 local function reverse(tbl)
-  local result = {}
-  for i = #tbl, 1, -1 do
-    table.insert(result, tbl[i])
+  local reversed = {}
+  while #reversed < #tbl do
+    reversed[#reversed + 1] = tbl[#tbl - #reversed]
   end
-  return result
+  return reversed
 end
 
 local function basename(path)
@@ -69,7 +40,6 @@ return {
   is_nil = is_nil,
   index_of = index_of,
   has = has,
-  slice = slice,
   reverse = reverse,
   basename = basename,
 }

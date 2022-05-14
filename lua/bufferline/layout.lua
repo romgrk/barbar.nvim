@@ -2,19 +2,19 @@
 -- layout.lua
 --
 
-local utils = require'bufferline.utils'
 local Buffer = require'bufferline.buffer'
-
+local strwidth = vim.api.nvim_strwidth
+local utils = require'bufferline.utils'
 
 local SIDES_OF_BUFFER = 2
 
 local function calculate_tabpages_width()
   local current = vim.fn.tabpagenr()
-  local total   = vim.fn.tabpagenr('$')
+  local total   = #vim.api.nvim_list_tabpages()
   if not vim.g.bufferline.tabpages or total == 1 then
     return 0
   end
-  return 1 + vim.api.nvim_strwidth(tostring(current)) + 1 + vim.api.nvim_strwidth(tostring(total)) + 1
+  return 1 + strwidth(tostring(current)) + 1 + strwidth(tostring(total)) + 1
 end
 
 local function calculate_buffers_width(state, base_width)
@@ -33,10 +33,10 @@ local function calculate_buffers_width(state, base_width)
       width = buffer_data.real_width
     else
       width = base_width
-        + vim.api.nvim_strwidth(Buffer.get_activity(buffer_number) > 0 -- separator
+        + strwidth(Buffer.get_activity(buffer_number) > 0 -- separator
             and opts.icon_separator_active
             or opts.icon_separator_inactive)
-        + vim.api.nvim_strwidth(buffer_name) -- name
+        + strwidth(buffer_name) -- name
 
       if has_numbers then
         width = width
@@ -47,17 +47,14 @@ local function calculate_buffers_width(state, base_width)
       local is_pinned = state.is_pinned(buffer_number)
 
       if opts.closable or is_pinned then
-        local is_modified = vim.api.nvim_buf_get_option(buffer_number, 'modified')
-        local icon =
-          is_pinned
-            and opts.icon_pinned
-            or
+        local is_modified = vim.bo[buffer_number].modified
+        local icon = is_pinned and opts.icon_pinned or
           (not is_modified -- close-icon
             and opts.icon_close_tab
              or opts.icon_close_tab_modified)
 
         width = width
-          + vim.api.nvim_strwidth(icon)
+          + strwidth(icon)
           + 1 -- space-after-close-icon
       end
     end
@@ -121,7 +118,7 @@ local function calculate(state)
 end
 
 local function calculate_width(buffer_name, base_width, padding_width)
-  return vim.api.nvim_strwidth(buffer_name) + base_width + padding_width * SIDES_OF_BUFFER
+  return strwidth(buffer_name) + base_width + padding_width * SIDES_OF_BUFFER
 end
 
 local exports = {

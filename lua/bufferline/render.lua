@@ -3,13 +3,15 @@
 -- render.lua
 --
 
-local utils = require'bufferline.utils'
-local icons = require'bufferline.icons'
-local state = require'bufferline.state'
 local Buffer = require'bufferline.buffer'
-local Layout = require'bufferline.layout'
+local icons = require'bufferline.icons'
 local JumpMode = require'bufferline.jump_mode'
-
+local Layout = require'bufferline.layout'
+local state = require'bufferline.state'
+local strwidth = vim.api.nvim_strwidth
+local substring = string.sub
+local utils = require'bufferline.utils'
+local len = utils.len
 
 local HL_BY_ACTIVITY = {
   [0] = 'Inactive',
@@ -46,9 +48,9 @@ local function groups_insert(groups, position, others)
   local new_groups = {}
 
   local i = 1
-  while i <= utils.len(groups) do
+  while i <= len(groups) do
     local group = groups[i]
-    local group_width = vim.api.nvim_strwidth(group[2])
+    local group_width = strwidth(group[2])
 
     -- While we haven't found the position...
     if current_position + group_width <= position then
@@ -62,14 +64,14 @@ local function groups_insert(groups, position, others)
 
       -- Slice current group if it `position` is inside it
       if available_width > 0 then
-        local new_group = { group[1], string.sub(group[2], 1, available_width) }
+        local new_group = { group[1], substring(group[2], 1, available_width) }
         table.insert(new_groups, new_group)
       end
 
       -- Add new other groups
       local others_width = 0
       for _, other in ipairs(others) do
-        local other_width = vim.api.nvim_strwidth(other[2])
+        local other_width = strwidth(other[2])
         others_width = others_width + other_width
         table.insert(new_groups, other)
       end
@@ -78,9 +80,9 @@ local function groups_insert(groups, position, others)
 
       -- Then, resume adding previous groups
       -- table.insert(new_groups, 'then')
-      while i <= utils.len(groups) do
+      while i <= len(groups) do
         local previous_group = groups[i]
-        local previous_group_width = vim.api.nvim_strwidth(previous_group[2])
+        local previous_group_width = strwidth(previous_group[2])
         local previous_group_start_position = current_position
         local previous_group_end_position   = current_position + previous_group_width
 
@@ -93,7 +95,7 @@ local function groups_insert(groups, position, others)
           local remaining_width = previous_group_end_position - end_position
           local start = previous_group_width + 1 - remaining_width
           local end_  = previous_group_width
-          local new_group = { previous_group[1], string.sub(previous_group[2], start, end_) }
+          local new_group = { previous_group[1], substring(previous_group[2], start, end_) }
           -- table.insert(new_groups, { group_start_position, group_end_position, end_position })
           table.insert(new_groups, new_group)
         end
@@ -117,13 +119,13 @@ local function slice_groups_right(groups, width)
   for _, group in ipairs(groups) do
     local hl   = group[1]
     local text = group[2]
-    local text_width = vim.api.nvim_strwidth(text)
+    local text_width = strwidth(text)
 
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
       local diff = text_width - (accumulated_width - width)
-      local new_group = {hl, string.sub(text, 0, diff)}
+      local new_group = {hl, substring(text, 0, diff)}
       table.insert(new_groups, new_group)
       break
     end
@@ -142,14 +144,14 @@ local function slice_groups_left(groups, width)
   for _, group in ipairs(utils.reverse(groups)) do
     local hl   = group[1]
     local text = group[2]
-    local text_width = vim.api.nvim_strwidth(text)
+    local text_width = strwidth(text)
 
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
       local length = text_width - (accumulated_width - width)
       local start = text_width - length
-      local new_group = {hl, string.sub(text, start, length)}
+      local new_group = {hl, substring(text, start, length)}
       table.insert(new_groups, 1, new_group)
       break
     end
@@ -167,7 +169,7 @@ local function render(update_names)
   local buffer_numbers = state.get_updated_buffers(update_names)
 
   if opts.auto_hide then
-    if utils.len(buffer_numbers) <= 1 then
+    if len(buffer_numbers) <= 1 then
       if vim.o.showtabline == 2 then
         vim.o.showtabline = 0
       end
@@ -256,7 +258,7 @@ local function render(update_names)
 
       -- Replace first character of buf name with jump letter
       if letter and not has_icons then
-        name = string.sub(name, 2)
+        name = substring(name, 2)
       end
 
       jumpLetterPrefix = tabline_hl('Buffer' .. status .. 'Target')
@@ -346,7 +348,7 @@ local function render(update_names)
       {'',                 state.offset_text},
     }
     result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
-    result = result .. string.rep(' ', offset_available_width - utils.len(state.offset_text))
+    result = result .. string.rep(' ', offset_available_width - len(state.offset_text))
     result = result .. ' '
   end
 
@@ -383,12 +385,12 @@ local function render(update_names)
   -- To prevent the expansion of the last click group
   result = result .. '%0@BufferlineMainClickHandler@' .. tabline_hl('BufferTabpageFill')
 
-  if layout.actual_width + vim.api.nvim_strwidth(opts.icon_separator_inactive) <= layout.buffers_width and utils.len(items) > 0 then
+  if layout.actual_width + strwidth(opts.icon_separator_inactive) <= layout.buffers_width and len(items) > 0 then
     result = result .. opts.icon_separator_inactive
   end
 
-  local current_tabpage = vim.api.nvim_get_current_tabpage()
-  local total_tabpages  = table.remove(vim.api.nvim_list_tabpages())
+  local current_tabpage = vim.fn.tabpagenr()
+  local total_tabpages  = #vim.api.nvim_list_tabpages()
   if layout.tabpages_width > 0 then
     result = result .. '%=%#BufferTabpages# ' .. tostring(current_tabpage) .. '/' .. tostring(total_tabpages) .. ' '
   end

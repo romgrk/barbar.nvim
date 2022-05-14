@@ -1,3 +1,5 @@
+local highlight = require 'bufferline.highlight'
+
 --- The default options for this plugin.
 local DEFAULT_OPTIONS = {
   animation = true,
@@ -50,7 +52,6 @@ end
 function bufferline.enable()
   local augroup_bufferline, augroup_bufferline_update = create_augroups()
   local create_autocmd = vim.api.nvim_create_autocmd
-  local highlight = require 'bufferline.highlight'
 
   create_autocmd({'BufNewFile', 'BufReadPost'}, {
     callback = function(tbl) require'bufferline.jump_mode'.assign_next_letter(tbl.buf) end,
@@ -65,10 +66,7 @@ function bufferline.enable()
     group = augroup_bufferline,
   })
 
-  create_autocmd({'ColorScheme', 'VimEnter'}, {
-    callback = highlight.setup,
-    group = augroup_bufferline,
-  })
+  create_autocmd('ColorScheme', {callback = highlight.setup, group = augroup_bufferline})
 
   create_autocmd('BufModifiedSet', {
     callback = function()
@@ -93,29 +91,18 @@ function bufferline.enable()
 
   create_autocmd(
     {'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWipeout', 'BufWritePost', 'SessionLoadPost', 'VimResized', 'WinEnter', 'WinLeave'},
-    {
-      callback = bufferline.update,
-      group = augroup_bufferline_update,
-    }
+    {callback = bufferline.update, group = augroup_bufferline_update}
   )
 
-  create_autocmd('OptionSet', {
-    callback = bufferline.update,
-    group = augroup_bufferline_update,
-    pattern = 'buflisted',
-  })
+  create_autocmd('OptionSet', {callback = bufferline.update, group = augroup_bufferline_update, pattern = 'buflisted'})
 
-  create_autocmd('WinClosed', {
-    callback = bufferline.update_async,
-    group = augroup_bufferline_update,
-  })
+  create_autocmd('WinClosed', {callback = bufferline.update_async, group = augroup_bufferline_update})
 
   create_autocmd('TermOpen', {
     callback = function() bufferline.update_async(true, 500) end,
     group = augroup_bufferline_update,
   })
 
-  highlight.setup()
   bufferline.update()
 end
 
@@ -268,6 +255,7 @@ function bufferline.setup(options)
     call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
   ]]
 
+  highlight.setup()
   bufferline.enable()
 end
 

@@ -2,12 +2,17 @@
 -- m.lua
 --
 
-local utils = require'bufferline.utils'
-local Buffer = require'bufferline.buffer'
-local Layout = require'bufferline.layout'
 local animate = require'bufferline.animate'
 local bbye = require'bufferline.bbye'
+local buf_get_name = vim.api.nvim_buf_get_name
+local Buffer = require'bufferline.buffer'
 local bufferline = require'bufferline'
+local get_current_buf = vim.api.nvim_get_current_buf
+local Layout = require'bufferline.layout'
+local list_bufs = vim.api.nvim_list_bufs
+local set_current_buf = vim.api.nvim_set_current_buf
+local table_insert = table.insert
+local utils = require'bufferline.utils'
 
 local PIN = 'bufferline_pin'
 
@@ -70,9 +75,9 @@ local function sort_pins_to_left()
   local unpinned = {}
   for _, bufnr in ipairs(M.buffers) do
     if is_pinned(bufnr) then
-      table.insert(pinned, bufnr)
+      table_insert(pinned, bufnr)
     else
-      table.insert(unpinned, bufnr)
+      table_insert(unpinned, bufnr)
     end
   end
   M.buffers = vim.list_extend(pinned, unpinned)
@@ -80,7 +85,7 @@ end
 
 local function toggle_pin(bufnr)
   bufnr = bufnr or 0
-  vim.api.nvim_buf_set_var(bufnr, PIN, not is_pinned(bufnr))
+  vim.b[bufnr][PIN] = not is_pinned(bufnr)
   sort_pins_to_left()
   M.update()
 end
@@ -174,7 +179,7 @@ local function open_buffers(new_buffers)
         new_index = new_index + 1
       end
 
-      table.insert(M.buffers, actual_index, new_buffer)
+      table_insert(M.buffers, actual_index, new_buffer)
     end
   end
 
@@ -205,21 +210,21 @@ local function open_buffers(new_buffers)
 end
 
 local function set_current_win_listed_buffer()
-  local current = vim.fn.bufnr('%')
-  local is_listed = vim.api.nvim_buf_get_option(current, 'buflisted')
+  local current = get_current_buf()
+  local is_listed = vim.bo[current].buflisted
 
   -- Check previous window first
   if not is_listed then
     vim.api.nvim_command('wincmd p')
-    current = vim.fn.bufnr('%')
-    is_listed = vim.api.nvim_buf_get_option(current, 'buflisted')
+    current = get_current_buf()
+    is_listed = vim.bo[current].buflisted
   end
   -- Check all windows now
   if not is_listed then
     local wins = vim.api.nvim_list_wins()
     for _, win in ipairs(wins) do
       current = vim.api.nvim_win_get_buf(win)
-      is_listed = vim.api.nvim_buf_get_option(current, 'buflisted')
+      is_listed = vim.bo[current].buflisted
       if is_listed then
         vim.api.nvim_set_current_win(win)
         break
@@ -233,7 +238,7 @@ end
 local function open_buffer_in_listed_window(buffer_number)
   set_current_win_listed_buffer()
 
-  vim.api.nvim_set_current_buf(buffer_number)
+  set_current_buf(buffer_number)
 end
 
 -- Close & cleanup buffers
@@ -280,7 +285,7 @@ end
 
 local function get_buffer_list()
   local opts = vim.g.bufferline
-  local buffers = vim.api.nvim_list_bufs()
+  local buffers = list_bufs()
   local result = {}
 
   local exclude_ft   = opts.exclude_ft
@@ -288,26 +293,26 @@ local function get_buffer_list()
 
   for _, buffer in ipairs(buffers) do
 
-    if not vim.api.nvim_buf_get_option(buffer, 'buflisted') then
+    if not vim.bo[buffer].buflisted then
       goto continue
     end
 
     if not utils.is_nil(exclude_ft) then
-      local ft = vim.api.nvim_buf_get_option(buffer, 'filetype')
+      local ft = vim.bo[buffer].filetype
       if utils.has(exclude_ft, ft) then
         goto continue
       end
     end
 
     if not utils.is_nil(exclude_name) then
-      local fullname = vim.api.nvim_buf_get_name(buffer)
+      local fullname = buf_get_name(buffer)
       local name = utils.basename(fullname)
       if utils.has(exclude_name, name) then
         goto continue
       end
     end
 
-    table.insert(result, buffer)
+    table_insert(result, buffer)
 
     ::continue::
   end
@@ -331,8 +336,8 @@ function M.update_names()
       local other_n = M.buffers[other_i]
       local new_name, new_other_name =
         Buffer.get_unique_name(
-          vim.api.nvim_buf_get_name(buffer_n),
-          vim.api.nvim_buf_get_name(M.buffers[other_i]))
+          buf_get_name(buffer_n),
+          buf_get_name(M.buffers[other_i]))
 
       M.get_buffer_data(buffer_n).name = new_name
       M.get_buffer_data(other_n).name = new_other_name
@@ -438,7 +443,7 @@ local function move_buffer_animated(from_idx, to_idx)
   local previous_positions = Layout.calculate_buffers_position_by_buffer_number(M, layout)
 
   table.remove(M.buffers, from_idx)
-  table.insert(M.buffers, to_idx, buffer_number)
+  table_insert(M.buffers, to_idx, buffer_number)
 
   sort_pins_to_left()
 
@@ -483,7 +488,7 @@ end
 local function move_buffer_direct(from_idx, to_idx)
   local buffer_number = M.buffers[from_idx]
   table.remove(M.buffers, from_idx)
-  table.insert(M.buffers, to_idx, buffer_number)
+  table_insert(M.buffers, to_idx, buffer_number)
   sort_pins_to_left()
 
   M.update()
@@ -509,7 +514,7 @@ local function move_current_buffer_to(number)
     number = utils.len(M.buffers)
   end
 
-  local currentnr = vim.api.nvim_get_current_buf()
+  local currentnr = get_current_buf()
   local idx = utils.index_of(M.buffers, currentnr)
   move_buffer(idx, number)
 end
@@ -517,7 +522,7 @@ end
 local function move_current_buffer (steps)
   M.get_updated_buffers()
 
-  local currentnr = vim.api.nvim_get_current_buf()
+  local currentnr = get_current_buf()
   local idx = utils.index_of(M.buffers, currentnr)
 
   move_buffer(idx, idx + steps)
@@ -537,7 +542,7 @@ local function goto_buffer (number)
     idx = number
   end
 
-  vim.api.nvim_set_current_buf(M.buffers[idx])
+  set_current_buf(M.buffers[idx])
 end
 
 local function goto_buffer_relative(steps)
@@ -554,14 +559,14 @@ local function goto_buffer_relative(steps)
     idx = (idx + steps - 1) % utils.len(M.buffers) + 1
   end
 
-  vim.api.nvim_set_current_buf(M.buffers[idx])
+  set_current_buf(M.buffers[idx])
 end
 
 
 -- Close commands
 
 local function close_all_but_current()
-  local current = vim.api.nvim_get_current_buf()
+  local current = get_current_buf()
   local buffers = M.buffers
   for _, number in ipairs(buffers) do
     if number ~= current then
@@ -583,7 +588,7 @@ end
 
 local function close_all_but_current_or_pinned()
   local buffers = M.buffers
-  local current = vim.api.nvim_get_current_buf()
+  local current = get_current_buf()
   for _, number in ipairs(buffers) do
     if not is_pinned(number) and number ~= current then
       bbye.delete('bdelete', false, number, nil)
@@ -593,7 +598,7 @@ local function close_all_but_current_or_pinned()
 end
 
 local function close_buffers_left()
-  local idx = utils.index_of(M.buffers, vim.api.nvim_get_current_buf()) - 1
+  local idx = utils.index_of(M.buffers, get_current_buf()) - 1
   if idx == nil then
     return
   end
@@ -604,7 +609,7 @@ local function close_buffers_left()
 end
 
 local function close_buffers_right()
-  local idx = utils.index_of(M.buffers, vim.api.nvim_get_current_buf()) + 1
+  local idx = utils.index_of(M.buffers, get_current_buf()) + 1
   if idx == nil then
     return
   end
@@ -646,8 +651,8 @@ local function order_by_directory()
   table.sort(
     M.buffers,
     with_pin_order(function(a, b)
-      local na = vim.api.nvim_buf_get_name(a)
-      local nb = vim.api.nvim_buf_get_name(b)
+      local na = buf_get_name(a)
+      local nb = buf_get_name(b)
       local ra = is_relative_path(na)
       local rb = is_relative_path(nb)
       if ra and not rb then
@@ -666,8 +671,8 @@ local function order_by_language()
   table.sort(
     M.buffers,
     with_pin_order(function(a, b)
-      local na = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(a), ':e')
-      local nb = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(b), ':e')
+      local na = vim.fn.fnamemodify(buf_get_name(a), ':e')
+      local nb = vim.fn.fnamemodify(buf_get_name(b), ':e')
       return na < nb
     end)
   )
@@ -678,8 +683,8 @@ local function order_by_window_number()
   table.sort(
     M.buffers,
     with_pin_order(function(a, b)
-      local na = vim.fn.bufwinnr(vim.api.nvim_buf_get_name(a))
-      local nb = vim.fn.bufwinnr(vim.api.nvim_buf_get_name(b))
+      local na = vim.fn.bufwinnr(buf_get_name(a))
+      local nb = vim.fn.bufwinnr(buf_get_name(b))
       return na < nb
     end)
   )
@@ -707,18 +712,18 @@ local function on_pre_save()
 
   local bufnames = {}
   for _,bufnr in ipairs(M.buffers) do
-    local name = vim.api.nvim_buf_get_name(bufnr)
+    local name = buf_get_name(bufnr)
     if use_relative_file_paths then
       name = vim.fn.fnamemodify(name, ':~:.')
     end
     -- escape quotes
     name = string.gsub(name, '"', '\\"')
-    table.insert(bufnames, string.format('"%s"', name))
+    table_insert(bufnames, string.format('"%s"', name))
   end
   local bufarr = string.format('{%s}', table.concat(bufnames, ','))
   local commands = vim.g.session_save_commands
-  table.insert(commands, '" barbar.nvim')
-  table.insert(commands,
+  table_insert(commands, '" barbar.nvim')
+  table_insert(commands,
     string.format([[lua require'bufferline.state'.restore_buffers(%s)]], bufarr))
   vim.g.session_save_commands = commands
 end
@@ -726,9 +731,9 @@ end
 local function restore_buffers(bufnames)
   -- Close all empty buffers. Loading a session may call :tabnew several times
   -- and create useless empty buffers.
-  for _,bufnr in ipairs(vim.api.nvim_list_bufs()) do
+  for _,bufnr in ipairs(list_bufs()) do
     if vim.fn.bufname(bufnr) == ''
-      and vim.api.nvim_buf_get_option(bufnr, 'buftype') == ''
+      and vim.bo[bufnr].buftype == ''
       and vim.api.nvim_buf_line_count(bufnr) == 1
       and vim.api.nvim_buf_get_lines(bufnr, 0, 1, true)[1] == '' then
         vim.api.nvim_buf_delete(bufnr, {})
@@ -738,7 +743,7 @@ local function restore_buffers(bufnames)
   M.buffers = {}
   for _,name in ipairs(bufnames) do
     local bufnr = vim.fn.bufadd(name)
-    table.insert(M.buffers, bufnr)
+    table_insert(M.buffers, bufnr)
   end
   M.update()
 end

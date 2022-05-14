@@ -23,6 +23,14 @@
 -- For the full copy of the GNU Affero General Public License see:
 -- http://www.gnu.org/licenses.
 
+local buflisted = vim.fn.bufnr
+local bufnr = vim.fn.bufnr
+local command = vim.api.nvim_command
+local get_current_buf = vim.api.nvim_get_current_buf
+local reverse = require('bufferline.utils').reverse
+local set_current_buf = vim.api.nvim_set_current_buf
+local set_current_win = vim.api.nvim_set_current_win
+
 -------------------
 -- Section: helpers
 -------------------
@@ -39,12 +47,12 @@ end
 --- @return number buffer_number
 local function str2bufnr(buffer)
   if not buffer or #buffer < 1 then
-    return vim.fn.bufnr("%")
+    return get_current_buf()
   elseif vim.regex([[^\d\+$]]):match_str(buffer)  then
-    return vim.fn.bufnr(tostring(buffer))
+    return bufnr(tostring(buffer))
   end
 
-  return vim.fn.bufnr(buffer)
+  return bufnr(buffer)
 end
 
 local empty_buffer = nil
@@ -52,9 +60,9 @@ local empty_buffer = nil
 --- Create a new buffer.
 --- @param force boolean if `true`, forcefully create the new buffer
 local function new(force)
-  vim.api.nvim_command("enew" .. (force and '!' or ''))
+  command("enew" .. (force and '!' or ''))
 
-  empty_buffer = vim.api.nvim_get_current_buf()
+  empty_buffer = get_current_buf()
   vim.b.empty_buffer = true
 
   -- Regular buftype warns people if they have unsaved text there.
@@ -111,24 +119,20 @@ function bbye.delete(action, force, buffer, mods)
 
   -- For cases where adding buffers causes new windows to appear or hiding some
   -- causes windows to disappear and thereby decrement, loop backwards.
-  local window_ids = vim.api.nvim_list_wins()
-  local window_ids_reversed = {}
-  while #window_ids_reversed < #window_ids do
-    window_ids_reversed[#window_ids_reversed + 1] = window_ids[#window_ids - #window_ids_reversed]
-  end
+  local window_numbers = vim.api.nvim_list_wins()
+  local window_numbers_reversed = reverse(window_numbers)
 
-  for _, window_number in ipairs(window_ids_reversed) do
-    -- For invalid window numbers, winbufnr returns -1.
+  for _, window_number in ipairs(window_numbers_reversed) do
     if vim.api.nvim_win_get_buf(window_number) == buffer_number then
-      vim.api.nvim_set_current_win(window_number)
+      set_current_win(window_number)
 
       -- Bprevious also wraps around the buffer list, if necessary:
       local no_errors = pcall(function()
-        local previous_buffer = vim.fn.bufnr '#'
-        if previous_buffer > 0 and vim.fn.buflisted(previous_buffer) == 1 then
-          vim.api.nvim_set_current_buf(previous_buffer)
+        local previous_buffer = bufnr('#')
+        if previous_buffer > 0 and buflisted(previous_buffer) then
+          set_current_buf(previous_buffer)
         else
-          vim.api.nvim_command 'bprevious'
+          command 'bprevious'
         end
       end)
 
@@ -138,14 +142,14 @@ function bbye.delete(action, force, buffer, mods)
       end
 
       -- If found a new buffer for this window, mission accomplished:
-      if vim.api.nvim_get_current_buf() == buffer_number then
+      if get_current_buf() == buffer_number then
         new(force)
       end
     end
   end
 
   if vim.api.nvim_win_is_valid(current_window) then
-    vim.api.nvim_set_current_win(current_window)
+    set_current_win(current_window)
   end
 
   -- If it hasn't been already deleted by &bufhidden, end its pains now.
@@ -153,14 +157,14 @@ function bbye.delete(action, force, buffer, mods)
   --
   -- Using buflisted() over bufexists() because bufhidden=delete causes the
   -- buffer to still _exist_ even though it won't be :bdelete-able.
-  if vim.fn.buflisted(buffer_number) == 1 and buffer_number ~= vim.api.nvim_get_current_buf() then
+  if buflisted(buffer_number) and buffer_number ~= get_current_buf() then
     local no_errors = pcall(function()
-      vim.api.nvim_command(mods .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
+      command(mods .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
     end)
 
     if not no_errors then
       if string.match(vim.v.errmsg, 'E516') then
-        vim.api.nvim_set_current_buf(buffer_number)
+        set_current_buf(buffer_number)
       else
         err(vim.v.errmsg)
         return
