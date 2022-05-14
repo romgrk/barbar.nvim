@@ -1,3 +1,28 @@
+--- The default options for this plugin.
+local DEFAULT_OPTIONS = {
+  animation = true,
+  auto_hide = false,
+  clickable = true,
+  closable = true,
+  exclude_ft = nil,
+  exclude_name = nil,
+  icon_close_tab = '',
+  icon_close_tab_modified = '●',
+  icon_pinned = '',
+  icon_separator_active =   '▎',
+  icon_separator_inactive = '▎',
+  icons = true,
+  icon_custom_colors = false,
+  insert_at_start = false,
+  insert_at_end = false,
+  letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
+  maximum_padding = 4,
+  maximum_length = 30,
+  no_name_title = nil,
+  semantic_letters = true,
+  tabpages = true,
+}
+
 --------------------------
 -- Section: Helpers
 --------------------------
@@ -13,32 +38,7 @@ end
 -------------------------------
 
 --- @class bufferline
---- @field DEFAULT_OPTIONS table
-local bufferline = {
-  DEFAULT_OPTIONS = {
-    animation = true,
-    auto_hide = false,
-    clickable = true,
-    closable = true,
-    exclude_ft = nil,
-    exclude_name = nil,
-    icon_close_tab = '',
-    icon_close_tab_modified = '●',
-    icon_pinned = '',
-    icon_separator_active =   '▎',
-    icon_separator_inactive = '▎',
-    icons = true,
-    icon_custom_colors = false,
-    insert_at_start = false,
-    insert_at_end = false,
-    letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
-    maximum_padding = 4,
-    maximum_length = 30,
-    no_name_title = nil,
-    semantic_letters = true,
-    tabpages = true,
-  },
-}
+local bufferline = {}
 
 --- Disable the bufferline.
 function bufferline.disable()
@@ -117,6 +117,158 @@ function bufferline.enable()
 
   highlight.setup()
   bufferline.update()
+end
+
+--- Setup this plugin.
+--- @param options nil|table
+function bufferline.setup(options)
+  local create_user_command = vim.api.nvim_create_user_command
+
+  -- Show the tabline
+  vim.opt.showtabline = 2
+
+  -- Create all necessary commands
+  create_user_command('BarbarEnable', bufferline.enable, {desc = 'Enable barbar.nvim'})
+  create_user_command('BarbarDisable', bufferline.disable, {desc = 'Disable barbar.nvim'})
+
+  create_user_command(
+    'BufferNext',
+    function(tbl) require'bufferline.state'.goto_buffer_relative(math.max(tbl.count, 1)) end,
+    {count = true, desc = 'Go to the next buffer'}
+  )
+
+  create_user_command(
+    'BufferPrevious',
+    function(tbl) require'bufferline.state'.goto_buffer_relative(-math.max(tbl.count, 1)) end,
+    {count = true, desc = 'Go to the previous buffer'}
+  )
+
+  create_user_command(
+    'BufferGoto',
+    function(tbl) require'bufferline.state'.goto_buffer(tbl.args) end,
+    {desc = 'Go to the buffer at the specified index', nargs = 1}
+  )
+
+  create_user_command('BufferLast', '<Cmd>BufferGoto 1<CR>', {desc = 'Go to the first buffer'})
+  create_user_command('BufferLast', '<Cmd>BufferGoto -1<CR>', {desc = 'Go to the last buffer'})
+
+  create_user_command(
+    'BufferMove',
+    function(tbl) vim.api.nvim_command('<Cmd>BufferMovePrevious ' .. tbl.count .. '<CR>') end,
+    {count = true, desc = 'Synonym for `:BufferMovePrevious`'}
+  )
+
+  create_user_command(
+    'BufferMoveNext',
+    function(tbl) require'bufferline.state'.move_current_buffer(math.max(tbl.count, 1)) end,
+    {count = true, desc = 'Move the current buffer to the right'}
+  )
+
+  create_user_command(
+    'BufferMovePrevious',
+    function(tbl) require'bufferline.state'.move_current_buffer(-math.max(tbl.count, 1)) end,
+    {count = true, desc = 'Move the current buffer to the left'}
+  )
+
+  create_user_command('BufferPick', function() require'bufferline.jump_mode'.activate() end, {desc = 'Pick a buffer'})
+
+  create_user_command('BufferPin', function() require'bufferline.state'.toggle_pin() end, {desc = 'Un/pin a buffer'})
+
+  create_user_command(
+    'BufferOrderByBufferNumber',
+    function() require'bufferline.state'.order_by_buffer_number() end,
+    {desc = 'Order the bufferline by buffer number'}
+  )
+
+  create_user_command(
+    'BufferOrderByDirectory',
+    function() require'bufferline.state'.order_by_directory() end,
+    {desc = 'Order the bufferline by directory'}
+  )
+
+  create_user_command(
+    'BufferOrderByLanguage',
+    function() require'bufferline.state'.order_by_language() end,
+    {desc = 'Order the bufferline by language'}
+  )
+
+  create_user_command(
+    'BufferOrderByWindowNumber',
+    function() require'bufferline.state'.order_by_window_number() end,
+    {desc = 'Order the bufferline by window number'}
+  )
+
+  create_user_command(
+    'BufferClose',
+    function(tbl) require'bufferline.bbye'.delete('bdelete', tbl.bang, tbl.args, tbl.mods) end,
+    {bang = true, complete = 'buffer', desc = 'Close the current buffer.', nargs = '?'}
+  )
+
+  create_user_command(
+    'BufferDelete',
+    function(tbl) require'bufferline.bbye'.delete('bdelete', tbl.bang, tbl.args, tbl.mods) end,
+    {bang = true, complete = 'buffer', desc = 'Synonym for `:BufferClose`', nargs = '?'}
+  )
+
+  create_user_command(
+    'BufferWipeout',
+    function(tbl) require'bufferline.bbye'.delete('bwipeout', tbl.bang, tbl.args, tbl.mods) end,
+    {bang = true, complete = 'buffer', desc = 'Wipe out the buffer', nargs = '?'}
+  )
+
+  create_user_command(
+    'BufferCloseAllButCurrent',
+    function() require'bufferline.state'.close_all_but_current() end,
+    {desc = 'Close every buffer except the current one'}
+  )
+
+  create_user_command(
+    'BufferCloseAllButPinned',
+    function() require'bufferline.state'.close_all_but_pinned() end,
+    {desc = 'Close every buffer except pinned buffers'}
+  )
+
+  create_user_command(
+    'BufferCloseAllButCurrentOrPinned',
+    function() require'bufferline.state'.close_all_but_current_or_pinned() end,
+    {desc = 'Close every buffer except pinned buffers or the current buffer'}
+  )
+
+  create_user_command(
+    'BufferCloseBuffersLeft',
+    function() require'bufferline.state'.close_buffers_left() end,
+    {desc = 'Close all buffers to the left of the current buffer'}
+  )
+
+  create_user_command(
+    'BufferCloseBuffersRight',
+    function() require'bufferline.state'.close_buffers_right() end,
+    {desc = 'Close all buffers to the right of the current buffer'}
+  )
+
+  -- Set the options and watchers for when they are edited
+  vim.g.bufferline = vim.tbl_extend('keep', options or {}, DEFAULT_OPTIONS)
+
+  vim.cmd [[
+    " Must be global -_-
+    function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
+      call luaeval("require'bufferline.bbye'.delete('bdelete', false, _A, nil)", a:minwid)
+    endfunction
+
+    " Must be global -_-
+    function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
+      call luaeval("require'bufferline'.main_click_handler(_A[1], nil, _A[2], nil)", [a:minwid, a:btn])
+    endfunction
+
+    " Must be global -_-
+    function! BufferlineOnOptionChanged(dict, key, changes) abort
+      call luaeval("require'bufferline'.on_option_changed(nil, _A, nil)", a:key)
+    endfunction
+
+    call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
+  ]]
+
+  bufferline.enable()
 end
 
 ----------------------------
@@ -200,7 +352,7 @@ end
 --- What to do when `vim.g.bufferline` is changed.
 --- @param key string what option was changed.
 function bufferline.on_option_changed(_, key, _)
-  vim.g.bufferline = vim.tbl_extend('keep', vim.g.bufferline or {}, bufferline.DEFAULT_OPTIONS)
+  vim.g.bufferline = vim.tbl_extend('keep', vim.g.bufferline or {}, DEFAULT_OPTIONS)
   if key == 'letters' then
     require'bufferline.jump_mode'.initialize_indexes()
   end
