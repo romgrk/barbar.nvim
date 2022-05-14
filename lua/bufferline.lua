@@ -247,7 +247,7 @@ function bufferline.setup(options)
   )
 
   -- Set the options and watchers for when they are edited
-  vim.g.bufferline = vim.tbl_extend('keep', options or {}, DEFAULT_OPTIONS)
+  vim.g.bufferline = options and vim.tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
 
   vim.cmd [[
     " Must be global -_-
