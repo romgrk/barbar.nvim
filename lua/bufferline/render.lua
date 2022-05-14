@@ -11,7 +11,6 @@ local state = require'bufferline.state'
 local strwidth = vim.api.nvim_strwidth
 local substring = string.sub
 local utils = require'bufferline.utils'
-local len = utils.len
 
 local HL_BY_ACTIVITY = {
   [0] = 'Inactive',
@@ -48,7 +47,7 @@ local function groups_insert(groups, position, others)
   local new_groups = {}
 
   local i = 1
-  while i <= len(groups) do
+  while i <= #groups do
     local group = groups[i]
     local group_width = strwidth(group[2])
 
@@ -80,7 +79,7 @@ local function groups_insert(groups, position, others)
 
       -- Then, resume adding previous groups
       -- table.insert(new_groups, 'then')
-      while i <= len(groups) do
+      while i <= #groups do
         local previous_group = groups[i]
         local previous_group_width = strwidth(previous_group[2])
         local previous_group_start_position = current_position
@@ -169,7 +168,7 @@ local function render(update_names)
   local buffer_numbers = state.get_updated_buffers(update_names)
 
   if opts.auto_hide then
-    if len(buffer_numbers) <= 1 then
+    if #buffer_numbers <= 1 then
       if vim.o.showtabline == 2 then
         vim.o.showtabline = 0
       end
@@ -348,7 +347,7 @@ local function render(update_names)
       {'',                 state.offset_text},
     }
     result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
-    result = result .. string.rep(' ', offset_available_width - len(state.offset_text))
+    result = result .. string.rep(' ', offset_available_width - #state.offset_text)
     result = result .. ' '
   end
 
@@ -385,7 +384,7 @@ local function render(update_names)
   -- To prevent the expansion of the last click group
   result = result .. '%0@BufferlineMainClickHandler@' .. tabline_hl('BufferTabpageFill')
 
-  if layout.actual_width + strwidth(opts.icon_separator_inactive) <= layout.buffers_width and len(items) > 0 then
+  if layout.actual_width + strwidth(opts.icon_separator_inactive) <= layout.buffers_width and #items > 0 then
     result = result .. opts.icon_separator_inactive
   end
 

@@ -6,7 +6,6 @@ local concat = table.concat
 local list_slice = vim.list_slice
 local substring = string.sub
 local utils = require'bufferline.utils'
-local len = utils.len
 
 local function terminalname(name)
   local result = vim.fn.matchlist(name, [===[term://.\{-}//\d\+:\(.*\)]===])
@@ -77,11 +76,11 @@ local function get_unique_name(first, second)
   local second_result = concat(list_slice(second_parts, -length), separator)
 
   while first_result == second_result and
-        length < math.max(len(first_parts), len(second_parts))
+        length < math.max(#first_parts, #second_parts)
   do
     length = length + 1
-    first_result  = concat(list_slice(first_parts,  -math.min(len(first_parts), length)),  separator)
-    second_result = concat(list_slice(second_parts, -math.min(len(second_parts), length)), separator)
+    first_result  = concat(list_slice(first_parts,  -math.min(#first_parts, length)),  separator)
+    second_result = concat(list_slice(second_parts, -math.min(#second_parts, length)), separator)
   end
 
   return first_result, second_result

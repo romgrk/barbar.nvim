@@ -2,10 +2,6 @@
 -- utils.lua
 --
 
-local function len(value)
-  return #value
-end
-
 local function is_nil(value)
   return value == nil or value == vim.NIL
 end
@@ -36,7 +32,6 @@ local function basename(path)
 end
 
 return {
-  len = len,
   is_nil = is_nil,
   index_of = index_of,
   has = has,

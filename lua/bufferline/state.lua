@@ -147,7 +147,7 @@ end
 
 local function open_buffers(new_buffers)
   local opts = vim.g.bufferline
-  local initial_buffers = utils.len(M.buffers)
+  local initial_buffers = #M.buffers
 
   -- Open next to the currently opened tab
   -- Find the new index where the tab will be inserted
@@ -155,7 +155,7 @@ local function open_buffers(new_buffers)
   if new_index ~= nil then
     new_index = new_index + 1
   else
-    new_index = utils.len(M.buffers) + 1
+    new_index = #M.buffers + 1
   end
 
   -- Insert the buffers where they go
@@ -174,7 +174,7 @@ local function open_buffers(new_buffers)
         actual_index = 1
         new_index = new_index + 1
       elseif should_insert_at_end then
-        actual_index = utils.len(M.buffers) + 1
+        actual_index = #M.buffers + 1
       else
         new_index = new_index + 1
       end
@@ -193,8 +193,8 @@ local function open_buffers(new_buffers)
   -- Case: opening a lot of buffers from a session
   -- We avoid animating here as well as it's a bit
   -- too much work otherwise.
-  if initial_buffers <= 1 and utils.len(new_buffers) > 1 or
-     initial_buffers == 0 and utils.len(new_buffers) == 1
+  if initial_buffers <= 1 and #new_buffers > 1 or
+     initial_buffers == 0 and #new_buffers == 1
   then
     return
   end
@@ -377,7 +377,7 @@ function M.get_updated_buffers(update_names)
   end
 
   -- Add new buffers
-  if utils.len(new_buffers) > 0 then
+  if #new_buffers > 0 then
     did_change = true
 
     open_buffers(new_buffers)
@@ -495,7 +495,7 @@ local function move_buffer_direct(from_idx, to_idx)
 end
 
 local function move_buffer(from_idx, to_idx)
-  to_idx = math.max(1, math.min(utils.len(M.buffers), to_idx))
+  to_idx = math.max(1, math.min(#M.buffers, to_idx))
   if to_idx == from_idx then
     return
   end
@@ -511,7 +511,7 @@ local function move_current_buffer_to(number)
   number = tonumber(number)
   M.get_updated_buffers()
   if number == -1 then
-    number = utils.len(M.buffers)
+    number = #M.buffers
   end
 
   local currentnr = get_current_buf()
@@ -535,8 +535,8 @@ local function goto_buffer (number)
 
   local idx
   if number == -1 then
-    idx = utils.len(M.buffers)
-  elseif number > utils.len(M.buffers) then
+    idx = #M.buffers
+  elseif number > #M.buffers then
     return
   else
     idx = number
@@ -556,7 +556,7 @@ local function goto_buffer_relative(steps)
     print('Couldn\'t find buffer ' .. current .. ' in the list: ' .. vim.inspect(M.buffers))
     return
   else
-    idx = (idx + steps - 1) % utils.len(M.buffers) + 1
+    idx = (idx + steps - 1) % #M.buffers + 1
   end
 
   set_current_buf(M.buffers[idx])
@@ -613,7 +613,7 @@ local function close_buffers_right()
   if idx == nil then
     return
   end
-  for i = utils.len(M.buffers), idx, -1 do
+  for i = #M.buffers, idx, -1 do
     bbye.delete('bdelete', false, M.buffers[i], nil)
   end
   M.update()

@@ -2,7 +2,6 @@
 -- jump_mode.lua
 --
 
-local utils = require'bufferline.utils'
 local state = require'bufferline.state'
 
 ----------------------------------------
@@ -24,7 +23,7 @@ local function initialize_indexes()
   m.buffer_by_letter = {}
   m.letter_by_buffer = {}
 
-  for index = 1, utils.len(m.letters) do
+  for index = 1, #m.letters do
     local letter = string.sub(m.letters, index, index)
     m.index_by_letter[letter] = index
     m.letter_status[index] = false
