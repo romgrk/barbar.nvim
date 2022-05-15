@@ -11,15 +11,15 @@ endfunc
 "========================
 
 function! bufferline#update(...)
-  lua require'bufferline'.update(...)
+  call luaeval("require'bufferline'.update(_A)", get(a:, 1, v:null))
 endfu
 
 function! bufferline#update_async(...)
-  lua require'bufferline'.update_async(...)
+  call luaeval("require'bufferline'.update_async(_A[1], _A[2])", [get(a:, 1, v:null), get(a:, 2, v:null)])
 endfu
 
 function! bufferline#render(update_names) abort
-  lua require'bufferline'.render(update_names)
+  call luaeval("require'bufferline'.render(_A)", a:update_names)
 endfu
 
 function! bufferline#pick_buffer()
