@@ -49,8 +49,7 @@ You can skip the dependency on `'kyazdani42/nvim-web-devicons'` if you
 install [nerd fonts](https://www.nerdfonts.com/).
 
 ##### Requirements
- - Neovim `0.5`
- - `set termguicolors`
+ - Neovim `0.7`
 
 ## Features
 
@@ -273,7 +272,6 @@ let bufferline.letters =
 " Sets the name of unnamed buffers. By default format is "[Buffer X]"
 " where X is the buffer number. But only a static string is accepted here.
 let bufferline.no_name_title = v:null
-
 ```
 
 #### Lua
@@ -421,7 +419,7 @@ call s:hi_link([
 " for the reader.
 ```
 
-[See code for the example above](https://github.com/romgrk/barbar.nvim/blob/master/autoload/bufferline/highlight.vim)
+[See code for the example above](https://github.com/romgrk/barbar.nvim/blob/master/lua/bufferline/highlight.lua)
 
 You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see
@@ -437,21 +435,21 @@ Add this autocmds to your configuration.
 
 ```lua
 vim.api.nvim_create_autocmd('BufWinEnter', {
-	pattern = '*',
-	callback = function()
-		if vim.bo.filetype == 'NvimTree' then
-			require'bufferline.state'.set_offset(31, 'FileTree')
-		end
-	end
+  pattern = '*',
+  callback = function()
+    if vim.bo.filetype == 'NvimTree' then
+      require'bufferline.state'.set_offset(31, 'FileTree')
+    end
+  end
 })
 
 vim.api.nvim_create_autocmd('BufWinLeave', {
-	pattern = '*',
-	callback = function()
-		if vim.fn.expand('<afile>'):match('NvimTree') then
-			require'bufferline.state'.set_offset(0)
-		end
-	end
+  pattern = '*',
+  callback = function()
+    if vim.fn.expand('<afile>'):match('NvimTree') then
+      require'bufferline.state'.set_offset(0)
+    end
+  end
 })
 ```
 
@@ -469,11 +467,11 @@ local nvim_tree_events = require('nvim-tree.events')
 local bufferline_state = require('bufferline.state')
 
 nvim_tree_events.on_tree_open(function ()
-    bufferline_state.set_offset(31, "File Tree")
+  bufferline_state.set_offset(31, "File Tree")
 end)
 
 nvim_tree_events.on_tree_close(function ()
-    bufferline_state.set_offset(0)
+  bufferline_state.set_offset(0)
 end)
 ```
 
@@ -504,5 +502,5 @@ No, barbar has nothing to do with barbarians.
 
 ## License
 
-barbar.nvim: Distributed under the terms of the JSON license.  
-bbye.vim: Distributed under the terms of the GNU Affero license.  
+barbar.nvim: Distributed under the terms of the JSON license.  
+bbye.vim: Distributed under the terms of the GNU Affero license.
