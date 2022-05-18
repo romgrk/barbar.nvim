@@ -65,7 +65,7 @@ end
 
 -- Pinned buffers
 
-local function is_pinned(bufnr)
+function M.is_pinned(bufnr)
   local ok, val = pcall(vim.api.nvim_buf_get_var, bufnr, PIN)
   return ok and val
 end
@@ -74,7 +74,7 @@ local function sort_pins_to_left()
   local pinned = {}
   local unpinned = {}
   for _, bufnr in ipairs(M.buffers) do
-    if is_pinned(bufnr) then
+    if M.is_pinned(bufnr) then
       table_insert(pinned, bufnr)
     else
       table_insert(unpinned, bufnr)
@@ -83,9 +83,9 @@ local function sort_pins_to_left()
   M.buffers = vim.list_extend(pinned, unpinned)
 end
 
-local function toggle_pin(bufnr)
+function M.toggle_pin(bufnr)
   bufnr = bufnr or 0
-  vim.b[bufnr][PIN] = not is_pinned(bufnr)
+  vim.b[bufnr][PIN] = not M.is_pinned(bufnr)
   sort_pins_to_left()
   M.update()
 end
@@ -102,7 +102,7 @@ local function set_scroll_tick(new_scroll, animation)
   M.update()
 end
 
-local function set_scroll(target)
+function M.set_scroll(target)
   M.scroll = target
 
   if scroll_animation ~= nil then
@@ -235,7 +235,7 @@ local function set_current_win_listed_buffer()
   return current
 end
 
-local function open_buffer_in_listed_window(buffer_number)
+function M.open_buffer_in_listed_window(buffer_number)
   set_current_win_listed_buffer()
 
   set_current_buf(buffer_number)
@@ -243,7 +243,7 @@ end
 
 -- Close & cleanup buffers
 
-local function close_buffer(buffer_number, should_update_names)
+function M.close_buffer(buffer_number, should_update_names)
   M.buffers = vim.tbl_filter(function(b) return b ~= buffer_number end, M.buffers)
   M.buffers_by_id[buffer_number] = nil
   if should_update_names then
@@ -260,12 +260,12 @@ local function close_buffer_animated_tick(buffer_number, new_width, animation)
     return
   end
   animate.stop(animation)
-  close_buffer(buffer_number, true)
+  M.close_buffer(buffer_number, true)
 end
 
-local function close_buffer_animated(buffer_number)
+function M.close_buffer_animated(buffer_number)
   if vim.g.bufferline.animation == false then
-    return close_buffer(buffer_number)
+    return M.close_buffer(buffer_number)
   end
   local buffer_data = M.get_buffer_data(buffer_number)
   local current_width = buffer_data.real_width
@@ -369,9 +369,9 @@ function M.get_updated_buffers(update_names)
       did_change = true
 
       if buffer_data.real_width == nil then
-        close_buffer(buffer_number)
+        M.close_buffer(buffer_number)
       else
-        close_buffer_animated(buffer_number)
+        M.close_buffer_animated(buffer_number)
       end
     end
   end
@@ -393,7 +393,7 @@ function M.get_updated_buffers(update_names)
   return M.buffers
 end
 
-local function set_offset(offset, offset_text)
+function M.set_offset(offset, offset_text)
   local offset_number = tonumber(offset)
   if offset_number then
       M.offset = offset_number
@@ -507,7 +507,7 @@ local function move_buffer(from_idx, to_idx)
   end
 end
 
-local function move_current_buffer_to(number)
+function M.move_current_buffer_to(number)
   number = tonumber(number)
   M.get_updated_buffers()
   if number == -1 then
@@ -519,7 +519,7 @@ local function move_current_buffer_to(number)
   move_buffer(idx, number)
 end
 
-local function move_current_buffer (steps)
+function M.move_current_buffer (steps)
   M.get_updated_buffers()
 
   local currentnr = get_current_buf()
@@ -528,7 +528,7 @@ local function move_current_buffer (steps)
   move_buffer(idx, idx + steps)
 end
 
-local function goto_buffer (number)
+function M.goto_buffer (number)
   M.get_updated_buffers()
 
   number = tonumber(number)
@@ -545,7 +545,7 @@ local function goto_buffer (number)
   set_current_buf(M.buffers[idx])
 end
 
-local function goto_buffer_relative(steps)
+function M.goto_buffer_relative(steps)
   M.get_updated_buffers()
 
   local current = set_current_win_listed_buffer()
@@ -565,7 +565,7 @@ end
 
 -- Close commands
 
-local function close_all_but_current()
+function M.close_all_but_current()
   local current = get_current_buf()
   local buffers = M.buffers
   for _, number in ipairs(buffers) do
@@ -576,28 +576,28 @@ local function close_all_but_current()
   M.update()
 end
 
-local function close_all_but_pinned()
+function M.close_all_but_pinned()
   local buffers = M.buffers
   for _, number in ipairs(buffers) do
-    if not is_pinned(number) then
+    if not M.is_pinned(number) then
       bbye.delete('bdelete', false, number, nil)
     end
   end
   M.update()
 end
 
-local function close_all_but_current_or_pinned()
+function M.close_all_but_current_or_pinned()
   local buffers = M.buffers
   local current = get_current_buf()
   for _, number in ipairs(buffers) do
-    if not is_pinned(number) and number ~= current then
+    if not M.is_pinned(number) and number ~= current then
       bbye.delete('bdelete', false, number, nil)
     end
   end
   M.update()
 end
 
-local function close_buffers_left()
+function M.close_buffers_left()
   local idx = utils.index_of(M.buffers, get_current_buf()) - 1
   if idx == nil then
     return
@@ -608,7 +608,7 @@ local function close_buffers_left()
   M.update()
 end
 
-local function close_buffers_right()
+function M.close_buffers_right()
   local idx = utils.index_of(M.buffers, get_current_buf()) + 1
   if idx == nil then
     return
@@ -624,8 +624,8 @@ end
 
 local function with_pin_order(order_func)
   return function(a, b)
-    local a_pinned = is_pinned(a)
-    local b_pinned = is_pinned(b)
+    local a_pinned = M.is_pinned(a)
+    local b_pinned = M.is_pinned(b)
     if a_pinned and not b_pinned then
       return true
     elseif b_pinned and not a_pinned then
@@ -640,14 +640,14 @@ local function is_relative_path(path)
    return vim.fn.fnamemodify(path, ':p') ~= path
 end
 
-local function order_by_buffer_number()
+function M.order_by_buffer_number()
   table.sort(M.buffers, function(a, b)
     return a < b
   end)
   M.update()
 end
 
-local function order_by_directory()
+function M.order_by_directory()
   table.sort(
     M.buffers,
     with_pin_order(function(a, b)
@@ -667,7 +667,7 @@ local function order_by_directory()
   M.update()
 end
 
-local function order_by_language()
+function M.order_by_language()
   table.sort(
     M.buffers,
     with_pin_order(function(a, b)
@@ -679,7 +679,7 @@ local function order_by_language()
   M.update()
 end
 
-local function order_by_window_number()
+function M.order_by_window_number()
   table.sort(
     M.buffers,
     with_pin_order(function(a, b)
@@ -693,7 +693,7 @@ end
 
 -- vim-session integration
 
-local function on_pre_save()
+function M.on_pre_save()
   -- We're allowed to use relative paths for buffers iff there are no tabpages
   -- or windows with a local directory (:tcd and :lcd)
   local use_relative_file_paths = true
@@ -728,7 +728,7 @@ local function on_pre_save()
   vim.g.session_save_commands = commands
 end
 
-local function restore_buffers(bufnames)
+function M.restore_buffers(bufnames)
   -- Close all empty buffers. Loading a session may call :tabnew several times
   -- and create useless empty buffers.
   for _,bufnr in ipairs(list_bufs()) do
@@ -749,33 +749,4 @@ local function restore_buffers(bufnames)
 end
 
 -- Exports
-
-M.set_scroll = set_scroll
-M.set_offset = set_offset
-
-M.open_buffer_in_listed_window = open_buffer_in_listed_window
-
-M.close_buffer = close_buffer
-M.close_buffer_animated = close_buffer_animated
-M.close_all_but_current = close_all_but_current
-M.close_all_but_pinned = close_all_but_pinned
-M.close_all_but_current_or_pinned = close_all_but_current_or_pinned
-M.close_buffers_right = close_buffers_right
-M.close_buffers_left = close_buffers_left
-
-M.is_pinned = is_pinned
-M.move_current_buffer_to = move_current_buffer_to
-M.move_current_buffer = move_current_buffer
-M.goto_buffer = goto_buffer
-M.goto_buffer_relative = goto_buffer_relative
-
-M.toggle_pin = toggle_pin
-M.order_by_buffer_number = order_by_buffer_number
-M.order_by_directory = order_by_directory
-M.order_by_language = order_by_language
-M.order_by_window_number = order_by_window_number
-
-M.on_pre_save = on_pre_save
-M.restore_buffers = restore_buffers
-
 return M

@@ -18,7 +18,7 @@ local HL_BY_ACTIVITY = {
   [2] = 'Current',
 }
 
-local function tabline_hl(name)
+local function hl_tabline(name)
    return '%#' .. name .. '#'
 end
 
@@ -222,12 +222,12 @@ local function render(update_names)
     local status = HL_BY_ACTIVITY[activity]
     local mod = is_modified and 'Mod' or ''
 
-    local separatorPrefix = tabline_hl('Buffer' .. status .. 'Sign')
+    local separatorPrefix = hl_tabline('Buffer' .. status .. 'Sign')
     local separator = is_inactive and
       opts.icon_separator_inactive or
       opts.icon_separator_active
 
-    local namePrefix = tabline_hl('Buffer' .. status .. mod)
+    local namePrefix = hl_tabline('Buffer' .. status .. mod)
     local name = buffer_name
 
     -- The buffer name
@@ -248,7 +248,7 @@ local function render(update_names)
           tostring(buffer_number) or
           tostring(i)
 
-      bufferIndexPrefix = tabline_hl('Buffer' .. status .. 'Index')
+      bufferIndexPrefix = hl_tabline('Buffer' .. status .. 'Index')
       bufferIndex = number_text .. ' '
     end
 
@@ -260,7 +260,7 @@ local function render(update_names)
         name = substring(name, 2)
       end
 
-      jumpLetterPrefix = tabline_hl('Buffer' .. status .. 'Target')
+      jumpLetterPrefix = hl_tabline('Buffer' .. status .. 'Target')
       jumpLetter = (letter or '') ..
         (has_icons and (' ' .. (letter and '' or ' ')) or '')
     else
@@ -268,7 +268,7 @@ local function render(update_names)
       if has_icons then
         local iconChar, iconHl = icons.get_icon(buffer_name, vim.bo[buffer_number].filetype, status)
         local hlName = is_inactive and 'BufferInactive' or iconHl
-        iconPrefix = has_icon_custom_colors and tabline_hl('Buffer' .. status .. 'Icon') or hlName and tabline_hl(hlName) or namePrefix
+        iconPrefix = has_icon_custom_colors and hl_tabline('Buffer' .. status .. 'Icon') or hlName and hl_tabline(hlName) or namePrefix
         icon = iconChar .. ' '
       end
     end
@@ -343,7 +343,7 @@ local function render(update_names)
   if state.offset and state.offset > 0 then
     local offset_available_width = state.offset - 2
     local groups = {
-      {tabline_hl('BufferOffset'), ' '},
+      {hl_tabline('BufferOffset'), ' '},
       {'',                 state.offset_text},
     }
     result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
@@ -353,7 +353,7 @@ local function render(update_names)
 
   -- Add bufferline
   local bufferline_groups = {
-    { tabline_hl('BufferTabpageFill'), string.rep(' ', layout.actual_width) }
+    { hl_tabline('BufferTabpageFill'), string.rep(' ', layout.actual_width) }
   }
 
   for i, item in ipairs(items) do
@@ -382,7 +382,7 @@ local function render(update_names)
   result = result .. groups_to_string(bufferline_groups)
 
   -- To prevent the expansion of the last click group
-  result = result .. '%0@BufferlineMainClickHandler@' .. tabline_hl('BufferTabpageFill')
+  result = result .. '%0@BufferlineMainClickHandler@' .. hl_tabline('BufferTabpageFill')
 
   if layout.actual_width + strwidth(opts.icon_separator_inactive) <= layout.buffers_width and #items > 0 then
     result = result .. opts.icon_separator_inactive
@@ -394,7 +394,7 @@ local function render(update_names)
     result = result .. '%=%#BufferTabpages# ' .. tostring(current_tabpage) .. '/' .. tostring(total_tabpages) .. ' '
   end
 
-  result = result .. tabline_hl('BufferTabpageFill')
+  result = result .. hl_tabline('BufferTabpageFill')
 
   return result
 end
@@ -406,9 +406,7 @@ end
 
 -- print(render(state.buffers))
 
-local exports = {
+return {
   render = render,
   render_safe = render_safe,
 }
-
-return exports

@@ -4,7 +4,6 @@
 
 local Buffer = require'bufferline.buffer'
 local strwidth = vim.api.nvim_strwidth
-local utils = require'bufferline.utils'
 
 local SIDES_OF_BUFFER = 2
 
@@ -121,11 +120,9 @@ local function calculate_width(buffer_name, base_width, padding_width)
   return strwidth(buffer_name) + base_width + padding_width * SIDES_OF_BUFFER
 end
 
-local exports = {
+return {
   calculate = calculate,
   calculate_buffers_width = calculate_buffers_width,
   calculate_buffers_position_by_buffer_number = calculate_buffers_position_by_buffer_number,
   calculate_width = calculate_width,
 }
-
-return exports

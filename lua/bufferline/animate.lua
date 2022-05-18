@@ -68,7 +68,6 @@ local function stop(state)
   state.timer:stop()
 end
 
-
 return {
   start = start,
   stop = stop,

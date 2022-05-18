@@ -8,7 +8,7 @@ local state = require'bufferline.state'
 -- Section: Buffer-picking mode state --
 ----------------------------------------
 
-local m = {
+local M = {
   letters = vim.g.bufferline.letters, -- array
   index_by_letter = {}, -- object
   letter_status = {}, -- array
@@ -17,27 +17,27 @@ local m = {
 }
 
 -- Initialize m.index_by_letter
-local function initialize_indexes()
-  m.index_by_letter = {}
-  m.letter_status = {}
-  m.buffer_by_letter = {}
-  m.letter_by_buffer = {}
+function M.initialize_indexes()
+  M.index_by_letter = {}
+  M.letter_status = {}
+  M.buffer_by_letter = {}
+  M.letter_by_buffer = {}
 
-  for index = 1, #m.letters do
-    local letter = string.sub(m.letters, index, index)
-    m.index_by_letter[letter] = index
-    m.letter_status[index] = false
+  for index = 1, #M.letters do
+    local letter = string.sub(M.letters, index, index)
+    M.index_by_letter[letter] = index
+    M.letter_status[index] = false
   end
 end
 
-initialize_indexes()
+M.initialize_indexes()
 
 -- local empty_bufnr = vim.api.nvim_create_buf(0, 1)
 
-local function assign_next_letter(bufnr)
+function M.assign_next_letter(bufnr)
   bufnr = tonumber(bufnr)
 
-  if m.letter_by_buffer[bufnr] ~= nil then
+  if M.letter_by_buffer[bufnr] ~= nil then
     return
   end
 
@@ -48,14 +48,14 @@ local function assign_next_letter(bufnr)
     for i = 1, vim.api.nvim_strwidth(name) do
       local letter = string.lower(string.sub(name, i, i))
 
-      if m.index_by_letter[letter] ~= nil then
-        local index = m.index_by_letter[letter]
-        local status = m.letter_status[index]
+      if M.index_by_letter[letter] ~= nil then
+        local index = M.index_by_letter[letter]
+        local status = M.letter_status[index]
         if status == false then
-          m.letter_status[index] = true
+          M.letter_status[index] = true
           -- letter = m.letters[index]
-          m.buffer_by_letter[letter] = bufnr
-          m.letter_by_buffer[bufnr] = letter
+          M.buffer_by_letter[letter] = bufnr
+          M.letter_by_buffer[bufnr] = letter
           return letter
         end
       end
@@ -63,12 +63,12 @@ local function assign_next_letter(bufnr)
   end
 
   -- Otherwise, assign a letter by usable order
-  for i, status in ipairs(m.letter_status) do
+  for i, status in ipairs(M.letter_status) do
     if status == false then
-      local letter = m.letters:sub(i, i)
-      m.letter_status[i] = true
-      m.buffer_by_letter[letter] = bufnr
-      m.letter_by_buffer[bufnr] = letter
+      local letter = M.letters:sub(i, i)
+      M.letter_status[i] = true
+      M.buffer_by_letter[letter] = bufnr
+      M.letter_by_buffer[bufnr] = letter
       return letter
     end
   end
@@ -76,35 +76,35 @@ local function assign_next_letter(bufnr)
   return nil
 end
 
-local function unassign_letter(letter)
+function M.unassign_letter(letter)
   if letter == '' or letter == nil then
     return
   end
 
-  local index = m.index_by_letter[letter]
+  local index = M.index_by_letter[letter]
 
-  m.letter_status[index] = false
+  M.letter_status[index] = false
 
-  if m.buffer_by_letter[letter] ~= nil then
-    local bufnr = m.buffer_by_letter[letter]
-    m.buffer_by_letter[letter] = nil
-    m.letter_by_buffer[bufnr] = nil
+  if M.buffer_by_letter[letter] ~= nil then
+    local bufnr = M.buffer_by_letter[letter]
+    M.buffer_by_letter[letter] = nil
+    M.letter_by_buffer[bufnr] = nil
   end
 end
 
-local function get_letter(bufnr)
-   if m.letter_by_buffer[bufnr] ~= nil then
-      return m.letter_by_buffer[bufnr]
+function M.get_letter(bufnr)
+   if M.letter_by_buffer[bufnr] ~= nil then
+      return M.letter_by_buffer[bufnr]
    end
-   return assign_next_letter(bufnr)
+   return M.assign_next_letter(bufnr)
 end
 
-local function unassign_letter_for(bufnr)
-  unassign_letter(get_letter(bufnr))
+function M.unassign_letter_for(bufnr)
+  M.unassign_letter(M.get_letter(bufnr))
 end
 
 
-local function activate()
+function M.activate()
   state.is_picking_buffer = true
   state.update()
   vim.api.nvim_command('redraw')
@@ -116,8 +116,8 @@ local function activate()
     local letter = vim.fn.nr2char(char)
 
     if letter ~= '' then
-      if m.buffer_by_letter[letter] ~= nil then
-        vim.api.nvim_set_current_buf(m.buffer_by_letter[letter])
+      if M.buffer_by_letter[letter] ~= nil then
+        vim.api.nvim_set_current_buf(M.buffer_by_letter[letter])
       else
         vim.notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
       end
@@ -130,11 +130,4 @@ local function activate()
   vim.api.nvim_command('redraw')
 end
 
-m.activate = activate
-m.get_letter = get_letter
-m.unassign_letter = unassign_letter
-m.unassign_letter_for = unassign_letter_for
-m.assign_next_letter = assign_next_letter
-m.initialize_indexes = initialize_indexes
-
-return m
+return M
