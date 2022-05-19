@@ -125,7 +125,7 @@ function bbye.delete(action, force, buffer, mods)
       -- Bprevious also wraps around the buffer list, if necessary:
       local no_errors = pcall(function()
         local previous_buffer = vim.fn.bufnr '#'
-        if previous_buffer > 0 and vim.api.nvim_buf_is_loaded(previous_buffer) then
+        if previous_buffer > 0 and vim.fn.buflisted(previous_buffer) then
           vim.api.nvim_set_current_buf(previous_buffer)
         else
           vim.api.nvim_command 'bprevious'
@@ -158,7 +158,7 @@ function bbye.delete(action, force, buffer, mods)
   --
   -- Using buflisted() over bufexists() because bufhidden=delete causes the
   -- buffer to still _exist_ even though it won't be :bdelete-able.
-  if vim.api.nvim_buf_is_loaded(buffer_number) and buffer_number ~= vim.api.nvim_get_current_buf() then
+  if vim.fn.buflisted(buffer_number) and buffer_number ~= vim.api.nvim_get_current_buf() then
     local no_errors = pcall(function()
       vim.api.nvim_command(mods .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
     end)
