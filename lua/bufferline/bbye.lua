@@ -101,7 +101,7 @@ function bbye.delete(action, force, buffer, mods)
     return
   end
 
-  vim.w.bbye_back = true
+  local current_window = vim.api.nvim_get_current_win()
 
   -- If the buffer is set to delete and it contains changes, we can't switch
   -- away from it. Hide it before eventual deleting:
@@ -111,13 +111,13 @@ function bbye.delete(action, force, buffer, mods)
 
   -- For cases where adding buffers causes new windows to appear or hiding some
   -- causes windows to disappear and thereby decrement, loop backwards.
-  local window_numbers = vim.api.nvim_list_wins()
-  local window_numbers_reversed = {}
-  while #window_numbers_reversed < #window_numbers do
-    window_numbers_reversed[#window_numbers_reversed + 1] = window_numbers[#window_numbers - #window_numbers_reversed]
+  local window_ids = vim.api.nvim_list_wins()
+  local window_ids_reversed = {}
+  while #window_ids_reversed < #window_ids do
+    window_ids_reversed[#window_ids_reversed + 1] = window_ids[#window_ids - #window_ids_reversed]
   end
 
-  for _, window_number in ipairs(window_numbers_reversed) do
+  for _, window_number in ipairs(window_ids_reversed) do
     -- For invalid window numbers, winbufnr returns -1.
     if vim.api.nvim_win_get_buf(window_number) == buffer_number then
       vim.api.nvim_set_current_win(window_number)
@@ -144,13 +144,8 @@ function bbye.delete(action, force, buffer, mods)
     end
   end
 
-  -- Because tabbars and other appearing/disappearing windows change
-  -- the window numbers, find where we were manually:
-  for _, window in ipairs(window_numbers) do
-    if vim.w[window].bbye_back then
-      vim.api.nvim_command '1wincmd w'
-      vim.w.bbye_back = nil
-    end
+  if vim.api.nvim_win_is_valid(current_window) then
+    vim.api.nvim_set_current_win(current_window)
   end
 
   -- If it hasn't been already deleted by &bufhidden, end its pains now.
