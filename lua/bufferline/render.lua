@@ -8,8 +8,8 @@ local icons = require'bufferline.icons'
 local JumpMode = require'bufferline.jump_mode'
 local Layout = require'bufferline.layout'
 local state = require'bufferline.state'
+local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
-local substring = string.sub
 local utils = require'bufferline.utils'
 
 local HL_BY_ACTIVITY = {
@@ -63,7 +63,7 @@ local function groups_insert(groups, position, others)
 
       -- Slice current group if it `position` is inside it
       if available_width > 0 then
-        local new_group = { group[1], substring(group[2], 1, available_width) }
+        local new_group = { group[1], strcharpart(group[2], 0, available_width) }
         table.insert(new_groups, new_group)
       end
 
@@ -92,9 +92,9 @@ local function groups_insert(groups, position, others)
           table.insert(new_groups, previous_group)
         else
           local remaining_width = previous_group_end_position - end_position
-          local start = previous_group_width + 1 - remaining_width
+          local start = previous_group_width - remaining_width
           local end_  = previous_group_width
-          local new_group = { previous_group[1], substring(previous_group[2], start, end_) }
+          local new_group = { previous_group[1], strcharpart(previous_group[2], start, end_) }
           -- table.insert(new_groups, { group_start_position, group_end_position, end_position })
           table.insert(new_groups, new_group)
         end
@@ -124,7 +124,7 @@ local function slice_groups_right(groups, width)
 
     if accumulated_width >= width then
       local diff = text_width - (accumulated_width - width)
-      local new_group = {hl, substring(text, 0, diff)}
+      local new_group = {hl, strcharpart(text, 0, diff)}
       table.insert(new_groups, new_group)
       break
     end
@@ -150,7 +150,7 @@ local function slice_groups_left(groups, width)
     if accumulated_width >= width then
       local length = text_width - (accumulated_width - width)
       local start = text_width - length
-      local new_group = {hl, substring(text, start, length)}
+      local new_group = {hl, strcharpart(text, start, length)}
       table.insert(new_groups, 1, new_group)
       break
     end
@@ -257,7 +257,7 @@ local function render(update_names)
 
       -- Replace first character of buf name with jump letter
       if letter and not has_icons then
-        name = substring(name, 2)
+        name = strcharpart(name, 1)
       end
 
       jumpLetterPrefix = hl_tabline('Buffer' .. status .. 'Target')

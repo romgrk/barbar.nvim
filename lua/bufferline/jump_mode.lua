@@ -3,6 +3,7 @@
 --
 
 local state = require'bufferline.state'
+local strcharpart = vim.fn.strcharpart
 
 ----------------------------------------
 -- Section: Buffer-picking mode state --
@@ -24,7 +25,7 @@ function M.initialize_indexes()
   M.letter_by_buffer = {}
 
   for index = 1, #M.letters do
-    local letter = string.sub(M.letters, index, index)
+    local letter = strcharpart(M.letters, index - 1, index)
     M.index_by_letter[letter] = index
     M.letter_status[index] = false
   end
@@ -46,7 +47,7 @@ function M.assign_next_letter(bufnr)
     local name = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t:r')
 
     for i = 1, vim.api.nvim_strwidth(name) do
-      local letter = string.lower(string.sub(name, i, i))
+      local letter = string.lower(strcharpart(name, i - 1, i))
 
       if M.index_by_letter[letter] ~= nil then
         local index = M.index_by_letter[letter]
