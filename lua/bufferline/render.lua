@@ -67,7 +67,7 @@ local function groups_insert(groups, position, others)
   local i = 1
   while i <= len(groups) do
     local group = groups[i]
-    local group_width = strwidth(group[2])
+    local group_width = strwidth(group[3] or group[2])
 
     -- While we haven't found the position...
     if current_position + group_width <= position then
@@ -81,14 +81,14 @@ local function groups_insert(groups, position, others)
 
       -- Slice current group if it `position` is inside it
       if available_width > 0 then
-        local new_group = { group[1], slice(group[2], 1, available_width) }
+        local new_group = { group[1], slice(group[3] or group[2], 1, available_width) }
         table.insert(new_groups, new_group)
       end
 
       -- Add new other groups
       local others_width = 0
       for j, other in ipairs(others) do
-        local other_width = strwidth(other[2])
+        local other_width = strwidth(other[3] or other[2])
         others_width = others_width + other_width
         table.insert(new_groups, other)
       end
@@ -99,7 +99,7 @@ local function groups_insert(groups, position, others)
       -- table.insert(new_groups, 'then')
       while i <= len(groups) do
         local group = groups[i]
-        local group_width = strwidth(group[2])
+        local group_width = strwidth(group[3] or group[2])
         local group_start_position = current_position
         local group_end_position   = current_position + group_width
 
@@ -135,7 +135,7 @@ local function slice_groups_right(groups, width)
 
   for i, group in ipairs(groups) do
     local hl   = group[1]
-    local text = group[2]
+    local text = group[3] or group[2]
     local text_width = strwidth(text)
 
     accumulated_width = accumulated_width + text_width
@@ -160,7 +160,7 @@ local function slice_groups_left(groups, width)
 
   for i, group in ipairs(reverse(groups)) do
     local hl   = group[1]
-    local text = group[2]
+    local text = group[3] or group[2]
     local text_width = strwidth(text)
 
     accumulated_width = accumulated_width + text_width
@@ -230,6 +230,12 @@ local function render(update_names)
     buffer_data.real_width    = Layout.calculate_width(buffer_name, layout.base_width, layout.padding_width)
     buffer_data.real_position = current_position
 
+    -- WARN: We have to escape the name of the buffer in case it contains '%',
+    --       which is a special character to the tabline. To escape '%', we make
+    --       it '%%'. It just so happens that '%' is also a special character in
+    --       Lua, so we have write '%%' to mean '%'.
+    local buffer_name_sanitized = buffer_name:gsub('%%', '%%%%')
+
     local activity = Buffer.get_activity(buffer_number)
     local is_inactive = activity == 0
     local is_visible = activity == 1
@@ -247,7 +253,6 @@ local function render(update_names)
       opts.icon_separator_active
 
     local namePrefix = hl('Buffer' .. status .. mod)
-    local name = buffer_name
 
     -- The buffer name
     local bufferIndexPrefix = ''
@@ -276,7 +281,7 @@ local function render(update_names)
 
       -- Replace first character of buf name with jump letter
       if letter and not has_icons then
-        name = slice(name, 2)
+        buffer_name_sanitized = slice(buffer_name_sanitized, 2)
       end
 
       jumpLetterPrefix = hl('Buffer' .. status .. 'Target')
@@ -331,7 +336,7 @@ local function render(update_names)
         {bufferIndexPrefix,  bufferIndex},
         {iconPrefix,         icon},
         {jumpLetterPrefix,   jumpLetter},
-        {namePrefix,         name},
+        {namePrefix,         buffer_name_sanitized, buffer_name},
         {'',                 padding},
         {'',                 ' '},
         {closePrefix,        close},
