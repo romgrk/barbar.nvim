@@ -637,7 +637,7 @@ local function with_pin_order(order_func)
 end
 
 local function is_relative_path(path)
-   return vim.fn.fnamemodify(path, ':p') ~= path
+  return vim.fn.fnamemodify(path, ':p') ~= path
 end
 
 function M.order_by_buffer_number()

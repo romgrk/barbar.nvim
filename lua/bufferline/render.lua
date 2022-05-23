@@ -19,7 +19,7 @@ local HL_BY_ACTIVITY = {
 }
 
 local function hl_tabline(name)
-   return '%#' .. name .. '#'
+  return '%#' .. name .. '#'
 end
 
 -- A "group" is an array with the format { HL_GROUP, TEXT_CONTENT }

@@ -1,10 +1,10 @@
-*barbar.txt*	Nvim
+*barbar.txt*                      Nvim
 
 
-		  barbar.vim    by Rom Grk
+                      barbar.vim    by Rom Grk
 
 
-Help on barbar.vim   			         		*barbar*
+Help on barbar.vim                                                    *barbar*
 
 1. Intro                        |barbar-intro|
 2. Mappings & Commands          |barbar-mappings| |barbar-commands|
@@ -29,50 +29,50 @@ window layout.
 The name of each command should be descriptive enough for you to use it.
 
 >
-   " Move to previous/next
-   nnoremap <silent>    <A-,> :BufferPrevious<CR>
-   nnoremap <silent>    <A-.> :BufferNext<CR>
+    " Move to previous/next
+    nnoremap <silent>    <A-,> :BufferPrevious<CR>
+    nnoremap <silent>    <A-.> :BufferNext<CR>
 
-   " Re-order to previous/next
-   nnoremap <silent>    <A-<> :BufferMovePrevious<CR>
-   nnoremap <silent>    <A->> :BufferMoveNext<CR>
+    " Re-order to previous/next
+    nnoremap <silent>    <A-<> :BufferMovePrevious<CR>
+    nnoremap <silent>    <A->> :BufferMoveNext<CR>
 
-   " Goto buffer in position...
-   nnoremap <silent>    <A-1> :BufferGoto 1<CR>
-   nnoremap <silent>    <A-2> :BufferGoto 2<CR>
-   nnoremap <silent>    <A-3> :BufferGoto 3<CR>
-   nnoremap <silent>    <A-4> :BufferGoto 4<CR>
-   nnoremap <silent>    <A-5> :BufferGoto 5<CR>
-   nnoremap <silent>    <A-6> :BufferGoto 6<CR>
-   nnoremap <silent>    <A-7> :BufferGoto 7<CR>
-   nnoremap <silent>    <A-8> :BufferGoto 8<CR>
-   nnoremap <silent>    <A-9> :BufferLast<CR>
-   " Pin/unpin buffer
-   nnoremap <silent>    <A-p> :BufferPin<CR>
-   " Close buffer
-   nnoremap <silent>    <A-c> :BufferClose<CR>
+    " Goto buffer in position...
+    nnoremap <silent>    <A-1> :BufferGoto 1<CR>
+    nnoremap <silent>    <A-2> :BufferGoto 2<CR>
+    nnoremap <silent>    <A-3> :BufferGoto 3<CR>
+    nnoremap <silent>    <A-4> :BufferGoto 4<CR>
+    nnoremap <silent>    <A-5> :BufferGoto 5<CR>
+    nnoremap <silent>    <A-6> :BufferGoto 6<CR>
+    nnoremap <silent>    <A-7> :BufferGoto 7<CR>
+    nnoremap <silent>    <A-8> :BufferGoto 8<CR>
+    nnoremap <silent>    <A-9> :BufferLast<CR>
+    " Pin/unpin buffer
+    nnoremap <silent>    <A-p> :BufferPin<CR>
+    " Close buffer
+    nnoremap <silent>    <A-c> :BufferClose<CR>
 
-   " Wipeout buffer
-   "                          :BufferWipeout<CR>
-   " Close commands
-   "                          :BufferCloseAllButCurrent<CR>
-   "                          :BufferCloseAllButPinned<CR>
-   "                          :BufferCloseAllButCurrentOrPinned<CR>
-   "                          :BufferCloseBuffersLeft<CR>
-   "                          :BufferCloseBuffersRight<CR>
+    " Wipeout buffer
+    "                          :BufferWipeout<CR>
+    " Close commands
+    "                          :BufferCloseAllButCurrent<CR>
+    "                          :BufferCloseAllButPinned<CR>
+    "                          :BufferCloseAllButCurrentOrPinned<CR>
+    "                          :BufferCloseBuffersLeft<CR>
+    "                          :BufferCloseBuffersRight<CR>
 
-   " Magic buffer-picking mode
-   nnoremap <silent> <C-s>    :BufferPick<CR>
+    " Magic buffer-picking mode
+    nnoremap <silent> <C-s>    :BufferPick<CR>
 
-   " Sort automatically by...
-   nnoremap <silent> <Space>bb :BufferOrderByBufferNumber<CR>
-   nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
-   nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
-   nnoremap <silent> <Space>bw :BufferOrderByWindowNumber<CR>
+    " Sort automatically by...
+    nnoremap <silent> <Space>bb :BufferOrderByBufferNumber<CR>
+    nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
+    nnoremap <silent> <Space>bl :BufferOrderByLanguage<CR>
+    nnoremap <silent> <Space>bw :BufferOrderByWindowNumber<CR>
 
-   " Other:
-   " :BarbarEnable - enables barbar (enabled by default)
-   " :BarbarDisable - very bad command, should never be used
+    " Other:
+    " :BarbarEnable - enables barbar (enabled by default)
+    " :BarbarDisable - very bad command, should never be used
 <
 
 ==============================================================================
@@ -82,221 +82,222 @@ The name of each command should be descriptive enough for you to use it.
 Here are the groups that you should define if you'd like to style Barbar.
 
 >
-   let fg_target = 'red'
+    let fg_target = 'red'
 
-   let fg_current  = s:fg(['Normal'], '#efefef')
-   let fg_visible  = s:fg(['TabLineSel'], '#efefef')
-   let fg_inactive = s:fg(['TabLineFill'], '#888888')
+    let fg_current  = s:fg(['Normal'], '#efefef')
+    let fg_visible  = s:fg(['TabLineSel'], '#efefef')
+    let fg_inactive = s:fg(['TabLineFill'], '#888888')
 
-   let fg_modified  = s:fg(['WarningMsg'], '#E5AB0E')
-   let fg_special  = s:fg(['Special'], '#599eff')
-   let fg_subtle  = s:fg(['NonText', 'Comment'], '#555555')
+    let fg_modified  = s:fg(['WarningMsg'], '#E5AB0E')
+    let fg_special  = s:fg(['Special'], '#599eff')
+    let fg_subtle  = s:fg(['NonText', 'Comment'], '#555555')
 
-   let bg_current  = s:bg(['Normal'], '#000000')
-   let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
-   let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
+    let bg_current  = s:bg(['Normal'], '#000000')
+    let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
+    let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
 
-   " Meaning of terms:
-   "
-   " format: "Buffer" + status + part
-   "
-   " status:
-   "     *Current: current buffer
-   "     *Visible: visible but not current buffer
-   "    *Inactive: invisible but not current buffer
-   "
-   " part:
-   "        *Icon: filetype icon
-   "       *Index: buffer index
-   "         *Mod: when modified
-   "        *Sign: the separator between buffers
-   "      *Target: letter in buffer-picking mode
-   "
-   " BufferTabpages: tabpage indicator
-   " BufferTabpageFill: filler after the buffer section
-   " BufferOffset: offset section, created with set_offset()
+    " Meaning of terms:
+    "
+    " format: "Buffer" + status + part
+    "
+    " status:
+    "     *Current: current buffer
+    "     *Visible: visible but not current buffer
+    "    *Inactive: invisible but not current buffer
+    "
+    " part:
+    "        *Icon: filetype icon
+    "       *Index: buffer index
+    "         *Mod: when modified
+    "        *Sign: the separator between buffers
+    "      *Target: letter in buffer-picking mode
+    "
+    " BufferTabpages: tabpage indicator
+    " BufferTabpageFill: filler after the buffer section
+    " BufferOffset: offset section, created with set_offset()
 
-   call s:hi_all([
-   \ ['BufferCurrent',        fg_current,  bg_current],
-   \ ['BufferCurrentIndex',   fg_special,  bg_current],
-   \ ['BufferCurrentMod',     fg_modified, bg_current],
-   \ ['BufferCurrentSign',    fg_special,  bg_current],
-   \ ['BufferCurrentTarget',  fg_target,   bg_current,   'bold'],
-   \ ['BufferVisible',        fg_visible,  bg_visible],
-   \ ['BufferVisibleIndex',   fg_visible,  bg_visible],
-   \ ['BufferVisibleMod',     fg_modified, bg_visible],
-   \ ['BufferVisibleSign',    fg_visible,  bg_visible],
-   \ ['BufferVisibleTarget',  fg_target,   bg_visible,   'bold'],
-   \ ['BufferInactive',       fg_inactive, bg_inactive],
-   \ ['BufferInactiveIndex',  fg_subtle,   bg_inactive],
-   \ ['BufferInactiveMod',    fg_modified, bg_inactive],
-   \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
-   \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
-   \ ['BufferTabpages',       fg_special,  bg_inactive, 'bold'],
-   \ ['BufferTabpageFill',    fg_inactive, bg_inactive],
-   \ ])
+    call s:hi_all([
+    \ ['BufferCurrent',        fg_current,  bg_current],
+    \ ['BufferCurrentIndex',   fg_special,  bg_current],
+    \ ['BufferCurrentMod',     fg_modified, bg_current],
+    \ ['BufferCurrentSign',    fg_special,  bg_current],
+    \ ['BufferCurrentTarget',  fg_target,   bg_current,   'bold'],
+    \ ['BufferVisible',        fg_visible,  bg_visible],
+    \ ['BufferVisibleIndex',   fg_visible,  bg_visible],
+    \ ['BufferVisibleMod',     fg_modified, bg_visible],
+    \ ['BufferVisibleSign',    fg_visible,  bg_visible],
+    \ ['BufferVisibleTarget',  fg_target,   bg_visible,   'bold'],
+    \ ['BufferInactive',       fg_inactive, bg_inactive],
+    \ ['BufferInactiveIndex',  fg_subtle,   bg_inactive],
+    \ ['BufferInactiveMod',    fg_modified, bg_inactive],
+    \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
+    \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
+    \ ['BufferTabpages',       fg_special,  bg_inactive, 'bold'],
+    \ ['BufferTabpageFill',    fg_inactive, bg_inactive],
+    \ ])
 
-   call s:hi_link([
-   \ ['BufferCurrentIcon',  'BufferCurrent'],
-   \ ['BufferVisibleIcon',  'BufferVisible'],
-   \ ['BufferInactiveIcon', 'BufferInactive'],
-   \ ['BufferOffset',       'BufferTabpageFill'],
-   \ ])
+    call s:hi_link([
+    \ ['BufferCurrentIcon',  'BufferCurrent'],
+    \ ['BufferVisibleIcon',  'BufferVisible'],
+    \ ['BufferInactiveIcon', 'BufferInactive'],
+    \ ['BufferOffset',       'BufferTabpageFill'],
+    \ ])
 
-   " NOTE: this is an example taken from the source, implementation of
-   " s:fg(), s:bg(), s:hi_all() and s:hi_link() is left as an exercise
-   " for the reader.
+    " NOTE: this is an example taken from the source, implementation of
+    " s:fg(), s:bg(), s:hi_all() and s:hi_link() is left as an exercise
+    " for the reader.
 <
 
 ==============================================================================
 4. Settings                                                  *barbar-settings*
 ~
 
-					            *g:bufferline.animation*
-`g:bufferline.animation`	boolean	(default v:true)
+                                                      *g:bufferline.animation*
+`g:bufferline.animation` boolean  (default |v:true|)
 
-	Enables animations.
+  Enables animations.
 
-					            *g:bufferline.auto_hide*
-`g:bufferline.auto_hide`	boolean	(default v:false)
+                                                      *g:bufferline.auto_hide*
+`g:bufferline.auto_hide`  boolean  (default |v:false|)
 
-	Enable/disable auto-hiding the tab bar when there is a single buffer.
+  Enable/disable auto-hiding the tab bar when there is a single buffer.
 
-                                                     *g:bufferline.tabpages*
-`g:bufferline.tabpages`         boolean (default v:true)
+                                                       *g:bufferline.tabpages*
+`g:bufferline.tabpages`  boolean  (default |v:true|)
 
-        Enable/disable current/total tabpages indicator (top right corner).
+  Enable/disable current/total tabpages indicator (top right corner).
 
-							*g:bufferline.icons*
-`g:bufferline.icons`		boolean, string	(default v:true)
+                                                          *g:bufferline.icons*
+`g:bufferline.icons`  boolean, string  (default |v:true|)
 
-	Controls if icons are rendered on each tab.
+Controls if icons are rendered on each tab.
 
-	- If `v:false`, show neither |devicons| nor buffer numbers.
-	- If `v:true`, show |devicons| for each buffer's |'filetype'|.
-	- If `"buffer_numbers"`, show the buffer number for current buffer.
-	- If `"numbers"`, show the buffer index for current buffer.
-	- If `"both"`, show the buffer index and |devicons|.
-	- If `"buffer_number_with_icon"`, show the buffer number for current buffer and |devicons|.
+  - If `v:false`, show neither |devicons| nor buffer numbers.
+  - If `v:true`, show |devicons| for each buffer's |'filetype'|.
+  - If `"buffer_numbers"`, show the buffer number for current buffer.
+  - If `"numbers"`, show the buffer index for current buffer.
+  - If `"both"`, show the buffer index and |devicons|.
+  - If `"buffer_number_with_icon"`, show the buffer number for current buffer
+    and |devicons|.
 
-					   *g:bufferline.icon_custom_colors*
-`g:bufferline.icon_custom_colors`	boolean, string (default v:false)
+                                             *g:bufferline.icon_custom_colors*
+`g:bufferline.icon_custom_colors`  boolean, string   (default |v:false|)
 
-	Sets the icon's highlight group. If false, will use |devicons|
-	colors. (see |barbar-highlights|)
+  Sets the icon's highlight group. If false, will use |devicons|
+  colors. (see |barbar-highlights|)
 
-			               *g:bufferline.icon_separator_active*
-`g:bufferline.icon_separator_active`	string (default '▎')
+                                          *g:bufferline.icon_separator_active*
+`g:bufferline.icon_separator_active`  string  (default '▎')
 
-	The separator for active and visible buffers.
+  The separator for active and visible buffers.
 
-			             *g:bufferline.icon_separator_inactive*
-`g:bufferline.icon_separator_inactive`	string (default '▎')
+                                        *g:bufferline.icon_separator_inactive*
+`g:bufferline.icon_separator_inactive`  string  (default '▎')
 
-	The separator for inactive buffers and the `BufferTabpageFill`.
+  The separator for inactive buffers and the `BufferTabpageFill`.
 
-					      *g:bufferline.icon_close_tab*
-`g:bufferline.icon_close_tab`		string (default '')
+                                                 *g:bufferline.icon_close_tab*
+`g:bufferline.icon_close_tab`  string  (default '')
 
-	The button used to close the tab.
+  The button used to close the tab.
 
-			             *g:bufferline.icon_close_tab_modified*
-`g:bufferline.icon_close_tab_modified`		string (default '●')
+                                        *g:bufferline.icon_close_tab_modified*
+`g:bufferline.icon_close_tab_modified`  string  (default '●')
 
-	The button used to close the tab when it has been modified since
-	last save.
+  The button used to close the tab when it has been modified since
+  last save.
 
-			                         *g:bufferline.icon_pinned*
+                                                    *g:bufferline.icon_pinned*
 `g:bufferline.icon_pinned`                            string (default '車')
 
-	The icon used to indicate that a buffer is pinned.
+  The icon used to indicate that a buffer is pinned.
 
-			                         *g:bufferline.insert_at_start*
-`g:bufferline.insert_at_start`                         boolean (default v:false)
+                                                *g:bufferline.insert_at_start*
+`g:bufferline.insert_at_start` boolean  (default |v:false|)
 
-	If true, new buffers appear at the start of the list. Default is to
-	open after the current buffer.
-	Has priority over `g:bufferline.insert_at_end`
+  If true, new buffers appear at the start of the list. Default is to
+  open after the current buffer.
+  Has priority over `g:bufferline.insert_at_end`
 
-			                         *g:bufferline.insert_at_end*
-`g:bufferline.insert_at_end`                         boolean (default v:false)
+                                                  *g:bufferline.insert_at_end*
+`g:bufferline.insert_at_end`  boolean   (default |v:false|)
 
-	If true, new buffers appear at the end of the list. Default is to
-	open after the current buffer.
+  If true, new buffers appear at the end of the list. Default is to
+  open after the current buffer.
 
-						    *g:bufferline.closable*
-`g:bufferline.closable`		boolean	(default v:true)
+                                                       *g:bufferline.closable*
+`g:bufferline.closable`  boolean  (default |v:true|)
 
-	Controls if close buttons are shown.
+  Controls if close buttons are shown.
 
-					    *g:bufferline.semantic_letters*
-`g:bufferline.semantic_letters`		boolean	(default v:true)
+                                               *g:bufferline.semantic_letters*
+`g:bufferline.semantic_letters`  boolean  (default |v:true|)
 
-	If set, the letters for each buffer in buffer-pick mode will be
-	assigned based on their name. Otherwise or in case all letters are
-	already assigned, the behavior is to assign letters in order of
-	usability (see order just below)
+  If set, the letters for each buffer in buffer-pick mode will be
+  assigned based on their name. Otherwise or in case all letters are
+  already assigned, the behavior is to assign letters in order of
+  usability (see order just below)
 
-					             *g:bufferline.letters*
-`g:bufferline.letters`			string	(default
-		     'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP')
+                                                        *g:bufferline.letters*
+`g:bufferline.letters` string
+           (default 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP')
 
-	New buffer letters are assigned in this order. This order is
-	optimal for the qwerty keyboard layout but might need adjustement
-	for other layouts.
+  New buffer letters are assigned in this order. This order is
+  optimal for the qwerty keyboard layout but might need adjustement
+  for other layouts.
 >
-        let g:bufferline.letters =
-	  \ 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP'
+    let g:bufferline.letters =
+      \ 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP'
 <
 
-					           *g:bufferline.clickable*
-`g:bufferline.clickable`		boolean	(default v:true)
+                                                      *g:bufferline.clickable*
+`g:bufferline.clickable`  boolean  (default |v:true|)
 
-	If set, you can left-click on a tab to switch to that buffer, and
-	middle-click to delete it.
+  If set, you can left-click on a tab to switch to that buffer, and
+  middle-click to delete it.
 >
-        let g:bufferline.clickable = v:true
+    let g:bufferline.clickable = v:true
 <
 
-					           *g:bufferline.exclude_ft*
-`g:bufferline.exclude_ft`		string[] (default v:null)
+                                                     *g:bufferline.exclude_ft*
+`g:bufferline.exclude_ft`  string[]  (default |v:null|)
 
-	Excludes filetypes from appearing in the tabs.
+  Excludes filetypes from appearing in the tabs.
 >
-        let g:bufferline.exclude_ft = ['javascript']
+    let g:bufferline.exclude_ft = ['javascript']
 <
 
-					           *g:bufferline.exclude_name*
-`g:bufferline.exclude_name`		string[] (default v:null)
+                                                   *g:bufferline.exclude_name*
+`g:bufferline.exclude_name`  string[]  (default |v:null|)
 
-	Excludes buffers matching name from appearing in the tabs.
+  Excludes buffers matching name from appearing in the tabs.
 >
-        let g:bufferline.exclude_name = ['package.json']
+    let g:bufferline.exclude_name = ['package.json']
 <
 
-					           *g:bufferline.maximum_padding*
-`g:bufferline.maximum_padding`		int	(default 4)
+                                                *g:bufferline.maximum_padding*
+`g:bufferline.maximum_padding`  int  (default 4)
 
-	Sets the maximum padding width with which to surround each tab.
+  Sets the maximum padding width with which to surround each tab.
 >
-        let g:bufferline.maximum_padding = 4
+    let g:bufferline.maximum_padding = 4
 <
 
-					           *g:bufferline.maximum_length*
-`g:bufferline.maximum_length`		int	(default 30)
+                                                 *g:bufferline.maximum_length*
+`g:bufferline.maximum_length`  int  (default 30)
 
-	Sets the maximum buffer name length.
+  Sets the maximum buffer name length.
 >
-        let g:bufferline.maximum_length = 30
+    let g:bufferline.maximum_length = 30
 <
 
-					           *g:bufferline.no_name_title*
-`g:bufferline.no_name_title`		string (default empty)
+                                                  *g:bufferline.no_name_title*
+`g:bufferline.no_name_title`  string  (default empty)
 
-	Sets the name of unnamed buffers. By default format is "[Buffer X]"
-	where X is the buffer number. But only a static string is accepted here.
+  Sets the name of unnamed buffers. By default format is "[Buffer X]"
+  where X is the buffer number. But only a static string is accepted here.
 >
-        let g:bufferline.no_name_title = v:null
+    let g:bufferline.no_name_title = v:null
 <
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
@@ -306,18 +307,18 @@ with filetree plugins
 bind open and close commands to (e.g. nvim-tree):
 
 >
-   local tree = {}
-   tree.open = function ()
-      require'bufferline.state'.set_offset(31, 'FileTree')
-      require'nvim-tree'.find_file(true)
-   end
+    local tree = {}
+    tree.open = function ()
+       require'bufferline.state'.set_offset(31, 'FileTree')
+       require'nvim-tree'.find_file(true)
+    end
 
-   tree.close = function ()
-      require'bufferline.state'.set_offset(0)
-      require'nvim-tree'.close()
-   end
+    tree.close = function ()
+       require'bufferline.state'.set_offset(0)
+       require'nvim-tree'.close()
+    end
 
-   return tree
+    return tree
 <
 
  vim:tw=78:ts=8:ft=help:norl:

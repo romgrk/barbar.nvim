@@ -94,10 +94,11 @@ function M.unassign_letter(letter)
 end
 
 function M.get_letter(bufnr)
-   if M.letter_by_buffer[bufnr] ~= nil then
-      return M.letter_by_buffer[bufnr]
-   end
-   return M.assign_next_letter(bufnr)
+  if M.letter_by_buffer[bufnr] ~= nil then
+    return M.letter_by_buffer[bufnr]
+  end
+
+  return M.assign_next_letter(bufnr)
 end
 
 function M.unassign_letter_for(bufnr)
