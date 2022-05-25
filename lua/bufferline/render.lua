@@ -44,7 +44,7 @@ local function groups_to_string(groups)
     local text = group[2]
     -- WARN: We have to escape the text in case it contains '%',
     --       which is a special character to the tabline.
-	 --       To escape '%', we make
+    --       To escape '%', we make
     --       it '%%'. It just so happens that '%' is also a special character in
     --       Lua, so we have write '%%' to mean '%'.
     result = result .. hl .. text:gsub('%%', '%%%%')
