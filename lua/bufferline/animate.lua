@@ -2,7 +2,10 @@
 -- animate.lua
 --
 
-local animation_frequency = 50
+local reltime = vim.fn.reltime
+local reltimefloat = vim.fn.reltimefloat
+
+local ANIMATION_FREQUENCY = 50
 
 local function lerp(ratio, initial, final, delta_type)
   delta_type = delta_type or vim.v.t_number
@@ -26,7 +29,7 @@ local function animate_tick(timer, state)
   -- on time, because we know if we have run for too long.
 
   local duration = state.duration
-  local elapsed = vim.fn.reltimefloat(vim.fn.reltime(state.start)) * 1000
+  local elapsed = reltimefloat(reltime(state.start)) * 1000
   local ratio = elapsed / duration
 
   -- We're still good here
@@ -42,7 +45,7 @@ local function animate_tick(timer, state)
 end
 
 local function start(duration, initial, final, type, callback)
-  local ticks = (duration / animation_frequency) + 10
+  local ticks = (duration / ANIMATION_FREQUENCY) + 10
 
   local state = {}
   state.running = true
@@ -53,10 +56,10 @@ local function start(duration, initial, final, type, callback)
   state.current = initial
   state.initial = initial
   state.final = final
-  state.start = vim.fn.reltime()
+  state.start = reltime()
   state.timer = vim.loop.new_timer()
 
-  state.timer:start(0, animation_frequency, vim.schedule_wrap(function()
+  state.timer:start(0, ANIMATION_FREQUENCY, vim.schedule_wrap(function()
     animate_tick(state.timer, state)
   end))
 
