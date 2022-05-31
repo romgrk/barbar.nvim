@@ -2,12 +2,13 @@
 -- get-icon.lua
 --
 
-local status, web = pcall(require, 'nvim-web-devicons')
+local fnamemodify = vim.fn.fnamemodify
+local hlexists = vim.fn.hlexists
+local matchstr = vim.fn.matchstr
 
-local function get_attr(group, attr)
-  local rgb_val = (vim.api.nvim_get_hl_by_name(group, true) or {})[attr]
-  return rgb_val and string.format('#%06x', rgb_val) or 'NONE'
-end
+local hl = require'bufferline.utils'.hl
+
+local status, web = pcall(require, 'nvim-web-devicons')
 
 -- List of icon HL groups
 local hl_groups = {}
@@ -18,10 +19,12 @@ local function set_highlights()
   for _, hl_group in ipairs(hl_groups) do
     local icon_hl = hl_group[1]
     local buffer_status = hl_group[2]
-    vim.api.nvim_set_hl(0, icon_hl .. buffer_status, {
-      bg = get_attr('Buffer' .. buffer_status, 'background'),
-      fg = get_attr(icon_hl, 'foreground'),
-    })
+    local set_default_hl = hl.get_default_setter()
+    set_default_hl(
+      icon_hl .. buffer_status,
+      hl.bg_or_default({'Buffer' .. buffer_status}, 'none', nil),
+      hl.fg_or_default({icon_hl}, 'none', nil)
+    )
   end
 end
 
@@ -56,19 +59,21 @@ local function get_icon(buffer_name, filetype, buffer_status)
       basename = 'git'
       extension = 'git'
     else
-      basename = vim.fn.fnamemodify(buffer_name, ':t')
-      extension = vim.fn.matchstr(basename, [[\v\.@<=\w+$]], '', '')
+      basename = fnamemodify(buffer_name, ':t')
+      extension = matchstr(basename, [[\v\.@<=\w+$]], '', '')
     end
 
     icon_char, icon_hl = web.get_icon(basename, extension, { default = true })
   end
 
-  if icon_hl and vim.fn.hlexists(icon_hl .. buffer_status) < 1 then
+  if icon_hl and hlexists(icon_hl .. buffer_status) < 1 then
     local hl_group = icon_hl .. buffer_status
-    vim.api.nvim_set_hl(0, hl_group, {
-      bg = get_attr('Buffer' .. buffer_status, 'background'),
-      fg = get_attr(icon_hl, 'foreground'),
-    })
+    local set_default_hl = hl.get_default_setter()
+    set_default_hl(
+      hl_group,
+      hl.bg_or_default({'Buffer' .. buffer_status}, 'none', nil),
+      hl.fg_or_default({icon_hl}, 'none', nil)
+    )
     table.insert(hl_groups, { icon_hl, buffer_status })
   end
 
