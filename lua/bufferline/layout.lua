@@ -2,6 +2,7 @@
 -- layout.lua
 --
 
+local tabpagenr = vim.fn.tabpagenr
 local strwidth = vim.api.nvim_strwidth
 
 local Buffer = require'bufferline.buffer'
@@ -9,8 +10,8 @@ local Buffer = require'bufferline.buffer'
 local SIDES_OF_BUFFER = 2
 
 local function calculate_tabpages_width()
-  local current = vim.fn.tabpagenr()
-  local total   = #vim.api.nvim_list_tabpages()
+  local current = tabpagenr()
+  local total   = tabpagenr('$')
   if not vim.g.bufferline.tabpages or total == 1 then
     return 0
   end

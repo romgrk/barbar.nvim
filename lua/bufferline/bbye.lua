@@ -26,9 +26,16 @@
 local buflisted = vim.fn.bufnr
 local bufnr = vim.fn.bufnr
 local command = vim.api.nvim_command
+local create_augroup = vim.api.nvim_create_augroup
+local create_autocmd = vim.api.nvim_create_autocmd
+local exec_autocmds = vim.api.nvim_exec_autocmds
 local get_current_buf = vim.api.nvim_get_current_buf
+local get_current_win = vim.api.nvim_get_current_win
+local list_wins = vim.api.nvim_list_wins
 local set_current_buf = vim.api.nvim_set_current_buf
 local set_current_win = vim.api.nvim_set_current_win
+local win_get_buf = vim.api.nvim_win_get_buf
+local win_is_valid = vim.api.nvim_win_is_valid
 
 local reverse = require('bufferline.utils').reverse
 
@@ -74,10 +81,10 @@ local function new(force)
   -- If empty and out of sight, delete it right away:
   vim.opt_local.bufhidden = 'wipe'
 
-  vim.api.nvim_create_autocmd('BufWipeout', {
+  create_autocmd('BufWipeout', {
     buffer = 0,
     callback = function() require'bufferline.state'.close_buffer(empty_buffer) end,
-    group = vim.api.nvim_create_augroup('bbye_empty_buffer', {})
+    group = create_augroup('bbye_empty_buffer', {})
   })
 end
 
@@ -110,7 +117,7 @@ function bbye.delete(action, force, buffer, mods)
     return
   end
 
-  local current_window = vim.api.nvim_get_current_win()
+  local current_window = get_current_win()
 
   -- If the buffer is set to delete and it contains changes, we can't switch
   -- away from it. Hide it before eventual deleting:
@@ -120,11 +127,11 @@ function bbye.delete(action, force, buffer, mods)
 
   -- For cases where adding buffers causes new windows to appear or hiding some
   -- causes windows to disappear and thereby decrement, loop backwards.
-  local window_ids = vim.api.nvim_list_wins()
+  local window_ids = list_wins()
   local window_ids_reversed = reverse(window_ids)
 
   for _, window_number in ipairs(window_ids_reversed) do
-    if vim.api.nvim_win_get_buf(window_number) == buffer_number then
+    if win_get_buf(window_number) == buffer_number then
       set_current_win(window_number)
 
       -- Bprevious also wraps around the buffer list, if necessary:
@@ -149,7 +156,7 @@ function bbye.delete(action, force, buffer, mods)
     end
   end
 
-  if vim.api.nvim_win_is_valid(current_window) then
+  if win_is_valid(current_window) then
     set_current_win(current_window)
   end
 
@@ -173,7 +180,7 @@ function bbye.delete(action, force, buffer, mods)
     end
   end
 
-  vim.api.nvim_exec_autocmds('BufWinEnter', {})
+  exec_autocmds('BufWinEnter', {})
 end
 
 return bbye

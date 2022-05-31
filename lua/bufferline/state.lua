@@ -4,10 +4,27 @@
 
 local table_insert = table.insert
 
+local buf_delete = vim.api.nvim_buf_delete
+local buf_get_lines = vim.api.nvim_buf_get_lines
 local buf_get_name = vim.api.nvim_buf_get_name
+local buf_get_var = vim.api.nvim_buf_get_var
+local buf_is_valid = vim.api.nvim_buf_is_valid
+local buf_line_count = vim.api.nvim_buf_line_count
+local bufadd = vim.fn.bufadd
+local bufwinnr = vim.fn.bufwinnr
+local command = vim.api.nvim_command
+local fnamemodify = vim.fn.fnamemodify
 local get_current_buf = vim.api.nvim_get_current_buf
+local getbufvar = vim.fn.getbufvar
+local haslocaldir = vim.fn.haslocaldir
 local list_bufs = vim.api.nvim_list_bufs
+local list_tabpages = vim.api.nvim_list_tabpages
+local list_wins = vim.api.nvim_list_wins
 local set_current_buf = vim.api.nvim_set_current_buf
+local set_current_win = vim.api.nvim_set_current_win
+local tabpage_list_wins = vim.api.nvim_tabpage_list_wins
+local timer_start = vim.fn.timer_start
+local win_get_buf = vim.api.nvim_win_get_buf
 
 local animate = require'bufferline.animate'
 local bbye = require'bufferline.bbye'
@@ -68,7 +85,7 @@ end
 -- Pinned buffers
 
 function M.is_pinned(bufnr)
-  local ok, val = pcall(vim.api.nvim_buf_get_var, bufnr, PIN)
+  local ok, val = pcall(buf_get_var, bufnr, PIN)
   return ok and val
 end
 
@@ -138,7 +155,7 @@ local function open_buffer_start_animation(layout, buffer_number)
 
   buffer_data.width = 1
 
-  vim.fn.timer_start(ANIMATION_OPEN_DELAY, function()
+  timer_start(ANIMATION_OPEN_DELAY, function()
     animate.start(
       ANIMATION_OPEN_DURATION, 1, target_width, vim.v.t_number,
       function(new_width, animation)
@@ -170,7 +187,7 @@ local function open_buffers(new_buffers)
       local should_insert_at_end =
         opts.insert_at_end or
         -- We add special buffers at the end
-        vim.fn.getbufvar(new_buffer, '&buftype') ~= ''
+        getbufvar(new_buffer, '&buftype') ~= ''
 
       if should_insert_at_start then
         actual_index = 1
@@ -217,18 +234,18 @@ local function set_current_win_listed_buffer()
 
   -- Check previous window first
   if not is_listed then
-    vim.api.nvim_command('wincmd p')
+    command('wincmd p')
     current = get_current_buf()
     is_listed = vim.bo[current].buflisted
   end
   -- Check all windows now
   if not is_listed then
-    local wins = vim.api.nvim_list_wins()
+    local wins = list_wins()
     for _, win in ipairs(wins) do
-      current = vim.api.nvim_win_get_buf(win)
+      current = win_get_buf(win)
       is_listed = vim.bo[current].buflisted
       if is_listed then
-        vim.api.nvim_set_current_win(win)
+        set_current_win(win)
         break
       end
     end
@@ -386,7 +403,7 @@ function M.get_updated_buffers(update_names)
   end
 
   M.buffers =
-    vim.tbl_filter(function(b) return vim.api.nvim_buf_is_valid(b) end, M.buffers)
+    vim.tbl_filter(function(b) return buf_is_valid(b) end, M.buffers)
 
   if did_change or update_names then
     M.update_names()
@@ -639,7 +656,7 @@ local function with_pin_order(order_func)
 end
 
 local function is_relative_path(path)
-  return vim.fn.fnamemodify(path, ':p') ~= path
+  return fnamemodify(path, ':p') ~= path
 end
 
 function M.order_by_buffer_number()
@@ -673,8 +690,8 @@ function M.order_by_language()
   table.sort(
     M.buffers,
     with_pin_order(function(a, b)
-      local na = vim.fn.fnamemodify(buf_get_name(a), ':e')
-      local nb = vim.fn.fnamemodify(buf_get_name(b), ':e')
+      local na = fnamemodify(buf_get_name(a), ':e')
+      local nb = fnamemodify(buf_get_name(b), ':e')
       return na < nb
     end)
   )
@@ -685,8 +702,8 @@ function M.order_by_window_number()
   table.sort(
     M.buffers,
     with_pin_order(function(a, b)
-      local na = vim.fn.bufwinnr(buf_get_name(a))
-      local nb = vim.fn.bufwinnr(buf_get_name(b))
+      local na = bufwinnr(buf_get_name(a))
+      local nb = bufwinnr(buf_get_name(b))
       return na < nb
     end)
   )
@@ -699,13 +716,13 @@ function M.on_pre_save()
   -- We're allowed to use relative paths for buffers iff there are no tabpages
   -- or windows with a local directory (:tcd and :lcd)
   local use_relative_file_paths = true
-  for tabnr,tabpage in ipairs(vim.api.nvim_list_tabpages()) do
-    if not use_relative_file_paths or vim.fn.haslocaldir(-1, tabnr) == 1 then
+  for tabnr,tabpage in ipairs(list_tabpages()) do
+    if not use_relative_file_paths or haslocaldir(-1, tabnr) == 1 then
       use_relative_file_paths = false
       break
     end
-    for _,win in ipairs(vim.api.nvim_tabpage_list_wins(tabpage)) do
-      if vim.fn.haslocaldir(win, tabnr) == 1 then
+    for _,win in ipairs(tabpage_list_wins(tabpage)) do
+      if haslocaldir(win, tabnr) == 1 then
         use_relative_file_paths = false
         break
       end
@@ -716,7 +733,7 @@ function M.on_pre_save()
   for _,bufnr in ipairs(M.buffers) do
     local name = buf_get_name(bufnr)
     if use_relative_file_paths then
-      name = vim.fn.fnamemodify(name, ':~:.')
+      name = fnamemodify(name, ':~:.')
     end
     -- escape quotes
     name = string.gsub(name, '"', '\\"')
@@ -734,17 +751,17 @@ function M.restore_buffers(bufnames)
   -- Close all empty buffers. Loading a session may call :tabnew several times
   -- and create useless empty buffers.
   for _,bufnr in ipairs(list_bufs()) do
-    if vim.fn.bufname(bufnr) == ''
+    if buf_get_name(bufnr) == ''
       and vim.bo[bufnr].buftype == ''
-      and vim.api.nvim_buf_line_count(bufnr) == 1
-      and vim.api.nvim_buf_get_lines(bufnr, 0, 1, true)[1] == '' then
-        vim.api.nvim_buf_delete(bufnr, {})
+      and buf_line_count(bufnr) == 1
+      and buf_get_lines(bufnr, 0, 1, true)[1] == '' then
+        buf_delete(bufnr, {})
     end
   end
 
   M.buffers = {}
   for _,name in ipairs(bufnames) do
-    local bufnr = vim.fn.bufadd(name)
+    local bufnr = bufadd(name)
     table_insert(M.buffers, bufnr)
   end
   M.update()

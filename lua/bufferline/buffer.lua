@@ -5,12 +5,16 @@
 local concat = table.concat
 local substring = string.sub
 
+local buf_get_name = vim.api.nvim_buf_get_name
+local bufwinnr = vim.fn.bufwinnr
+local get_current_buf = vim.api.nvim_get_current_buf
 local list_slice = vim.list_slice
+local matchlist = vim.fn.matchlist
 
 local utils = require'bufferline.utils'
 
 local function terminalname(name)
-  local result = vim.fn.matchlist(name, [===[term://.\{-}//\d\+:\(.*\)]===])
+  local result = matchlist(name, [===[term://.\{-}//\d\+:\(.*\)]===])
   if next(result) == nil then
     return name
   else
@@ -20,17 +24,17 @@ end
 
 -- returns 0: none, 1: active, 2: current
 local function get_activity(number)
-  if vim.api.nvim_get_current_buf() == number then
+  if get_current_buf() == number then
     return 2
   end
-  if vim.fn.bufwinnr(number) ~= -1 then
+  if bufwinnr(number) ~= -1 then
     return 1
   end
   return 0
 end
 
 local function get_name(opts, number)
-  local name = vim.api.nvim_buf_get_name(number)
+  local name = buf_get_name(number)
 
   if name == '' then
     if opts.no_name_title ~= nil and

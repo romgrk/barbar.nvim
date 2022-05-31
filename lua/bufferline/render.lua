@@ -3,8 +3,11 @@
 -- render.lua
 --
 
+local get_current_buf = vim.api.nvim_get_current_buf
+local has = vim.fn.has
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
+local tabpagenr = vim.fn.tabpagenr
 
 local Buffer = require'bufferline.buffer'
 local JumpMode = require'bufferline.jump_mode'
@@ -180,7 +183,7 @@ local function render(update_names)
     end
   end
 
-  local current = vim.api.nvim_get_current_buf()
+  local current = get_current_buf()
 
   -- Store current buffer to open new ones next to this one
   if vim.bo[current].buflisted then
@@ -191,7 +194,7 @@ local function render(update_names)
     end
   end
 
-  local click_enabled = vim.fn.has('tablineat') and opts.clickable
+  local click_enabled = has('tablineat') and opts.clickable
   local has_close = opts.closable
   local has_icons = (opts.icons == true) or (opts.icons == 'both') or (opts.icons == 'buffer_number_with_icon')
   local has_icon_custom_colors = opts.icon_custom_colors
@@ -389,8 +392,8 @@ local function render(update_names)
     result = result .. opts.icon_separator_inactive
   end
 
-  local current_tabpage = vim.fn.tabpagenr()
-  local total_tabpages  = #vim.api.nvim_list_tabpages()
+  local current_tabpage = tabpagenr()
+  local total_tabpages  = tabpagenr('$')
   if layout.tabpages_width > 0 then
     result = result .. '%=%#BufferTabpages# ' .. tostring(current_tabpage) .. '/' .. tostring(total_tabpages) .. ' '
   end

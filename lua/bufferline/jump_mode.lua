@@ -2,7 +2,13 @@
 -- jump_mode.lua
 --
 
+local buf_get_name = vim.api.nvim_buf_get_name
+local command = vim.api.nvim_command
+local fnamemodify = vim.fn.fnamemodify
+local getchar = vim.fn.getchar
+local set_current_buf = vim.api.nvim_set_current_buf
 local strcharpart = vim.fn.strcharpart
+local strwidth = vim.api.nvim_strwidth
 
 local state = require'bufferline.state'
 
@@ -45,9 +51,9 @@ function M.assign_next_letter(bufnr)
 
   -- First, try to assign a letter based on name
   if vim.g.bufferline.semantic_letters == true then
-    local name = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t:r')
+    local name = fnamemodify(buf_get_name(bufnr), ':t:r')
 
-    for i = 1, vim.api.nvim_strwidth(name) do
+    for i = 1, strwidth(name) do
       local letter = string.lower(strcharpart(name, i - 1, 1))
 
       if M.index_by_letter[letter] ~= nil then
@@ -110,17 +116,17 @@ end
 function M.activate()
   state.is_picking_buffer = true
   state.update()
-  vim.api.nvim_command('redraw')
+  command('redraw')
   state.is_picking_buffer = false
 
-  local ok, char = pcall(vim.fn.getchar)
+  local ok, char = pcall(getchar)
 
   if ok then
-    local letter = vim.fn.nr2char(char)
+    local letter = string.char(char)
 
     if letter ~= '' then
       if M.buffer_by_letter[letter] ~= nil then
-        vim.api.nvim_set_current_buf(M.buffer_by_letter[letter])
+        set_current_buf(M.buffer_by_letter[letter])
       else
         vim.notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
       end
@@ -130,7 +136,7 @@ function M.activate()
   end
 
   state.update()
-  vim.api.nvim_command('redraw')
+  command('redraw')
 end
 
 return M

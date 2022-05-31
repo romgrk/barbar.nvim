@@ -1,3 +1,8 @@
+local command = vim.api.nvim_command
+local create_augroup = vim.api.nvim_create_augroup
+local create_autocmd = vim.api.nvim_create_autocmd
+local create_user_command = vim.api.nvim_create_user_command
+
 local highlight = require 'bufferline.highlight'
 
 --- The default options for this plugin.
@@ -32,7 +37,7 @@ local DEFAULT_OPTIONS = {
 --- Create and reset autocommand groups associated with this plugin.
 --- @return number bufferline, number bufferline_update
 local function create_augroups()
-  return vim.api.nvim_create_augroup('bufferline', {}), vim.api.nvim_create_augroup('bufferline_update', {})
+  return create_augroup('bufferline', {}), create_augroup('bufferline_update', {})
 end
 
 -------------------------------
@@ -51,7 +56,6 @@ end
 --- Enable the bufferline.
 function bufferline.enable()
   local augroup_bufferline, augroup_bufferline_update = create_augroups()
-  local create_autocmd = vim.api.nvim_create_autocmd
 
   create_autocmd({'BufNewFile', 'BufReadPost'}, {
     callback = function(tbl) require'bufferline.jump_mode'.assign_next_letter(tbl.buf) end,
@@ -109,8 +113,6 @@ end
 --- Setup this plugin.
 --- @param options nil|table
 function bufferline.setup(options)
-  local create_user_command = vim.api.nvim_create_user_command
-
   -- Show the tabline
   vim.opt.showtabline = 2
 
@@ -136,12 +138,12 @@ function bufferline.setup(options)
     {desc = 'Go to the buffer at the specified index', nargs = 1}
   )
 
-  create_user_command('BufferFirst', 'BufferGoto 1',  {desc = 'Go to the first buffer'})
-  create_user_command('BufferLast',  'BufferGoto -1', {desc = 'Go to the last buffer'})
+  create_user_command('BufferFirst', 'BufferGoto 1', {desc = 'Go to the first buffer'})
+  create_user_command('BufferLast', 'BufferGoto -1', {desc = 'Go to the last buffer'})
 
   create_user_command(
     'BufferMove',
-    function(tbl) vim.api.nvim_command('BufferMovePrevious ' .. tbl.count) end,
+    function(tbl) command('BufferMovePrevious ' .. tbl.count) end,
     {count = true, desc = 'Synonym for `:BufferMovePrevious`'}
   )
 
