@@ -126,7 +126,8 @@ nnoremap <silent>    <A-5> :BufferGoto 5<CR>
 nnoremap <silent>    <A-6> :BufferGoto 6<CR>
 nnoremap <silent>    <A-7> :BufferGoto 7<CR>
 nnoremap <silent>    <A-8> :BufferGoto 8<CR>
-nnoremap <silent>    <A-9> :BufferLast<CR>
+nnoremap <silent>    <A-9> :BufferGoto 9<CR>
+nnoremap <silent>    <A-0> :BufferLast<CR>
 " Pin/unpin buffer
 nnoremap <silent>    <A-p> :BufferPin<CR>
 " Close buffer
@@ -140,7 +141,7 @@ nnoremap <silent>    <A-c> :BufferClose<CR>
 "                          :BufferCloseBuffersLeft<CR>
 "                          :BufferCloseBuffersRight<CR>
 " Magic buffer-picking mode
-nnoremap <silent> <C-s>    :BufferPick<CR>
+nnoremap <silent> <C-p>    :BufferPick<CR>
 " Sort automatically by...
 nnoremap <silent> <Space>bb :BufferOrderByBufferNumber<CR>
 nnoremap <silent> <Space>bd :BufferOrderByDirectory<CR>
@@ -175,12 +176,16 @@ map('n', '<A-7>', ':BufferGoto 7<CR>', opts)
 map('n', '<A-8>', ':BufferGoto 8<CR>', opts)
 map('n', '<A-9>', ':BufferGoto 9<CR>', opts)
 map('n', '<A-0>', ':BufferLast<CR>', opts)
+-- Pin/unpin buffer
+map('n', '<A-p>', ':BufferPin<CR>', opts)
 -- Close buffer
 map('n', '<A-c>', ':BufferClose<CR>', opts)
 -- Wipeout buffer
 --                 :BufferWipeout<CR>
 -- Close commands
 --                 :BufferCloseAllButCurrent<CR>
+--                 :BufferCloseAllButPinned<CR>
+--                 :BufferCloseAllButCurrentOrPinned<CR>
 --                 :BufferCloseBuffersLeft<CR>
 --                 :BufferCloseBuffersRight<CR>
 -- Magic buffer-picking mode
@@ -189,6 +194,7 @@ map('n', '<C-p>', ':BufferPick<CR>', opts)
 map('n', '<Space>bb', ':BufferOrderByBufferNumber<CR>', opts)
 map('n', '<Space>bd', ':BufferOrderByDirectory<CR>', opts)
 map('n', '<Space>bl', ':BufferOrderByLanguage<CR>', opts)
+map('n', '<Space>bw', ':BufferOrderByWindowNumber<CR>', opts)
 
 -- Other:
 -- :BarbarEnable - enables barbar (enabled by default)
