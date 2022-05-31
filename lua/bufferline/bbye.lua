@@ -120,10 +120,10 @@ function bbye.delete(action, force, buffer, mods)
 
   -- For cases where adding buffers causes new windows to appear or hiding some
   -- causes windows to disappear and thereby decrement, loop backwards.
-  local window_numbers = vim.api.nvim_list_wins()
-  local window_numbers_reversed = reverse(window_numbers)
+  local window_ids = vim.api.nvim_list_wins()
+  local window_ids_reversed = reverse(window_ids)
 
-  for _, window_number in ipairs(window_numbers_reversed) do
+  for _, window_number in ipairs(window_ids_reversed) do
     if vim.api.nvim_win_get_buf(window_number) == buffer_number then
       set_current_win(window_number)
 
