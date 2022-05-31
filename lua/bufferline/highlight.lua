@@ -1,7 +1,8 @@
 -- !::exe [So]
 
-local icons = require 'bufferline.icons'
 local set_hl = vim.api.nvim_set_hl
+
+local icons = require 'bufferline.icons'
 
 --- Generate a color.
 --- @param index string where to look for the color.

@@ -2,16 +2,18 @@
 -- m.lua
 --
 
-local animate = require'bufferline.animate'
-local bbye = require'bufferline.bbye'
+local table_insert = table.insert
+
 local buf_get_name = vim.api.nvim_buf_get_name
-local Buffer = require'bufferline.buffer'
-local bufferline = require'bufferline'
 local get_current_buf = vim.api.nvim_get_current_buf
-local Layout = require'bufferline.layout'
 local list_bufs = vim.api.nvim_list_bufs
 local set_current_buf = vim.api.nvim_set_current_buf
-local table_insert = table.insert
+
+local animate = require'bufferline.animate'
+local bbye = require'bufferline.bbye'
+local Buffer = require'bufferline.buffer'
+local bufferline = require'bufferline'
+local Layout = require'bufferline.layout'
 local utils = require'bufferline.utils'
 
 local PIN = 'bufferline_pin'

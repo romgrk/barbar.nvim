@@ -2,8 +2,9 @@
 -- layout.lua
 --
 
-local Buffer = require'bufferline.buffer'
 local strwidth = vim.api.nvim_strwidth
+
+local Buffer = require'bufferline.buffer'
 
 local SIDES_OF_BUFFER = 2
 

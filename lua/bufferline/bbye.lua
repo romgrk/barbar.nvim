@@ -27,9 +27,10 @@ local buflisted = vim.fn.bufnr
 local bufnr = vim.fn.bufnr
 local command = vim.api.nvim_command
 local get_current_buf = vim.api.nvim_get_current_buf
-local reverse = require('bufferline.utils').reverse
 local set_current_buf = vim.api.nvim_set_current_buf
 local set_current_win = vim.api.nvim_set_current_win
+
+local reverse = require('bufferline.utils').reverse
 
 -------------------
 -- Section: helpers

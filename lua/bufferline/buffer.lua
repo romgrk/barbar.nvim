@@ -3,8 +3,10 @@
 --
 
 local concat = table.concat
-local list_slice = vim.list_slice
 local substring = string.sub
+
+local list_slice = vim.list_slice
+
 local utils = require'bufferline.utils'
 
 local function terminalname(name)

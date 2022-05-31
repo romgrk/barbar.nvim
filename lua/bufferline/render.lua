@@ -3,13 +3,14 @@
 -- render.lua
 --
 
-local Buffer = require'bufferline.buffer'
-local icons = require'bufferline.icons'
-local JumpMode = require'bufferline.jump_mode'
-local Layout = require'bufferline.layout'
-local state = require'bufferline.state'
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
+
+local Buffer = require'bufferline.buffer'
+local JumpMode = require'bufferline.jump_mode'
+local Layout = require'bufferline.layout'
+local icons = require'bufferline.icons'
+local state = require'bufferline.state'
 local utils = require'bufferline.utils'
 
 local HL_BY_ACTIVITY = {

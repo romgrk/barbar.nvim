@@ -2,8 +2,9 @@
 -- jump_mode.lua
 --
 
-local state = require'bufferline.state'
 local strcharpart = vim.fn.strcharpart
+
+local state = require'bufferline.state'
 
 ----------------------------------------
 -- Section: Buffer-picking mode state --
