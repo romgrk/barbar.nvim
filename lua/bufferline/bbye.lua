@@ -137,7 +137,7 @@ function bbye.delete(action, force, buffer, mods)
       -- Bprevious also wraps around the buffer list, if necessary:
       local no_errors = pcall(function()
         local previous_buffer = bufnr('#')
-        if previous_buffer > 0 and buflisted(previous_buffer) then
+        if previous_buffer > 0 and buflisted(previous_buffer) == 1 then
           set_current_buf(previous_buffer)
         else
           command 'bprevious'
@@ -165,7 +165,7 @@ function bbye.delete(action, force, buffer, mods)
   --
   -- Using buflisted() over bufexists() because bufhidden=delete causes the
   -- buffer to still _exist_ even though it won't be :bdelete-able.
-  if buflisted(buffer_number) and buffer_number ~= get_current_buf() then
+  if buflisted(buffer_number) == 1 and buffer_number ~= get_current_buf() then
     local no_errors = pcall(function()
       command(mods .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
     end)
