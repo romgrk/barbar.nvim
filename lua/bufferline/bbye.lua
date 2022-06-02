@@ -23,7 +23,7 @@
 -- For the full copy of the GNU Affero General Public License see:
 -- http://www.gnu.org/licenses.
 
-local buflisted = vim.fn.bufnr
+local buflisted = vim.fn.buflisted
 local bufnr = vim.fn.bufnr
 local command = vim.api.nvim_command
 local create_augroup = vim.api.nvim_create_augroup
