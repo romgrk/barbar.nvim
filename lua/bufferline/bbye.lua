@@ -50,19 +50,6 @@ local function err(msg)
   vim.v.errmsg = msg
 end
 
---- Convert a buffer name into a buffer number.
---- @param buffer string
---- @return number buffer_number
-local function str2bufnr(buffer)
-  if not buffer or #buffer < 1 then
-    return get_current_buf()
-  elseif vim.regex([[^\d\+$]]):match_str(buffer)  then
-    return bufnr(tostring(buffer))
-  end
-
-  return bufnr(buffer)
-end
-
 local empty_buffer = nil
 
 --- Create a new buffer.
@@ -101,7 +88,7 @@ local bbye = {}
 --- @param buffer nil|number|string the name of the buffer.
 --- @param mods string the modifiers to the command (e.g. `'verbose'`)
 function bbye.delete(action, force, buffer, mods)
-  local buffer_number = type(buffer) == 'string' and str2bufnr(buffer) or buffer
+  local buffer_number = type(buffer) == 'string' and bufnr(buffer) or buffer or get_current_buf()
   mods = mods or ''
 
   if buffer_number < 0 then
