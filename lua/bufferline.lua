@@ -200,13 +200,43 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferClose',
-    function(tbl) require'bufferline.bbye'.delete('bdelete', tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl) require'bufferline.bbye'.delete(nil, tbl.bang, tbl.args, tbl.mods) end,
     {bang = true, complete = 'buffer', desc = 'Close the current buffer.', nargs = '?'}
   )
 
   create_user_command(
+    'BufferCloseAllButCurrent',
+    function() require'bufferline.state'.close_all_but_current(nil) end,
+    {desc = 'Close every buffer except the current one'}
+  )
+
+  create_user_command(
+    'BufferCloseAllButPinned',
+    function() require'bufferline.state'.close_all_but_pinned(nil) end,
+    {desc = 'Close every buffer except pinned buffers'}
+  )
+
+  create_user_command(
+    'BufferCloseAllButCurrentOrPinned',
+    function() require'bufferline.state'.close_all_but_current_or_pinned(nil) end,
+    {desc = 'Close every buffer except pinned buffers or the current buffer'}
+  )
+
+  create_user_command(
+    'BufferCloseBuffersLeft',
+    function() require'bufferline.state'.close_buffers_left(nil) end,
+    {desc = 'Close all buffers to the left of the current buffer'}
+  )
+
+  create_user_command(
+    'BufferCloseBuffersRight',
+    function() require'bufferline.state'.close_buffers_right(nil) end,
+    {desc = 'Close all buffers to the right of the current buffer'}
+  )
+
+  create_user_command(
     'BufferDelete',
-    function(tbl) require'bufferline.bbye'.delete('bdelete', tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl) require'bufferline.bbye'.delete(nil, tbl.bang, tbl.args, tbl.mods) end,
     {bang = true, complete = 'buffer', desc = 'Synonym for `:BufferClose`', nargs = '?'}
   )
 
@@ -217,33 +247,33 @@ function bufferline.setup(options)
   )
 
   create_user_command(
-    'BufferCloseAllButCurrent',
-    function() require'bufferline.state'.close_all_but_current() end,
-    {desc = 'Close every buffer except the current one'}
+    'BufferWipeoutAllButCurrent',
+    function() require'bufferline.state'.close_all_but_current('bwipeout') end,
+    {desc = 'Wipe out every buffer except the current one'}
   )
 
   create_user_command(
-    'BufferCloseAllButPinned',
-    function() require'bufferline.state'.close_all_but_pinned() end,
-    {desc = 'Close every buffer except pinned buffers'}
+    'BufferWipeoutAllButPinned',
+    function() require'bufferline.state'.close_all_but_pinned('bwipeout') end,
+    {desc = 'Wipe out every buffer except pinned buffers'}
   )
 
   create_user_command(
-    'BufferCloseAllButCurrentOrPinned',
-    function() require'bufferline.state'.close_all_but_current_or_pinned() end,
-    {desc = 'Close every buffer except pinned buffers or the current buffer'}
+    'BufferWipeoutAllButCurrentOrPinned',
+    function() require'bufferline.state'.close_all_but_current_or_pinned('bwipeout') end,
+    {desc = 'Wipe out every buffer except pinned buffers or the current buffer'}
   )
 
   create_user_command(
-    'BufferCloseBuffersLeft',
-    function() require'bufferline.state'.close_buffers_left() end,
-    {desc = 'Close all buffers to the left of the current buffer'}
+    'BufferWipeoutBuffersLeft',
+    function() require'bufferline.state'.close_buffers_left('bwipeout') end,
+    {desc = 'Wipe out all buffers to the left of the current buffer'}
   )
 
   create_user_command(
-    'BufferCloseBuffersRight',
-    function() require'bufferline.state'.close_buffers_right() end,
-    {desc = 'Close all buffers to the right of the current buffer'}
+    'BufferWipeoutBuffersRight',
+    function() require'bufferline.state'.close_buffers_right('bwipeout') end,
+    {desc = 'Wipe out all buffers to the right of the current buffer'}
   )
 
   -- Set the options and watchers for when they are edited
@@ -252,7 +282,7 @@ function bufferline.setup(options)
   vim.cmd [[
     " Must be global -_-
     function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline.bbye'.delete('bdelete', false, _A, nil)", a:minwid)
+      call luaeval("require'bufferline.bbye'.delete(nil, false, _A, nil)", a:minwid)
     endfunction
 
     " Must be global -_-
@@ -343,7 +373,7 @@ function bufferline.main_click_handler(minwid, _, btn, _)
 
   -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
   if btn == 'm' then
-    require'bufferline.bbye'.delete('bdelete', false, minwid, nil)
+    require'bufferline.bbye'.delete(nil, false, minwid, nil)
   else
     require'bufferline.state'.open_buffer_in_listed_window(minwid)
   end

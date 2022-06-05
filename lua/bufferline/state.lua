@@ -572,56 +572,61 @@ end
 
 -- Close commands
 
-local function close_all_but_current()
+--- @param action nil|string the command passed to `bbye.delete`
+local function close_all_but_current(action)
   local current = nvim.get_current_buf()
   local buffers = m.buffers
   for _, number in ipairs(buffers) do
     if number ~= current then
-      bbye.delete('bdelete', false, number, nil)
+      bbye.delete(action, false, number, nil)
     end
   end
   m.update()
 end
 
-local function close_all_but_pinned()
+--- @param action nil|string the command passed to `bbye.delete`
+local function close_all_but_pinned(action)
   local buffers = m.buffers
   for _, number in ipairs(buffers) do
     if not is_pinned(number) then
-      bbye.delete('bdelete', false, number, nil)
+      bbye.delete(action, false, number, nil)
     end
   end
   m.update()
 end
 
-local function close_all_but_current_or_pinned()
+--- @param action nil|string the command passed to `bbye.delete`
+local function close_all_but_current_or_pinned(action)
   local buffers = m.buffers
   local current = nvim.get_current_buf()
   for _, number in ipairs(buffers) do
     if not is_pinned(number) and number ~= current then
-      bbye.delete('bdelete', false, number, nil)
+      bbye.delete(action, false, number, nil)
     end
   end
   m.update()
 end
 
-local function close_buffers_left()
+--- @param action nil|string the command passed to `bbye.delete`
+local function close_buffers_left(action)
   local idx = index_of(m.buffers, nvim.get_current_buf()) - 1
   if idx == nil then
     return
   end
   for i = idx, 1, -1 do
-    bbye.delete('bdelete', false, m.buffers[i], nil)
+    bbye.delete(action, false, m.buffers[i], nil)
   end
   m.update()
 end
 
-local function close_buffers_right()
+--- @param action nil|string the command passed to `bbye.delete`
+local function close_buffers_right(action)
   local idx = index_of(m.buffers, nvim.get_current_buf()) + 1
   if idx == nil then
     return
   end
   for i = len(m.buffers), idx, -1 do
-    bbye.delete('bdelete', false, m.buffers[i], nil)
+    bbye.delete(action, false, m.buffers[i], nil)
   end
   m.update()
 end
