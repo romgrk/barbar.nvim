@@ -2,6 +2,7 @@
 -- get-icon.lua
 --
 
+local command = vim.api.nvim_command
 local fnamemodify = vim.fn.fnamemodify
 local hlexists = vim.fn.hlexists
 local matchstr = vim.fn.matchstr
@@ -37,7 +38,7 @@ local function get_icon(buffer_name, filetype, buffer_status)
       vim.log.levels.WARN,
       {title = 'barbar.nvim'}
     )
-    vim.g.bufferline.icons = false
+    command('let g:bufferline.icons = v:false')
     return ' '
   end
 
