@@ -4,6 +4,7 @@
 
 local fnamemodify = vim.fn.fnamemodify
 local get_hl_by_name = vim.api.nvim_get_hl_by_name
+local list_slice = vim.list_slice
 local set_hl = vim.api.nvim_set_hl
 
 local function index_of(tbl, n)
@@ -91,10 +92,21 @@ return {
     return value == nil or value == vim.NIL
   end,
 
-  reverse = function (tbl)
+  --- Run `vim.list_slice` on some `list`, `index`ed from the end of the list.
+  --- @param list table
+  --- @param index_from_end number
+  --- @return table sliced
+  list_slice_from_end = function(list, index_from_end)
+    return list_slice(list, #list - index_from_end + 1)
+  end,
+
+  --- Reverse the order of elements in some `list`.
+  --- @param list table
+  --- @return table reversed
+  reverse = function (list)
     local reversed = {}
-    while #reversed < #tbl do
-      reversed[#reversed + 1] = tbl[#tbl - #reversed]
+    while #reversed < #list do
+      reversed[#reversed + 1] = list[#list - #reversed]
     end
     return reversed
   end,

@@ -3,13 +3,15 @@
 --
 
 local concat = table.concat
+local max = math.max
+local min = math.min
 local substring = string.sub
 
 local buf_get_name = vim.api.nvim_buf_get_name
 local bufwinnr = vim.fn.bufwinnr
 local get_current_buf = vim.api.nvim_get_current_buf
-local list_slice = vim.list_slice
 local matchlist = vim.fn.matchlist
+local split = vim.split
 
 local utils = require'bufferline.utils'
 
@@ -74,19 +76,19 @@ end
 
 local separator = package.config:sub(1,1)
 local function get_unique_name(first, second)
-  local first_parts  = vim.split(first,  separator)
-  local second_parts = vim.split(second, separator)
+  local first_parts  = split(first,  separator)
+  local second_parts = split(second, separator)
 
   local length = 1
-  local first_result  = concat(list_slice(first_parts, -length),  separator)
-  local second_result = concat(list_slice(second_parts, -length), separator)
+  local first_result  = concat(utils.list_slice_from_end(first_parts, length),  separator)
+  local second_result = concat(utils.list_slice_from_end(second_parts, length), separator)
 
   while first_result == second_result and
-        length < math.max(#first_parts, #second_parts)
+        length < max(#first_parts, #second_parts)
   do
     length = length + 1
-    first_result  = concat(list_slice(first_parts,  -math.min(#first_parts, length)),  separator)
-    second_result = concat(list_slice(second_parts, -math.min(#second_parts, length)), separator)
+    first_result  = concat(utils.list_slice_from_end(first_parts,  min(#first_parts, length)),  separator)
+    second_result = concat(utils.list_slice_from_end(second_parts, min(#second_parts, length)), separator)
   end
 
   return first_result, second_result
