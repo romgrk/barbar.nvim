@@ -2,8 +2,13 @@
 -- layout.lua
 --
 
-local tabpagenr = vim.fn.tabpagenr
+local floor = math.floor
+local max = math.max
+local min = math.min
+local table_insert = table.insert
+
 local strwidth = vim.api.nvim_strwidth
+local tabpagenr = vim.fn.tabpagenr
 
 local Buffer = require'bufferline.buffer'
 
@@ -60,7 +65,7 @@ local function calculate_buffers_width(state, base_width)
       end
     end
     sum = sum + width
-    table.insert(widths, width)
+    table_insert(widths, width)
   end
 
   return sum, widths
@@ -100,10 +105,10 @@ local function calculate(state)
   local buffers_width = available_width - tabpages_width
 
   local buffers_length               = #state.buffers
-  local remaining_width              = math.max(buffers_width - used_width, 0)
-  local remaining_width_per_buffer   = math.floor(remaining_width / buffers_length)
-  local remaining_padding_per_buffer = math.floor(remaining_width_per_buffer / SIDES_OF_BUFFER)
-  local padding_width                = math.min(remaining_padding_per_buffer, opts.maximum_padding)
+  local remaining_width              = max(buffers_width - used_width, 0)
+  local remaining_width_per_buffer   = floor(remaining_width / buffers_length)
+  local remaining_padding_per_buffer = floor(remaining_width_per_buffer / SIDES_OF_BUFFER)
+  local padding_width                = min(remaining_padding_per_buffer, opts.maximum_padding)
   local actual_width                 = used_width + (buffers_length * padding_width * SIDES_OF_BUFFER)
 
   return {

@@ -2,6 +2,8 @@
 -- animate.lua
 --
 
+local floor = math.floor
+
 local reltime = vim.fn.reltime
 local reltimefloat = vim.fn.reltimefloat
 
@@ -11,7 +13,7 @@ local function lerp(ratio, initial, final, delta_type)
   delta_type = delta_type or vim.v.t_number
 
   local range = final - initial
-  local delta = delta_type == vim.v.t_number and math.floor(ratio * range) or (ratio * range)
+  local delta = delta_type == vim.v.t_number and floor(ratio * range) or (ratio * range)
 
   return initial + delta
 end

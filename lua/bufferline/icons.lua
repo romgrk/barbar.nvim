@@ -2,10 +2,13 @@
 -- get-icon.lua
 --
 
+local table_insert = table.insert
+
 local command = vim.api.nvim_command
 local fnamemodify = vim.fn.fnamemodify
 local hlexists = vim.fn.hlexists
 local matchstr = vim.fn.matchstr
+local notify = vim.notify
 
 local hl = require'bufferline.utils'.hl
 
@@ -32,7 +35,7 @@ end
 
 local function get_icon(buffer_name, filetype, buffer_status)
   if status == false then
-    vim.notify(
+    notify(
       'barbar: bufferline.icons is set to v:true but \\\"nvim-dev-icons\\\" was not found.' ..
         '\nbarbar: icons have been disabled. Set `bufferline.icons` to `false` to disable this message.',
       vim.log.levels.WARN,
@@ -75,7 +78,7 @@ local function get_icon(buffer_name, filetype, buffer_status)
       hl.bg_or_default({'Buffer' .. buffer_status}, 'none', nil),
       hl.fg_or_default({icon_hl}, 'none', nil)
     )
-    table.insert(hl_groups, { icon_hl, buffer_status })
+    table_insert(hl_groups, { icon_hl, buffer_status })
   end
 
   return icon_char, icon_hl .. buffer_status

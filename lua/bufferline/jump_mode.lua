@@ -2,10 +2,14 @@
 -- jump_mode.lua
 --
 
+local char = string.char
+local string_lower = string.lower
+
 local buf_get_name = vim.api.nvim_buf_get_name
 local command = vim.api.nvim_command
 local fnamemodify = vim.fn.fnamemodify
 local getchar = vim.fn.getchar
+local notify = vim.notify
 local set_current_buf = vim.api.nvim_set_current_buf
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
@@ -54,7 +58,7 @@ function M.assign_next_letter(bufnr)
     local name = fnamemodify(buf_get_name(bufnr), ':t:r')
 
     for i = 1, strwidth(name) do
-      local letter = string.lower(strcharpart(name, i - 1, 1))
+      local letter = string_lower(strcharpart(name, i - 1, 1))
 
       if M.index_by_letter[letter] ~= nil then
         local index = M.index_by_letter[letter]
@@ -119,20 +123,20 @@ function M.activate()
   command('redraw')
   state.is_picking_buffer = false
 
-  local ok, char = pcall(getchar)
+  local ok, byte = pcall(getchar)
 
   if ok then
-    local letter = string.char(char)
+    local letter = char(byte)
 
     if letter ~= '' then
       if M.buffer_by_letter[letter] ~= nil then
         set_current_buf(M.buffer_by_letter[letter])
       else
-        vim.notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
+        notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
       end
     end
   else
-    vim.notify("Invalid input", vim.log.levels.WARN, {title = 'barbar.nvim'})
+    notify("Invalid input", vim.log.levels.WARN, {title = 'barbar.nvim'})
   end
 
   state.update()

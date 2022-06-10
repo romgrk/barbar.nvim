@@ -2,13 +2,19 @@
 -- utils.lua
 --
 
+local string_format = string.format
+
 local fnamemodify = vim.fn.fnamemodify
 local get_hl_by_name = vim.api.nvim_get_hl_by_name
 local list_slice = vim.list_slice
 local set_hl = vim.api.nvim_set_hl
 
-local function index_of(tbl, n)
-  for i, value in ipairs(tbl) do
+--- Return the index of element `n` in `list.
+--- @param list table
+--- @param n unknown
+--- @return number index
+local function index_of(list, n)
+  for i, value in ipairs(list) do
     if value == n then
       return i
     end
@@ -27,7 +33,7 @@ local function attribute_or_default(index, groups, default, default_cterm)
   for _, group in ipairs(groups) do
     local hl = get_hl_by_name(group, guicolors)
     if hl[index] then
-      return guicolors and string.format('#%06x', hl[index]) or hl[index]
+      return guicolors and string_format('#%06x', hl[index]) or hl[index]
     end
   end
   return guicolors and default or default_cterm
@@ -38,8 +44,12 @@ return {
      return fnamemodify(path, ':t')
   end,
 
-  has = function (tbl, n)
-    return index_of(tbl, n) ~= nil
+  --- Return whether element `n` is in a `list.
+  --- @param list table
+  --- @param n unknown
+  --- @return boolean
+  has = function (list, n)
+    return index_of(list, n) ~= nil
   end,
 
   --- utilities for working with highlight groups.
@@ -88,6 +98,8 @@ return {
 
   index_of = index_of,
 
+  --- @param value unknown
+  --- @return boolean is_nil `true` if `value` is `nil` or `vim.NIL`
   is_nil = function (value)
     return value == nil or value == vim.NIL
   end,

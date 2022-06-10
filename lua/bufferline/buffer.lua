@@ -2,10 +2,12 @@
 -- buffer.lua
 --
 
-local concat = table.concat
 local max = math.max
 local min = math.min
+local string_find = string.find
+local string_reverse = string.reverse
 local substring = string.sub
+local table_concat = table.concat
 
 local buf_get_name = vim.api.nvim_buf_get_name
 local bufwinnr = vim.fn.bufwinnr
@@ -58,7 +60,7 @@ local function get_name(opts, number)
   local ellipsis = '…'
   local max_len = opts.maximum_length
   if #name > max_len then
-    local ext_index = string.find(string.reverse(name), '%.')
+    local ext_index = string_find(string_reverse(name), '%.')
 
     if ext_index ~= nil and (ext_index < max_len - #ellipsis) then
       local extension = substring(name, -ext_index)
@@ -80,15 +82,15 @@ local function get_unique_name(first, second)
   local second_parts = split(second, separator)
 
   local length = 1
-  local first_result  = concat(utils.list_slice_from_end(first_parts, length),  separator)
-  local second_result = concat(utils.list_slice_from_end(second_parts, length), separator)
+  local first_result  = table_concat(utils.list_slice_from_end(first_parts, length),  separator)
+  local second_result = table_concat(utils.list_slice_from_end(second_parts, length), separator)
 
   while first_result == second_result and
         length < max(#first_parts, #second_parts)
   do
     length = length + 1
-    first_result  = concat(utils.list_slice_from_end(first_parts,  min(#first_parts, length)),  separator)
-    second_result = concat(utils.list_slice_from_end(second_parts, min(#second_parts, length)), separator)
+    first_result  = table_concat(utils.list_slice_from_end(first_parts,  min(#first_parts, length)),  separator)
+    second_result = table_concat(utils.list_slice_from_end(second_parts, min(#second_parts, length)), separator)
   end
 
   return first_result, second_result

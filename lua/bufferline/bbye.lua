@@ -23,6 +23,8 @@
 -- For the full copy of the GNU Affero General Public License see:
 -- http://www.gnu.org/licenses.
 
+local string_match = string.match
+
 local buflisted = vim.fn.buflisted
 local bufnr = vim.fn.bufnr
 local command = vim.api.nvim_command
@@ -32,12 +34,13 @@ local exec_autocmds = vim.api.nvim_exec_autocmds
 local get_current_buf = vim.api.nvim_get_current_buf
 local get_current_win = vim.api.nvim_get_current_win
 local list_wins = vim.api.nvim_list_wins
+local notify = vim.notify
 local set_current_buf = vim.api.nvim_set_current_buf
 local set_current_win = vim.api.nvim_set_current_win
 local win_get_buf = vim.api.nvim_win_get_buf
 local win_is_valid = vim.api.nvim_win_is_valid
 
-local reverse = require('bufferline.utils').reverse
+local reverse = require'bufferline.utils'.reverse
 
 -------------------
 -- Section: helpers
@@ -46,7 +49,7 @@ local reverse = require('bufferline.utils').reverse
 --- Use `vim.notify` to print an error `msg`
 --- @param msg string
 local function err(msg)
-  vim.notify(msg, vim.log.levels.ERROR, {title = 'bbye'})
+  notify(msg, vim.log.levels.ERROR, {title = 'bbye'})
   vim.v.errmsg = msg
 end
 
@@ -97,7 +100,7 @@ function bbye.delete(action, force, buffer, mods)
   end
 
   local is_modified = vim.bo[buffer_number].modified
-  local has_confirm = vim.o.confirm or (string.match(mods, 'conf') ~= nil)
+  local has_confirm = vim.o.confirm or (string_match(mods, 'conf') ~= nil)
 
   if is_modified and not (force or has_confirm) then
     err("E89: No write since last change for buffer " .. buffer_number .. " (add ! to override)")
@@ -131,7 +134,7 @@ function bbye.delete(action, force, buffer, mods)
         end
       end)
 
-      if not (no_errors or string.match(vim.v.errmsg, 'E85')) then
+      if not (no_errors or string_match(vim.v.errmsg, 'E85')) then
         err(vim.v.errmsg)
         return
       end
@@ -158,7 +161,7 @@ function bbye.delete(action, force, buffer, mods)
     end)
 
     if not no_errors then
-      if string.match(vim.v.errmsg, 'E516') then
+      if string_match(vim.v.errmsg, 'E516') then
         set_current_buf(buffer_number)
       else
         err(vim.v.errmsg)

@@ -3,6 +3,11 @@
 -- render.lua
 --
 
+local max = math.max
+local min = math.min
+local string_rep = string.rep
+local table_insert = table.insert
+
 local get_current_buf = vim.api.nvim_get_current_buf
 local has = vim.fn.has
 local strcharpart = vim.fn.strcharpart
@@ -57,7 +62,7 @@ local function groups_insert(groups, position, others)
 
     -- While we haven't found the position...
     if current_position + group_width <= position then
-      table.insert(new_groups, group)
+      table_insert(new_groups, group)
       i = i + 1
       current_position = current_position + group_width
 
@@ -68,7 +73,7 @@ local function groups_insert(groups, position, others)
       -- Slice current group if it `position` is inside it
       if available_width > 0 then
         local new_group = { group[1], strcharpart(group[2], 0, available_width) }
-        table.insert(new_groups, new_group)
+        table_insert(new_groups, new_group)
       end
 
       -- Add new other groups
@@ -76,7 +81,7 @@ local function groups_insert(groups, position, others)
       for _, other in ipairs(others) do
         local other_width = strwidth(other[2])
         others_width = others_width + other_width
-        table.insert(new_groups, other)
+        table_insert(new_groups, other)
       end
 
       local end_position = position + others_width
@@ -93,14 +98,14 @@ local function groups_insert(groups, position, others)
           -- continue
         elseif previous_group_start_position >= end_position then
           -- table.insert(new_groups, 'direct')
-          table.insert(new_groups, previous_group)
+          table_insert(new_groups, previous_group)
         else
           local remaining_width = previous_group_end_position - end_position
           local start = previous_group_width - remaining_width
           local end_  = previous_group_width
           local new_group = { previous_group[1], strcharpart(previous_group[2], start, end_) }
           -- table.insert(new_groups, { group_start_position, group_end_position, end_position })
-          table.insert(new_groups, new_group)
+          table_insert(new_groups, new_group)
         end
 
         i = i + 1
@@ -129,11 +134,11 @@ local function slice_groups_right(groups, width)
     if accumulated_width >= width then
       local diff = text_width - (accumulated_width - width)
       local new_group = {hl, strcharpart(text, 0, diff)}
-      table.insert(new_groups, new_group)
+      table_insert(new_groups, new_group)
       break
     end
 
-    table.insert(new_groups, group)
+    table_insert(new_groups, group)
   end
 
   return new_groups
@@ -155,11 +160,11 @@ local function slice_groups_left(groups, width)
       local length = text_width - (accumulated_width - width)
       local start = text_width - length
       local new_group = {hl, strcharpart(text, start, length)}
-      table.insert(new_groups, 1, new_group)
+      table_insert(new_groups, 1, new_group)
       break
     end
 
-    table.insert(new_groups, 1, group)
+    table_insert(new_groups, 1, group)
   end
 
   return new_groups
@@ -301,7 +306,7 @@ local function render(update_names)
       clickable = '%' .. buffer_number .. '@BufferlineMainClickHandler@'
     end
 
-    local padding = string.rep(' ', layout.padding_width)
+    local padding = string_rep(' ', layout.padding_width)
 
     local item = {
       is_current = is_current,
@@ -336,7 +341,7 @@ local function render(update_names)
       end
     end
 
-    table.insert(items, item)
+    table_insert(items, item)
     current_buffer_position = current_buffer_position + item.width
   end
 
@@ -351,13 +356,13 @@ local function render(update_names)
       {'',                 state.offset_text},
     }
     result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
-    result = result .. string.rep(' ', offset_available_width - #state.offset_text)
+    result = result .. string_rep(' ', offset_available_width - #state.offset_text)
     result = result .. ' '
   end
 
   -- Add bufferline
   local bufferline_groups = {
-    { hl_tabline('BufferTabpageFill'), string.rep(' ', layout.actual_width) }
+    { hl_tabline('BufferTabpageFill'), string_rep(' ', layout.actual_width) }
   }
 
   for i, item in ipairs(items) do
@@ -371,8 +376,8 @@ local function render(update_names)
   end
 
   -- Crop to scroll region
-  local max_scroll = math.max(layout.actual_width - layout.buffers_width, 0)
-  local scroll = math.min(state.scroll_current, max_scroll)
+  local max_scroll = max(layout.actual_width - layout.buffers_width, 0)
+  local scroll = min(state.scroll_current, max_scroll)
   local buffers_end = layout.actual_width - scroll
 
   if buffers_end > layout.buffers_width then

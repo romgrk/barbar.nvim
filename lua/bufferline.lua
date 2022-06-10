@@ -2,6 +2,9 @@ local command = vim.api.nvim_command
 local create_augroup = vim.api.nvim_create_augroup
 local create_autocmd = vim.api.nvim_create_autocmd
 local create_user_command = vim.api.nvim_create_user_command
+local defer_fn = vim.defer_fn
+local notify = vim.notify
+local tbl_extend = vim.tbl_extend
 
 local highlight = require 'bufferline.highlight'
 
@@ -236,7 +239,7 @@ function bufferline.setup(options)
   )
 
   -- Set the options and watchers for when they are edited
-  vim.g.bufferline = options and vim.tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
+  vim.g.bufferline = options and tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
 
   vim.cmd [[
     " Must be global -_-
@@ -287,7 +290,7 @@ function bufferline.render(update_names)
   local err = result[2]
 
   bufferline.disable()
-  vim.notify(
+  notify(
     "Barbar detected an error while running. Barbar disabled itself :/" ..
       "Include this in your report: " ..
       tostring(err),
@@ -316,7 +319,7 @@ end
 --- @param update_names boolean|nil if `true`, update the names of the buffers in the bufferline. Default: false
 --- @param delay number|nil the number of milliseconds to defer updating the bufferline.
 function bufferline.update_async(update_names, delay)
-  vim.defer_fn(function() bufferline.update(update_names or false) end, delay or 1)
+  defer_fn(function() bufferline.update(update_names or false) end, delay or 1)
 end
 
 --------------------------
@@ -342,7 +345,7 @@ end
 --- What to do when `vim.g.bufferline` is changed.
 --- @param key string what option was changed.
 function bufferline.on_option_changed(_, key, _)
-  vim.g.bufferline = vim.tbl_extend('keep', vim.g.bufferline or {}, DEFAULT_OPTIONS)
+  vim.g.bufferline = tbl_extend('keep', vim.g.bufferline or {}, DEFAULT_OPTIONS)
   if key == 'letters' then
     require'bufferline.jump_mode'.initialize_indexes()
   end

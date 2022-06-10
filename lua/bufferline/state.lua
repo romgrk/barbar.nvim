@@ -2,7 +2,13 @@
 -- m.lua
 --
 
+local max = math.max
+local min = math.min
+local string_format = string.format
+local string_gsub = string.gsub
 local table_insert = table.insert
+local table_remove = table.remove
+local table_sort = table.sort
 
 local buf_delete = vim.api.nvim_buf_delete
 local buf_get_lines = vim.api.nvim_buf_get_lines
@@ -18,11 +24,14 @@ local get_current_buf = vim.api.nvim_get_current_buf
 local getbufvar = vim.fn.getbufvar
 local haslocaldir = vim.fn.haslocaldir
 local list_bufs = vim.api.nvim_list_bufs
+local list_extend = vim.list_extend
 local list_tabpages = vim.api.nvim_list_tabpages
 local list_wins = vim.api.nvim_list_wins
 local set_current_buf = vim.api.nvim_set_current_buf
 local set_current_win = vim.api.nvim_set_current_win
 local tabpage_list_wins = vim.api.nvim_tabpage_list_wins
+local tbl_contains = vim.tbl_contains
+local tbl_filter = vim.tbl_filter
 local timer_start = vim.fn.timer_start
 local win_get_buf = vim.api.nvim_win_get_buf
 
@@ -99,7 +108,7 @@ local function sort_pins_to_left()
       table_insert(unpinned, bufnr)
     end
   end
-  M.buffers = vim.list_extend(pinned, unpinned)
+  M.buffers = list_extend(pinned, unpinned)
 end
 
 function M.toggle_pin(bufnr)
@@ -263,7 +272,7 @@ end
 -- Close & cleanup buffers
 
 function M.close_buffer(buffer_number, should_update_names)
-  M.buffers = vim.tbl_filter(function(b) return b ~= buffer_number end, M.buffers)
+  M.buffers = tbl_filter(function(b) return b ~= buffer_number end, M.buffers)
   M.buffers_by_id[buffer_number] = nil
   if should_update_names then
     M.update_names()
@@ -371,7 +380,7 @@ end
 function M.get_updated_buffers(update_names)
   local current_buffers = get_buffer_list()
   local new_buffers =
-    vim.tbl_filter(
+    tbl_filter(
       function(b) return not vim.tbl_contains(M.buffers, b) end,
       current_buffers)
 
@@ -380,7 +389,7 @@ function M.get_updated_buffers(update_names)
 
   -- Remove closed or update closing buffers
   local closed_buffers =
-    vim.tbl_filter(function(b) return not vim.tbl_contains(current_buffers, b) end, M.buffers)
+    tbl_filter(function(b) return not tbl_contains(current_buffers, b) end, M.buffers)
 
   for _, buffer_number in ipairs(closed_buffers) do
     local buffer_data = M.get_buffer_data(buffer_number)
@@ -403,7 +412,7 @@ function M.get_updated_buffers(update_names)
   end
 
   M.buffers =
-    vim.tbl_filter(function(b) return buf_is_valid(b) end, M.buffers)
+    tbl_filter(function(b) return buf_is_valid(b) end, M.buffers)
 
   if did_change or update_names then
     M.update_names()
@@ -461,15 +470,15 @@ local function move_buffer_animated(from_idx, to_idx)
   layout = Layout.calculate(M)
   local previous_positions = Layout.calculate_buffers_position_by_buffer_number(M, layout)
 
-  table.remove(M.buffers, from_idx)
+  table_remove(M.buffers, from_idx)
   table_insert(M.buffers, to_idx, buffer_number)
 
   sort_pins_to_left()
 
   local current_index = utils.index_of(M.buffers, buffer_number)
 
-  local start_index = math.min(from_idx, current_index)
-  local end_index   = math.max(from_idx, current_index)
+  local start_index = min(from_idx, current_index)
+  local end_index   = max(from_idx, current_index)
 
   if start_index == end_index then return end
 
@@ -506,7 +515,7 @@ end
 
 local function move_buffer_direct(from_idx, to_idx)
   local buffer_number = M.buffers[from_idx]
-  table.remove(M.buffers, from_idx)
+  table_remove(M.buffers, from_idx)
   table_insert(M.buffers, to_idx, buffer_number)
   sort_pins_to_left()
 
@@ -514,7 +523,7 @@ local function move_buffer_direct(from_idx, to_idx)
 end
 
 local function move_buffer(from_idx, to_idx)
-  to_idx = math.max(1, math.min(#M.buffers, to_idx))
+  to_idx = max(1, min(#M.buffers, to_idx))
   if to_idx == from_idx then
     return
   end
@@ -660,14 +669,14 @@ local function is_relative_path(path)
 end
 
 function M.order_by_buffer_number()
-  table.sort(M.buffers, function(a, b)
+  table_sort(M.buffers, function(a, b)
     return a < b
   end)
   M.update()
 end
 
 function M.order_by_directory()
-  table.sort(
+  table_sort(
     M.buffers,
     with_pin_order(function(a, b)
       local na = buf_get_name(a)
@@ -687,7 +696,7 @@ function M.order_by_directory()
 end
 
 function M.order_by_language()
-  table.sort(
+  table_sort(
     M.buffers,
     with_pin_order(function(a, b)
       local na = fnamemodify(buf_get_name(a), ':e')
@@ -699,7 +708,7 @@ function M.order_by_language()
 end
 
 function M.order_by_window_number()
-  table.sort(
+  table_sort(
     M.buffers,
     with_pin_order(function(a, b)
       local na = bufwinnr(buf_get_name(a))
@@ -736,14 +745,14 @@ function M.on_pre_save()
       name = fnamemodify(name, ':~:.')
     end
     -- escape quotes
-    name = string.gsub(name, '"', '\\"')
-    table_insert(bufnames, string.format('"%s"', name))
+    name = string_gsub(name, '"', '\\"')
+    table_insert(bufnames, string_format('"%s"', name))
   end
   local bufarr = string.format('{%s}', table.concat(bufnames, ','))
   local commands = vim.g.session_save_commands
   table_insert(commands, '" barbar.nvim')
   table_insert(commands,
-    string.format([[lua require'bufferline.state'.restore_buffers(%s)]], bufarr))
+    string_format([[lua require'bufferline.state'.restore_buffers(%s)]], bufarr))
   vim.g.session_save_commands = commands
 end
 
