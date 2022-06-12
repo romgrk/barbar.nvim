@@ -154,7 +154,7 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferMove',
-    function(tbl) vim.api.nvim_command('<Cmd>BufferMovePrevious ' .. tbl.count .. '<CR>') end,
+    function(tbl) vim.api.nvim_command('BufferMovePrevious ' .. tbl.count) end,
     {count = true, desc = 'Synonym for `:BufferMovePrevious`'}
   )
 
