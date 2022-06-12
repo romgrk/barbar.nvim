@@ -149,8 +149,8 @@ function bufferline.setup(options)
     {desc = 'Go to the buffer at the specified index', nargs = 1}
   )
 
-  create_user_command('BufferLast', '<Cmd>BufferGoto 1<CR>', {desc = 'Go to the first buffer'})
-  create_user_command('BufferLast', '<Cmd>BufferGoto -1<CR>', {desc = 'Go to the last buffer'})
+  create_user_command('BufferFirst', 'BufferGoto 1',  {desc = 'Go to the first buffer'})
+  create_user_command('BufferLast',  'BufferGoto -1', {desc = 'Go to the last buffer'})
 
   create_user_command(
     'BufferMove',
