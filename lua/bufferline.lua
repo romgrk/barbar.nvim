@@ -98,12 +98,22 @@ function bufferline.enable()
 
   create_autocmd(
     {'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWipeout', 'BufWritePost', 'SessionLoadPost', 'VimResized', 'WinEnter', 'WinLeave'},
-    {callback = bufferline.update, group = augroup_bufferline_update}
+    {
+      callback = function() bufferline.update() end,
+      group = augroup_bufferline_update,
+    }
   )
 
-  create_autocmd('OptionSet', {callback = bufferline.update, group = augroup_bufferline_update, pattern = 'buflisted'})
+  create_autocmd('OptionSet', {
+    callback = function() bufferline.update() end,
+    group = augroup_bufferline_update,
+    pattern = 'buflisted',
+  })
 
-  create_autocmd('WinClosed', {callback = bufferline.update_async, group = augroup_bufferline_update})
+  create_autocmd('WinClosed', {
+    callback = function() bufferline.update_async() end,
+    group = augroup_bufferline_update,
+  })
 
   create_autocmd('TermOpen', {
     callback = function() bufferline.update_async(true, 500) end,
