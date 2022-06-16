@@ -209,10 +209,6 @@ map('n', '<Space>bw', ':BufferOrderByWindowNumber<CR>', opts)
 " NOTE: If barbar's option dict isn't created yet, create it
 let bufferline = get(g:, 'bufferline', {})
 
-" New tabs are opened next to the currently selected tab.
-" Enable to insert them in buffer number order.
-let bufferline.add_in_buffer_number_order = v:false
-
 " Enable/disable animations
 let bufferline.animation = v:true
 
