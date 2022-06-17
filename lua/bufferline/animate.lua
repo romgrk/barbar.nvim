@@ -2,38 +2,23 @@
 -- animate.lua
 --
 
-local float2nr = vim.fn.float2nr
+local floor = math.floor
+
 local reltime = vim.fn.reltime
 local reltimefloat = vim.fn.reltimefloat
 
+local ANIMATION_FREQUENCY = 50
 
+local function lerp(ratio, initial, final, delta_type)
+  delta_type = delta_type or vim.v.t_number
 
-local animation_frequency = 50
+  local range = final - initial
+  local delta = delta_type == vim.v.t_number and floor(ratio * range) or (ratio * range)
 
-function start(duration, initial, final, type, callback)
-  local ticks = (duration / animation_frequency) + 10
-
-  local state = {}
-  state.running = true
-  state.fn = callback
-  state.type = type
-  state.step = (final - initial) / ticks
-  state.duration = duration
-  state.current = initial
-  state.initial = initial
-  state.final = final
-  state.start = reltime()
-  state.timer = vim.loop.new_timer()
-
-  state.timer:start(0, animation_frequency, vim.schedule_wrap(function()
-    animate_tick(state.timer, state)
-  end))
-
-  state.fn(state.current, state)
-  return state
+  return initial + delta
 end
 
-function animate_tick(timer, state)
+local function animate_tick(timer, state)
   -- Alternative to finding current value:
   --
   --   let state.current += state.step
@@ -61,23 +46,32 @@ function animate_tick(timer, state)
   end
 end
 
-function stop(state)
+local function start(duration, initial, final, type, callback)
+  local ticks = (duration / ANIMATION_FREQUENCY) + 10
+
+  local state = {}
+  state.running = true
+  state.fn = callback
+  state.type = type
+  state.step = (final - initial) / ticks
+  state.duration = duration
+  state.current = initial
+  state.initial = initial
+  state.final = final
+  state.start = reltime()
+  state.timer = vim.loop.new_timer()
+
+  state.timer:start(0, ANIMATION_FREQUENCY, vim.schedule_wrap(function()
+    animate_tick(state.timer, state)
+  end))
+
+  state.fn(state.current, state)
+  return state
+end
+
+local function stop(state)
   state.timer:stop()
 end
-
-function lerp(ratio, initial, final, ...)
-  local arg = {...}
-  local type = (#arg > 0) and arg[1] or vim.v.t_number
-
-  local range = final - initial
-  local delta =
-    (type == vim.v.t_number) and
-      float2nr(ratio * range) or
-              (ratio * range)
-
-  return initial + delta
-end
-
 
 return {
   start = start,

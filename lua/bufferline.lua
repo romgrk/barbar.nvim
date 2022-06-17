@@ -1,3 +1,13 @@
+local command = vim.api.nvim_command
+local create_augroup = vim.api.nvim_create_augroup
+local create_autocmd = vim.api.nvim_create_autocmd
+local create_user_command = vim.api.nvim_create_user_command
+local defer_fn = vim.defer_fn
+local notify = vim.notify
+local tbl_extend = vim.tbl_extend
+
+local highlight = require 'bufferline.highlight'
+
 --- The default options for this plugin.
 local DEFAULT_OPTIONS = {
   animation = true,
@@ -30,7 +40,7 @@ local DEFAULT_OPTIONS = {
 --- Create and reset autocommand groups associated with this plugin.
 --- @return number bufferline, number bufferline_update
 local function create_augroups()
-  return vim.api.nvim_create_augroup('bufferline', {}), vim.api.nvim_create_augroup('bufferline_update', {})
+  return create_augroup('bufferline', {}), create_augroup('bufferline_update', {})
 end
 
 -------------------------------
@@ -49,8 +59,6 @@ end
 --- Enable the bufferline.
 function bufferline.enable()
   local augroup_bufferline, augroup_bufferline_update = create_augroups()
-  local create_autocmd = vim.api.nvim_create_autocmd
-  local highlight = require 'bufferline.highlight'
 
   create_autocmd({'BufNewFile', 'BufReadPost'}, {
     callback = function(tbl) require'bufferline.jump_mode'.assign_next_letter(tbl.buf) end,
@@ -65,10 +73,7 @@ function bufferline.enable()
     group = augroup_bufferline,
   })
 
-  create_autocmd({'ColorScheme', 'VimEnter'}, {
-    callback = highlight.setup,
-    group = augroup_bufferline,
-  })
+  create_autocmd('ColorScheme', {callback = highlight.setup, group = augroup_bufferline})
 
   create_autocmd('BufModifiedSet', {
     callback = function()
@@ -94,19 +99,19 @@ function bufferline.enable()
   create_autocmd(
     {'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWipeout', 'BufWritePost', 'SessionLoadPost', 'VimResized', 'WinEnter', 'WinLeave'},
     {
-      callback = bufferline.update,
+      callback = function() bufferline.update() end,
       group = augroup_bufferline_update,
     }
   )
 
   create_autocmd('OptionSet', {
-    callback = bufferline.update,
+    callback = function() bufferline.update() end,
     group = augroup_bufferline_update,
     pattern = 'buflisted',
   })
 
   create_autocmd('WinClosed', {
-    callback = bufferline.update_async,
+    callback = function() bufferline.update_async() end,
     group = augroup_bufferline_update,
   })
 
@@ -115,15 +120,12 @@ function bufferline.enable()
     group = augroup_bufferline_update,
   })
 
-  highlight.setup()
   bufferline.update()
 end
 
 --- Setup this plugin.
 --- @param options nil|table
 function bufferline.setup(options)
-  local create_user_command = vim.api.nvim_create_user_command
-
   -- Show the tabline
   vim.opt.showtabline = 2
 
@@ -149,12 +151,12 @@ function bufferline.setup(options)
     {desc = 'Go to the buffer at the specified index', nargs = 1}
   )
 
-  create_user_command('BufferFirst', 'BufferGoto 1',  {desc = 'Go to the first buffer'})
-  create_user_command('BufferLast',  'BufferGoto -1', {desc = 'Go to the last buffer'})
+  create_user_command('BufferFirst', 'BufferGoto 1', {desc = 'Go to the first buffer'})
+  create_user_command('BufferLast', 'BufferGoto -1', {desc = 'Go to the last buffer'})
 
   create_user_command(
     'BufferMove',
-    function(tbl) vim.api.nvim_command('BufferMovePrevious ' .. tbl.count) end,
+    function(tbl) command('BufferMovePrevious ' .. tbl.count) end,
     {count = true, desc = 'Synonym for `:BufferMovePrevious`'}
   )
 
@@ -247,7 +249,7 @@ function bufferline.setup(options)
   )
 
   -- Set the options and watchers for when they are edited
-  vim.g.bufferline = options and vim.tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
+  vim.g.bufferline = options and tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
 
   vim.cmd [[
     " Must be global -_-
@@ -268,6 +270,7 @@ function bufferline.setup(options)
     call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
   ]]
 
+  highlight.setup()
   bufferline.enable()
 end
 
@@ -297,7 +300,7 @@ function bufferline.render(update_names)
   local err = result[2]
 
   bufferline.disable()
-  vim.notify(
+  notify(
     "Barbar detected an error while running. Barbar disabled itself :/" ..
       "Include this in your report: " ..
       tostring(err),
@@ -326,7 +329,7 @@ end
 --- @param update_names boolean|nil if `true`, update the names of the buffers in the bufferline. Default: false
 --- @param delay number|nil the number of milliseconds to defer updating the bufferline.
 function bufferline.update_async(update_names, delay)
-  vim.defer_fn(function() bufferline.update(update_names or false) end, delay or 1)
+  defer_fn(function() bufferline.update(update_names or false) end, delay or 1)
 end
 
 --------------------------
@@ -352,7 +355,7 @@ end
 --- What to do when `vim.g.bufferline` is changed.
 --- @param key string what option was changed.
 function bufferline.on_option_changed(_, key, _)
-  vim.g.bufferline = vim.tbl_extend('keep', vim.g.bufferline or {}, DEFAULT_OPTIONS)
+  vim.g.bufferline = tbl_extend('keep', vim.g.bufferline or {}, DEFAULT_OPTIONS)
   if key == 'letters' then
     require'bufferline.jump_mode'.initialize_indexes()
   end

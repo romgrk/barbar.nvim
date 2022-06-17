@@ -2,20 +2,20 @@
 -- buffer.lua
 --
 
+local max = math.max
+local min = math.min
+local string_find = string.find
+local string_reverse = string.reverse
+local substring = string.sub
+local table_concat = table.concat
 
-local vim = vim
-local utils = require'bufferline.utils'
-local split = vim.split
-local join = table.concat
-local len = utils.len
-local slice = utils.slice
-local basename = utils.basename
-local bufname = vim.fn.bufname
+local buf_get_name = vim.api.nvim_buf_get_name
 local bufwinnr = vim.fn.bufwinnr
+local get_current_buf = vim.api.nvim_get_current_buf
 local matchlist = vim.fn.matchlist
-local nvim_buf_get_option = vim.api.nvim_buf_get_option
-local nvim_get_current_buf = vim.api.nvim_get_current_buf
+local split = vim.split
 
+local utils = require'bufferline.utils'
 
 local function terminalname(name)
   local result = matchlist(name, [===[term://.\{-}//\d\+:\(.*\)]===])
@@ -26,10 +26,9 @@ local function terminalname(name)
   end
 end
 
-
 -- returns 0: none, 1: active, 2: current
 local function get_activity(number)
-  if nvim_get_current_buf() == number then
+  if get_current_buf() == number then
     return 2
   end
   if bufwinnr(number) ~= -1 then
@@ -39,7 +38,7 @@ local function get_activity(number)
 end
 
 local function get_name(opts, number)
-  local name = bufname(number)
+  local name = buf_get_name(number)
 
   if name == '' then
     if opts.no_name_title ~= nil and
@@ -50,48 +49,48 @@ local function get_name(opts, number)
       name = '[buffer ' .. number .. ']'
     end
   else
-    local buftype = nvim_buf_get_option(number, 'buftype')
+    local buftype = vim.bo[number].buftype
     if buftype == 'terminal' then
       name = terminalname(name)
     else
-      name = basename(name)
+      name = utils.basename(name)
     end
   end
 
   local ellipsis = '…'
   local max_len = opts.maximum_length
   if #name > max_len then
-    local ext_index = string.find(string.reverse(name), '%.')
+    local ext_index = string_find(string_reverse(name), '%.')
 
     if ext_index ~= nil and (ext_index < max_len - #ellipsis) then
-      local extension = string.sub(name, -ext_index)
-      name = string.sub(name, 1, max_len - #ellipsis - #extension) .. ellipsis .. extension
+      local extension = substring(name, -ext_index)
+      name = substring(name, 1, max_len - #ellipsis - #extension) .. ellipsis .. extension
     else
-      name = string.sub(name, 1, max_len - #ellipsis) .. ellipsis
+      name = substring(name, 1, max_len - #ellipsis) .. ellipsis
     end
 
     -- safety to prevent recursion in any future edge case
-    name = string.sub(name, 1, max_len)
+    name = substring(name, 1, max_len)
   end
 
   return name
 end
 
 local separator = package.config:sub(1,1)
-local function get_unique_name (first, second)
+local function get_unique_name(first, second)
   local first_parts  = split(first,  separator)
   local second_parts = split(second, separator)
 
   local length = 1
-  local first_result  = join(slice(first_parts, -length),  separator)
-  local second_result = join(slice(second_parts, -length), separator)
+  local first_result  = table_concat(utils.list_slice_from_end(first_parts, length),  separator)
+  local second_result = table_concat(utils.list_slice_from_end(second_parts, length), separator)
 
   while first_result == second_result and
-        length < math.max(len(first_parts), len(second_parts))
+        length < max(#first_parts, #second_parts)
   do
     length = length + 1
-    first_result  = join(slice(first_parts,  -math.min(len(first_parts), length)),  separator)
-    second_result = join(slice(second_parts, -math.min(len(second_parts), length)), separator)
+    first_result  = table_concat(utils.list_slice_from_end(first_parts,  min(#first_parts, length)),  separator)
+    second_result = table_concat(utils.list_slice_from_end(second_parts, min(#second_parts, length)), separator)
   end
 
   return first_result, second_result

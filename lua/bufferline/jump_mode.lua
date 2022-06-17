@@ -2,23 +2,25 @@
 -- jump_mode.lua
 --
 
-local vim = vim
-local api = vim.api
-local nvim = require'bufferline.nvim'
-local utils = require'bufferline.utils'
-local len = utils.len
-local slice = utils.slice
-local strwidth = nvim.strwidth
-local state = require'bufferline.state'
-local Buffer = require'bufferline.buffer'
+local char = string.char
+local string_lower = string.lower
+
+local buf_get_name = vim.api.nvim_buf_get_name
+local command = vim.api.nvim_command
 local fnamemodify = vim.fn.fnamemodify
-local bufname = vim.fn.bufname
+local getchar = vim.fn.getchar
+local notify = vim.notify
+local set_current_buf = vim.api.nvim_set_current_buf
+local strcharpart = vim.fn.strcharpart
+local strwidth = vim.api.nvim_strwidth
+
+local state = require'bufferline.state'
 
 ----------------------------------------
 -- Section: Buffer-picking mode state --
 ----------------------------------------
 
-local m = {
+local M = {
   letters = vim.g.bufferline.letters, -- array
   index_by_letter = {}, -- object
   letter_status = {}, -- array
@@ -27,45 +29,45 @@ local m = {
 }
 
 -- Initialize m.index_by_letter
-local function initialize_indexes()
-  m.index_by_letter = {}
-  m.letter_status = {}
-  m.buffer_by_letter = {}
-  m.letter_by_buffer = {}
+function M.initialize_indexes()
+  M.index_by_letter = {}
+  M.letter_status = {}
+  M.buffer_by_letter = {}
+  M.letter_by_buffer = {}
 
-  for index = 1, len(m.letters) do
-    local letter = slice(m.letters, index, index)
-    m.index_by_letter[letter] = index
-    m.letter_status[index] = false
+  for index = 1, #M.letters do
+    local letter = strcharpart(M.letters, index - 1, 1)
+    M.index_by_letter[letter] = index
+    M.letter_status[index] = false
   end
 end
 
-initialize_indexes()
+M.initialize_indexes()
 
--- local empty_bufnr = nvim.create_buf(0, 1)
+-- local empty_bufnr = vim.api.nvim_create_buf(0, 1)
 
-local function assign_next_letter(bufnr)
+function M.assign_next_letter(bufnr)
   bufnr = tonumber(bufnr)
 
-  if m.letter_by_buffer[bufnr] ~= nil then
+  if M.letter_by_buffer[bufnr] ~= nil then
     return
   end
 
   -- First, try to assign a letter based on name
   if vim.g.bufferline.semantic_letters == true then
-    local name = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t:r')
+    local name = fnamemodify(buf_get_name(bufnr), ':t:r')
 
     for i = 1, strwidth(name) do
-      local letter = string.lower(slice(name, i, i))
+      local letter = string_lower(strcharpart(name, i - 1, 1))
 
-      if m.index_by_letter[letter] ~= nil then
-        local index = m.index_by_letter[letter]
-        local status = m.letter_status[index]
+      if M.index_by_letter[letter] ~= nil then
+        local index = M.index_by_letter[letter]
+        local status = M.letter_status[index]
         if status == false then
-          m.letter_status[index] = true
+          M.letter_status[index] = true
           -- letter = m.letters[index]
-          m.buffer_by_letter[letter] = bufnr
-          m.letter_by_buffer[bufnr] = letter
+          M.buffer_by_letter[letter] = bufnr
+          M.letter_by_buffer[bufnr] = letter
           return letter
         end
       end
@@ -73,12 +75,12 @@ local function assign_next_letter(bufnr)
   end
 
   -- Otherwise, assign a letter by usable order
-  for i, status in ipairs(m.letter_status) do
+  for i, status in ipairs(M.letter_status) do
     if status == false then
-      local letter = m.letters:sub(i, i)
-      m.letter_status[i] = true
-      m.buffer_by_letter[letter] = bufnr
-      m.letter_by_buffer[bufnr] = letter
+      local letter = M.letters:sub(i, i)
+      M.letter_status[i] = true
+      M.buffer_by_letter[letter] = bufnr
+      M.letter_by_buffer[bufnr] = letter
       return letter
     end
   end
@@ -86,70 +88,59 @@ local function assign_next_letter(bufnr)
   return nil
 end
 
-local function unassign_letter(letter)
+function M.unassign_letter(letter)
   if letter == '' or letter == nil then
     return
   end
 
-  local index = m.index_by_letter[letter]
+  local index = M.index_by_letter[letter]
 
-  m.letter_status[index] = false
+  M.letter_status[index] = false
 
-  if m.buffer_by_letter[letter] ~= nil then
-    local bufnr = m.buffer_by_letter[letter]
-    m.buffer_by_letter[letter] = nil
-    m.letter_by_buffer[bufnr] = nil
+  if M.buffer_by_letter[letter] ~= nil then
+    local bufnr = M.buffer_by_letter[letter]
+    M.buffer_by_letter[letter] = nil
+    M.letter_by_buffer[bufnr] = nil
   end
 end
 
-local function get_letter(bufnr)
-   if m.letter_by_buffer[bufnr] ~= nil then
-      return m.letter_by_buffer[bufnr]
-   end
-   return assign_next_letter(bufnr)
+function M.get_letter(bufnr)
+  if M.letter_by_buffer[bufnr] ~= nil then
+    return M.letter_by_buffer[bufnr]
+  end
+
+  return M.assign_next_letter(bufnr)
 end
 
-local function unassign_letter_for(bufnr)
-  unassign_letter(get_letter(bufnr))
+function M.unassign_letter_for(bufnr)
+  M.unassign_letter(M.get_letter(bufnr))
 end
 
 
-local function activate()
+function M.activate()
   state.is_picking_buffer = true
   state.update()
-  nvim.command('redraw')
+  command('redraw')
   state.is_picking_buffer = false
 
-  local ok, char = pcall(vim.fn.getchar)
+  local ok, byte = pcall(getchar)
 
   if ok then
-    local letter = vim.fn.nr2char(char)
+    local letter = char(byte)
 
     if letter ~= '' then
-      if m.buffer_by_letter[letter] ~= nil then
-        local bufnr = m.buffer_by_letter[letter]
-        nvim.command('buffer' .. bufnr)
+      if M.buffer_by_letter[letter] ~= nil then
+        set_current_buf(M.buffer_by_letter[letter])
       else
-        nvim.command('echohl WarningMsg')
-        nvim.command([[echom "Couldn't find buffer"]])
-        nvim.command('echohl None')
+        notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
       end
     end
   else
-    nvim.command('echohl WarningMsg')
-    nvim.command([[echom "Invalid input"]])
-    nvim.command('echohl None')
+    notify("Invalid input", vim.log.levels.WARN, {title = 'barbar.nvim'})
   end
 
   state.update()
-  nvim.command('redraw')
+  command('redraw')
 end
 
-m.activate = activate
-m.get_letter = get_letter
-m.unassign_letter = unassign_letter
-m.unassign_letter_for = unassign_letter_for
-m.assign_next_letter = assign_next_letter
-m.initialize_indexes = initialize_indexes
-
-return m
+return M
