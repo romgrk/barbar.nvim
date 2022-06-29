@@ -16,6 +16,7 @@ local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_var = vim.api.nvim_buf_get_var
 local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_line_count = vim.api.nvim_buf_line_count
+local buf_get_option = vim.api.nvim_buf_get_option
 local bufadd = vim.fn.bufadd
 local bufwinnr = vim.fn.bufwinnr
 local command = vim.api.nvim_command
@@ -239,20 +240,20 @@ end
 
 local function set_current_win_listed_buffer()
   local current = get_current_buf()
-  local is_listed = vim.bo[current].buflisted
+  local is_listed = buf_get_option(current, 'buflisted')
 
   -- Check previous window first
   if not is_listed then
     command('wincmd p')
     current = get_current_buf()
-    is_listed = vim.bo[current].buflisted
+    is_listed = buf_get_option(current, 'buflisted')
   end
   -- Check all windows now
   if not is_listed then
     local wins = list_wins()
     for _, win in ipairs(wins) do
       current = win_get_buf(win)
-      is_listed = vim.bo[current].buflisted
+      is_listed = buf_get_option(current, 'buflisted')
       if is_listed then
         set_current_win(win)
         break
@@ -321,12 +322,12 @@ local function get_buffer_list()
 
   for _, buffer in ipairs(buffers) do
 
-    if not vim.bo[buffer].buflisted then
+    if not buf_get_option(buffer, 'buflisted') then
       goto continue
     end
 
     if not utils.is_nil(exclude_ft) then
-      local ft = vim.bo[buffer].filetype
+      local ft = buf_get_option(buffer, 'filetype')
       if utils.has(exclude_ft, ft) then
         goto continue
       end
@@ -761,7 +762,7 @@ function M.restore_buffers(bufnames)
   -- and create useless empty buffers.
   for _,bufnr in ipairs(list_bufs()) do
     if buf_get_name(bufnr) == ''
-      and vim.bo[bufnr].buftype == ''
+      and buf_get_option(bufnr, 'buftype') == ''
       and buf_line_count(bufnr) == 1
       and buf_get_lines(bufnr, 0, 1, true)[1] == '' then
         buf_delete(bufnr, {})
