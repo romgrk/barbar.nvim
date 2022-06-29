@@ -39,13 +39,15 @@ local function get_activity(number)
 end
 
 local function get_name(opts, number)
-  local name = buf_is_valid(number) and buf_get_name(number)
+  local name = buf_is_valid(number) and buf_get_name(number) or nil
 
   if name then
     name = vim.bo[number].buftype == 'terminal' and terminalname(name) or utils.basename(name)
   elseif opts.no_name_title ~= nil and opts.no_name_title ~= vim.NIL then
     name = opts.no_name_title
-  else
+  end
+
+  if name == '' or not name then
     name = '[buffer ' .. number .. ']'
   end
 
