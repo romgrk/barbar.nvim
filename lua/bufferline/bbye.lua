@@ -39,6 +39,8 @@ local set_current_buf = vim.api.nvim_set_current_buf
 local set_current_win = vim.api.nvim_set_current_win
 local win_get_buf = vim.api.nvim_win_get_buf
 local win_is_valid = vim.api.nvim_win_is_valid
+local buf_get_option = vim.api.nvim_buf_get_option
+local buf_set_option = vim.api.nvim_buf_set_option
 
 local reverse = require'bufferline.utils'.reverse
 
@@ -99,7 +101,7 @@ function bbye.delete(action, force, buffer, mods)
     return
   end
 
-  local is_modified = vim.bo[buffer_number].modified
+  local is_modified = buf_get_option(buffer_number, 'modified')
   local has_confirm = vim.o.confirm or (string_match(mods, 'conf') ~= nil)
 
   if is_modified and not (force or has_confirm) then
@@ -112,7 +114,7 @@ function bbye.delete(action, force, buffer, mods)
   -- If the buffer is set to delete and it contains changes, we can't switch
   -- away from it. Hide it before eventual deleting:
   if is_modified and force then
-    vim.bo[buffer_number].bufhidden = 'hide'
+    buf_set_option(buffer_number, 'bufhidden', 'hide')
   end
 
   -- For cases where adding buffers causes new windows to appear or hiding some

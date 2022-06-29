@@ -9,6 +9,7 @@ local string_rep = string.rep
 local table_insert = table.insert
 
 local get_current_buf = vim.api.nvim_get_current_buf
+local buf_get_option = vim.api.nvim_buf_get_option
 local has = vim.fn.has
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
@@ -191,7 +192,7 @@ local function render(update_names)
   local current = get_current_buf()
 
   -- Store current buffer to open new ones next to this one
-  if vim.bo[current].buflisted then
+  if buf_get_option(current, 'buflisted') then
     if vim.b.empty_buffer then
       state.last_current_buffer = nil
     else
@@ -224,7 +225,7 @@ local function render(update_names)
     local is_inactive = activity == 0
     -- local is_visible = activity == 1
     local is_current = activity == 2
-    local is_modified = vim.bo[buffer_number].modified
+    local is_modified = buf_get_option(buffer_number, 'modified')
     -- local is_closing = buffer_data.closing
     local is_pinned = state.is_pinned(buffer_number)
 
@@ -275,7 +276,7 @@ local function render(update_names)
     else
 
       if has_icons then
-        local iconChar, iconHl = icons.get_icon(buffer_name, vim.bo[buffer_number].filetype, status)
+        local iconChar, iconHl = icons.get_icon(buffer_name, buf_get_option(buffer_number, 'filetype'), status)
         local hlName = is_inactive and 'BufferInactive' or iconHl
         iconPrefix = has_icon_custom_colors and hl_tabline('Buffer' .. status .. 'Icon') or hlName and hl_tabline(hlName) or namePrefix
         icon = iconChar .. ' '

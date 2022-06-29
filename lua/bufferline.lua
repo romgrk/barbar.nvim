@@ -2,6 +2,7 @@ local command = vim.api.nvim_command
 local create_augroup = vim.api.nvim_create_augroup
 local create_autocmd = vim.api.nvim_create_autocmd
 local create_user_command = vim.api.nvim_create_user_command
+local buf_get_option = vim.api.nvim_buf_get_option
 local defer_fn = vim.defer_fn
 local notify = vim.notify
 local tbl_extend = vim.tbl_extend
@@ -77,8 +78,9 @@ function bufferline.enable()
 
   create_autocmd('BufModifiedSet', {
     callback = function()
-      if vim.bo.modified ~= vim.b.checked then
-        vim.b.checked = vim.bo.modified
+      local is_modified = buf_get_option(0, 'modified')
+      if is_modified ~= vim.b.checked then
+        vim.b.checked = is_modified
         bufferline.update()
       end
     end,

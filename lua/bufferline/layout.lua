@@ -8,6 +8,7 @@ local min = math.min
 local table_insert = table.insert
 
 local strwidth = vim.api.nvim_strwidth
+local buf_get_option = vim.api.nvim_buf_get_option
 local tabpagenr = vim.fn.tabpagenr
 
 local Buffer = require'bufferline.buffer'
@@ -53,7 +54,7 @@ local function calculate_buffers_width(state, base_width)
       local is_pinned = state.is_pinned(buffer_number)
 
       if opts.closable or is_pinned then
-        local is_modified = vim.bo[buffer_number].modified
+        local is_modified = buf_get_option(buffer_number, 'modified')
         local icon = is_pinned and opts.icon_pinned or
           (not is_modified -- close-icon
             and opts.icon_close_tab
