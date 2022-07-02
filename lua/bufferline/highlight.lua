@@ -17,9 +17,9 @@ return {
     local fg_special  = hl.fg_or_default({'Special'}, '#599eff', 75)
     local fg_subtle = hl.fg_or_default({'NonText', 'Comment'}, '#555555', 240)
 
-    local bg_current  = hl.bg_or_default({'Normal'}, 'none', nil)
-    local bg_visible  = hl.bg_or_default({'TabLineSel', 'Normal'}, 'none', nil)
-    local bg_inactive = hl.bg_or_default({'TabLineFill', 'StatusLine'}, 'none', nil)
+    local bg_current  = hl.bg_or_default({'Normal'}, 'none')
+    local bg_visible  = hl.bg_or_default({'TabLineSel', 'Normal'}, 'none')
+    local bg_inactive = hl.bg_or_default({'TabLineFill', 'StatusLine'}, 'none')
 
     local set_default_hl = hl.get_default_setter()
 

@@ -39,7 +39,7 @@ local DEFAULT_OPTIONS = {
 --------------------------
 
 --- Create and reset autocommand groups associated with this plugin.
---- @return number bufferline, number bufferline_update
+--- @return integer bufferline, integer bufferline_update
 local function create_augroups()
   return create_augroup('bufferline', {}), create_augroup('bufferline_update', {})
 end
@@ -256,17 +256,17 @@ function bufferline.setup(options)
   vim.cmd [[
     " Must be global -_-
     function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline.bbye'.delete('bdelete', false, _A, nil)", a:minwid)
+      call luaeval("require'bufferline.bbye'.delete('bdelete', false, _A)", a:minwid)
     endfunction
 
     " Must be global -_-
     function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline'.main_click_handler(_A[1], nil, _A[2], nil)", [a:minwid, a:btn])
+      call luaeval("require'bufferline'.main_click_handler(_A[1], nil, _A[2])", [a:minwid, a:btn])
     endfunction
 
     " Must be global -_-
     function! BufferlineOnOptionChanged(dict, key, changes) abort
-      call luaeval("require'bufferline'.on_option_changed(nil, _A, nil)", a:key)
+      call luaeval("require'bufferline'.on_option_changed(nil, _A)", a:key)
     endfunction
 
     call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
@@ -292,6 +292,7 @@ local last_tabline = ''
 
 --- Render the bufferline.
 --- @param update_names boolean if `true`, update the names of the buffers in the bufferline.
+--- @return nil|string tabline a valid `&tabline`
 function bufferline.render(update_names)
   local result = require'bufferline.render'.render_safe(update_names)
 
@@ -329,7 +330,7 @@ end
 
 --- Update the bufferline using `vim.defer_fn`.
 --- @param update_names boolean|nil if `true`, update the names of the buffers in the bufferline. Default: false
---- @param delay number|nil the number of milliseconds to defer updating the bufferline.
+--- @param delay integer|nil the number of milliseconds to defer updating the bufferline.
 function bufferline.update_async(update_names, delay)
   defer_fn(function() bufferline.update(update_names or false) end, delay or 1)
 end
@@ -340,7 +341,7 @@ end
 
 --- What to do when clicking.
 --- @param btn string
---- @param minwid number
+--- @param minwid integer
 function bufferline.main_click_handler(minwid, _, btn, _)
   if minwid == 0 then
     return
@@ -348,7 +349,7 @@ function bufferline.main_click_handler(minwid, _, btn, _)
 
   -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
   if btn == 'm' then
-    require'bufferline.bbye'.delete('bdelete', false, minwid, nil)
+    require'bufferline.bbye'.delete('bdelete', false, minwid)
   else
     require'bufferline.state'.open_buffer_in_listed_window(minwid)
   end

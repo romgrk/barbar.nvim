@@ -24,6 +24,7 @@ local function calculate_tabpages_width()
   return 1 + strwidth(tostring(current)) + 1 + strwidth(tostring(total)) + 1
 end
 
+--- @param base_width integer
 local function calculate_buffers_width(state, base_width)
   local opts = vim.g.bufferline
   local has_numbers = opts.icons == 'both' or opts.icons == 'numbers'

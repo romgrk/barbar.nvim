@@ -12,7 +12,7 @@ local set_hl = vim.api.nvim_set_hl
 --- Return the index of element `n` in `list.
 --- @param list table
 --- @param n unknown
---- @return number index
+--- @return nil|integer index
 local function index_of(list, n)
   for i, value in ipairs(list) do
     if value == n then
@@ -27,7 +27,7 @@ end
 --- @param groups table<string> the groups to source the color from.
 --- @param default string the color to use if no `groups` have a valid color.
 --- @param default_cterm number|string the color to use if no `groups` have a valid color and `termguicolors == false`.
---- @return number|string color
+--- @return integer|string color
 local function attribute_or_default(index, groups, default, default_cterm)
   local guicolors = vim.go.termguicolors
   for _, group in ipairs(groups) do
@@ -57,8 +57,8 @@ return {
     --- Generate a background color.
     --- @param groups table<string> the groups to source the background color from.
     --- @param default string the background color to use if no `groups` have a valid background color.
-    --- @param default_cterm nil|number|string the color to use if no `groups` have a valid color and `termguicolors == false`.
-    --- @return number|string color
+    --- @param default_cterm integer|nil|string the color to use if no `groups` have a valid color and `termguicolors == false`.
+    --- @return integer|string color
     bg_or_default = function(groups, default, default_cterm)
       return attribute_or_default('background', groups, default, default_cterm or default)
     end,
@@ -66,8 +66,8 @@ return {
     --- Generate a foreground color.
     --- @param groups table<string> the groups to source the foreground color from.
     --- @param default string the foreground color to use if no `groups` have a valid foreground color.
-    --- @param default_cterm nil|number|string the color to use if no `groups` have a valid color and `termguicolors == false`.
-    --- @return number|string color
+    --- @param default_cterm integer|nil|string the color to use if no `groups` have a valid color and `termguicolors == false`.
+    --- @return integer|string color
     fg_or_default = function(groups, default, default_cterm)
       return attribute_or_default('foreground', groups, default, default_cterm or default)
     end,
@@ -76,8 +76,8 @@ return {
     get_default_setter = function()
       --- Set some highlight `group`'s default definition with respect to `&termguicolors`
       --- @param group string the name of the highlight group to set
-      --- @param background number|string the background color
-      --- @param foreground number|string the foreground color
+      --- @param background integer|string the background color
+      --- @param foreground integer|string the foreground color
       --- @param bold boolean|nil whether the highlight group should be bolded
       return vim.go.termguicolors and
         function(group, background, foreground, bold)

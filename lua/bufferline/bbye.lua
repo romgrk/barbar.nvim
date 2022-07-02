@@ -90,8 +90,8 @@ local bbye = {}
 --- Delete a buffer
 --- @param action string the command to use to delete the buffer (e.g. `'bdelete'`)
 --- @param force boolean if true, forcefully delete the buffer
---- @param buffer nil|number|string the name of the buffer.
---- @param mods string the modifiers to the command (e.g. `'verbose'`)
+--- @param buffer integer|nil|string the name of the buffer.
+--- @param mods nil|string the modifiers to the command (e.g. `'verbose'`)
 function bbye.delete(action, force, buffer, mods)
   local buffer_number = type(buffer) == 'string' and bufnr(buffer) or buffer or get_current_buf()
   mods = mods or ''
