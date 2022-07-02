@@ -23,20 +23,20 @@ local function index_of(list, n)
 end
 
 --- Generate a color.
---- @param index string where to look for the color.
+--- @param default integer|string a color name (`string`), GUI hex (`string`), or cterm color code (`integer`).
 --- @param groups table<string> the groups to source the color from.
---- @param default string the color to use if no `groups` have a valid color.
---- @param default_cterm number|string the color to use if no `groups` have a valid color and `termguicolors == false`.
+--- @param guicolors boolean if `true`, look for GUI values. Else, look for `cterm`.
+--- @param index string where to look for the color.
 --- @return integer|string color
-local function attribute_or_default(index, groups, default, default_cterm)
-  local guicolors = vim.go.termguicolors
+local function attribute_or_default(groups, index, default, guicolors)
   for _, group in ipairs(groups) do
     local hl = get_hl_by_name(group, guicolors)
     if hl[index] then
       return guicolors and string_format('#%06x', hl[index]) or hl[index]
     end
   end
-  return guicolors and default or default_cterm
+
+  return default
 end
 
 return {
@@ -54,38 +54,51 @@ return {
 
   --- utilities for working with highlight groups.
   hl = {
+    --- @class barbar.util.Highlight
+    --- @field cterm integer|string
+    --- @field gui integer|string
+
     --- Generate a background color.
     --- @param groups table<string> the groups to source the background color from.
     --- @param default string the background color to use if no `groups` have a valid background color.
     --- @param default_cterm integer|nil|string the color to use if no `groups` have a valid color and `termguicolors == false`.
-    --- @return integer|string color
+    --- @return barbar.util.Highlight color
     bg_or_default = function(groups, default, default_cterm)
-      return attribute_or_default('background', groups, default, default_cterm or default)
+      return {
+        cterm = attribute_or_default(groups, 'background', default_cterm or default, false),
+        gui = attribute_or_default(groups, 'background', default, true),
+      }
     end,
 
     --- Generate a foreground color.
     --- @param groups table<string> the groups to source the foreground color from.
     --- @param default string the foreground color to use if no `groups` have a valid foreground color.
     --- @param default_cterm integer|nil|string the color to use if no `groups` have a valid color and `termguicolors == false`.
-    --- @return integer|string color
+    --- @return barbar.util.Highlight color
     fg_or_default = function(groups, default, default_cterm)
-      return attribute_or_default('foreground', groups, default, default_cterm or default)
+      return {
+        cterm = attribute_or_default(groups, 'foreground', default_cterm or default, false),
+        gui = attribute_or_default(groups, 'foreground', default, true),
+      }
     end,
 
-    --- @return function setter can set the default for a highlight group, depending on `vim.go.termguicolors`.
-    get_default_setter = function()
-      --- Set some highlight `group`'s default definition with respect to `&termguicolors`
-      --- @param group string the name of the highlight group to set
-      --- @param background integer|string the background color
-      --- @param foreground integer|string the foreground color
-      --- @param bold boolean|nil whether the highlight group should be bolded
-      return vim.go.termguicolors and
-        function(group, background, foreground, bold)
-          set_hl(0, group, {bg = background, bold = bold, default = true, fg = foreground})
-        end or
-        function(group, background, foreground, bold)
-          set_hl(0, group, {bold = bold, ctermbg = background, ctermfg = foreground, default = true})
-        end
+    --- Set some highlight `group`'s default definition with respect to `&termguicolors`
+    --- @param group string the name of the highlight group to set
+    --- @param bg barbar.util.Highlight
+    --- @param fg barbar.util.Highlight
+    --- @param bold boolean|nil whether the highlight group should be bolded
+    set_default = function(group, bg, fg, bold)
+      set_hl(0, group, {
+        bold = bold,
+
+        bg = bg.gui,
+        fg = fg.gui,
+
+        ctermbg = bg.cterm,
+        ctermfg = fg.cterm,
+
+        default = true,
+      })
     end,
 
     --- Set the default highlight `group_name` as a link to `link_name`
