@@ -40,6 +40,7 @@ local function get_activity(number)
 end
 
 local function get_name(opts, number)
+  --- @type nil|string
   local name = buf_is_valid(number) and buf_get_name(number) or nil
 
   if name then
