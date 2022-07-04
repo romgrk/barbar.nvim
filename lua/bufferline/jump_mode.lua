@@ -11,6 +11,7 @@ local fnamemodify = vim.fn.fnamemodify
 local getchar = vim.fn.getchar
 local notify = vim.notify
 local set_current_buf = vim.api.nvim_set_current_buf
+local split = vim.fn.split
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 
@@ -28,24 +29,18 @@ local reinitialize = false
 --- @field private index_by_letter table<string, integer> `letters` in the order they were provided
 --- @field private letter_by_buffer table<integer, string> a bi-directional map of buffer integers and their letters.
 --- @field private letter_status table<integer, boolean>
---- @field private letters string the letters to allow while jumping
-local JumpMode = {
-  letters = vim.g.bufferline.letters,
-  index_by_letter = {},
-  letter_status = {},
-  buffer_by_letter = {},
-  letter_by_buffer = {},
-}
+--- @field private letters table<string> the letters to allow while jumping
+local JumpMode = {}
 
 -- Initialize m.index_by_letter
 function JumpMode.initialize_indexes()
-  JumpMode.index_by_letter = {}
-  JumpMode.letter_status = {}
   JumpMode.buffer_by_letter = {}
+  JumpMode.index_by_letter = {}
   JumpMode.letter_by_buffer = {}
+  JumpMode.letter_status = {}
+  JumpMode.letters = split(vim.g.bufferline.letters, [[\zs]])
 
-  for index = 1, #JumpMode.letters do
-    local letter = strcharpart(JumpMode.letters, index - 1, 1)
+  for index, letter in ipairs(JumpMode.letters) do
     JumpMode.index_by_letter[letter] = index
     JumpMode.letter_status[index] = false
   end
@@ -84,7 +79,7 @@ function JumpMode.assign_next_letter(bufnr)
   -- Otherwise, assign a letter by usable order
   for i, status in ipairs(JumpMode.letter_status) do
     if status == false then
-      local letter = JumpMode.letters:sub(i, i)
+      local letter = JumpMode.letters[i]
       JumpMode.letter_status[i] = true
       JumpMode.buffer_by_letter[letter] = bufnr
       JumpMode.letter_by_buffer[bufnr] = letter
