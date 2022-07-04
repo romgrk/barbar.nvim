@@ -20,12 +20,21 @@ local state = require'bufferline.state'
 -- Section: Buffer-picking mode state --
 ----------------------------------------
 
+--- Whether an `initialize_indexes` operation has been queued.
+local reinitialize = false
+
+--- @class bufferline.JumpMode
+--- @field private buffer_by_letter table<string, integer> a bi-directional map of buffer integers and their letters.
+--- @field private index_by_letter table<string, integer> `letters` in the order they were provided
+--- @field private letter_by_buffer table<integer, string> a bi-directional map of buffer integers and their letters.
+--- @field private letter_status table<integer, boolean>
+--- @field private letters string the letters to allow while jumping
 local M = {
-  letters = vim.g.bufferline.letters, -- array
-  index_by_letter = {}, -- object
-  letter_status = {}, -- array
-  buffer_by_letter = {}, -- object
-  letter_by_buffer = {}, -- object
+  letters = vim.g.bufferline.letters,
+  index_by_letter = {},
+  letter_status = {},
+  buffer_by_letter = {},
+  letter_by_buffer = {},
 }
 
 -- Initialize m.index_by_letter
@@ -40,15 +49,13 @@ function M.initialize_indexes()
     M.index_by_letter[letter] = index
     M.letter_status[index] = false
   end
-end
 
-M.initialize_indexes()
+  reinitialize = false
+end
 
 -- local empty_bufnr = vim.api.nvim_create_buf(0, 1)
 
 function M.assign_next_letter(bufnr)
-  bufnr = tonumber(bufnr)
-
   if M.letter_by_buffer[bufnr] ~= nil then
     return
   end
@@ -118,6 +125,10 @@ end
 
 
 function M.activate()
+  if reinitialize then
+    M.initialize_indexes()
+  end
+
   state.is_picking_buffer = true
   state.update()
   command('redraw')
@@ -143,4 +154,5 @@ function M.activate()
   command('redraw')
 end
 
+M.initialize_indexes()
 return M
