@@ -21,6 +21,10 @@ local state = require'bufferline.state'
 -- Section: Buffer-picking mode state --
 ----------------------------------------
 
+--- The letters which can be assigned to a buffer for a user to pick when entering `jump_mode`.
+--- @type table<string>
+local letters = {}
+
 --- Whether an `initialize_indexes` operation has been queued.
 local reinitialize = false
 
@@ -29,7 +33,6 @@ local reinitialize = false
 --- @field private index_by_letter table<string, integer> `letters` in the order they were provided
 --- @field private letter_by_buffer table<integer, string> a bi-directional map of buffer integers and their letters.
 --- @field private letter_status table<integer, boolean>
---- @field private letters table<string> the letters to allow while jumping
 local JumpMode = {}
 
 -- Initialize m.index_by_letter
@@ -38,14 +41,20 @@ function JumpMode.initialize_indexes()
   JumpMode.index_by_letter = {}
   JumpMode.letter_by_buffer = {}
   JumpMode.letter_status = {}
-  JumpMode.letters = split(vim.g.bufferline.letters, [[\zs]])
 
-  for index, letter in ipairs(JumpMode.letters) do
+  for index, letter in ipairs(letters) do
     JumpMode.index_by_letter[letter] = index
     JumpMode.letter_status[index] = false
   end
 
   reinitialize = false
+end
+
+--- Set the letters which can be used by jump mode.
+--- @param chars string
+function JumpMode.set_letters(chars)
+  letters = split(chars, [[\zs]])
+  JumpMode.initialize_indexes()
 end
 
 -- local empty_bufnr = vim.api.nvim_create_buf(0, 1)
@@ -79,7 +88,7 @@ function JumpMode.assign_next_letter(bufnr)
   -- Otherwise, assign a letter by usable order
   for i, status in ipairs(JumpMode.letter_status) do
     if status == false then
-      local letter = JumpMode.letters[i]
+      local letter = letters[i]
       JumpMode.letter_status[i] = true
       JumpMode.buffer_by_letter[letter] = bufnr
       JumpMode.letter_by_buffer[bufnr] = letter
@@ -147,5 +156,5 @@ function JumpMode.activate()
   command('redraw')
 end
 
-JumpMode.initialize_indexes()
+JumpMode.set_letters(vim.g.bufferline.letters)
 return JumpMode
