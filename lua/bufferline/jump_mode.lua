@@ -109,14 +109,12 @@ function M.unassign_letter(letter)
     M.buffer_by_letter[letter] = nil
     M.letter_by_buffer[bufnr] = nil
   end
+
+  reinitialize = true
 end
 
 function M.get_letter(bufnr)
-  if M.letter_by_buffer[bufnr] ~= nil then
-    return M.letter_by_buffer[bufnr]
-  end
-
-  return M.assign_next_letter(bufnr)
+  return M.letter_by_buffer[bufnr] or M.assign_next_letter(bufnr)
 end
 
 function M.unassign_letter_for(bufnr)
