@@ -715,9 +715,7 @@ function M.order_by_language()
   table_sort(
     M.buffers,
     with_pin_order(function(a, b)
-      local na = fnamemodify(buf_get_name(a), ':e')
-      local nb = fnamemodify(buf_get_name(b), ':e')
-      return na < nb
+      return fnamemodify(buf_get_name(a), ':e') < fnamemodify(buf_get_name(b), ':e')
     end)
   )
   M.update()
@@ -727,9 +725,7 @@ function M.order_by_window_number()
   table_sort(
     M.buffers,
     with_pin_order(function(a, b)
-      local na = bufwinnr(buf_get_name(a))
-      local nb = bufwinnr(buf_get_name(b))
-      return na < nb
+      return bufwinnr(buf_get_name(a)) < bufwinnr(buf_get_name(b))
     end)
   )
   M.update()
