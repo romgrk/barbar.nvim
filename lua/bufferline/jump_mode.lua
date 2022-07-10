@@ -11,6 +11,7 @@ local fnamemodify = vim.fn.fnamemodify
 local getchar = vim.fn.getchar
 local notify = vim.notify
 local set_current_buf = vim.api.nvim_set_current_buf
+local split = vim.fn.split
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 
@@ -20,36 +21,46 @@ local state = require'bufferline.state'
 -- Section: Buffer-picking mode state --
 ----------------------------------------
 
-local M = {
-  letters = vim.g.bufferline.letters, -- array
-  index_by_letter = {}, -- object
-  letter_status = {}, -- array
-  buffer_by_letter = {}, -- object
-  letter_by_buffer = {}, -- object
-}
+--- The letters which can be assigned to a buffer for a user to pick when entering `jump_mode`.
+--- @type table<string>
+local letters = {}
+
+--- Whether an `initialize_indexes` operation has been queued.
+local reinitialize = false
+
+--- @class bufferline.JumpMode
+--- @field private buffer_by_letter table<string, integer> a bi-directional map of buffer integers and their letters.
+--- @field private index_by_letter table<string, integer> `letters` in the order they were provided
+--- @field private letter_by_buffer table<integer, string> a bi-directional map of buffer integers and their letters.
+--- @field private letter_status table<integer, boolean>
+local JumpMode = {}
 
 -- Initialize m.index_by_letter
-function M.initialize_indexes()
-  M.index_by_letter = {}
-  M.letter_status = {}
-  M.buffer_by_letter = {}
-  M.letter_by_buffer = {}
+function JumpMode.initialize_indexes()
+  JumpMode.buffer_by_letter = {}
+  JumpMode.index_by_letter = {}
+  JumpMode.letter_by_buffer = {}
+  JumpMode.letter_status = {}
 
-  for index = 1, #M.letters do
-    local letter = strcharpart(M.letters, index - 1, 1)
-    M.index_by_letter[letter] = index
-    M.letter_status[index] = false
+  for index, letter in ipairs(letters) do
+    JumpMode.index_by_letter[letter] = index
+    JumpMode.letter_status[index] = false
   end
+
+  reinitialize = false
 end
 
-M.initialize_indexes()
+--- Set the letters which can be used by jump mode.
+--- @param chars string
+function JumpMode.set_letters(chars)
+  letters = split(chars, [[\zs]])
+  JumpMode.initialize_indexes()
+end
 
 -- local empty_bufnr = vim.api.nvim_create_buf(0, 1)
 
-function M.assign_next_letter(bufnr)
-  bufnr = tonumber(bufnr)
-
-  if M.letter_by_buffer[bufnr] ~= nil then
+function JumpMode.assign_next_letter(bufnr)
+  if JumpMode.letter_by_buffer[bufnr] ~= nil then
     return
   end
 
@@ -60,14 +71,14 @@ function M.assign_next_letter(bufnr)
     for i = 1, strwidth(name) do
       local letter = string_lower(strcharpart(name, i - 1, 1))
 
-      if M.index_by_letter[letter] ~= nil then
-        local index = M.index_by_letter[letter]
-        local status = M.letter_status[index]
+      if JumpMode.index_by_letter[letter] ~= nil then
+        local index = JumpMode.index_by_letter[letter]
+        local status = JumpMode.letter_status[index]
         if status == false then
-          M.letter_status[index] = true
+          JumpMode.letter_status[index] = true
           -- letter = m.letters[index]
-          M.buffer_by_letter[letter] = bufnr
-          M.letter_by_buffer[bufnr] = letter
+          JumpMode.buffer_by_letter[letter] = bufnr
+          JumpMode.letter_by_buffer[bufnr] = letter
           return letter
         end
       end
@@ -75,12 +86,12 @@ function M.assign_next_letter(bufnr)
   end
 
   -- Otherwise, assign a letter by usable order
-  for i, status in ipairs(M.letter_status) do
+  for i, status in ipairs(JumpMode.letter_status) do
     if status == false then
-      local letter = M.letters:sub(i, i)
-      M.letter_status[i] = true
-      M.buffer_by_letter[letter] = bufnr
-      M.letter_by_buffer[bufnr] = letter
+      local letter = letters[i]
+      JumpMode.letter_status[i] = true
+      JumpMode.buffer_by_letter[letter] = bufnr
+      JumpMode.letter_by_buffer[bufnr] = letter
       return letter
     end
   end
@@ -88,36 +99,38 @@ function M.assign_next_letter(bufnr)
   return nil
 end
 
-function M.unassign_letter(letter)
+function JumpMode.unassign_letter(letter)
   if letter == '' or letter == nil then
     return
   end
 
-  local index = M.index_by_letter[letter]
+  local index = JumpMode.index_by_letter[letter]
 
-  M.letter_status[index] = false
+  JumpMode.letter_status[index] = false
 
-  if M.buffer_by_letter[letter] ~= nil then
-    local bufnr = M.buffer_by_letter[letter]
-    M.buffer_by_letter[letter] = nil
-    M.letter_by_buffer[bufnr] = nil
-  end
-end
-
-function M.get_letter(bufnr)
-  if M.letter_by_buffer[bufnr] ~= nil then
-    return M.letter_by_buffer[bufnr]
+  if JumpMode.buffer_by_letter[letter] ~= nil then
+    local bufnr = JumpMode.buffer_by_letter[letter]
+    JumpMode.buffer_by_letter[letter] = nil
+    JumpMode.letter_by_buffer[bufnr] = nil
   end
 
-  return M.assign_next_letter(bufnr)
+  reinitialize = true
 end
 
-function M.unassign_letter_for(bufnr)
-  M.unassign_letter(M.get_letter(bufnr))
+function JumpMode.get_letter(bufnr)
+  return JumpMode.letter_by_buffer[bufnr] or JumpMode.assign_next_letter(bufnr)
+end
+
+function JumpMode.unassign_letter_for(bufnr)
+  JumpMode.unassign_letter(JumpMode.get_letter(bufnr))
 end
 
 
-function M.activate()
+function JumpMode.activate()
+  if reinitialize then
+    JumpMode.initialize_indexes()
+  end
+
   state.is_picking_buffer = true
   state.update()
   command('redraw')
@@ -129,8 +142,8 @@ function M.activate()
     local letter = char(byte)
 
     if letter ~= '' then
-      if M.buffer_by_letter[letter] ~= nil then
-        set_current_buf(M.buffer_by_letter[letter])
+      if JumpMode.buffer_by_letter[letter] ~= nil then
+        set_current_buf(JumpMode.buffer_by_letter[letter])
       else
         notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
       end
@@ -143,4 +156,5 @@ function M.activate()
   command('redraw')
 end
 
-return M
+JumpMode.set_letters(vim.g.bufferline.letters)
+return JumpMode

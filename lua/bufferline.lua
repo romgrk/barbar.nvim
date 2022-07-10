@@ -360,7 +360,7 @@ end
 function bufferline.on_option_changed(_, key, _)
   vim.g.bufferline = tbl_extend('keep', vim.g.bufferline or {}, DEFAULT_OPTIONS)
   if key == 'letters' then
-    require'bufferline.jump_mode'.initialize_indexes()
+    require'bufferline.jump_mode'.set_letters(vim.g.bufferline.letters)
   end
 end
 
