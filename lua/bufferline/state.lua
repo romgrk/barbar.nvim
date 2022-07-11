@@ -13,10 +13,10 @@ local table_sort = table.sort
 local buf_delete = vim.api.nvim_buf_delete
 local buf_get_lines = vim.api.nvim_buf_get_lines
 local buf_get_name = vim.api.nvim_buf_get_name
+local buf_get_option = vim.api.nvim_buf_get_option
 local buf_get_var = vim.api.nvim_buf_get_var
 local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_line_count = vim.api.nvim_buf_line_count
-local buf_get_option = vim.api.nvim_buf_get_option
 local bufadd = vim.fn.bufadd
 local bufwinnr = vim.fn.bufwinnr
 local command = vim.api.nvim_command
@@ -35,6 +35,9 @@ local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local timer_start = vim.fn.timer_start
 local win_get_buf = vim.api.nvim_win_get_buf
+
+-- TODO: remove `vim.fs and` after 0.8 release
+local normalize = vim.fs and vim.fs.normalize
 
 local animate = require'bufferline.animate'
 local bbye = require'bufferline.bbye'
@@ -681,17 +684,28 @@ function M.order_by_directory()
   table_sort(
     M.buffers,
     with_pin_order(function(a, b)
-      local na = buf_get_name(a)
-      local nb = buf_get_name(b)
-      local ra = is_relative_path(na)
-      local rb = is_relative_path(nb)
-      if ra and not rb then
-        return true
+      local name_of_a = buf_get_name(a)
+      local name_of_b = buf_get_name(b)
+      local a_less_than_b = name_of_b < name_of_a
+
+      -- TODO: remove this block after 0.8 releases
+      if not normalize then
+        local a_is_relative = is_relative_path(name_of_a)
+        if a_is_relative and is_relative_path(name_of_b) then
+          return a_less_than_b
+        end
+
+        return a_is_relative
       end
-      if not ra and rb then
-        return false
+
+      local level_of_a = #vim.split(normalize(name_of_a), '/')
+      local level_of_b = #vim.split(normalize(name_of_b), '/')
+
+      if level_of_a ~= level_of_b then
+        return level_of_a < level_of_b
       end
-      return na < nb
+
+      return a_less_than_b
     end)
   )
   M.update()
@@ -701,9 +715,7 @@ function M.order_by_language()
   table_sort(
     M.buffers,
     with_pin_order(function(a, b)
-      local na = fnamemodify(buf_get_name(a), ':e')
-      local nb = fnamemodify(buf_get_name(b), ':e')
-      return na < nb
+      return fnamemodify(buf_get_name(a), ':e') < fnamemodify(buf_get_name(b), ':e')
     end)
   )
   M.update()
@@ -713,9 +725,7 @@ function M.order_by_window_number()
   table_sort(
     M.buffers,
     with_pin_order(function(a, b)
-      local na = bufwinnr(buf_get_name(a))
-      local nb = bufwinnr(buf_get_name(b))
-      return na < nb
+      return bufwinnr(buf_get_name(a)) < bufwinnr(buf_get_name(b))
     end)
   )
   M.update()
