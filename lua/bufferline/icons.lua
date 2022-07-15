@@ -23,8 +23,7 @@ local function set_highlights()
   for _, hl_group in ipairs(hl_groups) do
     local icon_hl = hl_group[1]
     local buffer_status = hl_group[2]
-    local set_default_hl = hl.get_default_setter()
-    set_default_hl(
+    hl.set_default(
       icon_hl .. buffer_status,
       hl.bg_or_default({'Buffer' .. buffer_status}, 'none'),
       hl.fg_or_default({icon_hl}, 'none')
@@ -71,10 +70,8 @@ local function get_icon(buffer_name, filetype, buffer_status)
   end
 
   if icon_hl and hlexists(icon_hl .. buffer_status) < 1 then
-    local hl_group = icon_hl .. buffer_status
-    local set_default_hl = hl.get_default_setter()
-    set_default_hl(
-      hl_group,
+    hl.set_default(
+      icon_hl .. buffer_status,
       hl.bg_or_default({'Buffer' .. buffer_status}, 'none'),
       hl.fg_or_default({icon_hl}, 'none')
     )
