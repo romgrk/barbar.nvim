@@ -66,6 +66,7 @@ local M = {
   buffers_by_id = {},
   offset = 0,
   offset_text = '',
+  offset_hl = nil,
 }
 
 function M.new_buffer_data()
@@ -426,11 +427,12 @@ function M.get_updated_buffers(update_names)
   return M.buffers
 end
 
-function M.set_offset(offset, offset_text)
+function M.set_offset(offset, offset_text, offset_hl)
   local offset_number = tonumber(offset)
   if offset_number then
       M.offset = offset_number
       M.offset_text = offset_text or ''
+      M.offset_hl = offset_hl
       M.update()
   end
 end

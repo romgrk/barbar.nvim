@@ -353,8 +353,10 @@ local function render(update_names)
   if state.offset and state.offset > 0 then
     local offset_available_width = state.offset - 2
     local groups = {
-      {hl_tabline('BufferOffset'), ' '},
-      {'',                 state.offset_text},
+      {
+        hl_tabline(state.offset_hl or 'BufferOffset'),
+        ' ' .. state.offset_text
+      },
     }
     result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
     result = result .. string_rep(' ', offset_available_width - #state.offset_text)
