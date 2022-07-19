@@ -280,8 +280,9 @@ end
 -- Section: Bufferline state
 ----------------------------
 
--- Last value for tabline
-local last_tabline = ''
+--- Last value for tabline
+--- @type nil|string
+local last_tabline
 
 -- Debugging
 -- let g:events = []
@@ -294,19 +295,17 @@ local last_tabline = ''
 --- @param update_names boolean if `true`, update the names of the buffers in the bufferline.
 --- @return nil|string tabline a valid `&tabline`
 function bufferline.render(update_names)
-  local result = require'bufferline.render'.render_safe(update_names)
+  local ok, result = unpack(require'bufferline.render'.render_safe(update_names))
 
-  if result[1] then
-    return result[2]
+  if ok then
+    return result
   end
-
-  local err = result[2]
 
   bufferline.disable()
   notify(
     "Barbar detected an error while running. Barbar disabled itself :/" ..
       "Include this in your report: " ..
-      tostring(err),
+      tostring(result),
     vim.log.levels.ERROR,
     {title = 'barbar.nvim'}
   )
