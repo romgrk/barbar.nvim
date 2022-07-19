@@ -7,6 +7,7 @@ local defer_fn = vim.defer_fn
 local notify = vim.notify
 local tbl_extend = vim.tbl_extend
 
+local bbye = require'bufferline.bbye'
 local highlight = require 'bufferline.highlight'
 
 --- The default options for this plugin.
@@ -204,19 +205,19 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferClose',
-    function(tbl) require'bufferline.bbye'.delete('bdelete', tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl) bbye.bdelete(tbl.bang, tbl.args, tbl.mods) end,
     {bang = true, complete = 'buffer', desc = 'Close the current buffer.', nargs = '?'}
   )
 
   create_user_command(
     'BufferDelete',
-    function(tbl) require'bufferline.bbye'.delete('bdelete', tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl) bbye.bdelete(tbl.bang, tbl.args, tbl.mods) end,
     {bang = true, complete = 'buffer', desc = 'Synonym for `:BufferClose`', nargs = '?'}
   )
 
   create_user_command(
     'BufferWipeout',
-    function(tbl) require'bufferline.bbye'.delete('bwipeout', tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl) bbye.bwipeout(tbl.bang, tbl.args, tbl.mods) end,
     {bang = true, complete = 'buffer', desc = 'Wipe out the buffer', nargs = '?'}
   )
 
@@ -348,7 +349,7 @@ function bufferline.main_click_handler(minwid, _, btn, _)
 
   -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
   if btn == 'm' then
-    require'bufferline.bbye'.delete('bdelete', false, minwid)
+    bbye.bdelete(false, minwid)
   else
     require'bufferline.state'.open_buffer_in_listed_window(minwid)
   end

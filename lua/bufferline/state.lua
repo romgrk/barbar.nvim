@@ -605,7 +605,7 @@ function M.close_all_but_current()
   local buffers = M.buffers
   for _, number in ipairs(buffers) do
     if number ~= current then
-      bbye.delete('bdelete', false, number)
+      bbye.bdelete(false, number)
     end
   end
   M.update()
@@ -615,7 +615,7 @@ function M.close_all_but_pinned()
   local buffers = M.buffers
   for _, number in ipairs(buffers) do
     if not M.is_pinned(number) then
-      bbye.delete('bdelete', false, number)
+      bbye.bdelete(false, number)
     end
   end
   M.update()
@@ -626,7 +626,7 @@ function M.close_all_but_current_or_pinned()
   local current = get_current_buf()
   for _, number in ipairs(buffers) do
     if not M.is_pinned(number) and number ~= current then
-      bbye.delete('bdelete', false, number)
+      bbye.bdelete(false, number)
     end
   end
   M.update()
@@ -638,7 +638,7 @@ function M.close_buffers_left()
     return
   end
   for i = idx, 1, -1 do
-    bbye.delete('bdelete', false, M.buffers[i])
+    bbye.bdelete(false, M.buffers[i])
   end
   M.update()
 end
@@ -649,7 +649,7 @@ function M.close_buffers_right()
     return
   end
   for i = #M.buffers, idx, -1 do
-    bbye.delete('bdelete', false, M.buffers[i])
+    bbye.bdelete(false, M.buffers[i])
   end
   M.update()
 end
