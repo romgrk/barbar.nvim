@@ -175,4 +175,20 @@ function bbye.delete(action, force, buffer, mods)
   exec_autocmds('BufWinEnter', {})
 end
 
+--- 'bdelete' a buffer
+--- @param force boolean if true, forcefully delete the buffer
+--- @param buffer integer|nil|string the name of the buffer.
+--- @param mods nil|string the modifiers to the command (e.g. `'verbose'`)
+function bbye.bdelete(force, buffer, mods)
+  bbye.delete('bdelete', force, buffer, mods)
+end
+
+--- 'bwipeout' a buffer
+--- @param force boolean if true, forcefully delete the buffer
+--- @param buffer integer|nil|string the name of the buffer.
+--- @param mods nil|string the modifiers to the command (e.g. `'verbose'`)
+function bbye.bwipeout(force, buffer, mods)
+  bbye.delete('bwipeout', force, buffer, mods)
+end
+
 return bbye
