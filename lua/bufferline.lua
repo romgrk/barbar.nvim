@@ -1,9 +1,12 @@
+local buf_call = vim.api.nvim_buf_call
+local buf_get_option = vim.api.nvim_buf_get_option
+local buf_set_var = vim.api.nvim_buf_set_var
 local command = vim.api.nvim_command
 local create_augroup = vim.api.nvim_create_augroup
 local create_autocmd = vim.api.nvim_create_autocmd
 local create_user_command = vim.api.nvim_create_user_command
-local buf_get_option = vim.api.nvim_buf_get_option
 local defer_fn = vim.defer_fn
+local exec_autocmds = vim.api.nvim_exec_autocmds
 local notify = vim.notify
 local tbl_extend = vim.tbl_extend
 
@@ -83,10 +86,10 @@ function bufferline.enable()
   create_autocmd('ColorScheme', {callback = highlight.setup, group = augroup_bufferline})
 
   create_autocmd('BufModifiedSet', {
-    callback = function()
-      local is_modified = vim.bo.modified
-      if is_modified ~= vim.b.checked then
-        vim.b.checked = is_modified
+    callback = function(tbl)
+      local is_modified = buf_get_option(tbl.buf, 'modified')
+      if is_modified ~= vim.b[tbl.buf].checked then
+        buf_set_var(tbl.buf, 'checked', is_modified)
         bufferline.update()
       end
     end,
@@ -351,9 +354,20 @@ end
 -- Section: Event handlers
 --------------------------
 
---- What to do when clicking.
+--- What to do when clicking a buffer close button.
+--- @param buffer integer
+function bufferline.close_click_handler(buffer)
+  if buf_get_option(buffer, 'modified') then
+    buf_call(buffer, function() command('w') end)
+    exec_autocmds('BufModifiedSet', {buffer = buffer})
+  else
+    bbye.bdelete(false, buffer)
+  end
+end
+
+--- What to do when clicking a buffer label.
+--- @param minwid integer the buffer nummber
 --- @param btn string
---- @param minwid integer
 function bufferline.main_click_handler(minwid, _, btn, _)
   if minwid == 0 then
     return
