@@ -17,6 +17,7 @@ local buf_get_option = vim.api.nvim_buf_get_option
 local buf_get_var = vim.api.nvim_buf_get_var
 local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_line_count = vim.api.nvim_buf_line_count
+local buf_set_var = vim.api.nvim_buf_set_var
 local bufadd = vim.fn.bufadd
 local bufwinnr = vim.fn.bufwinnr
 local command = vim.api.nvim_command
@@ -118,7 +119,7 @@ end
 
 function M.toggle_pin(bufnr)
   bufnr = bufnr or 0
-  vim.b[bufnr][PIN] = not M.is_pinned(bufnr)
+  buf_set_var(bufnr, PIN, not M.is_pinned(bufnr))
   sort_pins_to_left()
   M.update()
 end

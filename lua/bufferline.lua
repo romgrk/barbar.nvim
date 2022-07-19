@@ -84,7 +84,7 @@ function bufferline.enable()
 
   create_autocmd('BufModifiedSet', {
     callback = function()
-      local is_modified = buf_get_option(0, 'modified')
+      local is_modified = vim.bo.modified
       if is_modified ~= vim.b.checked then
         vim.b.checked = is_modified
         bufferline.update()
