@@ -55,7 +55,12 @@ local bufferline = {}
 --- Disable the bufferline.
 function bufferline.disable()
   create_augroups()
-  vim.opt.tabline = ''
+  bufferline.set_tabline(nil)
+  vim.cmd [[
+    delfunction! BufferlineCloseClickHandler
+    delfunction! BufferlineMainClickHandler
+    delfunction! BufferlineOnOptionChanged
+  ]]
 end
 
 --- Enable the bufferline.
@@ -123,7 +128,27 @@ function bufferline.enable()
     group = augroup_bufferline_update,
   })
 
+  vim.cmd [[
+    " Must be global -_-
+    function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
+      call luaeval("require'bufferline'.close_click_handler(_A)", a:minwid)
+    endfunction
+
+    " Must be global -_-
+    function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
+      call luaeval("require'bufferline'.main_click_handler(_A[1], nil, _A[2])", [a:minwid, a:btn])
+    endfunction
+
+    " Must be global -_-
+    function! BufferlineOnOptionChanged(dict, key, changes) abort
+      call luaeval("require'bufferline'.on_option_changed(nil, _A)", a:key)
+    endfunction
+
+    call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
+  ]]
+
   bufferline.update()
+  command('redraw')
 end
 
 --- Setup this plugin.
@@ -254,25 +279,6 @@ function bufferline.setup(options)
   -- Set the options and watchers for when they are edited
   vim.g.bufferline = options and tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
 
-  vim.cmd [[
-    " Must be global -_-
-    function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline.bbye'.delete('bdelete', false, _A)", a:minwid)
-    endfunction
-
-    " Must be global -_-
-    function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline'.main_click_handler(_A[1], nil, _A[2])", [a:minwid, a:btn])
-    endfunction
-
-    " Must be global -_-
-    function! BufferlineOnOptionChanged(dict, key, changes) abort
-      call luaeval("require'bufferline'.on_option_changed(nil, _A)", a:key)
-    endfunction
-
-    call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
-  ]]
-
   highlight.setup()
   bufferline.enable()
 end
@@ -287,6 +293,13 @@ local last_tabline
 
 -- Debugging
 -- let g:events = []
+
+--- Clears the tabline. Does not stop the tabline from being redrawn via autocmd.
+--- @param tabline nil|string
+function bufferline.set_tabline(tabline)
+  last_tabline = tabline
+  vim.opt.tabline = last_tabline
+end
 
 --------------------------
 -- Section: Main functions
@@ -324,8 +337,7 @@ function bufferline.update(update_names)
     return
   end
 
-  vim.opt.tabline = new_value
-  last_tabline = new_value
+  bufferline.set_tabline(new_value)
 end
 
 --- Update the bufferline using `vim.defer_fn`.
