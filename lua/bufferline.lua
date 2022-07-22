@@ -1,12 +1,16 @@
+local buf_call = vim.api.nvim_buf_call
+local buf_get_option = vim.api.nvim_buf_get_option
+local buf_set_var = vim.api.nvim_buf_set_var
 local command = vim.api.nvim_command
 local create_augroup = vim.api.nvim_create_augroup
 local create_autocmd = vim.api.nvim_create_autocmd
 local create_user_command = vim.api.nvim_create_user_command
-local buf_get_option = vim.api.nvim_buf_get_option
 local defer_fn = vim.defer_fn
+local exec_autocmds = vim.api.nvim_exec_autocmds
 local notify = vim.notify
 local tbl_extend = vim.tbl_extend
 
+local bbye = require'bufferline.bbye'
 local highlight = require 'bufferline.highlight'
 
 --- The default options for this plugin.
@@ -54,7 +58,12 @@ local bufferline = {}
 --- Disable the bufferline.
 function bufferline.disable()
   create_augroups()
-  vim.opt.tabline = ''
+  bufferline.set_tabline(nil)
+  vim.cmd [[
+    delfunction! BufferlineCloseClickHandler
+    delfunction! BufferlineMainClickHandler
+    delfunction! BufferlineOnOptionChanged
+  ]]
 end
 
 --- Enable the bufferline.
@@ -77,10 +86,10 @@ function bufferline.enable()
   create_autocmd('ColorScheme', {callback = highlight.setup, group = augroup_bufferline})
 
   create_autocmd('BufModifiedSet', {
-    callback = function()
-      local is_modified = buf_get_option(0, 'modified')
-      if is_modified ~= vim.b.checked then
-        vim.b.checked = is_modified
+    callback = function(tbl)
+      local is_modified = buf_get_option(tbl.buf, 'modified')
+      if is_modified ~= vim.b[tbl.buf].checked then
+        buf_set_var(tbl.buf, 'checked', is_modified)
         bufferline.update()
       end
     end,
@@ -122,7 +131,27 @@ function bufferline.enable()
     group = augroup_bufferline_update,
   })
 
+  vim.cmd [[
+    " Must be global -_-
+    function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
+      call luaeval("require'bufferline'.close_click_handler(_A)", a:minwid)
+    endfunction
+
+    " Must be global -_-
+    function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
+      call luaeval("require'bufferline'.main_click_handler(_A[1], nil, _A[2])", [a:minwid, a:btn])
+    endfunction
+
+    " Must be global -_-
+    function! BufferlineOnOptionChanged(dict, key, changes) abort
+      call luaeval("require'bufferline'.on_option_changed(nil, _A)", a:key)
+    endfunction
+
+    call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
+  ]]
+
   bufferline.update()
+  command('redraw')
 end
 
 --- Setup this plugin.
@@ -204,19 +233,19 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferClose',
-    function(tbl) require'bufferline.bbye'.delete('bdelete', tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl) bbye.bdelete(tbl.bang, tbl.args, tbl.mods) end,
     {bang = true, complete = 'buffer', desc = 'Close the current buffer.', nargs = '?'}
   )
 
   create_user_command(
     'BufferDelete',
-    function(tbl) require'bufferline.bbye'.delete('bdelete', tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl) bbye.bdelete(tbl.bang, tbl.args, tbl.mods) end,
     {bang = true, complete = 'buffer', desc = 'Synonym for `:BufferClose`', nargs = '?'}
   )
 
   create_user_command(
     'BufferWipeout',
-    function(tbl) require'bufferline.bbye'.delete('bwipeout', tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl) bbye.bwipeout(tbl.bang, tbl.args, tbl.mods) end,
     {bang = true, complete = 'buffer', desc = 'Wipe out the buffer', nargs = '?'}
   )
 
@@ -253,25 +282,6 @@ function bufferline.setup(options)
   -- Set the options and watchers for when they are edited
   vim.g.bufferline = options and tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
 
-  vim.cmd [[
-    " Must be global -_-
-    function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline.bbye'.delete('bdelete', false, _A)", a:minwid)
-    endfunction
-
-    " Must be global -_-
-    function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline'.main_click_handler(_A[1], nil, _A[2])", [a:minwid, a:btn])
-    endfunction
-
-    " Must be global -_-
-    function! BufferlineOnOptionChanged(dict, key, changes) abort
-      call luaeval("require'bufferline'.on_option_changed(nil, _A)", a:key)
-    endfunction
-
-    call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
-  ]]
-
   highlight.setup()
   bufferline.enable()
 end
@@ -280,11 +290,19 @@ end
 -- Section: Bufferline state
 ----------------------------
 
--- Last value for tabline
-local last_tabline = ''
+--- Last value for tabline
+--- @type nil|string
+local last_tabline
 
 -- Debugging
 -- let g:events = []
+
+--- Clears the tabline. Does not stop the tabline from being redrawn via autocmd.
+--- @param tabline nil|string
+function bufferline.set_tabline(tabline)
+  last_tabline = tabline
+  vim.opt.tabline = last_tabline
+end
 
 --------------------------
 -- Section: Main functions
@@ -294,19 +312,17 @@ local last_tabline = ''
 --- @param update_names boolean if `true`, update the names of the buffers in the bufferline.
 --- @return nil|string tabline a valid `&tabline`
 function bufferline.render(update_names)
-  local result = require'bufferline.render'.render_safe(update_names)
+  local ok, result = unpack(require'bufferline.render'.render_safe(update_names))
 
-  if result[1] then
-    return result[2]
+  if ok then
+    return result
   end
-
-  local err = result[2]
 
   bufferline.disable()
   notify(
     "Barbar detected an error while running. Barbar disabled itself :/" ..
       "Include this in your report: " ..
-      tostring(err),
+      tostring(result),
     vim.log.levels.ERROR,
     {title = 'barbar.nvim'}
   )
@@ -324,8 +340,7 @@ function bufferline.update(update_names)
     return
   end
 
-  vim.opt.tabline = new_value
-  last_tabline = new_value
+  bufferline.set_tabline(new_value)
 end
 
 --- Update the bufferline using `vim.defer_fn`.
@@ -339,9 +354,20 @@ end
 -- Section: Event handlers
 --------------------------
 
---- What to do when clicking.
+--- What to do when clicking a buffer close button.
+--- @param buffer integer
+function bufferline.close_click_handler(buffer)
+  if buf_get_option(buffer, 'modified') then
+    buf_call(buffer, function() command('w') end)
+    exec_autocmds('BufModifiedSet', {buffer = buffer})
+  else
+    bbye.bdelete(false, buffer)
+  end
+end
+
+--- What to do when clicking a buffer label.
+--- @param minwid integer the buffer nummber
 --- @param btn string
---- @param minwid integer
 function bufferline.main_click_handler(minwid, _, btn, _)
   if minwid == 0 then
     return
@@ -349,7 +375,7 @@ function bufferline.main_click_handler(minwid, _, btn, _)
 
   -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
   if btn == 'm' then
-    require'bufferline.bbye'.delete('bdelete', false, minwid)
+    bbye.bdelete(false, minwid)
   else
     require'bufferline.state'.open_buffer_in_listed_window(minwid)
   end
