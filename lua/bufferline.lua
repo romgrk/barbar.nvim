@@ -151,7 +151,7 @@ function bufferline.enable()
   ]]
 
   bufferline.update()
-  command('redraw')
+  command('redrawtabline')
 end
 
 --- Setup this plugin.
