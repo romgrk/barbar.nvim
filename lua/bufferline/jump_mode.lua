@@ -133,7 +133,7 @@ function JumpMode.activate()
 
   state.is_picking_buffer = true
   state.update()
-  command('redraw')
+  command('redrawtabline')
   state.is_picking_buffer = false
 
   local ok, byte = pcall(getchar)
@@ -153,7 +153,7 @@ function JumpMode.activate()
   end
 
   state.update()
-  command('redraw')
+  command('redrawtabline')
 end
 
 JumpMode.set_letters(vim.g.bufferline.letters)
