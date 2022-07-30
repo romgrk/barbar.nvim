@@ -11,7 +11,7 @@ local notify = vim.notify
 local tbl_extend = vim.tbl_extend
 
 local bbye = require'bufferline.bbye'
-local highlight = require 'bufferline.highlight'
+local highlight = require'bufferline.highlight'
 
 --- The default options for this plugin.
 local DEFAULT_OPTIONS = {
@@ -327,10 +327,11 @@ end
 --------------------------
 
 --- Render the bufferline.
---- @param update_names boolean if `true`, update the names of the buffers in the bufferline.
+--- @param refocus nil|boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
+--- @param update_names nil|boolean whether to refresh the names of the buffers (default: `false`)
 --- @return nil|string tabline a valid `&tabline`
-function bufferline.render(update_names)
-  local ok, result = unpack(require'bufferline.render'.render_safe(update_names))
+function bufferline.render(update_names, refocus)
+  local ok, result = xpcall(require'bufferline.render'.render, debug.traceback, update_names, refocus)
 
   if ok then
     return result
@@ -346,14 +347,14 @@ function bufferline.render(update_names)
   )
 end
 
---- @param update_names boolean|nil if `true`, update the names of the buffers in the bufferline. Default: false
-function bufferline.update(update_names)
+--- @param refocus nil|boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
+--- @param update_names nil|boolean whether to refresh the names of the buffers (default: `false`)
+function bufferline.update(update_names, refocus)
   if vim.g.SessionLoad then
     return
   end
 
-  local new_value = bufferline.render(update_names or false)
-
+  local new_value = bufferline.render(update_names, refocus)
   if new_value == last_tabline then
     return
   end

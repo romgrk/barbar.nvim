@@ -15,6 +15,7 @@ local split = vim.fn.split
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 
+local bufferline = require'bufferline'
 local state = require'bufferline.state'
 
 ----------------------------------------
@@ -132,7 +133,7 @@ function JumpMode.activate()
   end
 
   state.is_picking_buffer = true
-  state.update()
+  bufferline.update()
   command('redrawtabline')
   state.is_picking_buffer = false
 
@@ -152,7 +153,7 @@ function JumpMode.activate()
     notify("Invalid input", vim.log.levels.WARN, {title = 'barbar.nvim'})
   end
 
-  state.update()
+  bufferline.update()
   command('redrawtabline')
 end
 
