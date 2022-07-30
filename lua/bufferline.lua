@@ -166,13 +166,13 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferNext',
-    function(tbl) require'bufferline.state'.goto_buffer_relative(math.max(tbl.count, 1)) end,
+    function(tbl) require'bufferline.state'.goto_buffer_relative(math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the next buffer'}
   )
 
   create_user_command(
     'BufferPrevious',
-    function(tbl) require'bufferline.state'.goto_buffer_relative(-math.max(tbl.count, 1)) end,
+    function(tbl) require'bufferline.state'.goto_buffer_relative(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the previous buffer'}
   )
 
@@ -193,13 +193,13 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferMoveNext',
-    function(tbl) require'bufferline.state'.move_current_buffer(math.max(tbl.count, 1)) end,
+    function(tbl) require'bufferline.state'.move_current_buffer(math.max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the right'}
   )
 
   create_user_command(
     'BufferMovePrevious',
-    function(tbl) require'bufferline.state'.move_current_buffer(-math.max(tbl.count, 1)) end,
+    function(tbl) require'bufferline.state'.move_current_buffer(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the left'}
   )
 
@@ -277,6 +277,24 @@ function bufferline.setup(options)
     'BufferCloseBuffersRight',
     function() require'bufferline.state'.close_buffers_right() end,
     {desc = 'Close all buffers to the right of the current buffer'}
+  )
+
+  create_user_command(
+    'BufferScrollLeft',
+    function(tbl)
+      local state = require'bufferline.state'
+      state.set_scroll(math.max(0, state.scroll - math.max(1, tbl.count)))
+    end,
+    {count = true, desc = 'Scroll the bufferline left'}
+  )
+
+  create_user_command(
+    'BufferScrollRight',
+    function(tbl)
+      local state = require'bufferline.state'
+      state.set_scroll(state.scroll + math.max(1, tbl.count))
+    end,
+    {count = true, desc = 'Scroll the bufferline right'}
   )
 
   -- Set the options and watchers for when they are edited
