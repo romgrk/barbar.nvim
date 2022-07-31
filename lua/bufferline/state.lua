@@ -43,7 +43,6 @@ local normalize = vim.fs and vim.fs.normalize
 local animate = require'bufferline.animate'
 local bbye = require'bufferline.bbye'
 local Buffer = require'bufferline.buffer'
-local bufferline = require'bufferline'
 local Layout = require'bufferline.layout'
 local utils = require'bufferline.utils'
 
@@ -92,8 +91,12 @@ function M.get_buffer_data(id)
   return M.buffers_by_id[id]
 end
 
+local main_module = nil
 function M.update()
-  bufferline.update()
+  if main_module == nil then
+    main_module = require'bufferline'
+  end
+  main_module.update()
 end
 
 
@@ -438,6 +441,25 @@ function M.set_offset(offset, offset_text, offset_hl)
   end
 end
 
+
+-- Read state
+
+-- Return the bufnr of the buffer to the right of `buffer_number`
+-- @param buffer_number int
+-- @return int|nil
+function M.find_next_buffer(buffer_number)
+  local index = utils.index_of(M.buffers, buffer_number)
+  if index == nil then return nil end
+  if index + 1 > #M.buffers then
+    index = index - 1
+    if index <= 0 then
+      return nil
+    end
+  else
+    index = index + 1
+  end
+  return M.buffers[index]
+end
 
 -- Movement & tab manipulation
 
