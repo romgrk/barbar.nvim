@@ -7,6 +7,7 @@ local create_autocmd = vim.api.nvim_create_autocmd
 local create_user_command = vim.api.nvim_create_user_command
 local defer_fn = vim.defer_fn
 local exec_autocmds = vim.api.nvim_exec_autocmds
+local get_current_buf = vim.api.nvim_get_current_buf
 local notify = vim.notify
 local tbl_extend = vim.tbl_extend
 
@@ -233,7 +234,10 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferClose',
-    function(tbl) bbye.bdelete(tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl)
+      local focus_buffer = require'bufferline.state'.find_next_buffer(get_current_buf())
+      bbye.bdelete(tbl.bang, tbl.args, tbl.mods, focus_buffer)
+    end,
     {bang = true, complete = 'buffer', desc = 'Close the current buffer.', nargs = '?'}
   )
 
