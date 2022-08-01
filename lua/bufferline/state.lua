@@ -43,6 +43,7 @@ local normalize = vim.fs and vim.fs.normalize
 local animate = require'bufferline.animate'
 local bbye = require'bufferline.bbye'
 local Buffer = require'bufferline.buffer'
+local bufferline = require'bufferline'
 local Layout = require'bufferline.layout'
 local utils = require'bufferline.utils'
 
@@ -91,12 +92,8 @@ function M.get_buffer_data(id)
   return M.buffers_by_id[id]
 end
 
-local main_module = nil
 function M.update()
-  if main_module == nil then
-    main_module = require'bufferline'
-  end
-  main_module.update()
+  bufferline.update()
 end
 
 

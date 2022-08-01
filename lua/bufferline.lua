@@ -12,7 +12,6 @@ local notify = vim.notify
 local tbl_extend = vim.tbl_extend
 
 local bbye = require'bufferline.bbye'
-local state = require'bufferline.state'
 local highlight = require 'bufferline.highlight'
 
 --- The default options for this plugin.
@@ -236,7 +235,7 @@ function bufferline.setup(options)
   create_user_command(
     'BufferClose',
     function(tbl)
-      local focus_buffer = state.find_next_buffer(get_current_buf())
+      local focus_buffer = require'bufferline.state'.find_next_buffer(get_current_buf())
       bbye.bdelete(tbl.bang, tbl.args, tbl.mods, focus_buffer)
     end,
     {bang = true, complete = 'buffer', desc = 'Close the current buffer.', nargs = '?'}
