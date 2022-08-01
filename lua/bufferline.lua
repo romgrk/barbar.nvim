@@ -12,7 +12,7 @@ local notify = vim.notify
 local tbl_extend = vim.tbl_extend
 
 local bbye = require'bufferline.bbye'
-local highlight = require 'bufferline.highlight'
+local highlight = require'bufferline.highlight'
 
 --- The default options for this plugin.
 local DEFAULT_OPTIONS = {
@@ -167,13 +167,13 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferNext',
-    function(tbl) require'bufferline.state'.goto_buffer_relative(math.max(tbl.count, 1)) end,
+    function(tbl) require'bufferline.state'.goto_buffer_relative(math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the next buffer'}
   )
 
   create_user_command(
     'BufferPrevious',
-    function(tbl) require'bufferline.state'.goto_buffer_relative(-math.max(tbl.count, 1)) end,
+    function(tbl) require'bufferline.state'.goto_buffer_relative(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the previous buffer'}
   )
 
@@ -194,13 +194,13 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferMoveNext',
-    function(tbl) require'bufferline.state'.move_current_buffer(math.max(tbl.count, 1)) end,
+    function(tbl) require'bufferline.state'.move_current_buffer(math.max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the right'}
   )
 
   create_user_command(
     'BufferMovePrevious',
-    function(tbl) require'bufferline.state'.move_current_buffer(-math.max(tbl.count, 1)) end,
+    function(tbl) require'bufferline.state'.move_current_buffer(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the left'}
   )
 
@@ -283,6 +283,24 @@ function bufferline.setup(options)
     {desc = 'Close all buffers to the right of the current buffer'}
   )
 
+  create_user_command(
+    'BufferScrollLeft',
+    function(tbl)
+      local state = require'bufferline.state'
+      state.set_scroll(math.max(0, state.scroll - math.max(1, tbl.count)))
+    end,
+    {count = true, desc = 'Scroll the bufferline left'}
+  )
+
+  create_user_command(
+    'BufferScrollRight',
+    function(tbl)
+      local state = require'bufferline.state'
+      state.set_scroll(state.scroll + math.max(1, tbl.count))
+    end,
+    {count = true, desc = 'Scroll the bufferline right'}
+  )
+
   -- Set the options and watchers for when they are edited
   vim.g.bufferline = options and tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
 
@@ -313,10 +331,11 @@ end
 --------------------------
 
 --- Render the bufferline.
---- @param update_names boolean if `true`, update the names of the buffers in the bufferline.
+--- @param refocus nil|boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
+--- @param update_names nil|boolean whether to refresh the names of the buffers (default: `false`)
 --- @return nil|string tabline a valid `&tabline`
-function bufferline.render(update_names)
-  local ok, result = unpack(require'bufferline.render'.render_safe(update_names))
+function bufferline.render(update_names, refocus)
+  local ok, result = xpcall(require'bufferline.render'.render, debug.traceback, update_names, refocus)
 
   if ok then
     return result
@@ -332,14 +351,14 @@ function bufferline.render(update_names)
   )
 end
 
---- @param update_names boolean|nil if `true`, update the names of the buffers in the bufferline. Default: false
-function bufferline.update(update_names)
+--- @param refocus nil|boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
+--- @param update_names nil|boolean whether to refresh the names of the buffers (default: `false`)
+function bufferline.update(update_names, refocus)
   if vim.g.SessionLoad then
     return
   end
 
-  local new_value = bufferline.render(update_names or false)
-
+  local new_value = bufferline.render(update_names, refocus)
   if new_value == last_tabline then
     return
   end

@@ -92,10 +92,6 @@ function M.get_buffer_data(id)
   return M.buffers_by_id[id]
 end
 
-function M.update()
-  bufferline.update()
-end
-
 
 -- Pinned buffers
 
@@ -121,7 +117,7 @@ function M.toggle_pin(bufnr)
   bufnr = bufnr or 0
   buf_set_var(bufnr, PIN, not M.is_pinned(bufnr))
   sort_pins_to_left()
-  M.update()
+  bufferline.update()
 end
 
 -- Scrolling
@@ -133,7 +129,7 @@ local function set_scroll_tick(new_scroll, animation)
   if animation.running == false then
     scroll_animation = nil
   end
-  M.update()
+  bufferline.update(nil, false)
 end
 
 function M.set_scroll(target)
@@ -158,7 +154,7 @@ local function open_buffer_animated_tick(buffer_number, new_width, animation)
   else
     buffer_data.width = nil
   end
-  M.update()
+  bufferline.update()
 end
 
 local function open_buffer_start_animation(layout, buffer_number)
@@ -283,14 +279,14 @@ function M.close_buffer(buffer_number, should_update_names)
   if should_update_names then
     M.update_names()
   end
-  M.update()
+  bufferline.update()
 end
 
 local function close_buffer_animated_tick(buffer_number, new_width, animation)
   if new_width > 0 and M.buffers_by_id[buffer_number] ~= nil then
     local buffer_data = M.get_buffer_data(buffer_number)
     buffer_data.width = new_width
-    M.update()
+    bufferline.update()
     return
   end
   animate.stop(animation)
@@ -434,7 +430,7 @@ function M.set_offset(offset, offset_text, offset_hl)
       M.offset = offset_number
       M.offset_text = offset_text or ''
       M.offset_hl = offset_hl
-      M.update()
+      bufferline.update()
   end
 end
 
@@ -481,7 +477,7 @@ local function move_buffer_animated_tick(ratio, current_animation)
     end
   end
 
-  M.update()
+  bufferline.update()
 
   if current_animation.running == false then
     move_animation = nil
@@ -537,7 +533,7 @@ local function move_buffer_animated(from_idx, to_idx)
     animate.start(ANIMATION_MOVE_DURATION, 0, 1, vim.v.t_float,
       function(ratio, current_animation) move_buffer_animated_tick(ratio, current_animation) end)
 
-  M.update()
+  bufferline.update()
 end
 
 local function move_buffer_direct(from_idx, to_idx)
@@ -546,7 +542,7 @@ local function move_buffer_direct(from_idx, to_idx)
   table_insert(M.buffers, to_idx, buffer_number)
   sort_pins_to_left()
 
-  M.update()
+  bufferline.update()
 end
 
 local function move_buffer(from_idx, to_idx)
@@ -628,7 +624,7 @@ function M.close_all_but_current()
       bbye.bdelete(false, number)
     end
   end
-  M.update()
+  bufferline.update()
 end
 
 function M.close_all_but_pinned()
@@ -638,7 +634,7 @@ function M.close_all_but_pinned()
       bbye.bdelete(false, number)
     end
   end
-  M.update()
+  bufferline.update()
 end
 
 function M.close_all_but_current_or_pinned()
@@ -649,7 +645,7 @@ function M.close_all_but_current_or_pinned()
       bbye.bdelete(false, number)
     end
   end
-  M.update()
+  bufferline.update()
 end
 
 function M.close_buffers_left()
@@ -660,7 +656,7 @@ function M.close_buffers_left()
   for i = idx, 1, -1 do
     bbye.bdelete(false, M.buffers[i])
   end
-  M.update()
+  bufferline.update()
 end
 
 function M.close_buffers_right()
@@ -671,7 +667,7 @@ function M.close_buffers_right()
   for i = #M.buffers, idx, -1 do
     bbye.bdelete(false, M.buffers[i])
   end
-  M.update()
+  bufferline.update()
 end
 
 
@@ -699,7 +695,7 @@ function M.order_by_buffer_number()
   table_sort(M.buffers, function(a, b)
     return a < b
   end)
-  M.update()
+  bufferline.update()
 end
 
 function M.order_by_directory()
@@ -730,7 +726,7 @@ function M.order_by_directory()
       return a_less_than_b
     end)
   )
-  M.update()
+  bufferline.update()
 end
 
 function M.order_by_language()
@@ -740,7 +736,7 @@ function M.order_by_language()
       return fnamemodify(buf_get_name(a), ':e') < fnamemodify(buf_get_name(b), ':e')
     end)
   )
-  M.update()
+  bufferline.update()
 end
 
 function M.order_by_window_number()
@@ -750,7 +746,7 @@ function M.order_by_window_number()
       return bufwinnr(buf_get_name(a)) < bufwinnr(buf_get_name(b))
     end)
   )
-  M.update()
+  bufferline.update()
 end
 
 -- vim-session integration
@@ -807,7 +803,7 @@ function M.restore_buffers(bufnames)
     local bufnr = bufadd(name)
     table_insert(M.buffers, bufnr)
   end
-  M.update()
+  bufferline.update()
 end
 
 -- Exports

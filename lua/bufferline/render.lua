@@ -173,7 +173,11 @@ end
 
 -- Rendering
 
-local function render(update_names)
+--- Generate a valid `&tabline` given the current state of Neovim.
+--- @param refocus nil|boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
+--- @param update_names nil|boolean whether to refresh the names of the buffers (default: `false`)
+--- @return nil|string syntax
+local function render(update_names, refocus)
   local opts = vim.g.bufferline
   local buffer_numbers = state.get_updated_buffers(update_names)
 
@@ -328,7 +332,7 @@ local function render(update_names)
       }
     }
 
-    if is_current then
+    if is_current and refocus ~= false then
       current_buffer_index = i
       current_buffer_position = buffer_data.real_position
 
@@ -411,14 +415,6 @@ local function render(update_names)
   return result
 end
 
-local function render_safe(update_names)
-  local ok, result = xpcall(render, debug.traceback, update_names)
-  return {ok, tostring(result)}
-end
-
 -- print(render(state.buffers))
 
-return {
-  render = render,
-  render_safe = render_safe,
-}
+return { render = render }
