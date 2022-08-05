@@ -34,7 +34,7 @@ local set_current_win = vim.api.nvim_set_current_win
 local tabpage_list_wins = vim.api.nvim_tabpage_list_wins
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
-local timer_start = vim.fn.timer_start
+local defer_fn = vim.defer_fn
 local win_get_buf = vim.api.nvim_win_get_buf
 
 -- TODO: remove `vim.fs and` after 0.8 release
@@ -166,13 +166,14 @@ local function open_buffer_start_animation(layout, buffer_number)
 
   buffer_data.width = 1
 
-  timer_start(ANIMATION_OPEN_DELAY, function()
+  defer_fn(function()
     animate.start(
       ANIMATION_OPEN_DURATION, 1, target_width, vim.v.t_number,
       function(new_width, animation)
         open_buffer_animated_tick(buffer_number, new_width, animation)
       end)
-  end)
+  end, ANIMATION_OPEN_DELAY)
+
 end
 
 local function open_buffers(new_buffers)
