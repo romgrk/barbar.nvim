@@ -18,7 +18,7 @@ local function lerp(ratio, initial, final, delta_type)
   return initial + delta
 end
 
-local function animate_tick(timer, state)
+local function animate_tick(state)
   -- Alternative to finding current value:
   --
   --   let state.current += state.step
@@ -42,7 +42,11 @@ local function animate_tick(timer, state)
   -- Went overtime, stop the animation!
     state.running = false
     state.fn(state.final, state)
-    timer:stop()
+    if state.timer then
+      state.timer:stop()
+      state.timer:close()
+      state.timer = nil
+    end
   end
 end
 
@@ -62,7 +66,7 @@ local function start(duration, initial, final, type, callback)
   state.timer = vim.loop.new_timer()
 
   state.timer:start(0, ANIMATION_FREQUENCY, vim.schedule_wrap(function()
-    animate_tick(state.timer, state)
+    animate_tick(state)
   end))
 
   state.fn(state.current, state)
@@ -70,7 +74,11 @@ local function start(duration, initial, final, type, callback)
 end
 
 local function stop(state)
-  state.timer:stop()
+  if state.timer then
+    state.timer:stop()
+    state.timer:close()
+    state.timer = nil
+  end
 end
 
 return {
