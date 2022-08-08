@@ -109,7 +109,7 @@ function bufferline.enable()
   })
 
   create_autocmd(
-    {'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWipeout', 'BufWritePost', 'SessionLoadPost', 'VimResized', 'WinEnter', 'WinLeave'},
+    {'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWipeout', 'BufWritePost', 'SessionLoadPost', 'TabEnter', 'VimResized', 'WinEnter', 'WinLeave'},
     {
       callback = function() bufferline.update() end,
       group = augroup_bufferline_update,
