@@ -471,15 +471,16 @@ local bufferline_state = require('bufferline.state')
 local function get_tree_size()
   return vim.api.nvim_win_get_width(0)
 end
-nvim_tree_events.on_tree_open(function()
+
+nvim_tree_events.subscribe('TreeOpen', function()
   bufferline_state.set_offset(get_tree_size())
 end)
 
-nvim_tree_events.on_tree_resize(function()
+nvim_tree_events.subscribe('Resize', function()
   bufferline_state.set_offset(get_tree_size())
 end)
 
-nvim_tree_events.on_tree_close(function()
+nvim_tree_events.subscribe('TreeClose', function()
   bufferline_state.set_offset(0)
 end)
 ```
