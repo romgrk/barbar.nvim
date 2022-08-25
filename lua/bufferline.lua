@@ -194,41 +194,41 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferMoveNext',
-    function(tbl) require'bufferline.state'.move_current_buffer(math.max(1, tbl.count)) end,
+    function(tbl) require'bufferline.render'.move_current_buffer(math.max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the right'}
   )
 
   create_user_command(
     'BufferMovePrevious',
-    function(tbl) require'bufferline.state'.move_current_buffer(-math.max(1, tbl.count)) end,
+    function(tbl) require'bufferline.render'.move_current_buffer(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the left'}
   )
 
   create_user_command('BufferPick', function() require'bufferline.render'.activate_jump_mode() end, {desc = 'Pick a buffer'})
 
-  create_user_command('BufferPin', function() require'bufferline.state'.toggle_pin() end, {desc = 'Un/pin a buffer'})
+  create_user_command('BufferPin', function() require'bufferline.render'.toggle_pin() end, {desc = 'Un/pin a buffer'})
 
   create_user_command(
     'BufferOrderByBufferNumber',
-    function() require'bufferline.state'.order_by_buffer_number() end,
+    function() require'bufferline.render'.order_by_buffer_number() end,
     {desc = 'Order the bufferline by buffer number'}
   )
 
   create_user_command(
     'BufferOrderByDirectory',
-    function() require'bufferline.state'.order_by_directory() end,
+    function() require'bufferline.render'.order_by_directory() end,
     {desc = 'Order the bufferline by directory'}
   )
 
   create_user_command(
     'BufferOrderByLanguage',
-    function() require'bufferline.state'.order_by_language() end,
+    function() require'bufferline.render'.order_by_language() end,
     {desc = 'Order the bufferline by language'}
   )
 
   create_user_command(
     'BufferOrderByWindowNumber',
-    function() require'bufferline.state'.order_by_window_number() end,
+    function() require'bufferline.render'.order_by_window_number() end,
     {desc = 'Order the bufferline by window number'}
   )
 
@@ -255,39 +255,39 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferCloseAllButCurrent',
-    function() require'bufferline.state'.close_all_but_current() end,
+    function() require'bufferline.render'.close_all_but_current() end,
     {desc = 'Close every buffer except the current one'}
   )
 
   create_user_command(
     'BufferCloseAllButPinned',
-    function() require'bufferline.state'.close_all_but_pinned() end,
+    function() require'bufferline.render'.close_all_but_pinned() end,
     {desc = 'Close every buffer except pinned buffers'}
   )
 
   create_user_command(
     'BufferCloseAllButCurrentOrPinned',
-    function() require'bufferline.state'.close_all_but_current_or_pinned() end,
+    function() require'bufferline.render'.close_all_but_current_or_pinned() end,
     {desc = 'Close every buffer except pinned buffers or the current buffer'}
   )
 
   create_user_command(
     'BufferCloseBuffersLeft',
-    function() require'bufferline.state'.close_buffers_left() end,
+    function() require'bufferline.render'.close_buffers_left() end,
     {desc = 'Close all buffers to the left of the current buffer'}
   )
 
   create_user_command(
     'BufferCloseBuffersRight',
-    function() require'bufferline.state'.close_buffers_right() end,
+    function() require'bufferline.render'.close_buffers_right() end,
     {desc = 'Close all buffers to the right of the current buffer'}
   )
 
   create_user_command(
     'BufferScrollLeft',
     function(tbl)
-      local state = require'bufferline.state'
-      state.set_scroll(math.max(0, state.scroll - math.max(1, tbl.count)))
+      local render = require'bufferline.render'
+      render.set_scroll(math.max(0, render.scroll - math.max(1, tbl.count)))
     end,
     {count = true, desc = 'Scroll the bufferline left'}
   )
@@ -295,8 +295,8 @@ function bufferline.setup(options)
   create_user_command(
     'BufferScrollRight',
     function(tbl)
-      local state = require'bufferline.state'
-      state.set_scroll(state.scroll + math.max(1, tbl.count))
+      local render = require'bufferline.render'
+      render.set_scroll(render.scroll + math.max(1, tbl.count))
     end,
     {count = true, desc = 'Scroll the bufferline right'}
   )

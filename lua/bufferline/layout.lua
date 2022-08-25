@@ -15,7 +15,10 @@ local Buffer = require'bufferline.buffer'
 
 local SIDES_OF_BUFFER = 2
 
-local function calculate_tabpages_width()
+--- @class bufferline.Layout
+local Layout = {}
+
+function Layout.calculate_tabpages_width()
   local current = tabpagenr()
   local total   = tabpagenr('$')
   if not vim.g.bufferline.tabpages or total == 1 then
@@ -25,7 +28,7 @@ local function calculate_tabpages_width()
 end
 
 --- @param base_width integer
-local function calculate_buffers_width(state, base_width)
+function Layout.calculate_buffers_width(state, base_width)
   local opts = vim.g.bufferline
   local has_numbers = opts.icons == 'both' or opts.icons == 'numbers'
 
@@ -73,20 +76,7 @@ local function calculate_buffers_width(state, base_width)
   return sum, widths
 end
 
-local function calculate_buffers_position_by_buffer_number(state, layout)
-  local current_position = 0
-  local positions = {}
-
-  for i, buffer_number in ipairs(state.buffers) do
-    positions[buffer_number] = current_position
-    local width = layout.base_widths[i] + (2 * layout.padding_width)
-    current_position = current_position + width
-  end
-
-  return positions
-end
-
-local function calculate(state)
+function Layout.calculate(state)
   local opts = vim.g.bufferline
 
   local has_icons = (opts.icons == true) or (opts.icons == 'both') or (opts.icons == 'buffer_number_with_icon')
@@ -101,8 +91,8 @@ local function calculate(state)
     available_width = available_width - state.offset
   end
 
-  local used_width, base_widths = calculate_buffers_width(state, base_width)
-  local tabpages_width = calculate_tabpages_width()
+  local used_width, base_widths = Layout.calculate_buffers_width(state, base_width)
+  local tabpages_width = Layout.calculate_tabpages_width()
 
   local buffers_width = available_width - tabpages_width
 
@@ -125,13 +115,22 @@ local function calculate(state)
   }
 end
 
-local function calculate_width(buffer_name, base_width, padding_width)
+function Layout.calculate_buffers_position_by_buffer_number(state)
+  local current_position = 0
+  local layout = Layout.calculate(state)
+  local positions = {}
+
+  for i, buffer_number in ipairs(state.buffers) do
+    positions[buffer_number] = current_position
+    local width = layout.base_widths[i] + (2 * layout.padding_width)
+    current_position = current_position + width
+  end
+
+  return positions
+end
+
+function Layout.calculate_width(buffer_name, base_width, padding_width)
   return strwidth(buffer_name) + base_width + padding_width * SIDES_OF_BUFFER
 end
 
-return {
-  calculate = calculate,
-  calculate_buffers_width = calculate_buffers_width,
-  calculate_buffers_position_by_buffer_number = calculate_buffers_position_by_buffer_number,
-  calculate_width = calculate_width,
-}
+return Layout

@@ -75,7 +75,7 @@ local function new(force)
 
   create_autocmd('BufWipeout', {
     buffer = 0,
-    callback = function() require'bufferline.state'.close_buffer(empty_buffer) end,
+    callback = function() require'bufferline.render'.close_buffer(empty_buffer) end,
     group = create_augroup('bbye_empty_buffer', {})
   })
 end

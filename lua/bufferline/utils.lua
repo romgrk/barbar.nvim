@@ -115,6 +115,11 @@ return {
     return value == nil or value == vim.NIL
   end,
 
+  --- @return boolean is_relative `true` if `path` is relative to the CWD
+  is_relative_path = function(path)
+    return fnamemodify(path, ':p') ~= path
+  end,
+
   --- Run `vim.list_slice` on some `list`, `index`ed from the end of the list.
   --- @param list table
   --- @param index_from_end number

@@ -43,9 +43,9 @@ function! bufferline#order_by_window_number()
 endfunc
 
 function! bufferline#close(abuf)
-  call luaeval("require'bufferline.state'.close_buffer_animated(_A)", a:abuf)
+  call luaeval("require'bufferline.render'.close_buffer_animated(_A)", a:abuf)
 endfunc
 
 function! bufferline#close_direct(abuf)
-  call luaeval("require'bufferline.state'.close_buffer(_A)", a:abuf)
+  call luaeval("require'bufferline.render'.close_buffer(_A)", a:abuf)
 endfunc
