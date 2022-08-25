@@ -1,4 +1,8 @@
+local table_concat = table.concat
+local table_insert = table.insert
+
 local buf_call = vim.api.nvim_buf_call
+local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
 local buf_set_var = vim.api.nvim_buf_set_var
 local command = vim.api.nvim_command
@@ -8,11 +12,16 @@ local create_user_command = vim.api.nvim_create_user_command
 local defer_fn = vim.defer_fn
 local exec_autocmds = vim.api.nvim_exec_autocmds
 local get_current_buf = vim.api.nvim_get_current_buf
+local haslocaldir = vim.fn.haslocaldir
+local list_tabpages = vim.api.nvim_list_tabpages
 local notify = vim.notify
+local tabpage_list_wins = vim.api.nvim_tabpage_list_wins
 local tbl_extend = vim.tbl_extend
 
 local bbye = require'bufferline.bbye'
+local state = require'bufferline.state'
 local highlight = require'bufferline.highlight'
+local relative = require'bufferline.utils'.relative
 
 --- The default options for this plugin.
 local DEFAULT_OPTIONS = {
@@ -98,7 +107,42 @@ function bufferline.enable()
   })
 
   create_autocmd('User', {
-    callback = function() require'bufferline.state'.on_pre_save() end,
+    callback = function()
+      -- We're allowed to use relative paths for buffers iff there are no tabpages
+      -- or windows with a local directory (:tcd and :lcd)
+      local use_relative_file_paths = true
+      for tabnr,tabpage in ipairs(list_tabpages()) do
+        if not use_relative_file_paths or haslocaldir(-1, tabnr) == 1 then
+          use_relative_file_paths = false
+          break
+        end
+        for _,win in ipairs(tabpage_list_wins(tabpage)) do
+          if haslocaldir(win, tabnr) == 1 then
+            use_relative_file_paths = false
+            break
+          end
+        end
+      end
+
+      local bufnames = {}
+      for _,bufnr in ipairs(state.buffers) do
+        local name = buf_get_name(bufnr)
+        if use_relative_file_paths then
+          name = relative(name)
+        end
+        -- escape quotes
+        name = name:gsub('"', '\\"')
+        table_insert(bufnames, '"' .. name .. '"')
+      end
+
+      local bufarr = '{' .. table_concat(bufnames, ',') .. '}'
+      local commands = vim.g.session_save_commands
+
+      table_insert(commands, '" barbar.nvim')
+      table_insert(commands, "lua require'bufferline.render'.restore_buffers(" .. bufarr .. ")")
+
+      vim.g.session_save_commands = commands
+    end,
     group = augroup_bufferline,
     pattern = 'SessionSavePre',
   })
@@ -167,19 +211,19 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferNext',
-    function(tbl) require'bufferline.state'.goto_buffer_relative(math.max(1, tbl.count)) end,
+    function(tbl) state.goto_buffer_relative(math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the next buffer'}
   )
 
   create_user_command(
     'BufferPrevious',
-    function(tbl) require'bufferline.state'.goto_buffer_relative(-math.max(1, tbl.count)) end,
+    function(tbl) state.goto_buffer_relative(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the previous buffer'}
   )
 
   create_user_command(
     'BufferGoto',
-    function(tbl) require'bufferline.state'.goto_buffer(tbl.args) end,
+    function(tbl) state.goto_buffer(tbl.args) end,
     {desc = 'Go to the buffer at the specified index', nargs = 1}
   )
 
@@ -235,7 +279,7 @@ function bufferline.setup(options)
   create_user_command(
     'BufferClose',
     function(tbl)
-      local focus_buffer = require'bufferline.state'.find_next_buffer(get_current_buf())
+      local focus_buffer = state.find_next_buffer(get_current_buf())
       bbye.bdelete(tbl.bang, tbl.args, tbl.mods, focus_buffer)
     end,
     {bang = true, complete = 'buffer', desc = 'Close the current buffer.', nargs = '?'}
@@ -400,7 +444,7 @@ function bufferline.main_click_handler(minwid, _, btn, _)
   if btn == 'm' then
     bbye.bdelete(false, minwid)
   else
-    require'bufferline.state'.open_buffer_in_listed_window(minwid)
+    state.open_buffer_in_listed_window(minwid)
   end
 end
 

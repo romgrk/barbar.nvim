@@ -298,43 +298,5 @@ function State.goto_buffer_relative(steps)
 end
 
 
--- vim-session integration
-
--- TODO: where should this function go?
-function State.on_pre_save()
-  -- We're allowed to use relative paths for buffers iff there are no tabpages
-  -- or windows with a local directory (:tcd and :lcd)
-  local use_relative_file_paths = true
-  for tabnr,tabpage in ipairs(list_tabpages()) do
-    if not use_relative_file_paths or haslocaldir(-1, tabnr) == 1 then
-      use_relative_file_paths = false
-      break
-    end
-    for _,win in ipairs(tabpage_list_wins(tabpage)) do
-      if haslocaldir(win, tabnr) == 1 then
-        use_relative_file_paths = false
-        break
-      end
-    end
-  end
-
-  local bufnames = {}
-  for _,bufnr in ipairs(State.buffers) do
-    local name = buf_get_name(bufnr)
-    if use_relative_file_paths then
-      name = fnamemodify(name, ':~:.')
-    end
-    -- escape quotes
-    name = string_gsub(name, '"', '\\"')
-    table_insert(bufnames, string_format('"%s"', name))
-  end
-  local bufarr = string.format('{%s}', table.concat(bufnames, ','))
-  local commands = vim.g.session_save_commands
-  table_insert(commands, '" barbar.nvim')
-  table_insert(commands,
-    string_format([[lua require'bufferline.render'.restore_buffers(%s)]], bufarr))
-  vim.g.session_save_commands = commands
-end
-
 -- Exports
 return State

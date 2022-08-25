@@ -9,19 +9,6 @@ local get_hl_by_name = vim.api.nvim_get_hl_by_name
 local list_slice = vim.list_slice
 local set_hl = vim.api.nvim_set_hl
 
---- Return the index of element `n` in `list.
---- @param list table
---- @param n unknown
---- @return nil|integer index
-local function index_of(list, n)
-  for i, value in ipairs(list) do
-    if value == n then
-      return i
-    end
-  end
-  return nil
-end
-
 --- Generate a color.
 --- @param default integer|string a color name (`string`), GUI hex (`string`), or cterm color code (`integer`).
 --- @param groups table<string> the groups to source the color from.
@@ -39,8 +26,27 @@ local function attribute_or_default(groups, index, default, guicolors)
   return default
 end
 
+--- Return the index of element `n` in `list.
+--- @param list table
+--- @param n unknown
+--- @return nil|integer index
+local function index_of(list, n)
+  for i, value in ipairs(list) do
+    if value == n then
+      return i
+    end
+  end
+  return nil
+end
+
+  --- @param path string
+--- @return string relative_path
+local function relative(path)
+  return fnamemodify(path, ':~:.')
+end
+
 return {
-  basename = function (path)
+  basename = function(path)
      return fnamemodify(path, ':t')
   end,
 
@@ -115,9 +121,10 @@ return {
     return value == nil or value == vim.NIL
   end,
 
+  --- @param path string
   --- @return boolean is_relative `true` if `path` is relative to the CWD
   is_relative_path = function(path)
-    return fnamemodify(path, ':p') ~= path
+    return relative(path) == path
   end,
 
   --- Run `vim.list_slice` on some `list`, `index`ed from the end of the list.
@@ -127,6 +134,8 @@ return {
   list_slice_from_end = function(list, index_from_end)
     return list_slice(list, #list - index_from_end + 1)
   end,
+
+  relative = relative,
 
   --- Reverse the order of elements in some `list`.
   --- @param list table
@@ -139,3 +148,4 @@ return {
     return reversed
   end,
 }
+
