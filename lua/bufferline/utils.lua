@@ -2,8 +2,6 @@
 -- utils.lua
 --
 
-local string_format = string.format
-
 local fnamemodify = vim.fn.fnamemodify
 local get_hl_by_name = vim.api.nvim_get_hl_by_name
 local list_slice = vim.list_slice
@@ -19,7 +17,7 @@ local function attribute_or_default(groups, index, default, guicolors)
   for _, group in ipairs(groups) do
     local hl = get_hl_by_name(group, guicolors)
     if hl[index] then
-      return guicolors and string_format('#%06x', hl[index]) or hl[index]
+      return guicolors and ('#%06x'):format(hl[index]) or hl[index]
     end
   end
 

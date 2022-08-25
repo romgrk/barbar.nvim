@@ -23,8 +23,6 @@
 -- For the full copy of the GNU Affero General Public License see:
 -- http://www.gnu.org/licenses.
 
-local string_match = string.match
-
 local buflisted = vim.fn.buflisted
 local bufnr = vim.fn.bufnr
 local command = vim.api.nvim_command
@@ -92,7 +90,7 @@ local bbye = {}
 --- @param force boolean if true, forcefully delete the buffer
 --- @param buffer integer|nil|string the name of the buffer.
 --- @param mods nil|string the modifiers to the command (e.g. `'verbose'`)
---- @param[opt] focus_id nil|number the preferred buffer to focus
+--- @param focus_id nil|number the preferred buffer to focus
 function bbye.delete(action, force, buffer, mods, focus_id)
   local buffer_number = type(buffer) == 'string' and bufnr(buffer) or buffer or get_current_buf()
   mods = mods or ''
@@ -103,7 +101,7 @@ function bbye.delete(action, force, buffer, mods, focus_id)
   end
 
   local is_modified = buf_get_option(buffer_number, 'modified')
-  local has_confirm = vim.o.confirm or (string_match(mods, 'conf') ~= nil)
+  local has_confirm = vim.o.confirm or mods:match('conf') ~= nil
 
   if is_modified and not (force or has_confirm) then
     err("E89: No write since last change for buffer " .. buffer_number .. " (add ! to override)")
@@ -137,7 +135,7 @@ function bbye.delete(action, force, buffer, mods, focus_id)
         end
       end)
 
-      if not (no_errors or string_match(vim.v.errmsg, 'E85')) then
+      if not (no_errors or vim.v.errmsg:match('E85')) then
         err(vim.v.errmsg)
         return
       end
@@ -165,7 +163,7 @@ function bbye.delete(action, force, buffer, mods, focus_id)
     end)
 
     if not no_errors then
-      if string_match(vim.v.errmsg, 'E516') then
+      if vim.v.errmsg:match('E516') then
         set_current_buf(buffer_number)
       else
         err(vim.v.errmsg)
@@ -181,7 +179,7 @@ end
 --- @param force boolean if true, forcefully delete the buffer
 --- @param buffer integer|nil|string the name of the buffer.
 --- @param mods nil|string the modifiers to the command (e.g. `'verbose'`)
---- @param[opt] focus_id nil|number the preferred buffer to focus
+--- @param focus_id nil|number the preferred buffer to focus
 function bbye.bdelete(force, buffer, mods, focus_id)
   bbye.delete('bdelete', force, buffer, mods, focus_id)
 end
@@ -190,7 +188,7 @@ end
 --- @param force boolean if true, forcefully delete the buffer
 --- @param buffer integer|nil|string the name of the buffer.
 --- @param mods nil|string the modifiers to the command (e.g. `'verbose'`)
---- @param[opt] focus_id nil|number the preferred buffer to focus
+--- @param focus_id nil|number the preferred buffer to focus
 function bbye.bwipeout(force, buffer, mods, focus_id)
   bbye.delete('bwipeout', force, buffer, mods, focus_id)
 end

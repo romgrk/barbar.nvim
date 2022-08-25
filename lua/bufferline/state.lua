@@ -2,8 +2,6 @@
 -- m.lua
 --
 
-local string_format = string.format
-local string_gsub = string.gsub
 local table_insert = table.insert
 
 local buf_get_name = vim.api.nvim_buf_get_name
@@ -12,15 +10,11 @@ local buf_get_var = vim.api.nvim_buf_get_var
 local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_set_var = vim.api.nvim_buf_set_var
 local command = vim.api.nvim_command
-local fnamemodify = vim.fn.fnamemodify
 local get_current_buf = vim.api.nvim_get_current_buf
-local haslocaldir = vim.fn.haslocaldir
 local list_bufs = vim.api.nvim_list_bufs
-local list_tabpages = vim.api.nvim_list_tabpages
 local list_wins = vim.api.nvim_list_wins
 local set_current_buf = vim.api.nvim_set_current_buf
 local set_current_win = vim.api.nvim_set_current_win
-local tabpage_list_wins = vim.api.nvim_tabpage_list_wins
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf

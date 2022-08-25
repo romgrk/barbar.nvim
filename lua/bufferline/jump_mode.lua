@@ -2,8 +2,6 @@
 -- jump_mode.lua
 --
 
-local string_lower = string.lower
-
 local buf_get_name = vim.api.nvim_buf_get_name
 local fnamemodify = vim.fn.fnamemodify
 local split = vim.fn.split
@@ -60,7 +58,7 @@ function JumpMode.assign_next_letter(bufnr)
     local name = fnamemodify(buf_get_name(bufnr), ':t:r')
 
     for i = 1, strwidth(name) do
-      local letter = string_lower(strcharpart(name, i - 1, 1))
+      local letter = strcharpart(name, i - 1, 1):lower()
 
       if JumpMode.index_by_letter[letter] ~= nil then
         local index = JumpMode.index_by_letter[letter]

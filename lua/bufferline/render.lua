@@ -6,7 +6,6 @@
 local char = string.char
 local max = math.max
 local min = math.min
-local string_rep = string.rep
 local table_insert = table.insert
 local table_remove = table.remove
 local table_sort = table.sort
@@ -556,7 +555,7 @@ function Render.render(update_names, refocus)
       clickable = '%' .. buffer_number .. '@BufferlineMainClickHandler@'
     end
 
-    local padding = string_rep(' ', layout.padding_width)
+    local padding = (' '):rep(layout.padding_width)
 
     local item = {
       is_current = is_current,
@@ -606,13 +605,13 @@ function Render.render(update_names, refocus)
       ' ' .. (offset_text or ''),
     }}
     result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
-    result = result .. string_rep(' ', offset_available_width - #offset_text)
+    result = result .. (' '):rep(offset_available_width - #offset_text)
     result = result .. ' '
   end
 
   -- Add bufferline
   local bufferline_groups = {
-    { hl_tabline('BufferTabpageFill'), string_rep(' ', layout.actual_width) }
+    { hl_tabline('BufferTabpageFill'), (' '):rep(layout.actual_width) }
   }
 
   for i, item in ipairs(items) do

@@ -4,9 +4,6 @@
 
 local max = math.max
 local min = math.min
-local string_find = string.find
-local string_reverse = string.reverse
-local substring = string.sub
 local table_concat = table.concat
 
 local buf_get_name = vim.api.nvim_buf_get_name
@@ -56,17 +53,17 @@ local function get_name(opts, number)
   local ellipsis = '…'
   local max_len = opts.maximum_length
   if #name > max_len then
-    local ext_index = string_find(string_reverse(name), '%.')
+    local ext_index = name:reverse():find('%.')
 
     if ext_index ~= nil and (ext_index < max_len - #ellipsis) then
-      local extension = substring(name, -ext_index)
-      name = substring(name, 1, max_len - #ellipsis - #extension) .. ellipsis .. extension
+      local extension = name:sub(-ext_index)
+      name = name:sub(1, max_len - #ellipsis - #extension) .. ellipsis .. extension
     else
-      name = substring(name, 1, max_len - #ellipsis) .. ellipsis
+      name = name:sub(1, max_len - #ellipsis) .. ellipsis
     end
 
     -- safety to prevent recursion in any future edge case
-    name = substring(name, 1, max_len)
+    name = name:sub(1, max_len)
   end
 
   return name
