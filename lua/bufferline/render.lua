@@ -3,14 +3,19 @@
 -- render.lua
 --
 
+local char = string.char
 local max = math.max
 local min = math.min
 local string_rep = string.rep
 local table_insert = table.insert
 
-local get_current_buf = vim.api.nvim_get_current_buf
 local buf_get_option = vim.api.nvim_buf_get_option
+local command = vim.api.nvim_command
+local get_current_buf = vim.api.nvim_get_current_buf
+local getchar = vim.fn.getchar
 local has = vim.fn.has
+local notify = vim.notify
+local set_current_buf = vim.api.nvim_set_current_buf
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 local tabpagenr = vim.fn.tabpagenr
@@ -18,6 +23,7 @@ local tabpagenr = vim.fn.tabpagenr
 local Buffer = require'bufferline.buffer'
 local JumpMode = require'bufferline.jump_mode'
 local Layout = require'bufferline.layout'
+local bufferline = require'bufferline'
 local icons = require'bufferline.icons'
 local state = require'bufferline.state'
 local utils = require'bufferline.utils'
@@ -27,6 +33,36 @@ local HL_BY_ACTIVITY = {
   [1] = 'Visible',
   [2] = 'Current',
 }
+
+local function activate_jump_mode()
+  if JumpMode.reinitialize then
+    JumpMode.initialize_indexes()
+  end
+
+  state.is_picking_buffer = true
+  bufferline.update()
+  command('redrawtabline')
+  state.is_picking_buffer = false
+
+  local ok, byte = pcall(getchar)
+
+  if ok then
+    local letter = char(byte)
+
+    if letter ~= '' then
+      if JumpMode.buffer_by_letter[letter] ~= nil then
+        set_current_buf(JumpMode.buffer_by_letter[letter])
+      else
+        notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
+      end
+    end
+  else
+    notify("Invalid input", vim.log.levels.WARN, {title = 'barbar.nvim'})
+  end
+
+  bufferline.update()
+  command('redrawtabline')
+end
 
 local function hl_tabline(name)
   return '%#' .. name .. '#'
@@ -417,4 +453,7 @@ end
 
 -- print(render(state.buffers))
 
-return { render = render }
+return {
+  activate_jump_mode = activate_jump_mode,
+  render = render,
+}

@@ -2,21 +2,13 @@
 -- jump_mode.lua
 --
 
-local char = string.char
 local string_lower = string.lower
 
 local buf_get_name = vim.api.nvim_buf_get_name
-local command = vim.api.nvim_command
 local fnamemodify = vim.fn.fnamemodify
-local getchar = vim.fn.getchar
-local notify = vim.notify
-local set_current_buf = vim.api.nvim_set_current_buf
 local split = vim.fn.split
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
-
-local bufferline = require'bufferline'
-local state = require'bufferline.state'
 
 ----------------------------------------
 -- Section: Buffer-picking mode state --
@@ -26,14 +18,12 @@ local state = require'bufferline.state'
 --- @type table<string>
 local letters = {}
 
---- Whether an `initialize_indexes` operation has been queued.
-local reinitialize = false
-
 --- @class bufferline.JumpMode
 --- @field private buffer_by_letter table<string, integer> a bi-directional map of buffer integers and their letters.
 --- @field private index_by_letter table<string, integer> `letters` in the order they were provided
 --- @field private letter_by_buffer table<integer, string> a bi-directional map of buffer integers and their letters.
 --- @field private letter_status table<integer, boolean>
+--- @field private reinitialize boolean whether an `initialize_indexes` operation has been queued.
 local JumpMode = {}
 
 -- Initialize m.index_by_letter
@@ -48,7 +38,7 @@ function JumpMode.initialize_indexes()
     JumpMode.letter_status[index] = false
   end
 
-  reinitialize = false
+  JumpMode.reinitialize = false
 end
 
 --- Set the letters which can be used by jump mode.
@@ -115,7 +105,7 @@ function JumpMode.unassign_letter(letter)
     JumpMode.letter_by_buffer[bufnr] = nil
   end
 
-  reinitialize = true
+  JumpMode.reinitialize = true
 end
 
 function JumpMode.get_letter(bufnr)
@@ -124,37 +114,6 @@ end
 
 function JumpMode.unassign_letter_for(bufnr)
   JumpMode.unassign_letter(JumpMode.get_letter(bufnr))
-end
-
-
-function JumpMode.activate()
-  if reinitialize then
-    JumpMode.initialize_indexes()
-  end
-
-  state.is_picking_buffer = true
-  bufferline.update()
-  command('redrawtabline')
-  state.is_picking_buffer = false
-
-  local ok, byte = pcall(getchar)
-
-  if ok then
-    local letter = char(byte)
-
-    if letter ~= '' then
-      if JumpMode.buffer_by_letter[letter] ~= nil then
-        set_current_buf(JumpMode.buffer_by_letter[letter])
-      else
-        notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
-      end
-    end
-  else
-    notify("Invalid input", vim.log.levels.WARN, {title = 'barbar.nvim'})
-  end
-
-  bufferline.update()
-  command('redrawtabline')
 end
 
 JumpMode.set_letters(vim.g.bufferline.letters)

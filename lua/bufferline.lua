@@ -204,7 +204,7 @@ function bufferline.setup(options)
     {count = true, desc = 'Move the current buffer to the left'}
   )
 
-  create_user_command('BufferPick', function() require'bufferline.jump_mode'.activate() end, {desc = 'Pick a buffer'})
+  create_user_command('BufferPick', function() require'bufferline.render'.activate_jump_mode() end, {desc = 'Pick a buffer'})
 
   create_user_command('BufferPin', function() require'bufferline.state'.toggle_pin() end, {desc = 'Un/pin a buffer'})
 
