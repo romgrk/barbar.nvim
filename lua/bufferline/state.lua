@@ -2,20 +2,15 @@
 -- m.lua
 --
 
-local table_insert = table.insert
-
 local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
 local buf_get_var = vim.api.nvim_buf_get_var
-local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_set_var = vim.api.nvim_buf_set_var
 local command = vim.api.nvim_command
 local get_current_buf = vim.api.nvim_get_current_buf
-local list_bufs = vim.api.nvim_list_bufs
 local list_wins = vim.api.nvim_list_wins
 local set_current_buf = vim.api.nvim_set_current_buf
 local set_current_win = vim.api.nvim_set_current_win
-local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf
 
@@ -122,46 +117,7 @@ function State.close_buffer(buffer_number, should_update_names)
   end
 end
 
-
 -- Update state
-
-local function get_buffer_list()
-  local opts = vim.g.bufferline
-  local buffers = list_bufs()
-  local result = {}
-
-  --- @type nil|table
-  local exclude_ft   = opts.exclude_ft
-  local exclude_name = opts.exclude_name
-
-  for _, buffer in ipairs(buffers) do
-
-    if not buf_get_option(buffer, 'buflisted') then
-      goto continue
-    end
-
-    if not utils.is_nil(exclude_ft) then
-      local ft = buf_get_option(buffer, 'filetype')
-      if utils.has(exclude_ft, ft) then
-        goto continue
-      end
-    end
-
-    if not utils.is_nil(exclude_name) then
-      local fullname = buf_get_name(buffer)
-      local name = utils.basename(fullname)
-      if utils.has(exclude_name, name) then
-        goto continue
-      end
-    end
-
-    table_insert(result, buffer)
-
-    ::continue::
-  end
-
-  return result
-end
 
 function State.update_names()
   local opts = vim.g.bufferline
@@ -190,50 +146,6 @@ function State.update_names()
     end
 
   end
-end
-
-function State.get_updated_buffers(update_names)
-  local current_buffers = get_buffer_list()
-  local new_buffers =
-    tbl_filter(
-      function(b) return not vim.tbl_contains(State.buffers, b) end,
-      current_buffers)
-
-  -- To know if we need to update names
-  local did_change = false
-
-  -- Remove closed or update closing buffers
-  local closed_buffers =
-    tbl_filter(function(b) return not tbl_contains(current_buffers, b) end, State.buffers)
-
-  for _, buffer_number in ipairs(closed_buffers) do
-    local buffer_data = State.get_buffer_data(buffer_number)
-    if not buffer_data.closing then
-      did_change = true
-
-      if buffer_data.real_width == nil then
-        State.close_buffer(buffer_number)
-      else
-        State.close_buffer_animated(buffer_number)
-      end
-    end
-  end
-
-  -- Add new buffers
-  if #new_buffers > 0 then
-    did_change = true
-
-    open_buffers(new_buffers)
-  end
-
-  State.buffers =
-    tbl_filter(function(b) return buf_is_valid(b) end, State.buffers)
-
-  if did_change or update_names then
-    State.update_names()
-  end
-
-  return State.buffers
 end
 
 -- Read state

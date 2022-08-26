@@ -10,6 +10,7 @@ local table_insert = table.insert
 local table_remove = table.remove
 local table_sort = table.sort
 
+local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_delete = vim.api.nvim_buf_delete
 local buf_get_lines = vim.api.nvim_buf_get_lines
 local buf_get_name = vim.api.nvim_buf_get_name
@@ -29,6 +30,8 @@ local set_current_buf = vim.api.nvim_set_current_buf
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 local tabpagenr = vim.fn.tabpagenr
+local tbl_contains = vim.tbl_contains
+local tbl_filter = vim.tbl_filter
 
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
@@ -71,7 +74,44 @@ local function hl_tabline(name)
   return '%#' .. name .. '#'
 end
 
--- A "group" is an array with the format { HL_GROUP, TEXT_CONTENT }
+--- Get the list of buffers
+local function get_buffer_list()
+  local opts = vim.g.bufferline
+  local buffers = list_bufs()
+  local result = {}
+
+  --- @type nil|table
+  local exclude_ft   = opts.exclude_ft
+  local exclude_name = opts.exclude_name
+
+  for _, buffer in ipairs(buffers) do
+
+    if not buf_get_option(buffer, 'buflisted') then
+      goto continue
+    end
+
+    if not utils.is_nil(exclude_ft) then
+      local ft = buf_get_option(buffer, 'filetype')
+      if utils.has(exclude_ft, ft) then
+        goto continue
+      end
+    end
+
+    if not utils.is_nil(exclude_name) then
+      local fullname = buf_get_name(buffer)
+      local name = utils.basename(fullname)
+      if utils.has(exclude_name, name) then
+        goto continue
+      end
+    end
+
+    table_insert(result, buffer)
+
+    ::continue::
+  end
+
+  return result
+end
 
 --- @class bufferline.Render.Group
 --- @field hl string the highlight group to use
@@ -170,6 +210,36 @@ local function groups_insert(groups, position, others)
   return new_groups
 end
 
+--- The incremental animation for `open_buffer_start_animation`.
+--- @param bufnr integer
+--- @param new_width integer
+--- @param animation unknown
+local function open_buffer_animated_tick(bufnr, new_width, animation)
+  local buffer_data = state.get_buffer_data(bufnr)
+  buffer_data.width = animation.running and new_width or nil
+
+  bufferline.update()
+end
+
+--- Opens a buffer with animation.
+--- @param bufnr integer
+local function open_buffer_start_animation(layout, bufnr)
+  local buffer_data = state.get_buffer_data(bufnr)
+  buffer_data.real_width = Layout.calculate_width(buffer_data.name, layout.base_width, layout.padding_width)
+
+  local target_width = buffer_data.real_width
+
+  buffer_data.width = 1
+
+  defer_fn(function()
+    animate.start(
+      ANIMATION_OPEN_DURATION, 1, target_width, vim.v.t_number,
+      function(new_width, animation)
+        open_buffer_animated_tick(bufnr, new_width, animation)
+      end)
+  end, ANIMATION_OPEN_DELAY)
+end
+
 --- Select from `groups` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
 --- @param groups table<bufferline.Render.Group>
 --- @param width integer
@@ -232,15 +302,77 @@ local function sort_pins_to_left()
 
   local i = 1
   while i <= #state.buffers do
-    local bufnr = state.buffers[i]
-    if state.is_pinned(bufnr) then
+    if state.is_pinned(state.buffers[i]) then
       i = i + 1
     else
-      table_insert(unpinned, bufnr)
+      table_insert(unpinned, table_remove(state.buffers, i))
     end
   end
 
   state.buffers = list_extend(state.buffers, unpinned)
+end
+
+--- Open the `new_buffers` in the bufferline.
+local function open_buffers(new_buffers)
+  local opts = vim.g.bufferline
+  local initial_buffers = #state.buffers
+
+  -- Open next to the currently opened tab
+  -- Find the new index where the tab will be inserted
+  local new_index = utils.index_of(state.buffers, state.last_current_buffer)
+  if new_index ~= nil then
+    new_index = new_index + 1
+  else
+    new_index = #state.buffers + 1
+  end
+
+  -- Insert the buffers where they go
+  for _, new_buffer in ipairs(new_buffers) do
+    if utils.index_of(state.buffers, new_buffer) == nil then
+      local actual_index = new_index
+
+      local should_insert_at_start = opts.insert_at_start
+      local should_insert_at_end = opts.insert_at_end or
+        -- We add special buffers at the end
+        buf_get_option(new_buffer, 'buftype') ~= ''
+
+      if should_insert_at_start then
+        actual_index = 1
+        new_index = new_index + 1
+      elseif should_insert_at_end then
+        actual_index = #state.buffers + 1
+      else
+        new_index = new_index + 1
+      end
+
+      table_insert(state.buffers, actual_index, new_buffer)
+    end
+  end
+
+  sort_pins_to_left()
+
+  -- We're done if there is no animations
+  if opts.animation == false then
+    return
+  end
+
+  -- Case: opening a lot of buffers from a session
+  -- We avoid animating here as well as it's a bit
+  -- too much work otherwise.
+  if initial_buffers <= 1 and #new_buffers > 1 or
+     initial_buffers == 0 and #new_buffers == 1
+  then
+    return
+  end
+
+  -- Update names because they affect the layout
+  state.update_names()
+
+  local layout = Layout.calculate(state)
+
+  for _, buffer_number in ipairs(new_buffers) do
+    open_buffer_start_animation(layout, buffer_number)
+  end
 end
 
 local function with_pin_order(order_func)
@@ -363,6 +495,48 @@ function Render.close_buffers_right()
   bufferline.update()
 end
 
+function Render.get_updated_buffers(update_names)
+  local current_buffers = get_buffer_list()
+  local new_buffers =
+    tbl_filter(function(b) return not tbl_contains(state.buffers, b) end, current_buffers)
+
+  -- To know if we need to update names
+  local did_change = false
+
+  -- Remove closed or update closing buffers
+  local closed_buffers =
+    tbl_filter(function(b) return not tbl_contains(current_buffers, b) end, state.buffers)
+
+  for _, buffer_number in ipairs(closed_buffers) do
+    local buffer_data = state.get_buffer_data(buffer_number)
+    if not buffer_data.closing then
+      did_change = true
+
+      if buffer_data.real_width == nil then
+        Render.close_buffer(buffer_number)
+      else
+        Render.close_buffer_animated(buffer_number)
+      end
+    end
+  end
+
+  -- Add new buffers
+  if #new_buffers > 0 then
+    did_change = true
+
+    open_buffers(new_buffers)
+  end
+
+  state.buffers =
+    tbl_filter(function(b) return buf_is_valid(b) end, state.buffers)
+
+  if did_change or update_names then
+    state.update_names()
+  end
+
+  return state.buffers
+end
+
 --- Order the buffers by their buffer number.
 function Render.order_by_buffer_number()
   table_sort(state.buffers, function(a, b) return a < b end)
@@ -423,7 +597,7 @@ end
 --- @return nil|string syntax
 function Render.render(update_names, refocus)
   local opts = vim.g.bufferline
-  local buffer_numbers = state.get_updated_buffers(update_names)
+  local buffer_numbers = Render.get_updated_buffers(update_names)
 
   if opts.auto_hide then
     if #buffer_numbers <= 1 then
@@ -848,7 +1022,7 @@ end
 --- Move the current buffer to the index specified.
 --- @param idx integer
 function Render.move_current_buffer_to(idx)
-  state.get_updated_buffers()
+  Render.get_updated_buffers()
 
   if idx == -1 then
     idx = #state.buffers
@@ -863,106 +1037,12 @@ end
 --- Move the current buffer a certain number of times over.
 --- @param steps integer
 function Render.move_current_buffer(steps)
-  state.get_updated_buffers()
+  Render.get_updated_buffers()
 
   local currentnr = get_current_buf()
   local idx = utils.index_of(state.buffers, currentnr)
 
   move_buffer(idx, idx + steps)
-end
-
--- ## OPENING
-
---- The incremental animation for `open_buffer_start_animation`.
---- @param bufnr integer
---- @param new_width integer
---- @param animation unknown
-local function open_buffer_animated_tick(bufnr, new_width, animation)
-  local buffer_data = state.get_buffer_data(bufnr)
-  buffer_data.width = animation.running and new_width or nil
-
-  bufferline.update()
-end
-
---- Opens a buffer with animation.
---- @param bufnr integer
-local function open_buffer_start_animation(layout, bufnr)
-  local buffer_data = state.get_buffer_data(bufnr)
-  buffer_data.real_width = Layout.calculate_width(buffer_data.name, layout.base_width, layout.padding_width)
-
-  local target_width = buffer_data.real_width
-
-  buffer_data.width = 1
-
-  defer_fn(function()
-    animate.start(
-      ANIMATION_OPEN_DURATION, 1, target_width, vim.v.t_number,
-      function(new_width, animation)
-        open_buffer_animated_tick(bufnr, new_width, animation)
-      end)
-  end, ANIMATION_OPEN_DELAY)
-end
-
-local function open_buffers(new_buffers)
-  local opts = vim.g.bufferline
-  local initial_buffers = #state.buffers
-
-  -- Open next to the currently opened tab
-  -- Find the new index where the tab will be inserted
-  local new_index = utils.index_of(state.buffers, state.last_current_buffer)
-  if new_index ~= nil then
-    new_index = new_index + 1
-  else
-    new_index = #state.buffers + 1
-  end
-
-  -- Insert the buffers where they go
-  for _, new_buffer in ipairs(new_buffers) do
-    if utils.index_of(state.buffers, new_buffer) == nil then
-      local actual_index = new_index
-
-      local should_insert_at_start = opts.insert_at_start
-      local should_insert_at_end = opts.insert_at_end or
-        -- We add special buffers at the end
-        buf_get_option(new_buffer, 'buftype') ~= ''
-
-      if should_insert_at_start then
-        actual_index = 1
-        new_index = new_index + 1
-      elseif should_insert_at_end then
-        actual_index = #state.buffers + 1
-      else
-        new_index = new_index + 1
-      end
-
-      table_insert(state.buffers, actual_index, new_buffer)
-    end
-  end
-
-  sort_pins_to_left()
-
-  -- We're done if there is no animations
-  if opts.animation == false then
-    return
-  end
-
-  -- Case: opening a lot of buffers from a session
-  -- We avoid animating here as well as it's a bit
-  -- too much work otherwise.
-  if initial_buffers <= 1 and #new_buffers > 1 or
-     initial_buffers == 0 and #new_buffers == 1
-  then
-    return
-  end
-
-  -- Update names because they affect the layout
-  state.update_names()
-
-  local layout = Layout.calculate(state)
-
-  for _, buffer_number in ipairs(new_buffers) do
-    open_buffer_start_animation(layout, buffer_number)
-  end
 end
 
 -- ## SCROLLING
