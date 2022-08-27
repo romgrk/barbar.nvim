@@ -1,27 +1,16 @@
-local table_concat = table.concat
-local table_insert = table.insert
-
 local buf_call = vim.api.nvim_buf_call
-local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
-local buf_set_var = vim.api.nvim_buf_set_var
 local command = vim.api.nvim_command
-local create_augroup = vim.api.nvim_create_augroup
-local create_autocmd = vim.api.nvim_create_autocmd
 local create_user_command = vim.api.nvim_create_user_command
-local defer_fn = vim.defer_fn
 local exec_autocmds = vim.api.nvim_exec_autocmds
 local get_current_buf = vim.api.nvim_get_current_buf
-local haslocaldir = vim.fn.haslocaldir
-local list_tabpages = vim.api.nvim_list_tabpages
-local notify = vim.notify
-local tabpage_list_wins = vim.api.nvim_tabpage_list_wins
 local tbl_extend = vim.tbl_extend
 
 local bbye = require'bufferline.bbye'
-local state = require'bufferline.state'
 local highlight = require'bufferline.highlight'
-local relative = require'bufferline.utils'.relative
+local JumpMode = require'bufferline.jump_mode'
+local render = require'bufferline.render'
+local state = require'bufferline.state'
 
 --- The default options for this plugin.
 local DEFAULT_OPTIONS = {
@@ -52,152 +41,12 @@ local DEFAULT_OPTIONS = {
 -- Section: Helpers
 --------------------------
 
---- Create and reset autocommand groups associated with this plugin.
---- @return integer bufferline, integer bufferline_update
-local function create_augroups()
-  return create_augroup('bufferline', {}), create_augroup('bufferline_update', {})
-end
-
 -------------------------------
 -- Section: `bufferline` module
 -------------------------------
 
 --- @class bufferline
 local bufferline = {}
-
---- Disable the bufferline.
-function bufferline.disable()
-  create_augroups()
-  bufferline.set_tabline(nil)
-  vim.cmd [[
-    delfunction! BufferlineCloseClickHandler
-    delfunction! BufferlineMainClickHandler
-    delfunction! BufferlineOnOptionChanged
-  ]]
-end
-
---- Enable the bufferline.
-function bufferline.enable()
-  local augroup_bufferline, augroup_bufferline_update = create_augroups()
-
-  create_autocmd({'BufNewFile', 'BufReadPost'}, {
-    callback = function(tbl) require'bufferline.jump_mode'.assign_next_letter(tbl.buf) end,
-    group = augroup_bufferline,
-  })
-
-  create_autocmd('BufDelete', {
-    callback = function(tbl)
-      require'bufferline.jump_mode'.unassign_letter_for(tbl.buf)
-      bufferline.update_async()
-    end,
-    group = augroup_bufferline,
-  })
-
-  create_autocmd('ColorScheme', {callback = highlight.setup, group = augroup_bufferline})
-
-  create_autocmd('BufModifiedSet', {
-    callback = function(tbl)
-      local is_modified = buf_get_option(tbl.buf, 'modified')
-      if is_modified ~= vim.b[tbl.buf].checked then
-        buf_set_var(tbl.buf, 'checked', is_modified)
-        bufferline.update()
-      end
-    end,
-    group = augroup_bufferline,
-  })
-
-  create_autocmd('User', {
-    callback = function()
-      -- We're allowed to use relative paths for buffers iff there are no tabpages
-      -- or windows with a local directory (:tcd and :lcd)
-      local use_relative_file_paths = true
-      for tabnr,tabpage in ipairs(list_tabpages()) do
-        if not use_relative_file_paths or haslocaldir(-1, tabnr) == 1 then
-          use_relative_file_paths = false
-          break
-        end
-        for _,win in ipairs(tabpage_list_wins(tabpage)) do
-          if haslocaldir(win, tabnr) == 1 then
-            use_relative_file_paths = false
-            break
-          end
-        end
-      end
-
-      local bufnames = {}
-      for _,bufnr in ipairs(state.buffers) do
-        local name = buf_get_name(bufnr)
-        if use_relative_file_paths then
-          name = relative(name)
-        end
-        -- escape quotes
-        name = name:gsub('"', '\\"')
-        table_insert(bufnames, '"' .. name .. '"')
-      end
-
-      local bufarr = '{' .. table_concat(bufnames, ',') .. '}'
-      local commands = vim.g.session_save_commands
-
-      table_insert(commands, '" barbar.nvim')
-      table_insert(commands, "lua require'bufferline.render'.restore_buffers(" .. bufarr .. ")")
-
-      vim.g.session_save_commands = commands
-    end,
-    group = augroup_bufferline,
-    pattern = 'SessionSavePre',
-  })
-
-  create_autocmd('BufNew', {
-    callback = function() bufferline.update(true) end,
-    group = augroup_bufferline_update,
-  })
-
-  create_autocmd(
-    {'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWipeout', 'BufWritePost', 'SessionLoadPost', 'TabEnter', 'VimResized', 'WinEnter', 'WinLeave'},
-    {
-      callback = function() bufferline.update() end,
-      group = augroup_bufferline_update,
-    }
-  )
-
-  create_autocmd('OptionSet', {
-    callback = function() bufferline.update() end,
-    group = augroup_bufferline_update,
-    pattern = 'buflisted',
-  })
-
-  create_autocmd('WinClosed', {
-    callback = function() bufferline.update_async() end,
-    group = augroup_bufferline_update,
-  })
-
-  create_autocmd('TermOpen', {
-    callback = function() bufferline.update_async(true, 500) end,
-    group = augroup_bufferline_update,
-  })
-
-  vim.cmd [[
-    " Must be global -_-
-    function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline'.close_click_handler(_A)", a:minwid)
-    endfunction
-
-    " Must be global -_-
-    function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline'.main_click_handler(_A[1], nil, _A[2])", [a:minwid, a:btn])
-    endfunction
-
-    " Must be global -_-
-    function! BufferlineOnOptionChanged(dict, key, changes) abort
-      call luaeval("require'bufferline'.on_option_changed(nil, _A)", a:key)
-    endfunction
-
-    call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
-  ]]
-
-  bufferline.update()
-  command('redrawtabline')
-end
 
 --- Setup this plugin.
 --- @param options nil|table
@@ -206,24 +55,24 @@ function bufferline.setup(options)
   vim.opt.showtabline = 2
 
   -- Create all necessary commands
-  create_user_command('BarbarEnable', bufferline.enable, {desc = 'Enable barbar.nvim'})
-  create_user_command('BarbarDisable', bufferline.disable, {desc = 'Disable barbar.nvim'})
+  create_user_command('BarbarEnable', render.enable, {desc = 'Enable barbar.nvim'})
+  create_user_command('BarbarDisable', render.disable, {desc = 'Disable barbar.nvim'})
 
   create_user_command(
     'BufferNext',
-    function(tbl) require('bufferline.render').goto_buffer_relative(math.max(1, tbl.count)) end,
+    function(tbl) render.goto_buffer_relative(math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the next buffer'}
   )
 
   create_user_command(
     'BufferPrevious',
-    function(tbl) require('bufferline.render').goto_buffer_relative(-math.max(1, tbl.count)) end,
+    function(tbl) render.goto_buffer_relative(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the previous buffer'}
   )
 
   create_user_command(
     'BufferGoto',
-    function(tbl) require('bufferline.render').goto_buffer(tbl.args) end,
+    function(tbl) render.goto_buffer(tbl.args) end,
     {desc = 'Go to the buffer at the specified index', nargs = 1}
   )
 
@@ -238,41 +87,37 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferMoveNext',
-    function(tbl) require'bufferline.render'.move_current_buffer(math.max(1, tbl.count)) end,
+    function(tbl) render.move_current_buffer(math.max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the right'}
   )
 
   create_user_command(
     'BufferMovePrevious',
-    function(tbl) require'bufferline.render'.move_current_buffer(-math.max(1, tbl.count)) end,
+    function(tbl) render.move_current_buffer(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the left'}
   )
 
-  create_user_command('BufferPick', function() require'bufferline.render'.activate_jump_mode() end, {desc = 'Pick a buffer'})
+  create_user_command('BufferPick', render.activate_jump_mode, {desc = 'Pick a buffer'})
 
-  create_user_command('BufferPin', function() require'bufferline.render'.toggle_pin() end, {desc = 'Un/pin a buffer'})
+  create_user_command('BufferPin', function() render.toggle_pin() end, {desc = 'Un/pin a buffer'})
 
   create_user_command(
     'BufferOrderByBufferNumber',
-    function() require'bufferline.render'.order_by_buffer_number() end,
+    render.order_by_buffer_number,
     {desc = 'Order the bufferline by buffer number'}
   )
 
   create_user_command(
     'BufferOrderByDirectory',
-    function() require'bufferline.render'.order_by_directory() end,
+    render.order_by_directory,
     {desc = 'Order the bufferline by directory'}
   )
 
-  create_user_command(
-    'BufferOrderByLanguage',
-    function() require'bufferline.render'.order_by_language() end,
-    {desc = 'Order the bufferline by language'}
-  )
+  create_user_command('BufferOrderByLanguage', render.order_by_language, {desc = 'Order the bufferline by language'})
 
   create_user_command(
     'BufferOrderByWindowNumber',
-    function() require'bufferline.render'.order_by_window_number() end,
+    render.order_by_window_number,
     {desc = 'Order the bufferline by window number'}
   )
 
@@ -299,49 +144,43 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferCloseAllButCurrent',
-    function() require'bufferline.render'.close_all_but_current() end,
+    render.close_all_but_current,
     {desc = 'Close every buffer except the current one'}
   )
 
   create_user_command(
     'BufferCloseAllButPinned',
-    function() require'bufferline.render'.close_all_but_pinned() end,
+    render.close_all_but_pinned,
     {desc = 'Close every buffer except pinned buffers'}
   )
 
   create_user_command(
     'BufferCloseAllButCurrentOrPinned',
-    function() require'bufferline.render'.close_all_but_current_or_pinned() end,
+    render.close_all_but_current_or_pinned,
     {desc = 'Close every buffer except pinned buffers or the current buffer'}
   )
 
   create_user_command(
     'BufferCloseBuffersLeft',
-    function() require'bufferline.render'.close_buffers_left() end,
+    render.close_buffers_left,
     {desc = 'Close all buffers to the left of the current buffer'}
   )
 
   create_user_command(
     'BufferCloseBuffersRight',
-    function() require'bufferline.render'.close_buffers_right() end,
+    render.close_buffers_right,
     {desc = 'Close all buffers to the right of the current buffer'}
   )
 
   create_user_command(
     'BufferScrollLeft',
-    function(tbl)
-      local render = require'bufferline.render'
-      render.set_scroll(math.max(0, render.scroll - math.max(1, tbl.count)))
-    end,
+    function(tbl) render.set_scroll(math.max(0, render.scroll - math.max(1, tbl.count))) end,
     {count = true, desc = 'Scroll the bufferline left'}
   )
 
   create_user_command(
     'BufferScrollRight',
-    function(tbl)
-      local render = require'bufferline.render'
-      render.set_scroll(render.scroll + math.max(1, tbl.count))
-    end,
+    function(tbl) render.set_scroll(render.scroll + math.max(1, tbl.count)) end,
     {count = true, desc = 'Scroll the bufferline right'}
   )
 
@@ -349,7 +188,7 @@ function bufferline.setup(options)
   vim.g.bufferline = options and tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
 
   highlight.setup()
-  bufferline.enable()
+  render.enable()
 end
 
 ----------------------------
@@ -373,49 +212,6 @@ end
 --------------------------
 -- Section: Main functions
 --------------------------
-
---- Render the bufferline.
---- @param refocus nil|boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
---- @param update_names nil|boolean whether to refresh the names of the buffers (default: `false`)
---- @return nil|string tabline a valid `&tabline`
-function bufferline.render(update_names, refocus)
-  local ok, result = xpcall(require'bufferline.render'.render, debug.traceback, update_names, refocus)
-
-  if ok then
-    return result
-  end
-
-  bufferline.disable()
-  notify(
-    "Barbar detected an error while running. Barbar disabled itself :/" ..
-      "Include this in your report: " ..
-      tostring(result),
-    vim.log.levels.ERROR,
-    {title = 'barbar.nvim'}
-  )
-end
-
---- @param refocus nil|boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
---- @param update_names nil|boolean whether to refresh the names of the buffers (default: `false`)
-function bufferline.update(update_names, refocus)
-  if vim.g.SessionLoad then
-    return
-  end
-
-  local new_value = bufferline.render(update_names, refocus)
-  if new_value == last_tabline then
-    return
-  end
-
-  bufferline.set_tabline(new_value)
-end
-
---- Update the bufferline using `vim.defer_fn`.
---- @param update_names boolean|nil if `true`, update the names of the buffers in the bufferline. Default: false
---- @param delay integer|nil the number of milliseconds to defer updating the bufferline.
-function bufferline.update_async(update_names, delay)
-  defer_fn(function() bufferline.update(update_names or false) end, delay or 1)
-end
 
 --------------------------
 -- Section: Event handlers
@@ -444,7 +240,7 @@ function bufferline.main_click_handler(minwid, _, btn, _)
   if btn == 'm' then
     bbye.bdelete(false, minwid)
   else
-    require('bufferline.render').open_buffer_in_listed_window(minwid)
+    render.open_buffer_in_listed_window(minwid)
   end
 end
 
@@ -453,7 +249,7 @@ end
 function bufferline.on_option_changed(_, key, _)
   vim.g.bufferline = tbl_extend('keep', vim.g.bufferline or {}, DEFAULT_OPTIONS)
   if key == 'letters' then
-    require'bufferline.jump_mode'.set_letters(vim.g.bufferline.letters)
+    JumpMode.set_letters(vim.g.bufferline.letters)
   end
 end
 
