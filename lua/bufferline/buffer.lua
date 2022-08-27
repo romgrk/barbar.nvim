@@ -28,12 +28,12 @@ end
 -- returns 0: none, 1: active, 2: current
 local function get_activity(number)
   if get_current_buf() == number then
+    return 3
+  elseif bufwinnr(number) ~= -1 then
     return 2
   end
-  if bufwinnr(number) ~= -1 then
-    return 1
-  end
-  return 0
+
+  return 1
 end
 
 local function get_name(opts, number)

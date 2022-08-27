@@ -10,11 +10,11 @@ local table_insert = table.insert
 local table_remove = table.remove
 local table_sort = table.sort
 
-local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_delete = vim.api.nvim_buf_delete
 local buf_get_lines = vim.api.nvim_buf_get_lines
 local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
+local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_line_count = vim.api.nvim_buf_line_count
 local bufadd = vim.fn.bufadd
 local bufwinnr = vim.fn.bufwinnr
@@ -24,14 +24,16 @@ local get_current_buf = vim.api.nvim_get_current_buf
 local getchar = vim.fn.getchar
 local has = vim.fn.has
 local list_bufs = vim.api.nvim_list_bufs
-local list_extend = vim.list_extend
+local list_wins = vim.api.nvim_list_wins
 local notify = vim.notify
 local set_current_buf = vim.api.nvim_set_current_buf
+local set_current_win = vim.api.nvim_set_current_win
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 local tabpagenr = vim.fn.tabpagenr
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
+local win_get_buf = vim.api.nvim_win_get_buf
 
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
@@ -53,22 +55,7 @@ local ANIMATION_SCROLL_DURATION = 200
 local ANIMATION_MOVE_DURATION   = 150
 
 --- The highlight to use based on the state of a buffer.
-local HL_BY_ACTIVITY = {
-  [0] = 'Inactive',
-  [1] = 'Visible',
-  [2] = 'Current',
-}
-
---- The width of a left offset before the bufferline renders.
-local offset = 0
-
---- The highlight group used for the offset.
---- @type nil|string
-local offset_hl
-
---- The text which fills the offset.
---- @type nil|string
-local offset_text
+local HL_BY_ACTIVITY = {'Inactive', 'Visible', 'Current'}
 
 local function hl_tabline(name)
   return '%#' .. name .. '#'
@@ -85,7 +72,6 @@ local function get_buffer_list()
   local exclude_name = opts.exclude_name
 
   for _, buffer in ipairs(buffers) do
-
     if not buf_get_option(buffer, 'buflisted') then
       goto continue
     end
@@ -116,6 +102,12 @@ end
 --- @class bufferline.Render.Group
 --- @field hl string the highlight group to use
 --- @field text string the content being rendered
+
+--- @class bufferline.Render.Offset
+--- @field hl nil|string the highlight group to use
+--- @field text nil|string the text to fill the offset with
+--- @field width integer the size of the offset
+local offset = {width = 0}
 
 --- Concatenates some `groups` into a valid string.
 --- @param groups table<bufferline.Render.Group>
@@ -297,19 +289,31 @@ local function slice_groups_left(groups, width)
   return new_groups
 end
 
-local function sort_pins_to_left()
-  local unpinned = {}
+--- @return integer current_buffer
+local function set_current_win_listed_buffer()
+  local current = get_current_buf()
+  local is_listed = buf_get_option(current, 'buflisted')
 
-  local i = 1
-  while i <= #state.buffers do
-    if state.is_pinned(state.buffers[i]) then
-      i = i + 1
-    else
-      table_insert(unpinned, table_remove(state.buffers, i))
+  -- Check previous window first
+  if not is_listed then
+    command('wincmd p')
+    current = get_current_buf()
+    is_listed = buf_get_option(current, 'buflisted')
+  end
+  -- Check all windows now
+  if not is_listed then
+    local wins = list_wins()
+    for _, win in ipairs(wins) do
+      current = win_get_buf(win)
+      is_listed = buf_get_option(current, 'buflisted')
+      if is_listed then
+        set_current_win(win)
+        break
+      end
     end
   end
 
-  state.buffers = list_extend(state.buffers, unpinned)
+  return current
 end
 
 --- Open the `new_buffers` in the bufferline.
@@ -349,7 +353,7 @@ local function open_buffers(new_buffers)
     end
   end
 
-  sort_pins_to_left()
+  state.sort_pins_to_left()
 
   -- We're done if there is no animations
   if opts.animation == false then
@@ -368,7 +372,7 @@ local function open_buffers(new_buffers)
   -- Update names because they affect the layout
   state.update_names()
 
-  local layout = Layout.calculate(state)
+  local layout = Layout.calculate()
 
   for _, buffer_number in ipairs(new_buffers) do
     open_buffer_start_animation(layout, buffer_number)
@@ -495,6 +499,40 @@ function Render.close_buffers_right()
   bufferline.update()
 end
 
+function Render.goto_buffer (number)
+  Render.get_updated_buffers()
+
+  number = tonumber(number)
+
+  local idx
+  if number == -1 then
+    idx = #state.buffers
+  elseif number > #state.buffers then
+    return
+  else
+    idx = number
+  end
+
+  set_current_buf(state.buffers[idx])
+end
+
+function Render.goto_buffer_relative(steps)
+  Render.get_updated_buffers()
+
+  local current = set_current_win_listed_buffer()
+
+  local idx = utils.index_of(state.buffers, current)
+
+  if idx == nil then
+    print('Couldn\'t find buffer ' .. current .. ' in the list: ' .. vim.inspect(state.buffers))
+    return
+  else
+    idx = (idx + steps - 1) % #state.buffers + 1
+  end
+
+  set_current_buf(state.buffers[idx])
+end
+
 function Render.get_updated_buffers(update_names)
   local current_buffers = get_buffer_list()
   local new_buffers =
@@ -535,6 +573,12 @@ function Render.get_updated_buffers(update_names)
   end
 
   return state.buffers
+end
+
+--- Open the `bufnr` in the listed window.
+function Render.open_buffer_in_listed_window(bufnr)
+  set_current_win_listed_buffer()
+  set_current_buf(bufnr)
 end
 
 --- Order the buffers by their buffer number.
@@ -597,10 +641,10 @@ end
 --- @return nil|string syntax
 function Render.render(update_names, refocus)
   local opts = vim.g.bufferline
-  local buffer_numbers = Render.get_updated_buffers(update_names)
+  local bufnrs = Render.get_updated_buffers(update_names)
 
   if opts.auto_hide then
-    if #buffer_numbers <= 1 then
+    if #bufnrs <= 1 then
       if vim.o.showtabline == 2 then
         vim.o.showtabline = 0
       end
@@ -629,27 +673,27 @@ function Render.render(update_names, refocus)
   local has_buffer_number = (opts.icons == 'buffer_numbers') or (opts.icons == 'buffer_number_with_icon')
   local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
 
-  local layout = Layout.calculate(state)
+  local layout = Layout.calculate()
 
   local items = {}
 
   local current_buffer_index = nil
   local current_buffer_position = 0
-  for i, buffer_number in ipairs(buffer_numbers) do
 
-    local buffer_data = state.get_buffer_data(buffer_number)
+  for i, bufnr in ipairs(bufnrs) do
+    local buffer_data = state.get_buffer_data(bufnr)
     local buffer_name = buffer_data.name or '[no name]'
 
     buffer_data.real_width    = Layout.calculate_width(buffer_name, layout.base_width, layout.padding_width)
     buffer_data.real_position = current_buffer_position
 
-    local activity = Buffer.get_activity(buffer_number)
-    local is_inactive = activity == 0
-    -- local is_visible = activity == 1
-    local is_current = activity == 2
-    local is_modified = buf_get_option(buffer_number, 'modified')
+    local activity = Buffer.get_activity(bufnr)
+    local is_inactive = activity == 1
+    -- local is_visible = activity == 2
+    local is_current = activity == 3
+    local is_modified = buf_get_option(bufnr, 'modified')
     -- local is_closing = buffer_data.closing
-    local is_pinned = state.is_pinned(buffer_number)
+    local is_pinned = state.is_pinned(bufnr)
 
     local status = HL_BY_ACTIVITY[activity]
     local mod = is_modified and 'Mod' or ''
@@ -677,7 +721,7 @@ function Render.render(update_names, refocus)
     if has_buffer_number or has_numbers then
       local number_text =
         has_buffer_number and
-          tostring(buffer_number) or
+          tostring(bufnr) or
           tostring(i)
 
       bufferIndexPrefix = hl_tabline('Buffer' .. status .. 'Index')
@@ -685,7 +729,7 @@ function Render.render(update_names, refocus)
     end
 
     if state.is_picking_buffer then
-      local letter = JumpMode.get_letter(buffer_number)
+      local letter = JumpMode.get_letter(bufnr)
 
       -- Replace first character of buf name with jump letter
       if letter and not has_icons then
@@ -698,7 +742,7 @@ function Render.render(update_names, refocus)
     else
 
       if has_icons then
-        local iconChar, iconHl = icons.get_icon(buffer_name, buf_get_option(buffer_number, 'filetype'), status)
+        local iconChar, iconHl = icons.get_icon(buffer_name, buf_get_option(bufnr, 'filetype'), status)
         local hlName = is_inactive and 'BufferInactive' or iconHl
         iconPrefix = has_icon_custom_colors and hl_tabline('Buffer' .. status .. 'Icon') or hlName and hl_tabline(hlName) or namePrefix
         icon = iconChar .. ' '
@@ -720,13 +764,13 @@ function Render.render(update_names, refocus)
 
       if click_enabled then
         closePrefix =
-            '%' .. buffer_number .. '@BufferlineCloseClickHandler@' .. closePrefix
+            '%' .. bufnr .. '@BufferlineCloseClickHandler@' .. closePrefix
       end
     end
 
     local clickable = ''
     if click_enabled then
-      clickable = '%' .. buffer_number .. '@BufferlineMainClickHandler@'
+      clickable = '%' .. bufnr .. '@BufferlineMainClickHandler@'
     end
 
     local padding = (' '):rep(layout.padding_width)
@@ -758,9 +802,9 @@ function Render.render(update_names, refocus)
       local end_  = current_buffer_position + item.width
 
       if Render.scroll > start then
-        state.set_scroll(start)
+        Render.set_scroll(start)
       elseif Render.scroll + layout.buffers_width < end_ then
-        state.set_scroll(Render.scroll + (end_ - (Render.scroll + layout.buffers_width)))
+        Render.set_scroll(Render.scroll + (end_ - (Render.scroll + layout.buffers_width)))
       end
     end
 
@@ -772,14 +816,14 @@ function Render.render(update_names, refocus)
   local result = ''
 
   -- Add offset filler & text (for filetree/sidebar plugins)
-  if offset > 0 then
-    local offset_available_width = offset - 2
+  if offset.width > 0 then
+    local offset_available_width = offset.width - 2
     local groups = {{
-      hl_tabline(offset_hl or 'BufferOffset'),
-      ' ' .. (offset_text or ''),
+      hl_tabline(offset.hl or 'BufferOffset'),
+      ' ' .. (offset.text or ''),
     }}
     result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
-    result = result .. (' '):rep(offset_available_width - #offset_text)
+    result = result .. (' '):rep(offset_available_width - #offset.text)
     result = result .. ' '
   end
 
@@ -859,15 +903,9 @@ end
 --- @param text nil|string text to put in the offset
 --- @param hl nil|string
 function Render.set_offset(width, text, hl)
-  offset = width
-
-  if width > 0 then
-    offset_text = text
-    offset_hl = hl
-  else
-    offset_text = nil
-    offset_hl = nil
-  end
+  offset = width > 0 and
+    {hl = hl, text = text, width = width} or
+    {hl = nil, text = nil, width = 0}
 
   bufferline.update()
 end
@@ -878,7 +916,6 @@ end
 --- @param bufnr nil|integer
 function Render.toggle_pin(bufnr)
   state.toggle_pin(bufnr or 0)
-  sort_pins_to_left()
   bufferline.update()
 end
 
@@ -973,12 +1010,12 @@ local function move_buffer(from_idx, to_idx)
 
   local previous_positions
   if vim.g.bufferline.animation == true then
-    previous_positions = Layout.calculate_buffers_position_by_buffer_number(state)
+    previous_positions = Layout.calculate_buffers_position_by_buffer_number()
   end
 
   table_remove(state.buffers, from_idx)
   table_insert(state.buffers, to_idx, bufnr)
-  sort_pins_to_left()
+  state.sort_pins_to_left()
 
   if vim.g.bufferline.animation == true then
     local current_index = utils.index_of(state.buffers, bufnr)
@@ -991,7 +1028,7 @@ local function move_buffer(from_idx, to_idx)
       animate.stop(move_animation)
     end
 
-    local next_positions = Layout.calculate_buffers_position_by_buffer_number(state)
+    local next_positions = Layout.calculate_buffers_position_by_buffer_number()
 
     for i, _ in ipairs(state.buffers) do
       local current_number = state.buffers[i]

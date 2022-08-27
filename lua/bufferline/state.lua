@@ -2,17 +2,14 @@
 -- m.lua
 --
 
+local table_insert = table.insert
+local table_remove = table.remove
+
+local list_extend = vim.list_extend
 local buf_get_name = vim.api.nvim_buf_get_name
-local buf_get_option = vim.api.nvim_buf_get_option
 local buf_get_var = vim.api.nvim_buf_get_var
 local buf_set_var = vim.api.nvim_buf_set_var
-local command = vim.api.nvim_command
-local get_current_buf = vim.api.nvim_get_current_buf
-local list_wins = vim.api.nvim_list_wins
-local set_current_buf = vim.api.nvim_set_current_buf
-local set_current_win = vim.api.nvim_set_current_win
 local tbl_filter = vim.tbl_filter
-local win_get_buf = vim.api.nvim_win_get_buf
 
 local Buffer = require'bufferline.buffer'
 local utils = require'bufferline.utils'
@@ -40,6 +37,9 @@ local State = {
   buffers_by_id = {},
 }
 
+--- Get the state of the `id`
+--- @param id integer the `bufnr`
+--- @return bufferline.State.Data
 function State.get_buffer_data(id)
   local data = State.buffers_by_id[id]
 
@@ -67,58 +67,65 @@ function State.is_pinned(bufnr)
   return ok and val
 end
 
---- Toggle the `bufnr`'s "pin" state.
---- @param bufnr integer
-function State.toggle_pin(bufnr)
-  buf_set_var(bufnr, PIN, not State.is_pinned(bufnr))
-end
+--- Sort the pinned tabs to the left of the bufferline.
+function State.sort_pins_to_left()
+  local unpinned = {}
 
--- Open buffers
-
---- @return integer current_buffer
-local function set_current_win_listed_buffer()
-  local current = get_current_buf()
-  local is_listed = buf_get_option(current, 'buflisted')
-
-  -- Check previous window first
-  if not is_listed then
-    command('wincmd p')
-    current = get_current_buf()
-    is_listed = buf_get_option(current, 'buflisted')
-  end
-  -- Check all windows now
-  if not is_listed then
-    local wins = list_wins()
-    for _, win in ipairs(wins) do
-      current = win_get_buf(win)
-      is_listed = buf_get_option(current, 'buflisted')
-      if is_listed then
-        set_current_win(win)
-        break
-      end
+  local i = 1
+  while i <= #State.buffers do
+    if State.is_pinned(State.buffers[i]) then
+      i = i + 1
+    else
+      table_insert(unpinned, table_remove(State.buffers, i))
     end
   end
 
-  return current
+  State.buffers = list_extend(State.buffers, unpinned)
 end
 
-function State.open_buffer_in_listed_window(buffer_number)
-  set_current_win_listed_buffer()
-  set_current_buf(buffer_number)
+--- Toggle the `bufnr`'s "pin" state.
+--- WARN: does not redraw the bufferline. See `Render.toggle_pin`.
+--- @param bufnr integer
+function State.toggle_pin(bufnr)
+  buf_set_var(bufnr, PIN, not State.is_pinned(bufnr))
+  State.sort_pins_to_left()
 end
 
--- Close & cleanup buffers
+-- Open/close buffers
 
-function State.close_buffer(buffer_number, should_update_names)
-  State.buffers = tbl_filter(function(b) return b ~= buffer_number end, State.buffers)
-  State.buffers_by_id[buffer_number] = nil
-  if should_update_names then
+--- Close the `bufnr`, visually.
+--- WARN: does not refresh the bufferline. See `Render.close_buffer`
+--- @param bufnr integer
+--- @param do_name_update nil|boolean refreshes all buffer names iff `true`
+function State.close_buffer(bufnr, do_name_update)
+  State.buffers = tbl_filter(function(b) return b ~= bufnr end, State.buffers)
+  State.buffers_by_id[bufnr] = nil
+
+  if do_name_update then
     State.update_names()
   end
 end
 
--- Update state
+-- Read/write state
 
+-- Return the bufnr of the buffer to the right of `buffer_number`
+-- @param buffer_number int
+-- @return int|nil
+function State.find_next_buffer(buffer_number)
+  local index = utils.index_of(State.buffers, buffer_number)
+  if index == nil then return nil end
+  if index + 1 > #State.buffers then
+    index = index - 1
+    if index <= 0 then
+      return nil
+    end
+  else
+    index = index + 1
+  end
+  return State.buffers[index]
+end
+
+--- Update the names of all buffers in the bufferline.
 function State.update_names()
   local opts = vim.g.bufferline
   local buffer_index_by_name = {}
@@ -147,62 +154,6 @@ function State.update_names()
 
   end
 end
-
--- Read state
-
--- Return the bufnr of the buffer to the right of `buffer_number`
--- @param buffer_number int
--- @return int|nil
-function State.find_next_buffer(buffer_number)
-  local index = utils.index_of(State.buffers, buffer_number)
-  if index == nil then return nil end
-  if index + 1 > #State.buffers then
-    index = index - 1
-    if index <= 0 then
-      return nil
-    end
-  else
-    index = index + 1
-  end
-  return State.buffers[index]
-end
-
--- Movement & tab manipulation
-
-function State.goto_buffer (number)
-  State.get_updated_buffers()
-
-  number = tonumber(number)
-
-  local idx
-  if number == -1 then
-    idx = #State.buffers
-  elseif number > #State.buffers then
-    return
-  else
-    idx = number
-  end
-
-  set_current_buf(State.buffers[idx])
-end
-
-function State.goto_buffer_relative(steps)
-  State.get_updated_buffers()
-
-  local current = set_current_win_listed_buffer()
-
-  local idx = utils.index_of(State.buffers, current)
-
-  if idx == nil then
-    print('Couldn\'t find buffer ' .. current .. ' in the list: ' .. vim.inspect(State.buffers))
-    return
-  else
-    idx = (idx + steps - 1) % #State.buffers + 1
-  end
-
-  set_current_buf(State.buffers[idx])
-end
-
 
 -- Exports
 return State

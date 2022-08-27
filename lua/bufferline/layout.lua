@@ -7,11 +7,12 @@ local max = math.max
 local min = math.min
 local table_insert = table.insert
 
-local strwidth = vim.api.nvim_strwidth
 local buf_get_option = vim.api.nvim_buf_get_option
+local strwidth = vim.api.nvim_strwidth
 local tabpagenr = vim.fn.tabpagenr
 
 local Buffer = require'bufferline.buffer'
+local state = require'bufferline.state'
 
 local SIDES_OF_BUFFER = 2
 
@@ -28,7 +29,7 @@ function Layout.calculate_tabpages_width()
 end
 
 --- @param base_width integer
-function Layout.calculate_buffers_width(state, base_width)
+function Layout.calculate_buffers_width(base_width)
   local opts = vim.g.bufferline
   local has_numbers = opts.icons == 'both' or opts.icons == 'numbers'
 
@@ -44,7 +45,7 @@ function Layout.calculate_buffers_width(state, base_width)
       width = buffer_data.real_width
     else
       width = base_width
-        + strwidth(Buffer.get_activity(buffer_number) > 0 -- separator
+        + strwidth(Buffer.get_activity(buffer_number) > 1 -- separator
             and opts.icon_separator_active
             or opts.icon_separator_inactive)
         + strwidth(buffer_name) -- name
@@ -76,7 +77,8 @@ function Layout.calculate_buffers_width(state, base_width)
   return sum, widths
 end
 
-function Layout.calculate(state)
+--- Calculate the current layout of the bufferline.
+function Layout.calculate()
   local opts = vim.g.bufferline
 
   local has_icons = (opts.icons == true) or (opts.icons == 'both') or (opts.icons == 'buffer_number_with_icon')
@@ -91,7 +93,7 @@ function Layout.calculate(state)
     available_width = available_width - state.offset
   end
 
-  local used_width, base_widths = Layout.calculate_buffers_width(state, base_width)
+  local used_width, base_widths = Layout.calculate_buffers_width(base_width)
   local tabpages_width = Layout.calculate_tabpages_width()
 
   local buffers_width = available_width - tabpages_width
@@ -115,9 +117,9 @@ function Layout.calculate(state)
   }
 end
 
-function Layout.calculate_buffers_position_by_buffer_number(state)
+function Layout.calculate_buffers_position_by_buffer_number()
   local current_position = 0
-  local layout = Layout.calculate(state)
+  local layout = Layout.calculate()
   local positions = {}
 
   for i, buffer_number in ipairs(state.buffers) do

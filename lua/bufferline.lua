@@ -211,19 +211,19 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferNext',
-    function(tbl) state.goto_buffer_relative(math.max(1, tbl.count)) end,
+    function(tbl) require('bufferline.render').goto_buffer_relative(math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the next buffer'}
   )
 
   create_user_command(
     'BufferPrevious',
-    function(tbl) state.goto_buffer_relative(-math.max(1, tbl.count)) end,
+    function(tbl) require('bufferline.render').goto_buffer_relative(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the previous buffer'}
   )
 
   create_user_command(
     'BufferGoto',
-    function(tbl) state.goto_buffer(tbl.args) end,
+    function(tbl) require('bufferline.render').goto_buffer(tbl.args) end,
     {desc = 'Go to the buffer at the specified index', nargs = 1}
   )
 
@@ -444,7 +444,7 @@ function bufferline.main_click_handler(minwid, _, btn, _)
   if btn == 'm' then
     bbye.bdelete(false, minwid)
   else
-    state.open_buffer_in_listed_window(minwid)
+    require('bufferline.render').open_buffer_in_listed_window(minwid)
   end
 end
 
