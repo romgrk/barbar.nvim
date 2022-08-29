@@ -193,6 +193,7 @@ function bufferline.setup(options)
   vim.g.bufferline = options and tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
 
   highlight.setup()
+  JumpMode.set_letters(vim.g.bufferline.letters)
   render.enable()
 end
 

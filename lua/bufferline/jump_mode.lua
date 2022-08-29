@@ -114,5 +114,4 @@ function JumpMode.unassign_letter_for(bufnr)
   JumpMode.unassign_letter(JumpMode.get_letter(bufnr))
 end
 
-JumpMode.set_letters(vim.g.bufferline.letters)
 return JumpMode
