@@ -87,7 +87,7 @@ return {
     --- @param bg barbar.util.Highlight
     --- @param fg barbar.util.Highlight
     --- @param bold boolean|nil whether the highlight group should be bolded
-    set_default = function(group, bg, fg, bold)
+    set = function(group, bg, fg, bold)
       set_hl(0, group, {
         bold = bold,
 
@@ -96,8 +96,6 @@ return {
 
         ctermbg = bg.cterm,
         ctermfg = fg.cterm,
-
-        default = true,
       })
     end,
 
