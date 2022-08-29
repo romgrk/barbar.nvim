@@ -93,8 +93,7 @@ end
 
 -- Open/close buffers
 
---- Close the `bufnr`, visually.
---- WARN: does not refresh the bufferline. See `Render.close_buffer`
+--- Close the `bufnr`.
 --- @param bufnr integer
 --- @param do_name_update nil|boolean refreshes all buffer names iff `true`
 function State.close_buffer(bufnr, do_name_update)

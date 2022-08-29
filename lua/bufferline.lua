@@ -5,6 +5,7 @@ local create_user_command = vim.api.nvim_create_user_command
 local exec_autocmds = vim.api.nvim_exec_autocmds
 local get_current_buf = vim.api.nvim_get_current_buf
 local tbl_extend = vim.tbl_extend
+local validate = vim.validate
 
 local bbye = require'bufferline.bbye'
 local highlight = require'bufferline.highlight'
@@ -72,7 +73,11 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferGoto',
-    function(tbl) render.goto_buffer(tbl.args) end,
+    function(tbl)
+      local index = tbl.args
+      validate {index = {index, 'number'}}
+      render.goto_buffer(tonumber(index))
+    end,
     {desc = 'Go to the buffer at the specified index', nargs = 1}
   )
 

@@ -444,23 +444,23 @@ function Render.disable()
   ]]
 end
 
-function Render.goto_buffer (number)
+--- Set the current buffer to the `number`
+--- @param index integer
+function Render.goto_buffer(index)
   Render.get_updated_buffers()
 
-  number = tonumber(number)
-
-  local idx
-  if number == -1 then
-    idx = #state.buffers
-  elseif number > #state.buffers then
-    return
+  if index < 0 then
+    index = #state.buffers - index + 1
   else
-    idx = number
+    index = math.max(1, math.min(index, #state.buffers))
   end
 
-  set_current_buf(state.buffers[idx])
+  set_current_buf(state.buffers[index])
 end
 
+--- Go to the buffer a certain number of buffers away from the current buffer.
+--- Use a positive number to go "right", and a negative one to go "left".
+--- @param steps integer
 function Render.goto_buffer_relative(steps)
   Render.get_updated_buffers()
 
@@ -571,6 +571,7 @@ local function open_buffers(new_buffers)
   end
 end
 
+--- Refresh the buffer list.
 function Render.get_updated_buffers(update_names)
   local current_buffers = get_buffer_list()
   local new_buffers =
@@ -589,7 +590,7 @@ function Render.get_updated_buffers(update_names)
       did_change = true
 
       if buffer_data.real_width == nil then
-        Render.close_buffer(buffer_number)
+        state.close_buffer(buffer_number)
       else
         Render.close_buffer_animated(buffer_number)
       end
@@ -841,14 +842,6 @@ end
 
 -- ## CLOSING
 
---- Close the `bufnr`, visually.
---- @param bufnr integer
---- @param do_name_update nil|boolean refreshes all buffer names iff `true`
-function Render.close_buffer(bufnr, do_name_update)
-  state.close_buffer(bufnr, do_name_update)
-  Render.update()
-end
-
 --- An incremental animation for `close_buffer_animated`.
 --- @param bufnr integer
 --- @param new_width integer
@@ -860,14 +853,14 @@ local function close_buffer_animated_tick(bufnr, new_width, animation)
     return
   end
   animate.stop(animation)
-  Render.close_buffer(bufnr, true)
+  state.close_buffer(bufnr, true)
 end
 
 --- Same as `close_buffer`, but animated.
 --- @param bufnr integer
 function Render.close_buffer_animated(bufnr)
   if vim.g.bufferline.animation == false then
-    return Render.close_buffer(bufnr)
+    return state.close_buffer(bufnr)
   end
 
   local buffer_data = state.get_buffer_data(bufnr)
@@ -1028,12 +1021,11 @@ function Render.set_scroll(target)
 end
 
 --- Generate a valid `&tabline` given the current state of Neovim.
+--- @param bufnrs table<integer> the bufnrs to render
 --- @param refocus nil|boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
---- @param update_names nil|boolean whether to refresh the names of the buffers (default: `false`)
 --- @return nil|string syntax
-local function render(update_names, refocus)
+local function render(bufnrs, refocus)
   local opts = vim.g.bufferline
-  local bufnrs = Render.get_updated_buffers(update_names)
 
   if opts.auto_hide then
     if #bufnrs <= 1 then
@@ -1272,12 +1264,13 @@ function Render.update(update_names, refocus)
     return
   end
 
-  local ok, result = xpcall(render, debug.traceback, update_names, refocus)
+  local ok, result =
+    xpcall(render, debug.traceback, Render.get_updated_buffers(update_names), refocus)
 
   if not ok then
     Render.disable()
     notify(
-      "Barbar detected an error while running. Barbar disabled itself :/" ..
+      "Barbar detected an error while running. Barbar disabled itself :/ " ..
         "Include this in your report: " ..
         tostring(result),
       vim.log.levels.ERROR,
