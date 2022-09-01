@@ -55,12 +55,6 @@ local Layout = require'bufferline.layout'
 local state = require'bufferline.state'
 local utils = require'bufferline.utils'
 
-local ANIMATION_OPEN_DURATION   = 150
-local ANIMATION_OPEN_DELAY      = 50
-local ANIMATION_CLOSE_DURATION  = 150
-local ANIMATION_SCROLL_DURATION = 200
-local ANIMATION_MOVE_DURATION   = 150
-
 --- The highlight to use based on the state of a buffer.
 local HL_BY_ACTIVITY = {'Inactive', 'Visible', 'Current'}
 
@@ -115,6 +109,22 @@ end
 local function hl_tabline(name)
   return '%#' .. name .. '#'
 end
+
+--- @class bufferline.Render.Animation.Open
+--- @field DURATION integer
+--- @field DELAY integer
+
+--- @class bufferline.Render.Animation
+--- @field CLOSE_DURATION integer
+--- @field MOVE_DURATION integer
+--- @field OPEN bufferline.Render.Animation.Open
+--- @field SCROLL_DURATION integer
+local ANIMATION = {
+  CLOSE_DURATION = 150,
+  MOVE_DURATION = 150,
+  OPEN = {DELAY = 50, DURATION = 150},
+  SCROLL_DURATION = 200,
+}
 
 --- @class bufferline.Render.Group
 --- @field hl string the highlight group to use
@@ -501,11 +511,11 @@ local function open_buffer_start_animation(layout, bufnr)
 
   defer_fn(function()
     animate.start(
-      ANIMATION_OPEN_DURATION, 1, target_width, vim.v.t_number,
+      ANIMATION.OPEN.DURATION, 1, target_width, vim.v.t_number,
       function(new_width, animation)
         open_buffer_animated_tick(bufnr, new_width, animation)
       end)
-  end, ANIMATION_OPEN_DELAY)
+  end, ANIMATION.OPEN.DELAY)
 end
 
 --- Open the `new_buffers` in the bufferline.
@@ -870,7 +880,7 @@ function Render.close_buffer_animated(bufnr)
   buffer_data.width = current_width
 
   animate.start(
-    ANIMATION_CLOSE_DURATION, current_width, 0, vim.v.t_number,
+    ANIMATION.CLOSE_DURATION, current_width, 0, vim.v.t_number,
     function(new_width, m)
       close_buffer_animated_tick(bufnr, new_width, m)
     end)
@@ -960,7 +970,7 @@ local function move_buffer(from_idx, to_idx)
     }
 
     move_animation =
-      animate.start(ANIMATION_MOVE_DURATION, 0, 1, vim.v.t_float,
+      animate.start(ANIMATION.MOVE_DURATION, 0, 1, vim.v.t_float,
         function(ratio, current_animation) move_buffer_animated_tick(ratio, current_animation) end)
   end
 
@@ -1016,7 +1026,7 @@ function Render.set_scroll(target)
   end
 
   scroll_animation = animate.start(
-    ANIMATION_SCROLL_DURATION, scroll.current, target, vim.v.t_number,
+    ANIMATION.SCROLL_DURATION, scroll.current, target, vim.v.t_number,
     set_scroll_tick)
 end
 
