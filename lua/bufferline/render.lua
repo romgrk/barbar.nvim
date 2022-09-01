@@ -3,13 +3,10 @@
 -- render.lua
 --
 
-local char = string.char
 local max = math.max
 local min = math.min
 local table_insert = table.insert
 local table_concat = table.concat
-local table_remove = table.remove
-local table_sort = table.sort
 
 local buf_call = vim.api.nvim_buf_call
 local buf_delete = vim.api.nvim_buf_delete
@@ -20,14 +17,12 @@ local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_line_count = vim.api.nvim_buf_line_count
 local buf_set_var = vim.api.nvim_buf_set_var
 local bufadd = vim.fn.bufadd
-local bufwinnr = vim.fn.bufwinnr
 local command = vim.api.nvim_command
 local create_augroup = vim.api.nvim_create_augroup
 local create_autocmd = vim.api.nvim_create_autocmd
 local defer_fn = vim.defer_fn
 local exec_autocmds = vim.api.nvim_exec_autocmds
 local get_current_buf = vim.api.nvim_get_current_buf
-local getchar = vim.fn.getchar
 local has = vim.fn.has
 local haslocaldir = vim.fn.haslocaldir
 local list_bufs = vim.api.nvim_list_bufs
@@ -44,9 +39,6 @@ local tabpagenr = vim.fn.tabpagenr
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf
-
--- TODO: remove `vim.fs and` after 0.8 release
-local normalize = vim.fs and vim.fs.normalize
 
 local animate = require'bufferline.animate'
 local bbye = require'bufferline.bbye'
@@ -84,12 +76,10 @@ end
 
 --- @class bufferline.Render.Animation
 --- @field CLOSE_DURATION integer
---- @field MOVE_DURATION integer
 --- @field OPEN bufferline.Render.Animation.Open
 --- @field SCROLL_DURATION integer
 local ANIMATION = {
   CLOSE_DURATION = 150,
-  MOVE_DURATION = 150,
   OPEN = {DELAY = 50, DURATION = 150},
   SCROLL_DURATION = 200,
 }
@@ -202,37 +192,6 @@ local function groups_insert(groups, position, others)
   return new_groups
 end
 
---- Open the window which contained the buffer which was clicked on.
-local function set_current_win_listed_buffer()
-  local current = get_current_buf()
-  local is_listed = buf_get_option(current, 'buflisted')
-
-  -- Check previous window first
-  if not is_listed then
-    command('wincmd p')
-    current = get_current_buf()
-    is_listed = buf_get_option(current, 'buflisted')
-  end
-  -- Check all windows now
-  if not is_listed then
-    local wins = list_wins()
-    for _, win in ipairs(wins) do
-      current = win_get_buf(win)
-      is_listed = buf_get_option(current, 'buflisted')
-      if is_listed then
-        set_current_win(win)
-        break
-      end
-    end
-  end
-end
-
---- Open the `bufnr` in the listed window.
-local function open_buffer_in_listed_window(bufnr)
-  set_current_win_listed_buffer()
-  set_current_buf(bufnr)
-end
-
 --- Select from `groups` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
 --- @param groups table<bufferline.Render.Group>
 --- @param width integer
@@ -297,24 +256,6 @@ local function set_tabline(tabline)
   vim.opt.tabline = last_tabline
 end
 
---- Forwards some `order_func` after ensuring that all buffers sorted in the order of pinned first.
---- @param order_func fun(bufnr_a: integer, bufnr_b: integer) accepts `(integer, integer)` params.
---- @return fun(bufnr_a: integer, bufnr_b: integer)
-local function with_pin_order(order_func)
-  return function(a, b)
-    local a_pinned = state.is_pinned(a)
-    local b_pinned = state.is_pinned(b)
-
-    if a_pinned and not b_pinned then
-      return true
-    elseif b_pinned and not a_pinned then
-      return false
-    else
-      return order_func(a, b)
-    end
-  end
-end
-
 --- @class bufferline.Render
 local Render = {}
 
@@ -372,40 +313,6 @@ function Render.disable()
     delfunction! BufferlineMainClickHandler
     delfunction! BufferlineOnOptionChanged
   ]]
-end
-
---- Set the current buffer to the `number`
---- @param index integer
-function Render.goto_buffer(index)
-  Render.get_updated_buffers()
-
-  if index < 0 then
-    index = #state.buffers - index + 1
-  else
-    index = math.max(1, math.min(index, #state.buffers))
-  end
-
-  set_current_buf(state.buffers[index])
-end
-
---- Go to the buffer a certain number of buffers away from the current buffer.
---- Use a positive number to go "right", and a negative one to go "left".
---- @param steps integer
-function Render.goto_buffer_relative(steps)
-  Render.get_updated_buffers()
-
-  local current = set_current_win_listed_buffer()
-
-  local idx = utils.index_of(state.buffers, current)
-
-  if idx == nil then
-    print('Couldn\'t find buffer ' .. current .. ' in the list: ' .. vim.inspect(state.buffers))
-    return
-  else
-    idx = (idx + steps - 1) % #state.buffers + 1
-  end
-
-  set_current_buf(state.buffers[idx])
 end
 
 --- The incremental animation for `open_buffer_start_animation`.
@@ -499,49 +406,6 @@ local function open_buffers(new_buffers)
   for _, buffer_number in ipairs(new_buffers) do
     open_buffer_start_animation(layout, buffer_number)
   end
-end
-
---- Refresh the buffer list.
-local function get_updated_buffers(update_names)
-  local current_buffers = state.get_buffer_list()
-  local new_buffers =
-    tbl_filter(function(b) return not tbl_contains(state.buffers, b) end, current_buffers)
-
-  -- To know if we need to update names
-  local did_change = false
-
-  -- Remove closed or update closing buffers
-  local closed_buffers =
-    tbl_filter(function(b) return not tbl_contains(current_buffers, b) end, state.buffers)
-
-  for _, buffer_number in ipairs(closed_buffers) do
-    local buffer_data = state.get_buffer_data(buffer_number)
-    if not buffer_data.closing then
-      did_change = true
-
-      if buffer_data.real_width == nil then
-        state.close_buffer(buffer_number)
-      else
-        Render.close_buffer_animated(buffer_number)
-      end
-    end
-  end
-
-  -- Add new buffers
-  if #new_buffers > 0 then
-    did_change = true
-
-    open_buffers(new_buffers)
-  end
-
-  state.buffers =
-    tbl_filter(function(b) return buf_is_valid(b) end, state.buffers)
-
-  if did_change or update_names then
-    state.update_names()
-  end
-
-  return state.buffers
 end
 
 --- Enable the bufferline.
@@ -667,6 +531,49 @@ function Render.enable()
   command('redrawtabline')
 end
 
+--- Refresh the buffer list.
+function Render.get_updated_buffers(update_names)
+  local current_buffers = state.get_buffer_list()
+  local new_buffers =
+    tbl_filter(function(b) return not tbl_contains(state.buffers, b) end, current_buffers)
+
+  -- To know if we need to update names
+  local did_change = false
+
+  -- Remove closed or update closing buffers
+  local closed_buffers =
+    tbl_filter(function(b) return not tbl_contains(current_buffers, b) end, state.buffers)
+
+  for _, buffer_number in ipairs(closed_buffers) do
+    local buffer_data = state.get_buffer_data(buffer_number)
+    if not buffer_data.closing then
+      did_change = true
+
+      if buffer_data.real_width == nil then
+        state.close_buffer(buffer_number)
+      else
+        Render.close_buffer_animated(buffer_number)
+      end
+    end
+  end
+
+  -- Add new buffers
+  if #new_buffers > 0 then
+    did_change = true
+
+    open_buffers(new_buffers)
+  end
+
+  state.buffers =
+    tbl_filter(function(b) return buf_is_valid(b) end, state.buffers)
+
+  if did_change or update_names then
+    state.update_names()
+  end
+
+  return state.buffers
+end
+
 --- What to do when clicking a buffer label.
 --- @param bufnr integer the buffer nummber
 --- @param btn string
@@ -679,123 +586,9 @@ function Render.main_click_handler(bufnr, _, btn, _)
   if btn == 'm' then
     bbye.bdelete(false, bufnr)
   else
-    open_buffer_in_listed_window(bufnr)
+    Render.set_current_win_listed_buffer()
+    set_current_buf(bufnr)
   end
-end
-
-local move_animation = nil
-local move_animation_data = nil
-
---- An incremental animation for `move_buffer_animated`.
-local function move_buffer_animated_tick(ratio, current_animation)
-  local data = move_animation_data
-
-  for _, current_number in ipairs(state.buffers) do
-    local current_data = state.get_buffer_data(current_number)
-
-    if current_animation.running == true then
-      current_data.position = animate.lerp(
-        ratio,
-        data.previous_positions[current_number],
-        data.next_positions[current_number]
-      )
-    else
-      current_data.position = nil
-      current_data.moving = false
-    end
-  end
-
-  Render.update()
-
-  if current_animation.running == false then
-    move_animation = nil
-    move_animation_data = nil
-  end
-end
-
---- Move a buffer (with animation, if configured).
---- @param from_idx integer the buffer's original index.
---- @param to_idx integer the buffer's new index.
-local function move_buffer(from_idx, to_idx)
-  to_idx = max(1, min(#state.buffers, to_idx))
-  if to_idx == from_idx then
-    return
-  end
-
-  local bufnr = state.buffers[from_idx]
-
-  local previous_positions
-  if vim.g.bufferline.animation == true then
-    previous_positions = Layout.calculate_buffers_position_by_buffer_number()
-  end
-
-  table_remove(state.buffers, from_idx)
-  table_insert(state.buffers, to_idx, bufnr)
-  state.sort_pins_to_left()
-
-  if vim.g.bufferline.animation == true then
-    local current_index = utils.index_of(state.buffers, bufnr)
-    local start_index = min(from_idx, current_index)
-    local end_index   = max(from_idx, current_index)
-
-    if start_index == end_index then
-      return
-    elseif move_animation ~= nil then
-      animate.stop(move_animation)
-    end
-
-    local next_positions = Layout.calculate_buffers_position_by_buffer_number()
-
-    for i, _ in ipairs(state.buffers) do
-      local current_number = state.buffers[i]
-      local current_data = state.get_buffer_data(current_number)
-
-      local previous_position = previous_positions[current_number]
-      local next_position     = next_positions[current_number]
-
-      if next_position ~= previous_position then
-        current_data.position = previous_positions[current_number]
-        current_data.moving = true
-      end
-    end
-
-    move_animation_data = {
-      previous_positions = previous_positions,
-      next_positions = next_positions,
-    }
-
-    move_animation =
-      animate.start(ANIMATION.MOVE_DURATION, 0, 1, vim.v.t_float,
-        function(ratio, current_animation) move_buffer_animated_tick(ratio, current_animation) end)
-  end
-
-  Render.update()
-end
-
---- Move the current buffer to the index specified.
---- @param idx integer
-function Render.move_current_buffer_to(idx)
-  get_updated_buffers()
-
-  if idx == -1 then
-    idx = #state.buffers
-  end
-
-  local current_bufnr = get_current_buf()
-  local from_idx = utils.index_of(state.buffers, current_bufnr)
-
-  move_buffer(from_idx, idx)
-end
-
---- Move the current buffer a certain number of times over.
---- @param steps integer
-function Render.move_current_buffer(steps)
-  get_updated_buffers()
-
-  local currentnr = get_current_buf()
-  local idx = utils.index_of(state.buffers, currentnr)
-
-  move_buffer(idx, idx + steps)
 end
 
 --- What to do when `vim.g.bufferline` is changed.
@@ -804,60 +597,6 @@ function Render.on_option_changed(_, key, _)
   if vim.g.bufferline and key == 'letters' then
     JumpMode.set_letters(vim.g.bufferline.letters)
   end
-end
-
---- Order the buffers by their buffer number.
-function Render.order_by_buffer_number()
-  table_sort(state.buffers, function(a, b) return a < b end)
-  Render.update()
-end
-
---- Order the buffers by their parent directory.
-function Render.order_by_directory()
-  table_sort(state.buffers, with_pin_order(function(a, b)
-    local name_of_a = buf_get_name(a)
-    local name_of_b = buf_get_name(b)
-    local a_less_than_b = name_of_b < name_of_a
-
-    -- TODO: remove this block after 0.8 releases
-    if not normalize then
-      local a_is_relative = utils.is_relative_path(name_of_a)
-      if a_is_relative and utils.is_relative_path(name_of_b) then
-        return a_less_than_b
-      end
-
-      return a_is_relative
-    end
-
-    local level_of_a = #vim.split(normalize(name_of_a), '/')
-    local level_of_b = #vim.split(normalize(name_of_b), '/')
-
-    if level_of_a ~= level_of_b then
-      return level_of_a < level_of_b
-    end
-
-    return a_less_than_b
-  end))
-
-  Render.update()
-end
-
---- Order the buffers by filetype.
-function Render.order_by_language()
-  table_sort(state.buffers, with_pin_order(function(a, b)
-    return buf_get_option(a, 'filetype') < buf_get_option(b, 'filetype')
-  end))
-
-  Render.update()
-end
-
---- Order the buffers by their respective window number.
-function Render.order_by_window_number()
-  table_sort(state.buffers, with_pin_order(function(a, b)
-    return bufwinnr(buf_get_name(a)) < bufwinnr(buf_get_name(b))
-  end))
-
-  Render.update()
 end
 
 --- Restore the buffers
@@ -883,6 +622,34 @@ function Render.restore_buffers(bufnames)
   Render.update()
 end
 
+--- Open the window which contained the buffer which was clicked on.
+--- @return integer current_bufnr
+function Render.set_current_win_listed_buffer()
+  local current = get_current_buf()
+  local is_listed = buf_get_option(current, 'buflisted')
+
+  -- Check previous window first
+  if not is_listed then
+    command('wincmd p')
+    current = get_current_buf()
+    is_listed = buf_get_option(current, 'buflisted')
+  end
+  -- Check all windows now
+  if not is_listed then
+    local wins = list_wins()
+    for _, win in ipairs(wins) do
+      current = win_get_buf(win)
+      is_listed = buf_get_option(current, 'buflisted')
+      if is_listed then
+        set_current_win(win)
+        break
+      end
+    end
+  end
+
+  return current
+end
+
 --- Offset the rendering of the bufferline
 --- @param width integer the amount to offset
 --- @param text nil|string text to put in the offset
@@ -893,6 +660,12 @@ function Render.set_offset(width, text, hl)
     {hl = nil, text = nil, width = 0}
 
   Render.update()
+end
+
+--- Scroll the bufferline relative to its current position.
+--- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
+function Render.scroll(n)
+  Render.set_scroll(math.max(0, scroll.target + n))
 end
 
 local scroll_animation = nil
@@ -918,13 +691,6 @@ function Render.set_scroll(target)
   scroll_animation = animate.start(
     ANIMATION.SCROLL_DURATION, scroll.current, target, vim.v.t_number,
     set_scroll_tick)
-end
-
---- Toggle the `bufnr`'s "pin" state, visually.
---- @param bufnr nil|integer
-function Render.toggle_pin(bufnr)
-  state.toggle_pin(bufnr or 0)
-  Render.update()
 end
 
 --- Generate a valid `&tabline` given the current state of Neovim.
@@ -1172,7 +938,7 @@ function Render.update(update_names, refocus)
   end
 
   local ok, result =
-    xpcall(render, debug.traceback, get_updated_buffers(update_names), refocus)
+    xpcall(render, debug.traceback, Render.get_updated_buffers(update_names), refocus)
 
   if not ok then
     Render.disable()

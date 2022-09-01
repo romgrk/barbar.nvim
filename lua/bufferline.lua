@@ -4,6 +4,7 @@ local get_current_buf = vim.api.nvim_get_current_buf
 local tbl_extend = vim.tbl_extend
 local validate = vim.validate
 
+local api = require'bufferline.api'
 local bbye = require'bufferline.bbye'
 local highlight = require'bufferline.highlight'
 local JumpMode = require'bufferline.jump_mode'
@@ -54,13 +55,13 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferNext',
-    function(tbl) render.goto_buffer_relative(math.max(1, tbl.count)) end,
+    function(tbl) api.goto_buffer_relative(math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the next buffer'}
   )
 
   create_user_command(
     'BufferPrevious',
-    function(tbl) render.goto_buffer_relative(-math.max(1, tbl.count)) end,
+    function(tbl) api.goto_buffer_relative(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Go to the previous buffer'}
   )
 
@@ -69,7 +70,7 @@ function bufferline.setup(options)
     function(tbl)
       local index = tbl.args
       validate {index = {index, 'number'}}
-      render.goto_buffer(tonumber(index))
+      api.goto_buffer(tonumber(index))
     end,
     {desc = 'Go to the buffer at the specified index', nargs = 1}
   )
@@ -85,37 +86,37 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferMoveNext',
-    function(tbl) render.move_current_buffer(math.max(1, tbl.count)) end,
+    function(tbl) api.move_current_buffer(math.max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the right'}
   )
 
   create_user_command(
     'BufferMovePrevious',
-    function(tbl) render.move_current_buffer(-math.max(1, tbl.count)) end,
+    function(tbl) api.move_current_buffer(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the left'}
   )
 
-  create_user_command('BufferPick', render.activate_jump_mode, {desc = 'Pick a buffer'})
+  create_user_command('BufferPick', api.pick_buffer, {desc = 'Pick a buffer'})
 
-  create_user_command('BufferPin', function() render.toggle_pin() end, {desc = 'Un/pin a buffer'})
+  create_user_command('BufferPin', function() api.toggle_pin() end, {desc = 'Un/pin a buffer'})
 
   create_user_command(
     'BufferOrderByBufferNumber',
-    render.order_by_buffer_number,
+    api.order_by_buffer_number,
     {desc = 'Order the bufferline by buffer number'}
   )
 
   create_user_command(
     'BufferOrderByDirectory',
-    render.order_by_directory,
+    api.order_by_directory,
     {desc = 'Order the bufferline by directory'}
   )
 
-  create_user_command('BufferOrderByLanguage', render.order_by_language, {desc = 'Order the bufferline by language'})
+  create_user_command('BufferOrderByLanguage', api.order_by_language, {desc = 'Order the bufferline by language'})
 
   create_user_command(
     'BufferOrderByWindowNumber',
-    render.order_by_window_number,
+    api.order_by_window_number,
     {desc = 'Order the bufferline by window number'}
   )
 
@@ -142,43 +143,43 @@ function bufferline.setup(options)
 
   create_user_command(
     'BufferCloseAllButCurrent',
-    render.close_all_but_current,
+    api.close_all_but_current,
     {desc = 'Close every buffer except the current one'}
   )
 
   create_user_command(
     'BufferCloseAllButPinned',
-    render.close_all_but_pinned,
+    api.close_all_but_pinned,
     {desc = 'Close every buffer except pinned buffers'}
   )
 
   create_user_command(
     'BufferCloseAllButCurrentOrPinned',
-    render.close_all_but_current_or_pinned,
+    api.close_all_but_current_or_pinned,
     {desc = 'Close every buffer except pinned buffers or the current buffer'}
   )
 
   create_user_command(
     'BufferCloseBuffersLeft',
-    render.close_buffers_left,
+    api.close_buffers_left,
     {desc = 'Close all buffers to the left of the current buffer'}
   )
 
   create_user_command(
     'BufferCloseBuffersRight',
-    render.close_buffers_right,
+    api.close_buffers_right,
     {desc = 'Close all buffers to the right of the current buffer'}
   )
 
   create_user_command(
     'BufferScrollLeft',
-    function(tbl) render.set_scroll(math.max(0, render.scroll - math.max(1, tbl.count))) end,
+    function(tbl) render.scroll(-math.max(1, tbl.count)) end,
     {count = true, desc = 'Scroll the bufferline left'}
   )
 
   create_user_command(
     'BufferScrollRight',
-    function(tbl) render.set_scroll(render.scroll + math.max(1, tbl.count)) end,
+    function(tbl) render.scroll(math.max(1, tbl.count)) end,
     {count = true, desc = 'Scroll the bufferline right'}
   )
 
