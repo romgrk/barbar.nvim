@@ -3,6 +3,35 @@
 local hl = require'bufferline.utils'.hl
 local icons = require 'bufferline.icons'
 
+-- Setup the highlight groups used by the plugin.
+hl.set_default_link('BufferCurrent', 'BufferDefaultCurrent')
+hl.set_default_link('BufferCurrentIcon', 'BufferCurrent')
+hl.set_default_link('BufferCurrentIndex', 'BufferDefaultCurrentIndex')
+hl.set_default_link('BufferCurrentMod', 'BufferDefaultCurrentMod')
+hl.set_default_link('BufferCurrentSign', 'BufferDefaultCurrentSign')
+hl.set_default_link('BufferCurrentTarget', 'BufferDefaultCurrentTarget')
+hl.set_default_link('BufferInactive', 'BufferDefaultInactive')
+hl.set_default_link('BufferInactiveIcon', 'BufferInactive')
+hl.set_default_link('BufferInactiveIndex', 'BufferDefaultInactiveIndex')
+hl.set_default_link('BufferInactiveMod', 'BufferDefaultInactiveMod')
+hl.set_default_link('BufferInactiveSign', 'BufferDefaultInactiveSign')
+hl.set_default_link('BufferInactiveTarget', 'BufferDefaultInactiveTarget')
+hl.set_default_link('BufferOffset', 'BufferTabpageFill')
+hl.set_default_link('BufferTabpageFill', 'BufferDefaultTabpageFill')
+hl.set_default_link('BufferTabpages', 'BufferDefaultTabpages')
+hl.set_default_link('BufferVisible', 'BufferDefaultVisible')
+hl.set_default_link('BufferVisibleIcon', 'BufferVisible')
+hl.set_default_link('BufferVisibleIndex', 'BufferDefaultVisibleIndex')
+hl.set_default_link('BufferVisibleMod', 'BufferDefaultVisibleMod')
+hl.set_default_link('BufferVisibleSign', 'BufferDefaultVisibleSign')
+hl.set_default_link('BufferVisibleTarget', 'BufferDefaultVisibleTarget')
+
+-- NOTE: these should move to `setup_defaults` if the definition stops being a link
+hl.set_default_link('BufferDefaultCurrentIcon', 'BufferDefaultCurrent')
+hl.set_default_link('BufferDefaultInactiveIcon', 'BufferDefaultInactive')
+hl.set_default_link('BufferDefaultVisibleIcon', 'BufferDefaultVisible')
+hl.set_default_link('BufferDefaultOffset', 'BufferDefaultTabpageFill')
+
 return {
   --- Setup the highlight groups for this plugin.
   setup = function()
@@ -31,28 +60,23 @@ return {
     --         -Mod: when modified
     --        -Sign: the separator between buffers
     --      -Target: letter in buffer-picking mode
-    hl.set_default('BufferCurrent',        bg_current, fg_current)
-    hl.set_default('BufferCurrentIndex',   bg_current, fg_special)
-    hl.set_default('BufferCurrentMod',     bg_current, fg_modified)
-    hl.set_default('BufferCurrentSign',    bg_current, fg_special)
-    hl.set_default('BufferCurrentTarget',  bg_current, fg_target, true)
-    hl.set_default('BufferInactive',       bg_inactive, fg_inactive)
-    hl.set_default('BufferInactiveIndex',  bg_inactive, fg_subtle)
-    hl.set_default('BufferInactiveMod',    bg_inactive, fg_modified)
-    hl.set_default('BufferInactiveSign',   bg_inactive, fg_subtle)
-    hl.set_default('BufferInactiveTarget', bg_inactive, fg_target, true)
-    hl.set_default('BufferTabpageFill',    bg_inactive, fg_inactive)
-    hl.set_default('BufferTabpages',       bg_inactive, fg_special, true)
-    hl.set_default('BufferVisible',        bg_visible, fg_visible)
-    hl.set_default('BufferVisibleIndex',   bg_visible, fg_visible)
-    hl.set_default('BufferVisibleMod',     bg_visible, fg_modified)
-    hl.set_default('BufferVisibleSign',    bg_visible, fg_visible)
-    hl.set_default('BufferVisibleTarget',  bg_visible, fg_target, true)
-
-    hl.set_default_link('BufferCurrentIcon', 'BufferCurrent')
-    hl.set_default_link('BufferInactiveIcon', 'BufferInactive')
-    hl.set_default_link('BufferVisibleIcon', 'BufferVisible')
-    hl.set_default_link('BufferOffset', 'BufferTabpageFill')
+    hl.set('BufferDefaultCurrent',        bg_current, fg_current)
+    hl.set('BufferDefaultCurrentIndex',   bg_current, fg_special)
+    hl.set('BufferDefaultCurrentMod',     bg_current, fg_modified)
+    hl.set('BufferDefaultCurrentSign',    bg_current, fg_special)
+    hl.set('BufferDefaultCurrentTarget',  bg_current, fg_target, true)
+    hl.set('BufferDefaultInactive',       bg_inactive, fg_inactive)
+    hl.set('BufferDefaultInactiveIndex',  bg_inactive, fg_subtle)
+    hl.set('BufferDefaultInactiveMod',    bg_inactive, fg_modified)
+    hl.set('BufferDefaultInactiveSign',   bg_inactive, fg_subtle)
+    hl.set('BufferDefaultInactiveTarget', bg_inactive, fg_target, true)
+    hl.set('BufferDefaultTabpageFill',    bg_inactive, fg_inactive)
+    hl.set('BufferDefaultTabpages',       bg_inactive, fg_special, true)
+    hl.set('BufferDefaultVisible',        bg_visible, fg_visible)
+    hl.set('BufferDefaultVisibleIndex',   bg_visible, fg_visible)
+    hl.set('BufferDefaultVisibleMod',     bg_visible, fg_modified)
+    hl.set('BufferDefaultVisibleSign',    bg_visible, fg_visible)
+    hl.set('BufferDefaultVisibleTarget',  bg_visible, fg_target, true)
 
     icons.set_highlights()
   end
