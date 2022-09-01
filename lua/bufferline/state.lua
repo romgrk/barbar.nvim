@@ -5,10 +5,12 @@
 local table_insert = table.insert
 local table_remove = table.remove
 
-local list_extend = vim.list_extend
 local buf_get_name = vim.api.nvim_buf_get_name
+local buf_get_option = vim.api.nvim_buf_get_option
 local buf_get_var = vim.api.nvim_buf_get_var
 local buf_set_var = vim.api.nvim_buf_set_var
+local list_bufs = vim.api.nvim_list_bufs
+local list_extend = vim.list_extend
 local tbl_filter = vim.tbl_filter
 
 local Buffer = require'bufferline.buffer'
@@ -56,6 +58,44 @@ function State.get_buffer_data(id)
   }
 
   return State.buffers_by_id[id]
+end
+
+--- Get the list of buffers
+function State.get_buffer_list()
+  local opts = vim.g.bufferline
+  local buffers = list_bufs()
+  local result = {}
+
+  --- @type nil|table
+  local exclude_ft   = opts.exclude_ft
+  local exclude_name = opts.exclude_name
+
+  for _, buffer in ipairs(buffers) do
+    if not buf_get_option(buffer, 'buflisted') then
+      goto continue
+    end
+
+    if not utils.is_nil(exclude_ft) then
+      local ft = buf_get_option(buffer, 'filetype')
+      if utils.has(exclude_ft, ft) then
+        goto continue
+      end
+    end
+
+    if not utils.is_nil(exclude_name) then
+      local fullname = buf_get_name(buffer)
+      local name = utils.basename(fullname)
+      if utils.has(exclude_name, name) then
+        goto continue
+      end
+    end
+
+    table_insert(result, buffer)
+
+    ::continue::
+  end
+
+  return result
 end
 
 -- Pinned buffers

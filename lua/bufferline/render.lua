@@ -68,46 +68,11 @@ local function create_augroups()
   return create_augroup('bufferline', {}), create_augroup('bufferline_update', {})
 end
 
---- Get the list of buffers
-local function get_buffer_list()
-  local opts = vim.g.bufferline
-  local buffers = list_bufs()
-  local result = {}
-
-  --- @type nil|table
-  local exclude_ft   = opts.exclude_ft
-  local exclude_name = opts.exclude_name
-
-  for _, buffer in ipairs(buffers) do
-    if not buf_get_option(buffer, 'buflisted') then
-      goto continue
-    end
-
-    if not utils.is_nil(exclude_ft) then
-      local ft = buf_get_option(buffer, 'filetype')
-      if utils.has(exclude_ft, ft) then
-        goto continue
-      end
-    end
-
-    if not utils.is_nil(exclude_name) then
-      local fullname = buf_get_name(buffer)
-      local name = utils.basename(fullname)
-      if utils.has(exclude_name, name) then
-        goto continue
-      end
-    end
-
-    table_insert(result, buffer)
-
-    ::continue::
-  end
-
-  return result
-end
-
-local function hl_tabline(name)
-  return '%#' .. name .. '#'
+--- Create valid `&tabline` syntax which highlights the next item in the tabline with the highlight `group` specified.
+--- @param group string
+--- @return string syntax
+local function hl_tabline(group)
+  return '%#' .. group .. '#'
 end
 
 --- @class bufferline.Render.Animation.Open
@@ -583,7 +548,7 @@ end
 
 --- Refresh the buffer list.
 function Render.get_updated_buffers(update_names)
-  local current_buffers = get_buffer_list()
+  local current_buffers = state.get_buffer_list()
   local new_buffers =
     tbl_filter(function(b) return not tbl_contains(state.buffers, b) end, current_buffers)
 
@@ -811,7 +776,7 @@ end
 function Render.restore_buffers(bufnames)
   -- Close all empty buffers. Loading a session may call :tabnew several times
   -- and create useless empty buffers.
-  for _,bufnr in ipairs(list_bufs()) do
+  for _, bufnr in ipairs(list_bufs()) do
     if buf_get_name(bufnr) == ''
       and buf_get_option(bufnr, 'buftype') == ''
       and buf_line_count(bufnr) == 1
