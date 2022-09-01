@@ -102,13 +102,11 @@ local function groups_to_string(groups)
   local result = ''
 
   for _, group in ipairs(groups) do
-    local hl   = group[1]
-    local text = group[2]
     -- WARN: We have to escape the text in case it contains '%', which is a special character to the
     --       tabline.
     --       To escape '%', we make it '%%'. It just so happens that '%' is also a special character
     --       in Lua, so we have write '%%' to mean '%'.
-    result = result .. hl .. text:gsub('%%', '%%%%')
+    result = result .. group.hl .. group.text:gsub('%%', '%%%%')
   end
 
   return result
@@ -127,7 +125,7 @@ local function groups_insert(groups, position, others)
   local i = 1
   while i <= #groups do
     local group = groups[i]
-    local group_width = strwidth(group[2])
+    local group_width = strwidth(group.text)
 
     -- While we haven't found the position...
     if current_position + group_width <= position then
@@ -141,14 +139,16 @@ local function groups_insert(groups, position, others)
 
       -- Slice current group if it `position` is inside it
       if available_width > 0 then
-        local new_group = { group[1], strcharpart(group[2], 0, available_width) }
-        table_insert(new_groups, new_group)
+        table_insert(new_groups, {
+          text = strcharpart(group.text, 0, available_width),
+          hl = group.hl,
+        })
       end
 
       -- Add new other groups
       local others_width = 0
       for _, other in ipairs(others) do
-        local other_width = strwidth(other[2])
+        local other_width = strwidth(other.text)
         others_width = others_width + other_width
         table_insert(new_groups, other)
       end
@@ -159,7 +159,7 @@ local function groups_insert(groups, position, others)
       -- table.insert(new_groups, 'then')
       while i <= #groups do
         local previous_group = groups[i]
-        local previous_group_width = strwidth(previous_group[2])
+        local previous_group_width = strwidth(previous_group.text)
         local previous_group_start_position = current_position
         local previous_group_end_position   = current_position + previous_group_width
 
@@ -172,7 +172,7 @@ local function groups_insert(groups, position, others)
           local remaining_width = previous_group_end_position - end_position
           local start = previous_group_width - remaining_width
           local end_  = previous_group_width
-          local new_group = { previous_group[1], strcharpart(previous_group[2], start, end_) }
+          local new_group = { hl = previous_group.hl, text = strcharpart(previous_group.text, start, end_) }
           -- table.insert(new_groups, { group_start_position, group_end_position, end_position })
           table_insert(new_groups, new_group)
         end
@@ -197,15 +197,12 @@ local function slice_groups_right(groups, width)
   local new_groups = {}
 
   for _, group in ipairs(groups) do
-    local hl   = group[1]
-    local text = group[2]
-    local text_width = strwidth(text)
-
+    local text_width = strwidth(group.text)
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
       local diff = text_width - (accumulated_width - width)
-      local new_group = {hl, strcharpart(text, 0, diff)}
+      local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff)}
       table_insert(new_groups, new_group)
       break
     end
@@ -225,16 +222,13 @@ local function slice_groups_left(groups, width)
   local new_groups = {}
 
   for _, group in ipairs(utils.reverse(groups)) do
-    local hl   = group[1]
-    local text = group[2]
-    local text_width = strwidth(text)
-
+    local text_width = strwidth(group.text)
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
       local length = text_width - (accumulated_width - width)
       local start = text_width - length
-      local new_group = {hl, strcharpart(text, start, length)}
+      local new_group = {hl = group.hl, text = strcharpart(group.text, start, length)}
       table_insert(new_groups, 1, new_group)
       break
     end
@@ -832,15 +826,15 @@ local function render(bufnrs, refocus)
         or layout.base_widths[i] + (2 * layout.padding_width),
       position = buffer_data.position or buffer_data.real_position,
       groups = {
-        {clickable .. separatorPrefix,    separator},
-        {'',                 padding},
-        {bufferIndexPrefix,  bufferIndex},
-        {clickable .. iconPrefix,         icon},
-        {jumpLetterPrefix,   jumpLetter},
-        {clickable .. namePrefix,         name},
-        {'',                 padding},
-        {'',                 ' '},
-        {closePrefix,        close},
+        {hl = clickable .. separatorPrefix, text = separator},
+        {hl = '',                           text = padding},
+        {hl = bufferIndexPrefix,            text = bufferIndex},
+        {hl = clickable .. iconPrefix,      text = icon},
+        {hl = jumpLetterPrefix,             text = jumpLetter},
+        {hl = clickable .. namePrefix,      text = name},
+        {hl = '',                           text = padding},
+        {hl = '',                           text = ' '},
+        {hl = closePrefix,                  text = close},
       }
     }
 
@@ -869,18 +863,20 @@ local function render(bufnrs, refocus)
   if offset.width > 0 then
     local offset_available_width = offset.width - 2
     local groups = {{
-      hl_tabline(offset.hl or 'BufferOffset'),
-      ' ' .. (offset.text or ''),
+      hl = hl_tabline(offset.hl or 'BufferOffset'),
+      text = ' ' .. (offset.text or ''),
     }}
+
     result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
     result = result .. (' '):rep(offset_available_width - #offset.text)
     result = result .. ' '
   end
 
   -- Add bufferline
-  local bufferline_groups = {
-    { hl_tabline('BufferTabpageFill'), (' '):rep(layout.actual_width) }
-  }
+  local bufferline_groups = {{
+    hl = hl_tabline('BufferTabpageFill'),
+    text = (' '):rep(layout.actual_width),
+  }}
 
   for i, item in ipairs(items) do
     if i ~= current_buffer_index then
