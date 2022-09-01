@@ -88,9 +88,9 @@ local bbye = {}
 --- Delete a buffer
 --- @param action string the command to use to delete the buffer (e.g. `'bdelete'`)
 --- @param force boolean if true, forcefully delete the buffer
---- @param buffer integer|nil|string the name of the buffer.
---- @param mods nil|string the modifiers to the command (e.g. `'verbose'`)
---- @param focus_id nil|number the preferred buffer to focus
+--- @param buffer? integer|string the name of the buffer.
+--- @param mods? string the modifiers to the command (e.g. `'verbose'`)
+--- @param focus_id? number the preferred buffer to focus
 function bbye.delete(action, force, buffer, mods, focus_id)
   local buffer_number = type(buffer) == 'string' and bufnr(buffer) or buffer or get_current_buf()
   mods = mods or ''
@@ -177,18 +177,18 @@ end
 
 --- 'bdelete' a buffer
 --- @param force boolean if true, forcefully delete the buffer
---- @param buffer integer|nil|string the name of the buffer.
---- @param mods nil|string the modifiers to the command (e.g. `'verbose'`)
---- @param focus_id nil|number the preferred buffer to focus
+--- @param buffer? integer|string the name of the buffer.
+--- @param mods? string the modifiers to the command (e.g. `'verbose'`)
+--- @param focus_id? number the preferred buffer to focus
 function bbye.bdelete(force, buffer, mods, focus_id)
   bbye.delete('bdelete', force, buffer, mods, focus_id)
 end
 
 --- 'bwipeout' a buffer
 --- @param force boolean if true, forcefully delete the buffer
---- @param buffer integer|nil|string the name of the buffer.
---- @param mods nil|string the modifiers to the command (e.g. `'verbose'`)
---- @param focus_id nil|number the preferred buffer to focus
+--- @param buffer? integer|string the name of the buffer.
+--- @param mods? string the modifiers to the command (e.g. `'verbose'`)
+--- @param focus_id? number the preferred buffer to focus
 function bbye.bwipeout(force, buffer, mods, focus_id)
   bbye.delete('bwipeout', force, buffer, mods, focus_id)
 end

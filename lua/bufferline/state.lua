@@ -24,15 +24,15 @@ local PIN = 'bufferline_pin'
 
 --- @class bufferline.State.Data
 --- @field closing boolean whether the buffer is being closed
---- @field name nil|string the name of the buffer
---- @field position nil|integer the absolute position of the buffer
---- @field real_width nil|integer the width of the buffer + invisible characters
---- @field width nil|integer the width of the buffer - invisible characters
+--- @field name? string the name of the buffer
+--- @field position? integer the absolute position of the buffer
+--- @field real_width? integer the width of the buffer + invisible characters
+--- @field width? integer the width of the buffer - invisible characters
 
 --- @class bufferline.State
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
---- @field buffers table<integer> the open buffers, in visual order.
---- @field buffers_by_id table<integer, bufferline.State.Data> the buffer data
+--- @field buffers integer[] the open buffers, in visual order.
+--- @field buffers_by_id {[integer]: bufferline.State.Data} the buffer data
 local State = {
   is_picking_buffer = false,
   buffers = {},
@@ -135,7 +135,7 @@ end
 
 --- Close the `bufnr`.
 --- @param bufnr integer
---- @param do_name_update nil|boolean refreshes all buffer names iff `true`
+--- @param do_name_update? boolean refreshes all buffer names iff `true`
 function State.close_buffer(bufnr, do_name_update)
   State.buffers = tbl_filter(function(b) return b ~= bufnr end, State.buffers)
   State.buffers_by_id[bufnr] = nil

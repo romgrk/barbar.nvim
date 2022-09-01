@@ -349,7 +349,7 @@ function api.pick_buffer()
 end
 
 --- Toggle the `bufnr`'s "pin" state, visually.
---- @param bufnr nil|integer
+--- @param bufnr? integer
 function api.toggle_pin(bufnr)
   state.toggle_pin(bufnr or 0)
   render.update()

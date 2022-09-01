@@ -70,13 +70,9 @@ local function hl_tabline(group)
   return '%#' .. group .. '#'
 end
 
---- @class bufferline.Render.Animation.Open
---- @field DURATION integer
---- @field DELAY integer
-
 --- @class bufferline.Render.Animation
 --- @field CLOSE_DURATION integer
---- @field OPEN bufferline.Render.Animation.Open
+--- @field OPEN {DURATION: integer, DELAY: integer}
 --- @field SCROLL_DURATION integer
 local ANIMATION = {
   CLOSE_DURATION = 150,
@@ -100,7 +96,7 @@ local offset = {width = 0}
 local scroll = {current = 0, target = 0}
 
 --- Concatenates some `groups` into a valid string.
---- @param groups table<bufferline.Render.Group>
+--- @param groups bufferline.Render.Group[]
 --- @return string
 local function groups_to_string(groups)
   local result = ''
@@ -119,10 +115,10 @@ local function groups_to_string(groups)
 end
 
 --- Insert `others` into `groups` at the `position`.
---- @param groups table<bufferline.Render.Group>
+--- @param groups bufferline.Render.Group[]
 --- @param position integer
---- @param others table<bufferline.Render.Group>
---- @return table<bufferline.Render.Group> with_insertions
+--- @param others bufferline.Render.Group[]
+--- @return bufferline.Render.Group with_insertions[]
 local function groups_insert(groups, position, others)
   local current_position = 0
 
@@ -193,7 +189,7 @@ local function groups_insert(groups, position, others)
 end
 
 --- Select from `groups` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
---- @param groups table<bufferline.Render.Group>
+--- @param groups bufferline.Render.Group[]
 --- @param width integer
 local function slice_groups_right(groups, width)
   local accumulated_width = 0
@@ -221,7 +217,7 @@ local function slice_groups_right(groups, width)
 end
 
 --- Select from `groups` in reverse while fitting within the provided `width`, discarding all indices less than the last index that fits.
---- @param groups table<bufferline.Render.Group>
+--- @param groups bufferline.Render.Group[]
 --- @param width integer
 local function slice_groups_left(groups, width)
   local accumulated_width = 0
@@ -250,7 +246,7 @@ local function slice_groups_left(groups, width)
 end
 
 --- Clears the tabline. Does not stop the tabline from being redrawn via autocmd.
---- @param tabline nil|string
+--- @param tabline? string
 local function set_tabline(tabline)
   last_tabline = tabline
   vim.opt.tabline = last_tabline
@@ -600,7 +596,7 @@ function Render.on_option_changed(_, key, _)
 end
 
 --- Restore the buffers
---- @param bufnames table<string>
+--- @param bufnames string[]
 function Render.restore_buffers(bufnames)
   -- Close all empty buffers. Loading a session may call :tabnew several times
   -- and create useless empty buffers.
@@ -652,8 +648,8 @@ end
 
 --- Offset the rendering of the bufferline
 --- @param width integer the amount to offset
---- @param text nil|string text to put in the offset
---- @param hl nil|string
+--- @param text? string text to put in the offset
+--- @param hl? string
 function Render.set_offset(width, text, hl)
   offset = width > 0 and
     {hl = hl, text = text, width = width} or
@@ -680,7 +676,7 @@ local function set_scroll_tick(new_scroll, animation)
 end
 
 --- Scrolls the bufferline to the `target`.
---- @param target unknown where to scroll to
+--- @param target integer where to scroll to
 function Render.set_scroll(target)
   scroll.target = target
 
@@ -694,8 +690,8 @@ function Render.set_scroll(target)
 end
 
 --- Generate a valid `&tabline` given the current state of Neovim.
---- @param bufnrs table<integer> the bufnrs to render
---- @param refocus nil|boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
+--- @param bufnrs integer[] the bufnrs to render
+--- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
 --- @return nil|string syntax
 local function render(bufnrs, refocus)
   local opts = vim.g.bufferline
@@ -930,8 +926,8 @@ local function render(bufnrs, refocus)
 end
 
 --- Update `&tabline`
---- @param refocus nil|boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
---- @param update_names nil|boolean whether to refresh the names of the buffers (default: `false`)
+--- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
+--- @param update_names? boolean whether to refresh the names of the buffers (default: `false`)
 function Render.update(update_names, refocus)
   if vim.g.SessionLoad then
     return

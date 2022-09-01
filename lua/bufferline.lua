@@ -11,7 +11,7 @@ local JumpMode = require'bufferline.jump_mode'
 local render = require'bufferline.render'
 local state = require'bufferline.state'
 
---- The default options for this plugin.
+--- @class bufferline.Options the available options for this plugin, and their defaults.
 local DEFAULT_OPTIONS = {
   animation = true,
   auto_hide = false,
@@ -44,7 +44,7 @@ local DEFAULT_OPTIONS = {
 local bufferline = {}
 
 --- Setup this plugin.
---- @param options nil|table
+--- @param options? bufferline.Options
 function bufferline.setup(options)
   -- Show the tabline
   vim.opt.showtabline = 2

@@ -9,7 +9,7 @@ local set_hl = vim.api.nvim_set_hl
 
 --- Generate a color.
 --- @param default integer|string a color name (`string`), GUI hex (`string`), or cterm color code (`integer`).
---- @param groups table<string> the groups to source the color from.
+--- @param groups string[] the groups to source the color from.
 --- @param guicolors boolean if `true`, look for GUI values. Else, look for `cterm`.
 --- @param index string where to look for the color.
 --- @return integer|string color
@@ -25,12 +25,13 @@ local function attribute_or_default(groups, index, default, guicolors)
 end
 
 --- Return the index of element `n` in `list.
---- @param list table
---- @param n unknown
+--- @generic T
+--- @param list T[]
+--- @param t T
 --- @return nil|integer index
-local function index_of(list, n)
+local function index_of(list, t)
   for i, value in ipairs(list) do
-    if value == n then
+    if value == t then
       return i
     end
   end
@@ -49,11 +50,12 @@ return {
   end,
 
   --- Return whether element `n` is in a `list.
-  --- @param list table
-  --- @param n unknown
+  --- @generic T
+  --- @param list T[]
+  --- @param t T
   --- @return boolean
-  has = function (list, n)
-    return index_of(list, n) ~= nil
+  has = function(list, t)
+    return index_of(list, t) ~= nil
   end,
 
   --- utilities for working with highlight groups.
@@ -63,9 +65,9 @@ return {
     --- @field gui integer|string
 
     --- Generate a background color.
-    --- @param groups table<string> the groups to source the background color from.
+    --- @param groups string[] the groups to source the background color from.
     --- @param default string the background color to use if no `groups` have a valid background color.
-    --- @param default_cterm integer|nil|string the color to use if no `groups` have a valid color and `termguicolors == false`.
+    --- @param default_cterm? integer|string the color to use if no `groups` have a valid color and `termguicolors == false`.
     --- @return barbar.util.Highlight color
     bg_or_default = function(groups, default, default_cterm)
       return {
@@ -75,9 +77,9 @@ return {
     end,
 
     --- Generate a foreground color.
-    --- @param groups table<string> the groups to source the foreground color from.
+    --- @param groups string[] the groups to source the foreground color from.
     --- @param default string the foreground color to use if no `groups` have a valid foreground color.
-    --- @param default_cterm integer|nil|string the color to use if no `groups` have a valid color and `termguicolors == false`.
+    --- @param default_cterm? integer|string the color to use if no `groups` have a valid color and `termguicolors == false`.
     --- @return barbar.util.Highlight color
     fg_or_default = function(groups, default, default_cterm)
       return {
@@ -90,7 +92,7 @@ return {
     --- @param group string the name of the highlight group to set
     --- @param bg barbar.util.Highlight
     --- @param fg barbar.util.Highlight
-    --- @param bold boolean|nil whether the highlight group should be bolded
+    --- @param bold? boolean whether the highlight group should be bolded
     set = function(group, bg, fg, bold)
       set_hl(0, group, {
         bold = bold,
@@ -126,9 +128,10 @@ return {
   end,
 
   --- Run `vim.list_slice` on some `list`, `index`ed from the end of the list.
-  --- @param list table
+  --- @generic T
+  --- @param list T[]
   --- @param index_from_end number
-  --- @return table sliced
+  --- @return T[] sliced
   list_slice_from_end = function(list, index_from_end)
     return list_slice(list, #list - index_from_end + 1)
   end,
@@ -136,9 +139,10 @@ return {
   relative = relative,
 
   --- Reverse the order of elements in some `list`.
-  --- @param list table
-  --- @return table reversed
-  reverse = function (list)
+  --- @generic T
+  --- @param list T[]
+  --- @return T[] reversed
+  reverse = function(list)
     local reversed = {}
     while #reversed < #list do
       reversed[#reversed + 1] = list[#list - #reversed]
