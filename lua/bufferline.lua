@@ -1,8 +1,5 @@
-local buf_call = vim.api.nvim_buf_call
-local buf_get_option = vim.api.nvim_buf_get_option
 local command = vim.api.nvim_command
 local create_user_command = vim.api.nvim_create_user_command
-local exec_autocmds = vim.api.nvim_exec_autocmds
 local get_current_buf = vim.api.nvim_get_current_buf
 local tbl_extend = vim.tbl_extend
 local validate = vim.validate
@@ -37,10 +34,6 @@ local DEFAULT_OPTIONS = {
   semantic_letters = true,
   tabpages = true,
 }
-
---------------------------
--- Section: Helpers
---------------------------
 
 -------------------------------
 -- Section: `bufferline` module
@@ -195,68 +188,6 @@ function bufferline.setup(options)
   highlight.setup()
   JumpMode.set_letters(vim.g.bufferline.letters)
   render.enable()
-end
-
-----------------------------
--- Section: Bufferline state
-----------------------------
-
---- Last value for tabline
---- @type nil|string
-local last_tabline
-
--- Debugging
--- let g:events = []
-
---- Clears the tabline. Does not stop the tabline from being redrawn via autocmd.
---- @param tabline nil|string
-function bufferline.set_tabline(tabline)
-  last_tabline = tabline
-  vim.opt.tabline = last_tabline
-end
-
---------------------------
--- Section: Main functions
---------------------------
-
---------------------------
--- Section: Event handlers
---------------------------
-
---- What to do when clicking a buffer close button.
---- @param buffer integer
-function bufferline.close_click_handler(buffer)
-  if buf_get_option(buffer, 'modified') then
-    buf_call(buffer, function() command('w') end)
-    exec_autocmds('BufModifiedSet', {buffer = buffer})
-  else
-    bbye.bdelete(false, buffer)
-  end
-end
-
---- What to do when clicking a buffer label.
---- @param minwid integer the buffer nummber
---- @param btn string
-function bufferline.main_click_handler(minwid, _, btn, _)
-  if minwid == 0 then
-    return
-  end
-
-  -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
-  if btn == 'm' then
-    bbye.bdelete(false, minwid)
-  else
-    render.open_buffer_in_listed_window(minwid)
-  end
-end
-
---- What to do when `vim.g.bufferline` is changed.
---- @param key string what option was changed.
-function bufferline.on_option_changed(_, key, _)
-  vim.g.bufferline = tbl_extend('keep', vim.g.bufferline or {}, DEFAULT_OPTIONS)
-  if key == 'letters' then
-    JumpMode.set_letters(vim.g.bufferline.letters)
-  end
 end
 
 return bufferline
