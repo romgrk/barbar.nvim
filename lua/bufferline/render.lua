@@ -32,6 +32,7 @@ local list_bufs = vim.api.nvim_list_bufs
 local list_tabpages = vim.api.nvim_list_tabpages
 local list_wins = vim.api.nvim_list_wins
 local notify = vim.notify
+local schedule = vim.schedule
 local set_current_buf = vim.api.nvim_set_current_buf
 local set_current_win = vim.api.nvim_set_current_win
 local strcharpart = vim.fn.strcharpart
@@ -601,7 +602,7 @@ function Render.enable()
   create_autocmd('BufDelete', {
     callback = function(tbl)
       JumpMode.unassign_letter_for(tbl.buf)
-      Render.update_async()
+      schedule(Render.update)
     end,
     group = augroup_bufferline,
   })
@@ -680,14 +681,15 @@ function Render.enable()
   })
 
   create_autocmd('WinClosed', {
-    callback = function() Render.update_async() end,
+    callback = function() schedule(Render.update) end,
     group = augroup_bufferline_update,
   })
 
   create_autocmd('TermOpen', {
-    callback = function() Render.update_async(true, 500) end,
+    callback = function() defer_fn(function() Render.update(true) end, 500) end,
     group = augroup_bufferline_update,
   })
+
   vim.cmd [[
     " Must be global -_-
     function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
@@ -1256,13 +1258,6 @@ function Render.update(update_names, refocus)
   elseif result ~= last_tabline then
     set_tabline(result)
   end
-end
-
---- Update the bufferline using `vim.defer_fn`.
---- @param update_names boolean|nil if `true`, update the names of the buffers in the bufferline. Default: false
---- @param delay integer|nil the number of milliseconds to defer updating the bufferline.
-function Render.update_async(update_names, delay)
-  defer_fn(function() Render.update(update_names or false) end, delay or 1)
 end
 
 -- print(render(state.buffers))
