@@ -194,5 +194,15 @@ function State.update_names()
   end
 end
 
+--- @deprecated exists for backwards compatability
+function State.set_offset(width, text, hl)
+  vim.notify(
+    "`require'bufferline.state'.set_offset` is deprecated, use `require'bufferline.render'.set_offset` instead",
+    vim.log.levels.WARN,
+    {title = 'barbar.nvim'}
+  )
+  require'bufferline.render'.set_offset(width, text, hl)
+end
+
 -- Exports
 return State
