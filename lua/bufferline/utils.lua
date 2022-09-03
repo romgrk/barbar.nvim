@@ -117,12 +117,6 @@ return {
 
   index_of = index_of,
 
-  --- @param value unknown
-  --- @return boolean is_nil `true` if `value` is `nil` or `vim.NIL`
-  is_nil = function (value)
-    return value == nil or value == vim.NIL
-  end,
-
   --- @param path string
   --- @return boolean is_relative `true` if `path` is relative to the CWD
   is_relative_path = function(path)
