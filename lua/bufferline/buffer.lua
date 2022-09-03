@@ -14,6 +14,7 @@ local get_current_buf = vim.api.nvim_get_current_buf
 local matchlist = vim.fn.matchlist
 local split = vim.split
 
+--- @type bufferline.utils
 local utils = require'bufferline.utils'
 
 --- The character used to delimit paths (e.g. `/` or `\`).

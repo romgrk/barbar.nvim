@@ -13,7 +13,10 @@ local list_bufs = vim.api.nvim_list_bufs
 local list_extend = vim.list_extend
 local tbl_filter = vim.tbl_filter
 
+--- @type bufferline.buffer
 local Buffer = require'bufferline.buffer'
+
+--- @type bufferline.utils
 local utils = require'bufferline.utils'
 
 local PIN = 'bufferline_pin'
@@ -37,6 +40,13 @@ local state = {
   is_picking_buffer = false,
   buffers = {},
   buffers_by_id = {},
+
+  --- The offset of the tabline (from the left).
+  --- @class bufferline.render.offset
+  --- @field hl nil|string the highlight group to use
+  --- @field text nil|string the text to fill the offset with
+  --- @field width integer the size of the offset
+  offset = {width = 0}
 }
 
 --- Get the state of the `id`
@@ -62,32 +72,26 @@ end
 
 --- Get the list of buffers
 function state.get_buffer_list()
-  local opts = vim.g.bufferline
   local buffers = list_bufs()
   local result = {}
 
-  --- @type nil|table
-  local exclude_ft   = opts.exclude_ft
-  local exclude_name = opts.exclude_name
+  local exclude_ft   = vim.g.bufferline.exclude_ft
+ local exclude_name = vim.g.bufferline.exclude_name
 
   for _, buffer in ipairs(buffers) do
     if not buf_get_option(buffer, 'buflisted') then
       goto continue
     end
 
-    if not utils.is_nil(exclude_ft) then
-      local ft = buf_get_option(buffer, 'filetype')
-      if utils.has(exclude_ft, ft) then
-        goto continue
-      end
+    local ft = buf_get_option(buffer, 'filetype')
+    if utils.has(exclude_ft, ft) then
+      goto continue
     end
 
-    if not utils.is_nil(exclude_name) then
-      local fullname = buf_get_name(buffer)
-      local name = utils.basename(fullname)
-      if utils.has(exclude_name, name) then
-        goto continue
-      end
+    local fullname = buf_get_name(buffer)
+    local name = utils.basename(fullname)
+    if utils.has(exclude_name, name) then
+      goto continue
     end
 
     table_insert(result, buffer)
@@ -166,12 +170,11 @@ end
 
 --- Update the names of all buffers in the bufferline.
 function state.update_names()
-  local opts = vim.g.bufferline
   local buffer_index_by_name = {}
 
   -- Compute names
   for i, buffer_n in ipairs(state.buffers) do
-    local name = Buffer.get_name(opts, buffer_n)
+    local name = Buffer.get_name(buffer_n)
 
     if buffer_index_by_name[name] == nil then
       buffer_index_by_name[name] = i
@@ -195,6 +198,9 @@ function state.update_names()
 end
 
 --- @deprecated exists for backwards compatability
+--- @param width integer
+--- @param text nil|string
+--- @param hl nil|string
 function state.set_offset(width, text, hl)
   vim.notify(
     "`require'bufferline.state'.set_offset` is deprecated, use `require'bufferline.render'.set_offset` instead",

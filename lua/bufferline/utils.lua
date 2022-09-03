@@ -44,6 +44,7 @@ local function relative(path)
   return fnamemodify(path, ':~:.')
 end
 
+--- @class bufferline.utils
 return {
   basename = function(path)
      return fnamemodify(path, ':t')
@@ -59,8 +60,9 @@ return {
   end,
 
   --- utilities for working with highlight groups.
+  --- @class bufferline.utils.hl
   hl = {
-    --- @class barbar.util.Highlight
+    --- @class barbar.utils.hl.group
     --- @field cterm integer|string
     --- @field gui integer|string
 
@@ -68,7 +70,7 @@ return {
     --- @param groups string[] the groups to source the background color from.
     --- @param default string the background color to use if no `groups` have a valid background color.
     --- @param default_cterm? integer|string the color to use if no `groups` have a valid color and `termguicolors == false`.
-    --- @return barbar.util.Highlight color
+    --- @return barbar.utils.hl.group color
     bg_or_default = function(groups, default, default_cterm)
       return {
         cterm = attribute_or_default(groups, 'background', default_cterm or default, false),
@@ -80,7 +82,7 @@ return {
     --- @param groups string[] the groups to source the foreground color from.
     --- @param default string the foreground color to use if no `groups` have a valid foreground color.
     --- @param default_cterm? integer|string the color to use if no `groups` have a valid color and `termguicolors == false`.
-    --- @return barbar.util.Highlight color
+    --- @return barbar.utils.hl.group color
     fg_or_default = function(groups, default, default_cterm)
       return {
         cterm = attribute_or_default(groups, 'foreground', default_cterm or default, false),
@@ -90,8 +92,8 @@ return {
 
     --- Set some highlight `group`'s default definition with respect to `&termguicolors`
     --- @param group string the name of the highlight group to set
-    --- @param bg barbar.util.Highlight
-    --- @param fg barbar.util.Highlight
+    --- @param bg barbar.utils.hl.group
+    --- @param fg barbar.utils.hl.group
     --- @param bold? boolean whether the highlight group should be bolded
     set = function(group, bg, fg, bold)
       set_hl(0, group, {

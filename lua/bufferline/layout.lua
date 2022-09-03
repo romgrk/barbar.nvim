@@ -11,10 +11,24 @@ local buf_get_option = vim.api.nvim_buf_get_option
 local strwidth = vim.api.nvim_strwidth
 local tabpagenr = vim.fn.tabpagenr
 
+--- @type bufferline.buffer
 local Buffer = require'bufferline.buffer'
+
+--- @type bufferline.state
 local state = require'bufferline.state'
 
+--- The number of sides of each buffer in the tabline.
 local SIDES_OF_BUFFER = 2
+
+--- @class bufferline.layout.data
+--- @field actual_width integer
+--- @field available_width integer
+--- @field base_width integer
+--- @field base_widths integer
+--- @field buffers_width integer
+--- @field padding_width integer
+--- @field tabpages_width integer
+--- @field used_width integer
 
 --- @class bufferline.Layout
 local Layout = {}
@@ -78,6 +92,7 @@ function Layout.calculate_buffers_width(base_width)
 end
 
 --- Calculate the current layout of the bufferline.
+--- @return bufferline.layout.data
 function Layout.calculate()
   local opts = vim.g.bufferline
 
@@ -89,9 +104,7 @@ function Layout.calculate()
     + 1 -- space-after-name
 
   local available_width = vim.o.columns
-  if state.offset then
-    available_width = available_width - state.offset
-  end
+  available_width = available_width - state.offset.width
 
   local used_width, base_widths = Layout.calculate_buffers_width(base_width)
   local tabpages_width = Layout.calculate_tabpages_width()
@@ -117,6 +130,7 @@ function Layout.calculate()
   }
 end
 
+--- @return {[integer]: integer} position_by_bufnr
 function Layout.calculate_buffers_position_by_buffer_number()
   local current_position = 0
   local layout = Layout.calculate()
@@ -131,6 +145,10 @@ function Layout.calculate_buffers_position_by_buffer_number()
   return positions
 end
 
+--- @param buffer_name string
+--- @param base_width integer
+--- @param padding_width integer
+--- @return integer width
 function Layout.calculate_width(buffer_name, base_width, padding_width)
   return strwidth(buffer_name) + base_width + padding_width * SIDES_OF_BUFFER
 end

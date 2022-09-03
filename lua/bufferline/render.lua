@@ -40,14 +40,31 @@ local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf
 
+--- @type bufferline.animate
 local animate = require'bufferline.animate'
+
+--- @type bbye
 local bbye = require'bufferline.bbye'
+
+--- @type bufferline.buffer
 local Buffer = require'bufferline.buffer'
+
+--- @type bufferline.highlight
 local highlight = require'bufferline.highlight'
+
+--- @type bufferline.icons
 local icons = require'bufferline.icons'
+
+--- @type bufferline.JumpMode
 local JumpMode = require'bufferline.jump_mode'
+
+--- @type bufferline.Layout
 local Layout = require'bufferline.layout'
+
+--- @type bufferline.state
 local state = require'bufferline.state'
+
+--- @type bufferline.utils
 local utils = require'bufferline.utils'
 
 --- The highlight to use based on the state of a buffer.
@@ -83,12 +100,6 @@ local ANIMATION = {
 --- @class bufferline.render.group
 --- @field hl string the highlight group to use
 --- @field text string the content being rendered
-
---- @class bufferline.render.offset
---- @field hl nil|string the highlight group to use
---- @field text nil|string the text to fill the offset with
---- @field width integer the size of the offset
-local offset = {width = 0}
 
 --- @class bufferline.render.scroll
 --- @field current integer the place where the bufferline is currently scrolled to
@@ -645,7 +656,7 @@ end
 --- @param text? string text to put in the offset
 --- @param hl? string
 function render.set_offset(width, text, hl)
-  offset = width > 0 and
+  state.offset = width > 0 and
     {hl = hl, text = text, width = width} or
     {hl = nil, text = nil, width = 0}
 
@@ -860,15 +871,15 @@ local function generate_tabline(bufnrs, refocus)
   local result = ''
 
   -- Add offset filler & text (for filetree/sidebar plugins)
-  if offset.width > 0 then
-    local offset_available_width = offset.width - 2
+  if state.offset.width > 0 then
+    local offset_available_width = state.offset.width - 2
     local groups = {{
-      hl = hl_tabline(offset.hl or 'BufferOffset'),
-      text = ' ' .. (offset.text or ''),
+      hl = hl_tabline(state.offset.hl or 'BufferOffset'),
+      text = ' ' .. (state.offset.text or ''),
     }}
 
     result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
-    result = result .. (' '):rep(offset_available_width - #offset.text)
+    result = result .. (' '):rep(offset_available_width - #state.offset.text)
     result = result .. ' '
   end
 
@@ -947,7 +958,5 @@ function render.update(update_names, refocus)
     set_tabline(result)
   end
 end
-
--- print(render(state.buffers))
 
 return render

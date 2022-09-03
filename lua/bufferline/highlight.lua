@@ -1,6 +1,9 @@
 -- !::exe [So]
 
+--- @type bufferline.utils.hl
 local hl = require'bufferline.utils'.hl
+
+--- @type bufferline.icons
 local icons = require 'bufferline.icons'
 
 -- Setup the highlight groups used by the plugin.
@@ -37,7 +40,7 @@ return {
   --- Setup the highlight groups for this plugin.
   setup = function()
 
-    --- @type barbar.util.Highlight
+    --- @type barbar.utils.hl.group
     local fg_target = {cterm = 'red'}
     fg_target.gui = fg_target.cterm
 

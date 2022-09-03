@@ -4,21 +4,35 @@ local get_current_buf = vim.api.nvim_get_current_buf
 local tbl_extend = vim.tbl_extend
 local validate = vim.validate
 
+--- @type bufferline.api
 local api = require'bufferline.api'
+
+--- @type bbye
 local bbye = require'bufferline.bbye'
+
+--- @type bufferline.highlight
 local highlight = require'bufferline.highlight'
+
+--- @type bufferline.JumpMode
 local JumpMode = require'bufferline.jump_mode'
+
+--- @type bufferline.render
 local render = require'bufferline.render'
+
+--- @type bufferline.state
 local state = require'bufferline.state'
 
 --- @class bufferline.Options the available options for this plugin, and their defaults.
+--- @field exclude_ft string[]
+--- @field exclude_name string[]
 local DEFAULT_OPTIONS = {
+  --- Excludes
   animation = true,
   auto_hide = false,
   clickable = true,
   closable = true,
-  exclude_ft = nil,
-  exclude_name = nil,
+  exclude_ft = {},
+  exclude_name = {},
   icon_close_tab = '',
   icon_close_tab_modified = '●',
   icon_pinned = '',
@@ -70,7 +84,7 @@ function bufferline.setup(options)
     function(tbl)
       local index = tbl.args
       validate {index = {index, 'number'}}
-      api.goto_buffer(tonumber(index))
+      api.goto_buffer(index)
     end,
     {desc = 'Go to the buffer at the specified index', nargs = 1}
   )

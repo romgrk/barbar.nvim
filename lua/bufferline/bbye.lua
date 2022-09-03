@@ -40,7 +40,8 @@ local win_is_valid = vim.api.nvim_win_is_valid
 local buf_get_option = vim.api.nvim_buf_get_option
 local buf_set_option = vim.api.nvim_buf_set_option
 
-local reverse = require'bufferline.utils'.reverse
+--- @type bufferline.utils
+local utils = require'bufferline.utils'
 
 -------------------
 -- Section: helpers
@@ -119,7 +120,7 @@ function bbye.delete(action, force, buffer, mods, focus_id)
   -- For cases where adding buffers causes new windows to appear or hiding some
   -- causes windows to disappear and thereby decrement, loop backwards.
   local window_ids = list_wins()
-  local window_ids_reversed = reverse(window_ids)
+  local window_ids_reversed = utils.reverse(window_ids)
 
   for _, window_number in ipairs(window_ids_reversed) do
     if win_get_buf(window_number) == buffer_number then

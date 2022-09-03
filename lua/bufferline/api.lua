@@ -17,15 +17,36 @@ local set_current_buf = vim.api.nvim_set_current_buf
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
 
+--- @type bufferline.animate
 local animate = require'bufferline.animate'
+
+--- @type bbye
 local bbye = require'bufferline.bbye'
+
+--- @type bufferline.JumpMode
 local JumpMode = require'bufferline.jump_mode'
+
+--- @type bufferline.Layout
 local Layout = require'bufferline.layout'
+
+--- @type bufferline.render
 local render = require'bufferline.render'
+
+--- @type bufferline.state
 local state = require'bufferline.state'
+
+--- @type bufferline.utils
 local utils = require'bufferline.utils'
 
-local MOVE_DURATION = 150
+--- Shows an error that `bufnr` was not among the `state.buffers`
+--- @param bufnr integer
+local function notify_buffer_not_found(bufnr)
+  notify(
+    'Current buffer (' .. bufnr .. ") not found in bufferline.nvim's list of buffers: " .. vim.inspect(state.buffers),
+    vim.log.levels.ERROR,
+    {title = 'barbar.nvim'}
+  )
+end
 
 --- Forwards some `order_func` after ensuring that all buffers sorted in the order of pinned first.
 --- @param order_func fun(bufnr_a: integer, bufnr_b: integer) accepts `(integer, integer)` params.
@@ -177,6 +198,7 @@ local function move_buffer_animated_tick(ratio, current_animation)
   end
 end
 
+local MOVE_DURATION = 150
 --- Move a buffer (with animation, if configured).
 --- @param from_idx integer the buffer's original index.
 --- @param to_idx integer the buffer's new index.
@@ -248,6 +270,11 @@ function api.move_current_buffer_to(idx)
   local current_bufnr = get_current_buf()
   local from_idx = utils.index_of(state.buffers, current_bufnr)
 
+  if from_idx == nil then
+    notify_buffer_not_found(current_bufnr)
+    return
+  end
+
   move_buffer(from_idx, idx)
 end
 
@@ -256,8 +283,13 @@ end
 function api.move_current_buffer(steps)
   render.update()
 
-  local currentnr = get_current_buf()
-  local idx = utils.index_of(state.buffers, currentnr)
+  local current_bufnr = get_current_buf()
+  local idx = utils.index_of(state.buffers, current_bufnr)
+
+  if idx == nil then
+    notify_buffer_not_found(current_bufnr)
+    return
+  end
 
   move_buffer(idx, idx + steps)
 end
