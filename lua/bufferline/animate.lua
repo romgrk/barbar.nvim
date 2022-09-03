@@ -1,7 +1,9 @@
 --
 -- animate.lua
 --
-local Animate = {}
+
+--- @class bufferline.animate
+local animate = {}
 
 local floor = math.floor
 
@@ -21,7 +23,7 @@ local function time(start)
   return t
 end
 
-function Animate.lerp(ratio, initial, final, delta_type)
+function animate.lerp(ratio, initial, final, delta_type)
   delta_type = delta_type or vim.v.t_number
 
   local range = final - initial
@@ -48,17 +50,17 @@ local function animate_tick(state)
 
   -- We're still good here
   if ratio < 1 then
-    local current = Animate.lerp(ratio, state.initial, state.final, state.type)
+    local current = animate.lerp(ratio, state.initial, state.final, state.type)
     state.fn(current, state)
   else
   -- Went overtime, stop the animation!
     state.running = false
     state.fn(state.final, state)
-    Animate.stop(state)
+    animate.stop(state)
   end
 end
 
-function Animate.start(duration, initial, final, type, callback)
+function animate.start(duration, initial, final, type, callback)
   local ticks = (duration / ANIMATION_FREQUENCY) + 10
 
   local state = {}
@@ -81,7 +83,7 @@ function Animate.start(duration, initial, final, type, callback)
   return state
 end
 
-function Animate.stop(state)
+function animate.stop(state)
   if state.timer then
     state.timer:stop()
     state.timer:close()
@@ -89,4 +91,4 @@ function Animate.stop(state)
   end
 end
 
-return Animate
+return animate

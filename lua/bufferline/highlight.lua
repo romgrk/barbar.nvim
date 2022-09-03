@@ -32,6 +32,7 @@ hl.set_default_link('BufferDefaultInactiveIcon', 'BufferDefaultInactive')
 hl.set_default_link('BufferDefaultVisibleIcon', 'BufferDefaultVisible')
 hl.set_default_link('BufferDefaultOffset', 'BufferDefaultTabpageFill')
 
+--- @class bufferline.highlight
 return {
   --- Setup the highlight groups for this plugin.
   setup = function()

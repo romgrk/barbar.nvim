@@ -22,18 +22,18 @@ local PIN = 'bufferline_pin'
 -- Section: Application state --
 --------------------------------
 
---- @class bufferline.State.Data
+--- @class bufferline.state.data
 --- @field closing boolean whether the buffer is being closed
 --- @field name? string the name of the buffer
 --- @field position? integer the absolute position of the buffer
 --- @field real_width? integer the width of the buffer + invisible characters
 --- @field width? integer the width of the buffer - invisible characters
 
---- @class bufferline.State
+--- @class bufferline.state
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
 --- @field buffers integer[] the open buffers, in visual order.
---- @field buffers_by_id {[integer]: bufferline.State.Data} the buffer data
-local State = {
+--- @field buffers_by_id {[integer]: bufferline.state.data} the buffer data
+local state = {
   is_picking_buffer = false,
   buffers = {},
   buffers_by_id = {},
@@ -41,15 +41,15 @@ local State = {
 
 --- Get the state of the `id`
 --- @param id integer the `bufnr`
---- @return bufferline.State.Data
-function State.get_buffer_data(id)
-  local data = State.buffers_by_id[id]
+--- @return bufferline.state.data
+function state.get_buffer_data(id)
+  local data = state.buffers_by_id[id]
 
   if data ~= nil then
     return data
   end
 
-  State.buffers_by_id[id] = {
+  state.buffers_by_id[id] = {
     closing = false,
     name = nil,
     position = nil,
@@ -57,11 +57,11 @@ function State.get_buffer_data(id)
     width = nil,
   }
 
-  return State.buffers_by_id[id]
+  return state.buffers_by_id[id]
 end
 
 --- Get the list of buffers
-function State.get_buffer_list()
+function state.get_buffer_list()
   local opts = vim.g.bufferline
   local buffers = list_bufs()
   local result = {}
@@ -102,33 +102,33 @@ end
 
 --- @param bufnr integer
 --- @return boolean pinned `true` if `bufnr` is pinned
-function State.is_pinned(bufnr)
+function state.is_pinned(bufnr)
   local ok, val = pcall(buf_get_var, bufnr, PIN)
   return ok and val
 end
 
 --- Sort the pinned tabs to the left of the bufferline.
-function State.sort_pins_to_left()
+function state.sort_pins_to_left()
   local unpinned = {}
 
   local i = 1
-  while i <= #State.buffers do
-    if State.is_pinned(State.buffers[i]) then
+  while i <= #state.buffers do
+    if state.is_pinned(state.buffers[i]) then
       i = i + 1
     else
-      table_insert(unpinned, table_remove(State.buffers, i))
+      table_insert(unpinned, table_remove(state.buffers, i))
     end
   end
 
-  State.buffers = list_extend(State.buffers, unpinned)
+  state.buffers = list_extend(state.buffers, unpinned)
 end
 
 --- Toggle the `bufnr`'s "pin" state.
 --- WARN: does not redraw the bufferline. See `Render.toggle_pin`.
 --- @param bufnr integer
-function State.toggle_pin(bufnr)
-  buf_set_var(bufnr, PIN, not State.is_pinned(bufnr))
-  State.sort_pins_to_left()
+function state.toggle_pin(bufnr)
+  buf_set_var(bufnr, PIN, not state.is_pinned(bufnr))
+  state.sort_pins_to_left()
 end
 
 -- Open/close buffers
@@ -136,12 +136,12 @@ end
 --- Close the `bufnr`.
 --- @param bufnr integer
 --- @param do_name_update? boolean refreshes all buffer names iff `true`
-function State.close_buffer(bufnr, do_name_update)
-  State.buffers = tbl_filter(function(b) return b ~= bufnr end, State.buffers)
-  State.buffers_by_id[bufnr] = nil
+function state.close_buffer(bufnr, do_name_update)
+  state.buffers = tbl_filter(function(b) return b ~= bufnr end, state.buffers)
+  state.buffers_by_id[bufnr] = nil
 
   if do_name_update then
-    State.update_names()
+    state.update_names()
   end
 end
 
@@ -150,10 +150,10 @@ end
 -- Return the bufnr of the buffer to the right of `buffer_number`
 -- @param buffer_number int
 -- @return int|nil
-function State.find_next_buffer(buffer_number)
-  local index = utils.index_of(State.buffers, buffer_number)
+function state.find_next_buffer(buffer_number)
+  local index = utils.index_of(state.buffers, buffer_number)
   if index == nil then return nil end
-  if index + 1 > #State.buffers then
+  if index + 1 > #state.buffers then
     index = index - 1
     if index <= 0 then
       return nil
@@ -161,31 +161,31 @@ function State.find_next_buffer(buffer_number)
   else
     index = index + 1
   end
-  return State.buffers[index]
+  return state.buffers[index]
 end
 
 --- Update the names of all buffers in the bufferline.
-function State.update_names()
+function state.update_names()
   local opts = vim.g.bufferline
   local buffer_index_by_name = {}
 
   -- Compute names
-  for i, buffer_n in ipairs(State.buffers) do
+  for i, buffer_n in ipairs(state.buffers) do
     local name = Buffer.get_name(opts, buffer_n)
 
     if buffer_index_by_name[name] == nil then
       buffer_index_by_name[name] = i
-      State.get_buffer_data(buffer_n).name = name
+      state.get_buffer_data(buffer_n).name = name
     else
       local other_i = buffer_index_by_name[name]
-      local other_n = State.buffers[other_i]
+      local other_n = state.buffers[other_i]
       local new_name, new_other_name =
         Buffer.get_unique_name(
           buf_get_name(buffer_n),
-          buf_get_name(State.buffers[other_i]))
+          buf_get_name(state.buffers[other_i]))
 
-      State.get_buffer_data(buffer_n).name = new_name
-      State.get_buffer_data(other_n).name = new_other_name
+      state.get_buffer_data(buffer_n).name = new_name
+      state.get_buffer_data(other_n).name = new_other_name
       buffer_index_by_name[new_name] = i
       buffer_index_by_name[new_other_name] = other_i
       buffer_index_by_name[name] = nil
@@ -195,7 +195,7 @@ function State.update_names()
 end
 
 --- @deprecated exists for backwards compatability
-function State.set_offset(width, text, hl)
+function state.set_offset(width, text, hl)
   vim.notify(
     "`require'bufferline.state'.set_offset` is deprecated, use `require'bufferline.render'.set_offset` instead",
     vim.log.levels.WARN,
@@ -205,4 +205,4 @@ function State.set_offset(width, text, hl)
 end
 
 -- Exports
-return State
+return state
