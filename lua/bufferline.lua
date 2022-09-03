@@ -26,7 +26,6 @@ local state = require'bufferline.state'
 --- @field exclude_ft string[]
 --- @field exclude_name string[]
 local DEFAULT_OPTIONS = {
-  --- Excludes
   animation = true,
   auto_hide = false,
   clickable = true,

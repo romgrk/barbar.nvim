@@ -113,7 +113,7 @@ local function groups_to_string(groups)
   local result = ''
 
   for _, group in ipairs(groups) do
-    -- WARN: We have to escape the text in case it contains '%', which is a special character to the
+    -- NOTE: We have to escape the text in case it contains '%', which is a special character to the
     --       tabline.
     --       To escape '%', we make it '%%'. It just so happens that '%' is also a special character
     --       in Lua, so we have write '%%' to mean '%'.
