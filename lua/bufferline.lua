@@ -79,6 +79,12 @@ function bufferline.setup(user_config)
     {count = true, desc = 'Move the current buffer to the left'}
   )
 
+  create_user_command(
+    'BufferMoveStart',
+    function(tbl) api.move_current_buffer_to(1) end,
+    {desc = 'Move current buffer to the front'}
+  )
+
   create_user_command('BufferPick', api.pick_buffer, {desc = 'Pick a buffer'})
 
   create_user_command('BufferPin', function() api.toggle_pin() end, {desc = 'Un/pin a buffer'})
