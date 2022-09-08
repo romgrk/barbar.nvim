@@ -159,7 +159,7 @@ function api.goto_buffer_relative(steps)
   local idx = utils.index_of(state.buffers, current)
 
   if idx == nil then
-    print('Couldn\'t find buffer ' .. current .. ' in the list: ' .. vim.inspect(state.buffers))
+    print("Couldn't find buffer " .. current .. ' in the list: ' .. vim.inspect(state.buffers))
     return
   else
     idx = (idx + steps - 1) % #state.buffers + 1
