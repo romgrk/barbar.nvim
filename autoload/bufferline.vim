@@ -47,5 +47,5 @@ function! bufferline#close(abuf)
 endfunc
 
 function! bufferline#close_direct(abuf)
-  call luaeval("require'bufferline.render'.close_buffer(_A)", a:abuf)
+  call luaeval("require'bufferline.state'.close_buffer(_A)", a:abuf)
 endfunc

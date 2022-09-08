@@ -40,6 +40,9 @@ local win_is_valid = vim.api.nvim_win_is_valid
 local buf_get_option = vim.api.nvim_buf_get_option
 local buf_set_option = vim.api.nvim_buf_set_option
 
+--- @type bufferline.state
+local state = require'bufferline.state'
+
 --- @type bufferline.utils
 local utils = require'bufferline.utils'
 
@@ -74,7 +77,7 @@ local function new(force)
 
   create_autocmd('BufWipeout', {
     buffer = 0,
-    callback = function() require'bufferline.render'.close_buffer(empty_buffer) end,
+    callback = function() state.close_buffer(empty_buffer) end,
     group = create_augroup('bbye_empty_buffer', {})
   })
 end
