@@ -380,6 +380,18 @@ function api.pick_buffer()
   command('redrawtabline')
 end
 
+--- Offset the rendering of the bufferline
+--- @param width integer the amount to offset
+--- @param text? string text to put in the offset
+--- @param hl? string
+function api.set_offset(width, text, hl)
+  state.offset = width > 0 and
+    {hl = hl, text = text, width = width} or
+    {hl = nil, text = nil, width = 0}
+
+  render.update()
+end
+
 --- Toggle the `bufnr`'s "pin" state, visually.
 --- @param bufnr? integer
 function api.toggle_pin(bufnr)

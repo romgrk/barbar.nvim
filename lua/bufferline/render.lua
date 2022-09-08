@@ -651,18 +651,6 @@ function render.set_current_win_listed_buffer()
   return current
 end
 
---- Offset the rendering of the bufferline
---- @param width integer the amount to offset
---- @param text? string text to put in the offset
---- @param hl? string
-function render.set_offset(width, text, hl)
-  state.offset = width > 0 and
-    {hl = hl, text = text, width = width} or
-    {hl = nil, text = nil, width = 0}
-
-  render.update()
-end
-
 --- Scroll the bufferline relative to its current position.
 --- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
 function render.scroll(n)
