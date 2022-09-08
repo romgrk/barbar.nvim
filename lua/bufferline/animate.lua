@@ -2,19 +2,16 @@
 -- animate.lua
 --
 
+local floor = math.floor
+
 --- @class bufferline.animate
 local animate = {}
 
-local floor = math.floor
-
+--- The amount of time between rendering the next part of the animation.
 local ANIMATION_FREQUENCY = 50
 
----Without arguments return a current high-resolution time in milliseconds.
----If `start` is passed, then return the time passed since given time point.
---difference between a given time point
----and the current one.
----@param start? number some time point in the past
----@return number time
+--- @param start? number some time point in the past
+--- @return number milliseconds If `start` is not `nil`, then the time passed since `start`. Else, return the current time
 local function time(start)
   local t = vim.loop.hrtime() / 1e6
   if start then

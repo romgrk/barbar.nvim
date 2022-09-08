@@ -33,13 +33,15 @@ local SIDES_OF_BUFFER = 2
 --- @class bufferline.Layout
 local Layout = {}
 
+--- The number of characters needed to represent the tabpages.
+--- @return integer width
 function Layout.calculate_tabpages_width()
   local current = tabpagenr()
   local total   = tabpagenr('$')
   if not vim.g.bufferline.tabpages or total == 1 then
     return 0
   end
-  return 1 + strwidth(tostring(current)) + 1 + strwidth(tostring(total)) + 1
+  return 1 + tostring(current):len() + 1 + tostring(total):len() + 1
 end
 
 --- @param base_width integer

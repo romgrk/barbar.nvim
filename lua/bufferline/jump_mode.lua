@@ -24,7 +24,7 @@ local letters = {}
 --- @field private reinitialize boolean whether an `initialize_indexes` operation has been queued.
 local JumpMode = {}
 
--- Initialize m.index_by_letter
+--- Reset the module to a valid default state
 function JumpMode.initialize_indexes()
   JumpMode.buffer_by_letter = {}
   JumpMode.index_by_letter = {}
@@ -48,6 +48,8 @@ end
 
 -- local empty_bufnr = vim.api.nvim_create_buf(0, 1)
 
+--- @param bufnr integer
+--- @return nil|string assigned
 function JumpMode.assign_next_letter(bufnr)
   if JumpMode.letter_by_buffer[bufnr] ~= nil then
     return
@@ -84,10 +86,9 @@ function JumpMode.assign_next_letter(bufnr)
       return letter
     end
   end
-
-  return nil
 end
 
+--- @param letter string
 function JumpMode.unassign_letter(letter)
   if letter == '' or letter == nil then
     return
@@ -106,10 +107,14 @@ function JumpMode.unassign_letter(letter)
   JumpMode.reinitialize = true
 end
 
+--- @param bufnr integer
+--- @return string letter assiegned to `bufnr`
 function JumpMode.get_letter(bufnr)
   return JumpMode.letter_by_buffer[bufnr] or JumpMode.assign_next_letter(bufnr)
 end
 
+--- Unassign the letter which is assigned to `bufnr.`
+--- @param bufnr integer
 function JumpMode.unassign_letter_for(bufnr)
   JumpMode.unassign_letter(JumpMode.get_letter(bufnr))
 end
