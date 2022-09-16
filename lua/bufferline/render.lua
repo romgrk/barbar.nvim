@@ -39,6 +39,7 @@ local tabpagenr = vim.fn.tabpagenr
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf
+local set_current_win = vim.api.nvim_set_current_win
 
 --- @type bufferline.animate
 local animate = require'bufferline.animate'
@@ -598,8 +599,14 @@ function render.main_click_handler(bufnr, _, btn, _)
   if btn == 'm' then
     bbye.bdelete(false, bufnr)
   else
-    render.set_current_win_listed_buffer()
-    set_current_buf(bufnr)
+    if vim.g.bufferline.use_winbar then
+      -- don't work properly in winbar since you can't detect
+      -- which window's bar was clicked
+      return
+    else
+      render.set_current_win_listed_buffer()
+      set_current_buf(bufnr)
+    end
   end
 end
 
