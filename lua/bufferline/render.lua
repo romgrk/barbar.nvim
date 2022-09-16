@@ -39,7 +39,6 @@ local tabpagenr = vim.fn.tabpagenr
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf
-local set_current_win = vim.api.nvim_set_current_win
 
 --- @type bufferline.animate
 local animate = require'bufferline.animate'
@@ -942,6 +941,15 @@ end
 --- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
 --- @param update_names? boolean whether to refresh the names of the buffers (default: `false`)
 function render.update(update_names, refocus)
+  if vim.g.bufferline.use_winbar
+    and #vim.g.bufferline.winbar_disabled_filetypes > 0
+  then
+    local winid = vim.fn.win_getid(vim.fn.winnr())
+    if vim.tbl_contains(vim.g.bufferline.winbar_disabled_filetypes, buf_get_option(win_get_buf(winid), 'filetype')) then
+      return ''
+    end
+  end
+
   if vim.g.SessionLoad then
     return
   end

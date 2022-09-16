@@ -48,6 +48,7 @@ local DEFAULT_OPTIONS = {
   semantic_letters = true,
   tabpages = true,
   use_winbar = false,
+  winbar_disabled_filetypes = {},
 }
 
 -------------------------------
