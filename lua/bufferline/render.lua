@@ -505,6 +505,25 @@ function render.enable()
     }
   )
 
+  create_autocmd('WinEnter', {
+    callback = function()
+      vim.defer_fn(function()
+        if not vim.g.bufferline.use_winbar then
+          return
+        end
+
+        print(utils.win_is_floating(get_current_win()))
+
+        if utils.win_is_floating(get_current_win()) or vim.tbl_contains(vim.g.bufferline.winbar_disabled_filetypes or {}, buf_get_option(get_current_buf(), 'filetype')) then
+          vim.wo.winbar = ''
+        else
+          vim.wo.winbar = "%{%v:lua.require'bufferline.render'.update()%}"
+        end
+      end, 1)
+    end,
+    group = augroup_bufferline_update,
+  })
+
   create_autocmd('OptionSet', {
     callback = function() render.update() end,
     group = augroup_bufferline_update,
@@ -942,13 +961,6 @@ end
 --- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
 --- @param update_names? boolean whether to refresh the names of the buffers (default: `false`)
 function render.update(update_names, refocus)
-  if vim.g.bufferline.use_winbar
-    and #vim.g.bufferline.winbar_disabled_filetypes > 0
-    and vim.tbl_contains(vim.g.bufferline.winbar_disabled_filetypes, buf_get_option(win_get_buf(get_current_win()), 'filetype'))
-  then
-    return ''
-  end
-
   if vim.g.SessionLoad then
     return
   end

@@ -198,9 +198,9 @@ function bufferline.setup(options)
   -- Set the options and watchers for when they are edited
   vim.g.bufferline = options and tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
 
-  if vim.g.bufferline.use_winbar then
-    vim.opt.winbar = "%{%v:lua.require'bufferline.render'.update()%}"
-  else
+  -- winbar mode is set up in an autocmd on WinEnter
+  -- so that ignored filetypes are respected
+  if not vim.g.bufferline.use_winbar then
     -- Show the tabline
     vim.opt.showtabline = 2
   end

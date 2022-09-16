@@ -30,6 +30,10 @@ local function get_current_buf()
   return vim.api.nvim_get_current_buf()
 end
 
+local function win_is_floating(winnr)
+  return #(vim.api.nvim_win_get_config(winnr).relative or '') ~= 0
+end
+
 --- Generate a color.
 --- @param default integer|string a color name (`string`), GUI hex (`string`), or cterm color code (`integer`).
 --- @param groups string[] the groups to source the color from.
@@ -71,6 +75,7 @@ end
 return {
   get_current_buf = get_current_buf,
   get_current_win = get_current_win,
+  win_is_floating = win_is_floating,
   basename = function(path)
      return fnamemodify(path, ':t')
   end,
