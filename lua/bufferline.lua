@@ -1,6 +1,6 @@
 local command = vim.api.nvim_command
 local create_user_command = vim.api.nvim_create_user_command
-local get_current_buf = vim.api.nvim_get_current_buf
+local get_current_buf = require'bufferline.utils'.get_current_buf
 local tbl_extend = vim.tbl_extend
 local validate = vim.validate
 

@@ -10,9 +10,10 @@ local buf_get_name = vim.api.nvim_buf_get_name
 local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_get_option = vim.api.nvim_buf_get_option
 local bufwinnr = vim.fn.bufwinnr
-local get_current_buf = vim.api.nvim_get_current_buf
 local matchlist = vim.fn.matchlist
 local split = vim.split
+local get_current_buf = require'bufferline.utils'.get_current_buf
+local get_current_win = require'bufferline.utils'.get_current_win
 
 --- @type bufferline.utils
 local utils = require'bufferline.utils'
@@ -33,13 +34,15 @@ end
 
 --- @class bufferline.buffer
 return {
-  --- returns 0: none, 1: active, 2: current
+  --- returns 1: inactive, 2: visible, 3: current
   --- @param bufnr integer
   --- @return 1|2|3 # whether `bufnr` is inactive, visible, and currently selected (in that order).
   get_activity = function(bufnr)
     if get_current_buf() == bufnr then
       return 3
-    elseif not vim.g.bufferline.use_winbar and bufwinnr(bufnr) ~= -1 then
+    elseif vim.g.bufferline.use_winbar and bufwinnr(bufnr) ~= get_current_win() then
+      return 1
+    elseif bufwinnr(bufnr) ~= -1 then
       return 2
     end
 

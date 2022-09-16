@@ -9,10 +9,10 @@ local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
 local bufwinnr = vim.fn.bufwinnr
 local command = vim.api.nvim_command
-local get_current_buf = vim.api.nvim_get_current_buf
 local getchar = vim.fn.getchar
 local notify = vim.notify
 local set_current_buf = vim.api.nvim_set_current_buf
+local get_current_buf = require'bufferline.utils'.get_current_buf
 
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize

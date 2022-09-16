@@ -29,7 +29,6 @@ local command = vim.api.nvim_command
 local create_augroup = vim.api.nvim_create_augroup
 local create_autocmd = vim.api.nvim_create_autocmd
 local exec_autocmds = vim.api.nvim_exec_autocmds
-local get_current_buf = vim.api.nvim_get_current_buf
 local get_current_win = vim.api.nvim_get_current_win
 local list_wins = vim.api.nvim_list_wins
 local notify = vim.notify
@@ -39,6 +38,7 @@ local win_get_buf = vim.api.nvim_win_get_buf
 local win_is_valid = vim.api.nvim_win_is_valid
 local buf_get_option = vim.api.nvim_buf_get_option
 local buf_set_option = vim.api.nvim_buf_set_option
+local get_current_buf = require'bufferline.utils'.get_current_buf
 
 --- @type bufferline.state
 local state = require'bufferline.state'

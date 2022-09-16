@@ -7,6 +7,29 @@ local get_hl_by_name = vim.api.nvim_get_hl_by_name
 local list_slice = vim.list_slice
 local set_hl = vim.api.nvim_set_hl
 
+--- Get current window; in winbar mode,
+--- return the window in which the winbar is currently rendering
+--- @return number
+local function get_current_win()
+  if vim.g.bufferline.use_winbar then
+    return vim.fn.win_getid(vim.fn.winnr())
+  end
+
+  return vim.api.nvim_get_current_win()
+end
+
+--- Get the current buffer;
+--- in winbar mode, returns buffer that is active
+--- in the window in which the winbar is currently rendering
+--- @return number
+local function get_current_buf()
+  if vim.g.bufferline.use_winbar then
+    return vim.api.nvim_win_get_buf(get_current_win())
+  end
+
+  return vim.api.nvim_get_current_buf()
+end
+
 --- Generate a color.
 --- @param default integer|string a color name (`string`), GUI hex (`string`), or cterm color code (`integer`).
 --- @param groups string[] the groups to source the color from.
@@ -38,7 +61,7 @@ local function index_of(list, t)
   return nil
 end
 
-  --- @param path string
+--- @param path string
 --- @return string relative_path
 local function relative(path)
   return fnamemodify(path, ':~:.')
@@ -46,6 +69,8 @@ end
 
 --- @class bufferline.utils
 return {
+  get_current_buf = get_current_buf,
+  get_current_win = get_current_win,
   basename = function(path)
      return fnamemodify(path, ':t')
   end,

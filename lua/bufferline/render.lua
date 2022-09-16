@@ -22,7 +22,6 @@ local create_augroup = vim.api.nvim_create_augroup
 local create_autocmd = vim.api.nvim_create_autocmd
 local defer_fn = vim.defer_fn
 local exec_autocmds = vim.api.nvim_exec_autocmds
-local get_current_buf = vim.api.nvim_get_current_buf
 local has = vim.fn.has
 local haslocaldir = vim.fn.haslocaldir
 local list_bufs = vim.api.nvim_list_bufs
@@ -39,6 +38,8 @@ local tabpagenr = vim.fn.tabpagenr
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf
+local get_current_win = vim.api.nvim_get_current_win
+local get_current_buf = require'bufferline.utils'.get_current_buf
 
 --- @type bufferline.animate
 local animate = require'bufferline.animate'
@@ -111,7 +112,7 @@ local _scroll = {
 --- @return bufferline.render.scroll
 local function get_scroll()
   if vim.g.bufferline.use_winbar then
-    return _scroll[vim.fn.win_getid(vim.fn.winnr())] or _scroll.default
+    return _scroll[get_current_win()] or _scroll.default
   else
     return _scroll.default
   end
@@ -706,7 +707,7 @@ end
 local function generate_tabline(bufnrs, refocus)
   local opts = vim.g.bufferline
 
-  if opts.auto_hide then
+  if opts.auto_hide and not vim.g.bufferline.use_winbar then
     if #bufnrs <= 1 then
       if vim.o.showtabline == 2 then
         vim.o.showtabline = 0
@@ -943,11 +944,9 @@ end
 function render.update(update_names, refocus)
   if vim.g.bufferline.use_winbar
     and #vim.g.bufferline.winbar_disabled_filetypes > 0
+    and vim.tbl_contains(vim.g.bufferline.winbar_disabled_filetypes, buf_get_option(win_get_buf(get_current_win()), 'filetype'))
   then
-    local winid = vim.fn.win_getid(vim.fn.winnr())
-    if vim.tbl_contains(vim.g.bufferline.winbar_disabled_filetypes, buf_get_option(win_get_buf(winid), 'filetype')) then
-      return ''
-    end
+    return ''
   end
 
   if vim.g.SessionLoad then
