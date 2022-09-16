@@ -39,7 +39,7 @@ return {
   get_activity = function(bufnr)
     if get_current_buf() == bufnr then
       return 3
-    elseif bufwinnr(bufnr) ~= -1 then
+    elseif not vim.g.bufferline.use_winbar and bufwinnr(bufnr) ~= -1 then
       return 2
     end
 

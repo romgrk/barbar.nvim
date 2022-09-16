@@ -47,6 +47,7 @@ local DEFAULT_OPTIONS = {
   no_name_title = nil,
   semantic_letters = true,
   tabpages = true,
+  use_winbar = false,
 }
 
 -------------------------------
@@ -59,9 +60,6 @@ local bufferline = {}
 --- Setup this plugin.
 --- @param options? bufferline.Options
 function bufferline.setup(options)
-  -- Show the tabline
-  vim.opt.showtabline = 2
-
   -- Create all necessary commands
   create_user_command('BarbarEnable', render.enable, {desc = 'Enable barbar.nvim'})
   create_user_command('BarbarDisable', render.disable, {desc = 'Disable barbar.nvim'})
@@ -198,6 +196,13 @@ function bufferline.setup(options)
 
   -- Set the options and watchers for when they are edited
   vim.g.bufferline = options and tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
+
+  if vim.g.bufferline.use_winbar then
+    vim.opt.winbar = "%{%v:lua.require'bufferline.render'.update()%}"
+  else
+    -- Show the tabline
+    vim.opt.showtabline = 2
+  end
 
   highlight.setup()
   JumpMode.set_letters(vim.g.bufferline.letters)

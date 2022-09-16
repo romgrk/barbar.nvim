@@ -10,6 +10,7 @@ local table_insert = table.insert
 local buf_get_option = vim.api.nvim_buf_get_option
 local strwidth = vim.api.nvim_strwidth
 local tabpagenr = vim.fn.tabpagenr
+local win_get_width = vim.api.nvim_win_get_width
 
 --- @type bufferline.buffer
 local Buffer = require'bufferline.buffer'
@@ -106,6 +107,9 @@ function Layout.calculate()
     + 1 -- space-after-name
 
   local available_width = vim.o.columns
+  if vim.g.bufferline.use_winbar then
+    available_width = win_get_width(0);
+  end
   available_width = available_width - state.offset.width
 
   local used_width, base_widths = Layout.calculate_buffers_width(base_width)

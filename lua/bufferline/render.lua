@@ -104,7 +104,18 @@ local ANIMATION = {
 --- @class bufferline.render.scroll
 --- @field current integer the place where the bufferline is currently scrolled to
 --- @field target integer the place where the bufferline is scrolled/wants to scroll to.
-local scroll = {current = 0, target = 0}
+local _scroll = {
+  default = {current = 0, target = 0}
+}
+
+--- @return bufferline.render.scroll
+local function get_scroll()
+  if vim.g.bufferline.use_winbar then
+    return _scroll[vim.fn.win_getid(vim.fn.winnr())] or _scroll.default
+  else
+    return _scroll.default
+  end
+end
 
 --- Concatenates some `groups` into a valid string.
 --- @param groups bufferline.render.group[]
@@ -654,14 +665,14 @@ end
 --- Scroll the bufferline relative to its current position.
 --- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
 function render.scroll(n)
-  render.set_scroll(math.max(0, scroll.target + n))
+  render.set_scroll(math.max(0, get_scroll().target + n))
 end
 
 local scroll_animation = nil
 
 --- An incremental animation for `set_scroll`.
 local function set_scroll_tick(new_scroll, animation)
-  scroll.current = new_scroll
+  get_scroll().current = new_scroll
   if animation.running == false then
     scroll_animation = nil
   end
@@ -671,14 +682,14 @@ end
 --- Scrolls the bufferline to the `target`.
 --- @param target integer where to scroll to
 function render.set_scroll(target)
-  scroll.target = target
+  get_scroll().target = target
 
   if scroll_animation ~= nil then
     animate.stop(scroll_animation)
   end
 
   scroll_animation = animate.start(
-    ANIMATION.SCROLL_DURATION, scroll.current, target, vim.v.t_number,
+    ANIMATION.SCROLL_DURATION, get_scroll().current, target, vim.v.t_number,
     set_scroll_tick)
 end
 
@@ -844,10 +855,10 @@ local function generate_tabline(bufnrs, refocus)
       local start = current_buffer_position
       local end_  = current_buffer_position + item.width
 
-      if scroll.target > start then
+      if get_scroll().target > start then
         render.set_scroll(start)
-      elseif scroll.target + layout.buffers_width < end_ then
-        render.set_scroll(scroll.target + (end_ - (scroll.target + layout.buffers_width)))
+      elseif get_scroll().target + layout.buffers_width < end_ then
+        render.set_scroll(get_scroll().target + (end_ - (get_scroll().target + layout.buffers_width)))
       end
     end
 
@@ -889,7 +900,7 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Crop to scroll region
   local max_scroll = max(layout.actual_width - layout.buffers_width, 0)
-  local scroll_current = min(scroll.current, max_scroll)
+  local scroll_current = min(get_scroll().current, max_scroll)
   local buffers_end = layout.actual_width - scroll_current
 
   if buffers_end > layout.buffers_width then
@@ -942,6 +953,8 @@ function render.update(update_names, refocus)
     )
 
     return
+  elseif vim.g.bufferline.use_winbar then
+    return result
   elseif result ~= last_tabline then
     set_tabline(result)
   end
