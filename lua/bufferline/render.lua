@@ -512,8 +512,6 @@ function render.enable()
           return
         end
 
-        print(utils.win_is_floating(get_current_win()))
-
         if utils.win_is_floating(get_current_win()) or vim.tbl_contains(vim.g.bufferline.winbar_disabled_filetypes or {}, buf_get_option(get_current_buf(), 'filetype')) then
           vim.wo.winbar = ''
         else
