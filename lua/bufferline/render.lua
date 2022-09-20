@@ -505,7 +505,7 @@ function render.enable()
     }
   )
 
-  create_autocmd('BufEnter', {
+  create_autocmd({ 'BufEnter', 'BufWinEnter' }, {
     callback = function()
       vim.defer_fn(function()
         if not vim.g.bufferline.use_winbar then
