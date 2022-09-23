@@ -256,6 +256,9 @@ let bufferline.insert_at_end = v:false
 " Sets the maximum padding width with which to surround each tab.
 let bufferline.maximum_padding = 4
 
+" Sets the minimum padding width with which to surround each tab.
+let bufferline.minimum_padding = 1
+
 " Sets the maximum buffer name length.
 let bufferline.maximum_length = 30
 
@@ -327,6 +330,9 @@ require'bufferline'.setup {
 
   -- Sets the maximum padding width with which to surround each tab
   maximum_padding = 1,
+
+  -- Sets the minimum padding width with which to surround each tab
+  minimum_padding = 1,
 
   -- Sets the maximum buffer name length.
   maximum_length = 30,

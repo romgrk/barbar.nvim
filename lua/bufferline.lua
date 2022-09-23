@@ -43,6 +43,7 @@ local DEFAULT_OPTIONS = {
   insert_at_end = false,
   letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
   maximum_padding = 4,
+  minimum_padding = 1,
   maximum_length = 30,
   no_name_title = nil,
   semantic_letters = true,

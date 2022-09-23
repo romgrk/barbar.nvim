@@ -117,7 +117,7 @@ function Layout.calculate()
   local remaining_width              = max(buffers_width - used_width, 0)
   local remaining_width_per_buffer   = floor(remaining_width / buffers_length)
   local remaining_padding_per_buffer = floor(remaining_width_per_buffer / SIDES_OF_BUFFER)
-  local padding_width                = min(remaining_padding_per_buffer, opts.maximum_padding)
+  local padding_width                = max(opts.minimum_padding, min(remaining_padding_per_buffer, opts.maximum_padding))
   local actual_width                 = used_width + (buffers_length * padding_width * SIDES_OF_BUFFER)
 
   return {

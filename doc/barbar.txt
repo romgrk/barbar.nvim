@@ -283,6 +283,14 @@ Controls if icons are rendered on each tab.
     let g:bufferline.maximum_padding = 4
 <
 
+                                                *g:bufferline.minimum_padding*
+`g:bufferline.minimum_padding`  int  (default 1)
+
+  Sets the minimum padding width with which to surround each tab.
+>
+    let g:bufferline.minimum_padding = 1
+<
+
                                                  *g:bufferline.maximum_length*
 `g:bufferline.maximum_length`  int  (default 30)
 
