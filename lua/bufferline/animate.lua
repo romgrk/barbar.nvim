@@ -1,18 +1,17 @@
 --
 -- animate.lua
 --
-local M = {}
 
 local floor = math.floor
 
+--- @class bufferline.animate
+local animate = {}
+
+--- The amount of time between rendering the next part of the animation.
 local ANIMATION_FREQUENCY = 50
 
----Without arguments return a current high-resolution time in milliseconds.
----If `start` is passed, then return the time passed since given time point.
---difference between a given time point
----and the current one.
----@param start? number some time point in the past
----@return number time
+--- @param start? number some time point in the past
+--- @return number milliseconds If `start` is not `nil`, then the time passed since `start`. Else, return the current time
 local function time(start)
   local t = vim.loop.hrtime() / 1e6
   if start then
@@ -21,7 +20,7 @@ local function time(start)
   return t
 end
 
-function M.lerp(ratio, initial, final, delta_type)
+function animate.lerp(ratio, initial, final, delta_type)
   delta_type = delta_type or vim.v.t_number
 
   local range = final - initial
@@ -48,17 +47,17 @@ local function animate_tick(state)
 
   -- We're still good here
   if ratio < 1 then
-    local current = M.lerp(ratio, state.initial, state.final, state.type)
+    local current = animate.lerp(ratio, state.initial, state.final, state.type)
     state.fn(current, state)
   else
   -- Went overtime, stop the animation!
     state.running = false
     state.fn(state.final, state)
-    M.stop(state)
+    animate.stop(state)
   end
 end
 
-function M.start(duration, initial, final, type, callback)
+function animate.start(duration, initial, final, type, callback)
   local ticks = (duration / ANIMATION_FREQUENCY) + 10
 
   local state = {}
@@ -81,7 +80,7 @@ function M.start(duration, initial, final, type, callback)
   return state
 end
 
-function M.stop(state)
+function animate.stop(state)
   if state.timer then
     state.timer:stop()
     state.timer:close()
@@ -89,4 +88,4 @@ function M.stop(state)
   end
 end
 
-return M
+return animate

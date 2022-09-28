@@ -7,25 +7,45 @@ local max = math.max
 local min = math.min
 local table_insert = table.insert
 
-local strwidth = vim.api.nvim_strwidth
 local buf_get_option = vim.api.nvim_buf_get_option
+local strwidth = vim.api.nvim_strwidth
 local tabpagenr = vim.fn.tabpagenr
 
+--- @type bufferline.buffer
 local Buffer = require'bufferline.buffer'
 
+--- @type bufferline.state
+local state = require'bufferline.state'
+
+--- The number of sides of each buffer in the tabline.
 local SIDES_OF_BUFFER = 2
 
-local function calculate_tabpages_width()
+--- @class bufferline.layout.data
+--- @field actual_width integer
+--- @field available_width integer
+--- @field base_width integer
+--- @field base_widths integer
+--- @field buffers_width integer
+--- @field padding_width integer
+--- @field tabpages_width integer
+--- @field used_width integer
+
+--- @class bufferline.Layout
+local Layout = {}
+
+--- The number of characters needed to represent the tabpages.
+--- @return integer width
+function Layout.calculate_tabpages_width()
   local current = tabpagenr()
   local total   = tabpagenr('$')
   if not vim.g.bufferline.tabpages or total == 1 then
     return 0
   end
-  return 1 + strwidth(tostring(current)) + 1 + strwidth(tostring(total)) + 1
+  return 1 + tostring(current):len() + 1 + tostring(total):len() + 1
 end
 
 --- @param base_width integer
-local function calculate_buffers_width(state, base_width)
+function Layout.calculate_buffers_width(base_width)
   local opts = vim.g.bufferline
   local has_numbers = opts.icons == 'both' or opts.icons == 'numbers'
 
@@ -41,7 +61,7 @@ local function calculate_buffers_width(state, base_width)
       width = buffer_data.real_width
     else
       width = base_width
-        + strwidth(Buffer.get_activity(buffer_number) > 0 -- separator
+        + strwidth(Buffer.get_activity(buffer_number) > 1 -- separator
             and opts.icon_separator_active
             or opts.icon_separator_inactive)
         + strwidth(buffer_name) -- name
@@ -73,20 +93,9 @@ local function calculate_buffers_width(state, base_width)
   return sum, widths
 end
 
-local function calculate_buffers_position_by_buffer_number(state, layout)
-  local current_position = 0
-  local positions = {}
-
-  for i, buffer_number in ipairs(state.buffers) do
-    positions[buffer_number] = current_position
-    local width = layout.base_widths[i] + (2 * layout.padding_width)
-    current_position = current_position + width
-  end
-
-  return positions
-end
-
-local function calculate(state)
+--- Calculate the current layout of the bufferline.
+--- @return bufferline.layout.data
+function Layout.calculate()
   local opts = vim.g.bufferline
 
   local has_icons = (opts.icons == true) or (opts.icons == 'both') or (opts.icons == 'buffer_number_with_icon')
@@ -97,12 +106,10 @@ local function calculate(state)
     + 1 -- space-after-name
 
   local available_width = vim.o.columns
-  if state.offset then
-    available_width = available_width - state.offset
-  end
+  available_width = available_width - state.offset.width
 
-  local used_width, base_widths = calculate_buffers_width(state, base_width)
-  local tabpages_width = calculate_tabpages_width()
+  local used_width, base_widths = Layout.calculate_buffers_width(base_width)
+  local tabpages_width = Layout.calculate_tabpages_width()
 
   local buffers_width = available_width - tabpages_width
 
@@ -125,13 +132,27 @@ local function calculate(state)
   }
 end
 
-local function calculate_width(buffer_name, base_width, padding_width)
+--- @return {[integer]: integer} position_by_bufnr
+function Layout.calculate_buffers_position_by_buffer_number()
+  local current_position = 0
+  local layout = Layout.calculate()
+  local positions = {}
+
+  for i, buffer_number in ipairs(state.buffers) do
+    positions[buffer_number] = current_position
+    local width = layout.base_widths[i] + (2 * layout.padding_width)
+    current_position = current_position + width
+  end
+
+  return positions
+end
+
+--- @param buffer_name string
+--- @param base_width integer
+--- @param padding_width integer
+--- @return integer width
+function Layout.calculate_width(buffer_name, base_width, padding_width)
   return strwidth(buffer_name) + base_width + padding_width * SIDES_OF_BUFFER
 end
 
-return {
-  calculate = calculate,
-  calculate_buffers_width = calculate_buffers_width,
-  calculate_buffers_position_by_buffer_number = calculate_buffers_position_by_buffer_number,
-  calculate_width = calculate_width,
-}
+return Layout

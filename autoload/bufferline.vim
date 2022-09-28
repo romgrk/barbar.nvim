@@ -1,9 +1,9 @@
 function! bufferline#enable()
-  lua require'bufferline'.enable()
+  BarbarEnable
 endfunc
 
 function! bufferline#disable()
-  lua require'bufferline'.disable()
+  BarbarDisable
 endfunc
 
 "========================
@@ -11,15 +11,15 @@ endfunc
 "========================
 
 function! bufferline#update(...)
-  call luaeval("require'bufferline'.update(_A)", get(a:, 1, v:null))
+  call luaeval("require'bufferline.render'.update(_A)", get(a:, 1, v:null))
 endfu
 
 function! bufferline#update_async(...)
-  call luaeval("require'bufferline'.update_async(_A[1], _A[2])", [get(a:, 1, v:null), get(a:, 2, v:null)])
+  call timer_start(get(a:, 2, 1), {-> luaeval("require'bufferline.render'.update(_A)", get(a:, 1, v:null))})
 endfu
 
 function! bufferline#render(update_names) abort
-  call luaeval("require'bufferline'.render(_A)", a:update_names)
+  call bufferline#update(update_names)
 endfu
 
 function! bufferline#pick_buffer()
@@ -43,7 +43,7 @@ function! bufferline#order_by_window_number()
 endfunc
 
 function! bufferline#close(abuf)
-  call luaeval("require'bufferline.state'.close_buffer_animated(_A)", a:abuf)
+  call luaeval("require'bufferline.render'.close_buffer_animated(_A)", a:abuf)
 endfunc
 
 function! bufferline#close_direct(abuf)
