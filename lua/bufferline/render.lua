@@ -127,7 +127,7 @@ end
 --- @param groups bufferline.render.group[]
 --- @param position integer
 --- @param others bufferline.render.group[]
---- @return bufferline.render.group with_insertions[]
+--- @return bufferline.render.group[] with_insertions
 local function groups_insert(groups, position, others)
   local current_position = 0
 
