@@ -865,7 +865,7 @@ local function generate_tabline(bufnrs, refocus)
     local offset_available_width = state.offset.width - 2
     local groups = {{
       hl = hl_tabline(state.offset.hl or 'BufferOffset'),
-      text = ' ' .. (state.offset.text or ''),
+      text = ' ' .. state.offset.text,
     }}
 
     result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))

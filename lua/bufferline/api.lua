@@ -390,8 +390,8 @@ end
 --- @param hl? string
 function api.set_offset(width, text, hl)
   state.offset = width > 0 and
-    {hl = hl, text = text, width = width} or
-    {hl = nil, text = nil, width = 0}
+    {hl = hl, text = text or '', width = width} or
+    {hl = nil, text = '', width = 0}
 
   render.update()
 end
