@@ -211,10 +211,11 @@ local function move_buffer(from_idx, to_idx)
     return
   end
 
+  local animation = options.animation()
   local bufnr = state.buffers[from_idx]
 
   local previous_positions
-  if options.animation() == true then
+  if animation == true then
     previous_positions = Layout.calculate_buffers_position_by_buffer_number()
   end
 
@@ -222,7 +223,7 @@ local function move_buffer(from_idx, to_idx)
   table_insert(state.buffers, to_idx, bufnr)
   state.sort_pins_to_left()
 
-  if options.animation() == true then
+  if animation == true then
     local current_index = utils.index_of(state.buffers, bufnr)
     local start_index = min(from_idx, current_index)
     local end_index   = max(from_idx, current_index)

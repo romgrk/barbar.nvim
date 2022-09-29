@@ -49,7 +49,8 @@ end
 
 --- @param base_width integer
 function Layout.calculate_buffers_width(base_width)
-  local has_numbers = options.icons() == 'both' or options.icons() == 'numbers'
+  local icons = options.icons()
+  local has_numbers = icons == 'both' or icons == 'numbers'
 
   local sum = 0
   local widths = {}
@@ -98,7 +99,8 @@ end
 --- Calculate the current layout of the bufferline.
 --- @return bufferline.layout.data
 function Layout.calculate()
-  local has_icons = (options.icons() == true) or (options.icons() == 'both') or (options.icons() == 'buffer_number_with_icon')
+  local icons = options.icons()
+  local has_icons = (icons == true) or (icons == 'both') or (icons == 'buffer_number_with_icon')
 
   -- [icon + space-after-icon] + space-after-name
   local base_width =

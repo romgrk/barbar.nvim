@@ -712,12 +712,14 @@ local function generate_tabline(bufnrs, refocus)
     end
   end
 
+  local icons_enabled = options.icons()
+
   local click_enabled = has('tablineat') and options.clickable()
   local has_close = options.closable()
-  local has_icons = (options.icons() == true) or (options.icons() == 'both') or (options.icons() == 'buffer_number_with_icon')
+  local has_icons = (icons_enabled == true) or (icons_enabled == 'both') or (icons_enabled == 'buffer_number_with_icon')
   local has_icon_custom_colors = options.icon_custom_colors()
-  local has_buffer_number = (options.icons() == 'buffer_numbers') or (options.icons() == 'buffer_number_with_icon')
-  local has_numbers = (options.icons() == 'numbers') or (options.icons() == 'both')
+  local has_buffer_number = (icons_enabled == 'buffer_numbers') or (icons_enabled == 'buffer_number_with_icon')
+  local has_numbers = (icons_enabled == 'numbers') or (icons_enabled == 'both')
 
   local layout = Layout.calculate()
 
