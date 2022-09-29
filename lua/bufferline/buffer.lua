@@ -14,6 +14,9 @@ local get_current_buf = vim.api.nvim_get_current_buf
 local matchlist = vim.fn.matchlist
 local split = vim.split
 
+--- @type bufferline.options
+local options = require'bufferline.options'
+
 --- @type bufferline.utils
 local utils = require'bufferline.utils'
 
@@ -52,8 +55,8 @@ return {
     --- @type nil|string
     local name = buf_is_valid(bufnr) and buf_get_name(bufnr) or nil
 
-    local no_name_title = vim.g.bufferline.no_name_title
-    local maximum_length = vim.g.bufferline.maximum_length
+    local no_name_title = options.no_name_title()
+    local maximum_length = options.maximum_length()
 
     if name then
       name = buf_get_option(bufnr, 'buftype') == 'terminal' and terminalname(name) or utils.basename(name)

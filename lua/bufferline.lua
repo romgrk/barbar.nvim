@@ -1,7 +1,6 @@
 local command = vim.api.nvim_command
 local create_user_command = vim.api.nvim_create_user_command
 local get_current_buf = vim.api.nvim_get_current_buf
-local tbl_extend = vim.tbl_extend
 
 --- @type bufferline.api
 local api = require'bufferline.api'
@@ -15,39 +14,14 @@ local highlight = require'bufferline.highlight'
 --- @type bufferline.JumpMode
 local JumpMode = require'bufferline.jump_mode'
 
+--- @type bufferline.options
+local options = require'bufferline.options'
+
 --- @type bufferline.render
 local render = require'bufferline.render'
 
 --- @type bufferline.state
 local state = require'bufferline.state'
-
---- @class bufferline.Options the available options for this plugin, and their defaults.
---- @field exclude_ft string[]
---- @field exclude_name string[]
-local DEFAULT_OPTIONS = {
-  animation = true,
-  auto_hide = false,
-  clickable = true,
-  closable = true,
-  exclude_ft = {},
-  exclude_name = {},
-  icon_close_tab = '',
-  icon_close_tab_modified = '●',
-  icon_pinned = '',
-  icon_separator_active =   '▎',
-  icon_separator_inactive = '▎',
-  icons = true,
-  icon_custom_colors = false,
-  insert_at_start = false,
-  insert_at_end = false,
-  letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
-  maximum_padding = 4,
-  minimum_padding = 1,
-  maximum_length = 30,
-  no_name_title = nil,
-  semantic_letters = true,
-  tabpages = true,
-}
 
 -------------------------------
 -- Section: `bufferline` module
@@ -57,8 +31,8 @@ local DEFAULT_OPTIONS = {
 local bufferline = {}
 
 --- Setup this plugin.
---- @param options? bufferline.Options
-function bufferline.setup(options)
+--- @param user_config? table
+function bufferline.setup(user_config)
   -- Show the tabline
   vim.opt.showtabline = 2
 
@@ -193,10 +167,10 @@ function bufferline.setup(options)
   )
 
   -- Set the options and watchers for when they are edited
-  vim.g.bufferline = options and tbl_extend('keep', options, DEFAULT_OPTIONS) or DEFAULT_OPTIONS
+  vim.g.bufferline = user_config
 
   highlight.setup()
-  JumpMode.set_letters(vim.g.bufferline.letters)
+  JumpMode.set_letters(options.letters())
   render.enable()
 end
 

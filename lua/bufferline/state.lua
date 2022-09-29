@@ -16,6 +16,9 @@ local tbl_filter = vim.tbl_filter
 --- @type bufferline.buffer
 local Buffer = require'bufferline.buffer'
 
+--- @type bufferline.options
+local options = require'bufferline.options'
+
 --- @type bufferline.utils
 local utils = require'bufferline.utils'
 
@@ -75,8 +78,8 @@ function state.get_buffer_list()
   local buffers = list_bufs()
   local result = {}
 
-  local exclude_ft   = vim.g.bufferline.exclude_ft
- local exclude_name = vim.g.bufferline.exclude_name
+  local exclude_ft   = options.exclude_ft()
+  local exclude_name = options.exclude_name()
 
   for _, buffer in ipairs(buffers) do
     if not buf_get_option(buffer, 'buflisted') then
