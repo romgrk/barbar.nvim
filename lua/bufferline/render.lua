@@ -344,7 +344,7 @@ end
 --- @param layout bufferline.layout.data
 local function open_buffer_start_animation(layout, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
-  local index = utils.index_of(state.buffers, bufnr)
+  local index = utils.index_of(Layout.buffers, bufnr)
 
   buffer_data.real_width = Layout.calculate_width(layout.base_widths[index], layout.padding_width)
 
@@ -709,6 +709,7 @@ local function generate_tabline(bufnrs, refocus)
       end
       return
     end
+
     if vim.o.showtabline == 0 then
       vim.o.showtabline = 2
     end

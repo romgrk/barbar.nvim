@@ -36,7 +36,8 @@ local SIDES_OF_BUFFER = 2
 --- @field used_width integer
 
 --- @class bufferline.Layout
-local Layout = {}
+--- @field buffers integer[] different from `state.buffers` in that the `hide` option is respected. Only updated when calling `calculate_buffers_width`.
+local Layout = {buffers = {}}
 
 --- The number of characters needed to represent the tabpages.
 --- @return integer width
@@ -61,7 +62,7 @@ function Layout.calculate_buffers_width()
   local sum = 0
   local widths = {}
 
-  for i, bufnr in ipairs(state.buffers) do
+  for i, bufnr in ipairs(Layout.buffers) do
     local buffer_data = state.get_buffer_data(bufnr)
     local buffer_name = buffer_data.name or '[no name]'
 
@@ -107,12 +108,11 @@ function Layout.calculate()
 
   local buffers_width = available_width - tabpages_width
 
-  local buffers_length               = #state.buffers
   local remaining_width              = max(buffers_width - used_width, 0)
-  local remaining_width_per_buffer   = floor(remaining_width / buffers_length)
+  local remaining_width_per_buffer   = floor(remaining_width / #base_widths)
   local remaining_padding_per_buffer = floor(remaining_width_per_buffer / SIDES_OF_BUFFER)
   local padding_width                = max(options.minimum_padding(), min(remaining_padding_per_buffer, options.maximum_padding()))
-  local actual_width                 = used_width + (buffers_length * padding_width * SIDES_OF_BUFFER)
+  local actual_width                 = used_width + (#base_widths * padding_width * SIDES_OF_BUFFER)
 
   return {
     actual_width = actual_width,
@@ -131,7 +131,7 @@ function Layout.calculate_buffers_position_by_buffer_number()
   local layout = Layout.calculate()
   local positions = {}
 
-  for i, buffer_number in ipairs(state.buffers) do
+  for i, buffer_number in ipairs(Layout.buffers) do
     positions[buffer_number] = current_position
     local width = layout.base_widths[i] + (2 * layout.padding_width)
     current_position = current_position + width
