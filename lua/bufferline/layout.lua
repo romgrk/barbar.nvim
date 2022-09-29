@@ -52,6 +52,8 @@ end
 --- Calculate the width of the buffers
 --- @return integer sum, integer[] widths
 function Layout.calculate_buffers_width()
+  Layout.buffers = Buffer.hide(state.buffers)
+
   local icons_enabled = options.icons()
   local has_icons = (icons_enabled == true) or (icons_enabled == 'both') or (icons_enabled == 'buffer_number_with_icon')
   local has_numbers = icons_enabled == 'both' or icons_enabled == 'numbers'

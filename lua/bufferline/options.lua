@@ -46,6 +46,11 @@ function options.exclude_name()
   return get('exclude_name', {})
 end
 
+--- @return {current: nil|boolean, visible: nil|boolean, inactive: nil|boolean} hidden
+function options.hide()
+  return get('hide', {})
+end
+
 --- @return string icon
 function options.icon_close_tab()
   return get('icon_close_tab', '')

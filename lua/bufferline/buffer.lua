@@ -34,23 +34,24 @@ local function terminalname(name)
   end
 end
 
+--- @param bufnr integer
+--- @return 1|2|3 # whether `bufnr` is inactive, visible, and currently selected (in that order).
+local function get_activity(bufnr)
+  if get_current_buf() == bufnr then
+    return 3
+  elseif bufwinnr(bufnr) ~= -1 then
+    return 2
+  end
+
+  return 1
+end
+
 --- @class bufferline.buffer
 return {
-  --- returns 0: none, 1: active, 2: current
-  --- @param bufnr integer
-  --- @return 1|2|3 # whether `bufnr` is inactive, visible, and currently selected (in that order).
-  get_activity = function(bufnr)
-    if get_current_buf() == bufnr then
-      return 3
-    elseif bufwinnr(bufnr) ~= -1 then
-      return 2
-    end
+  get_activity = get_activity,
 
-    return 1
-  end,
-
-  ---
   --- @param bufnr integer
+  --- @return string name
   get_name = function(bufnr)
     --- @type nil|string
     local name = buf_is_valid(bufnr) and buf_get_name(bufnr) or nil
@@ -107,5 +108,30 @@ return {
     end
 
     return first_result, second_result
+  end,
+
+  --- Filter buffer numbers which are not to be shown during the render process.
+  --- Does not mutate `bufnrs`.
+  --- @param bufnrs integer[]
+  --- @return integer[] bufnrs
+  hide = function(bufnrs)
+    local hide = options.hide()
+    if hide.current or hide.inactive or hide.visible then
+      local shown = {}
+
+      for _, bufnr in ipairs(bufnrs) do
+        local activity = get_activity(bufnr)
+        if (activity == 1 and not hide.inactive) or
+           (activity == 2 and not hide.visible) or
+           (activity == 3 and not hide.current)
+        then
+          shown[#shown + 1] = bufnr
+        end
+      end
+
+      bufnrs = shown
+    end
+
+    return bufnrs
   end,
 }

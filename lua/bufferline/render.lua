@@ -943,8 +943,12 @@ function render.update(update_names, refocus)
     return
   end
 
-  local ok, result =
-    xpcall(generate_tabline, debug.traceback, render.get_updated_buffers(update_names), refocus)
+  local ok, result = xpcall(
+    generate_tabline,
+    debug.traceback,
+    Buffer.hide(render.get_updated_buffers(update_names)),
+    refocus
+  )
 
   if not ok then
     render.disable()
