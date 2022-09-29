@@ -29,6 +29,9 @@ local JumpMode = require'bufferline.jump_mode'
 --- @type bufferline.Layout
 local Layout = require'bufferline.layout'
 
+--- @type bufferline.options
+local options = require'bufferline.options'
+
 --- @type bufferline.render
 local render = require'bufferline.render'
 
@@ -211,7 +214,7 @@ local function move_buffer(from_idx, to_idx)
   local bufnr = state.buffers[from_idx]
 
   local previous_positions
-  if vim.g.bufferline.animation == true then
+  if options.animation() == true then
     previous_positions = Layout.calculate_buffers_position_by_buffer_number()
   end
 
@@ -219,7 +222,7 @@ local function move_buffer(from_idx, to_idx)
   table_insert(state.buffers, to_idx, bufnr)
   state.sort_pins_to_left()
 
-  if vim.g.bufferline.animation == true then
+  if options.animation() == true then
     local current_index = utils.index_of(state.buffers, bufnr)
     local start_index = min(from_idx, current_index)
     local end_index   = max(from_idx, current_index)

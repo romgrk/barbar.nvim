@@ -8,6 +8,9 @@ local split = vim.fn.split
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 
+--- @type bufferline.options
+local options = require'bufferline.options'
+
 ----------------------------------------
 -- Section: Buffer-picking mode state --
 ----------------------------------------
@@ -56,7 +59,7 @@ function JumpMode.assign_next_letter(bufnr)
   end
 
   -- First, try to assign a letter based on name
-  if vim.g.bufferline.semantic_letters == true then
+  if options.semantic_letters() == true then
     local name = fnamemodify(buf_get_name(bufnr), ':t:r')
 
     for i = 1, strwidth(name) do

@@ -14,6 +14,9 @@ local tabpagenr = vim.fn.tabpagenr
 --- @type bufferline.buffer
 local Buffer = require'bufferline.buffer'
 
+--- @type bufferline.options
+local options = require'bufferline.options'
+
 --- @type bufferline.state
 local state = require'bufferline.state'
 
@@ -38,7 +41,7 @@ local Layout = {}
 function Layout.calculate_tabpages_width()
   local current = tabpagenr()
   local total   = tabpagenr('$')
-  if not vim.g.bufferline.tabpages or total == 1 then
+  if not options.tabpages() or total == 1 then
     return 0
   end
   return 1 + tostring(current):len() + 1 + tostring(total):len() + 1
@@ -46,8 +49,7 @@ end
 
 --- @param base_width integer
 function Layout.calculate_buffers_width(base_width)
-  local opts = vim.g.bufferline
-  local has_numbers = opts.icons == 'both' or opts.icons == 'numbers'
+  local has_numbers = options.icons() == 'both' or options.icons() == 'numbers'
 
   local sum = 0
   local widths = {}
@@ -62,8 +64,8 @@ function Layout.calculate_buffers_width(base_width)
     else
       width = base_width
         + strwidth(Buffer.get_activity(buffer_number) > 1 -- separator
-            and opts.icon_separator_active
-            or opts.icon_separator_inactive)
+            and options.icon_separator_active()
+            or options.icon_separator_inactive())
         + strwidth(buffer_name) -- name
 
       if has_numbers then
@@ -74,12 +76,12 @@ function Layout.calculate_buffers_width(base_width)
 
       local is_pinned = state.is_pinned(buffer_number)
 
-      if opts.closable or is_pinned then
+      if options.closable() or is_pinned then
         local is_modified = buf_get_option(buffer_number, 'modified')
-        local icon = is_pinned and opts.icon_pinned or
+        local icon = is_pinned and options.icon_pinned() or
           (not is_modified -- close-icon
-            and opts.icon_close_tab
-             or opts.icon_close_tab_modified)
+            and options.icon_close_tab()
+             or options.icon_close_tab_modified())
 
         width = width
           + strwidth(icon)
@@ -96,9 +98,7 @@ end
 --- Calculate the current layout of the bufferline.
 --- @return bufferline.layout.data
 function Layout.calculate()
-  local opts = vim.g.bufferline
-
-  local has_icons = (opts.icons == true) or (opts.icons == 'both') or (opts.icons == 'buffer_number_with_icon')
+  local has_icons = (options.icons() == true) or (options.icons() == 'both') or (options.icons() == 'buffer_number_with_icon')
 
   -- [icon + space-after-icon] + space-after-name
   local base_width =
@@ -117,7 +117,7 @@ function Layout.calculate()
   local remaining_width              = max(buffers_width - used_width, 0)
   local remaining_width_per_buffer   = floor(remaining_width / buffers_length)
   local remaining_padding_per_buffer = floor(remaining_width_per_buffer / SIDES_OF_BUFFER)
-  local padding_width                = max(opts.minimum_padding, min(remaining_padding_per_buffer, opts.maximum_padding))
+  local padding_width                = max(options.minimum_padding(), min(remaining_padding_per_buffer, options.maximum_padding()))
   local actual_width                 = used_width + (buffers_length * padding_width * SIDES_OF_BUFFER)
 
   return {

@@ -61,6 +61,9 @@ local JumpMode = require'bufferline.jump_mode'
 --- @type bufferline.Layout
 local Layout = require'bufferline.layout'
 
+--- @type bufferline.options
+local options = require'bufferline.options'
+
 --- @type bufferline.state
 local state = require'bufferline.state'
 
@@ -277,7 +280,7 @@ end
 --- Same as `close_buffer`, but animated.
 --- @param bufnr integer
 function render.close_buffer_animated(bufnr)
-  if vim.g.bufferline.animation == false then
+  if options.animation() == false then
     return state.close_buffer(bufnr)
   end
 
@@ -348,7 +351,6 @@ end
 
 --- Open the `new_buffers` in the bufferline.
 local function open_buffers(new_buffers)
-  local opts = vim.g.bufferline
   local initial_buffers = #state.buffers
 
   -- Open next to the currently opened tab
@@ -365,8 +367,8 @@ local function open_buffers(new_buffers)
     if utils.index_of(state.buffers, new_buffer) == nil then
       local actual_index = new_index
 
-      local should_insert_at_start = opts.insert_at_start
-      local should_insert_at_end = opts.insert_at_end or
+      local should_insert_at_start = options.insert_at_start()
+      local should_insert_at_end = options.insert_at_end() or
         -- We add special buffers at the end
         buf_get_option(new_buffer, 'buftype') ~= ''
 
@@ -386,7 +388,7 @@ local function open_buffers(new_buffers)
   state.sort_pins_to_left()
 
   -- We're done if there is no animations
-  if opts.animation == false then
+  if options.animation() == false then
     return
   end
 
@@ -596,7 +598,7 @@ end
 --- @param key string what option was changed.
 function render.on_option_changed(_, key, _)
   if vim.g.bufferline and key == 'letters' then
-    JumpMode.set_letters(vim.g.bufferline.letters)
+    JumpMode.set_letters(options.letters())
   end
 end
 
@@ -687,9 +689,7 @@ end
 --- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
-  local opts = vim.g.bufferline
-
-  if opts.auto_hide then
+  if options.auto_hide() then
     if #bufnrs <= 1 then
       if vim.o.showtabline == 2 then
         vim.o.showtabline = 0
@@ -712,12 +712,12 @@ local function generate_tabline(bufnrs, refocus)
     end
   end
 
-  local click_enabled = has('tablineat') and opts.clickable
-  local has_close = opts.closable
-  local has_icons = (opts.icons == true) or (opts.icons == 'both') or (opts.icons == 'buffer_number_with_icon')
-  local has_icon_custom_colors = opts.icon_custom_colors
-  local has_buffer_number = (opts.icons == 'buffer_numbers') or (opts.icons == 'buffer_number_with_icon')
-  local has_numbers = (opts.icons == 'numbers') or (opts.icons == 'both')
+  local click_enabled = has('tablineat') and options.clickable()
+  local has_close = options.closable()
+  local has_icons = (options.icons() == true) or (options.icons() == 'both') or (options.icons() == 'buffer_number_with_icon')
+  local has_icon_custom_colors = options.icon_custom_colors()
+  local has_buffer_number = (options.icons() == 'buffer_numbers') or (options.icons() == 'buffer_number_with_icon')
+  local has_numbers = (options.icons() == 'numbers') or (options.icons() == 'both')
 
   local layout = Layout.calculate()
 
@@ -746,8 +746,8 @@ local function generate_tabline(bufnrs, refocus)
 
     local separatorPrefix = hl_tabline('Buffer' .. status .. 'Sign')
     local separator = is_inactive and
-      opts.icon_separator_inactive or
-      opts.icon_separator_active
+      options.icon_separator_inactive() or
+      options.icon_separator_active()
 
     local namePrefix = hl_tabline('Buffer' .. status .. mod)
     local name = buffer_name
@@ -797,10 +797,10 @@ local function generate_tabline(bufnrs, refocus)
     if has_close or is_pinned then
       local closeIcon =
         is_pinned and
-          opts.icon_pinned or
+          options.icon_pinned() or
         (not is_modified and
-          opts.icon_close_tab or
-          opts.icon_close_tab_modified)
+          options.icon_close_tab() or
+          options.icon_close_tab_modified())
 
       closePrefix = namePrefix
       close = closeIcon .. ' '
@@ -905,8 +905,8 @@ local function generate_tabline(bufnrs, refocus)
   -- To prevent the expansion of the last click group
   result = result .. '%0@BufferlineMainClickHandler@' .. hl_tabline('BufferTabpageFill')
 
-  if layout.actual_width + strwidth(opts.icon_separator_inactive) <= layout.buffers_width and #items > 0 then
-    result = result .. opts.icon_separator_inactive
+  if layout.actual_width + strwidth(options.icon_separator_inactive()) <= layout.buffers_width and #items > 0 then
+    result = result .. options.icon_separator_inactive()
   end
 
   local current_tabpage = tabpagenr()
