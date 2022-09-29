@@ -50,7 +50,13 @@ return {
         vim.log.levels.WARN,
         {title = 'barbar.nvim'}
       )
-      command('let g:bufferline.icons = v:false')
+
+      if type(vim.g.bufferline) == 'table' then
+        command('let g:bufferline.icons = v:false')
+      else
+        vim.g.bufferline = {icons = false}
+      end
+
       return '', ''
     end
 
