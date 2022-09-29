@@ -231,6 +231,9 @@ let bufferline.clickable = v:true
 let bufferline.exclude_ft = ['javascript']
 let bufferline.exclude_name = ['package.json']
 
+" Show every buffer
+let bufferline.hide = {'current': v:false, 'inactive': v:false, 'visible': v:false}
+
 " Enable/disable icons
 " if set to 'buffer_number', will show buffer number in the tabline
 " if set to 'numbers', will show buffer index in the tabline
@@ -305,6 +308,10 @@ require'bufferline'.setup {
   -- Excludes buffers from the tabline
   exclude_ft = {'javascript'},
   exclude_name = {'package.json'},
+
+  -- Show every buffer
+  hide = {current = false, inactive = false, visible = false},
+
 
   -- Enable/disable icons
   -- if set to 'numbers', will show buffer index in the tabline

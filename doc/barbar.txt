@@ -308,6 +308,15 @@ Controls if icons are rendered on each tab.
 >
     let g:bufferline.no_name_title = v:null
 <
+
+                                                           *g:bufferline.hide*
+`g:bufferline.hide`  table  (default |v:false| for all)
+
+  Sets which buffers are hidden in the bufferline: `current`, `inactive`, and
+  `visible` are possible.
+>
+    let g:bufferline.hide = {'current': v:false, 'inactive': v:true}
+<
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
 
