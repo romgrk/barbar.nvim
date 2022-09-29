@@ -1,7 +1,6 @@
 local command = vim.api.nvim_command
 local create_user_command = vim.api.nvim_create_user_command
 local get_current_buf = vim.api.nvim_get_current_buf
-local validate = vim.validate
 
 --- @type bufferline.api
 local api = require'bufferline.api'
@@ -55,11 +54,7 @@ function bufferline.setup(user_config)
 
   create_user_command(
     'BufferGoto',
-    function(tbl)
-      local index = tbl.args
-      validate {index = {index, 'number'}}
-      api.goto_buffer(index)
-    end,
+    function(tbl) api.goto_buffer(tonumber(tbl.args) or 1) end,
     {desc = 'Go to the buffer at the specified index', nargs = 1}
   )
 
