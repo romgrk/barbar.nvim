@@ -167,7 +167,7 @@ function bufferline.setup(user_config)
   )
 
   -- Set the options and watchers for when they are edited
-  vim.g.bufferline = user_config
+  vim.g.bufferline = user_config or vim.empty_dict()
 
   highlight.setup()
   JumpMode.set_letters(options.letters())
