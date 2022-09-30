@@ -56,6 +56,7 @@ The name of each command should be descriptive enough for you to use it.
     "                          :BufferWipeout<CR>
     " Close commands
     "                          :BufferCloseAllButCurrent<CR>
+    "                          :BufferCloseAllButVisible<CR>
     "                          :BufferCloseAllButPinned<CR>
     "                          :BufferCloseAllButCurrentOrPinned<CR>
     "                          :BufferCloseBuffersLeft<CR>

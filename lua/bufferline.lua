@@ -131,6 +131,12 @@ function bufferline.setup(user_config)
   )
 
   create_user_command(
+    'BufferCloseAllButVisible',
+    api.close_all_but_visible,
+    {desc = 'Close every buffer except those in visible windows'}
+  )
+
+  create_user_command(
     'BufferCloseAllButPinned',
     api.close_all_but_pinned,
     {desc = 'Close every buffer except pinned buffers'}

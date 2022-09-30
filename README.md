@@ -136,6 +136,7 @@ nnoremap <silent>    <A-c> <Cmd>BufferClose<CR>
 "                          :BufferWipeout
 " Close commands
 "                          :BufferCloseAllButCurrent
+"                          :BufferCloseAllButVisible
 "                          :BufferCloseAllButPinned
 "                          :BufferCloseAllButCurrentOrPinned
 "                          :BufferCloseBuffersLeft

@@ -69,6 +69,11 @@ local function with_pin_order(order_func)
   end
 end
 
+-- Gets the buffer number of every visible buffer
+local function get_visible_buffers()
+  return vim.tbl_map(vim.api.nvim_win_get_buf, vim.api.nvim_list_wins())
+end
+
 --- @class bufferline.api
 local api = {}
 
@@ -78,6 +83,19 @@ function api.close_all_but_current()
 
   for _, bufnr in ipairs(state.buffers) do
     if bufnr ~= current_bufnr then
+      bbye.bdelete(false, bufnr)
+    end
+  end
+
+  render.update()
+end
+
+--- Close all open buffers, except those in visible windows.
+function api.close_all_but_visible()
+  local visible_bufnrs = get_visible_buffers()
+
+  for _, bufnr in ipairs(state.buffers) do
+    if not vim.tbl_contains(visible_bufnrs, bufnr) then
       bbye.bdelete(false, bufnr)
     end
   end
