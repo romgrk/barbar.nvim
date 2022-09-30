@@ -69,7 +69,8 @@ local function with_pin_order(order_func)
   end
 end
 
--- Gets the buffer number of every visible buffer
+--- Gets the buffer number of every visible buffer
+--- @return integer[]
 local function get_visible_buffers()
   return vim.tbl_map(vim.api.nvim_win_get_buf, vim.api.nvim_list_wins())
 end
