@@ -5,7 +5,12 @@
 --- @param key string
 --- @return T value
 local function get(key, default)
-  return (vim.g.bufferline or {})[key] or default
+  local value = (vim.g.bufferline or {})[key]
+  if value == nil or value == vim.NIL then
+    return default
+  else
+    return value
+  end
 end
 
 --- @class bufferline.options
