@@ -41,6 +41,9 @@ local state = require'bufferline.state'
 --- @type bufferline.utils
 local utils = require'bufferline.utils'
 
+--- @type bufferline.buffer
+local Buffer = require'bufferline.buffer'
+
 --- Shows an error that `bufnr` was not among the `state.buffers`
 --- @param bufnr integer
 local function notify_buffer_not_found(bufnr)
@@ -69,12 +72,6 @@ local function with_pin_order(order_func)
   end
 end
 
---- Gets the buffer number of every visible buffer
---- @return integer[]
-local function get_visible_buffers()
-  return vim.tbl_map(vim.api.nvim_win_get_buf, vim.api.nvim_list_wins())
-end
-
 --- @class bufferline.api
 local api = {}
 
@@ -93,10 +90,8 @@ end
 
 --- Close all open buffers, except those in visible windows.
 function api.close_all_but_visible()
-  local visible_bufnrs = get_visible_buffers()
-
   for _, bufnr in ipairs(state.buffers) do
-    if not vim.tbl_contains(visible_bufnrs, bufnr) then
+    if Buffer.get_activity(bufnr) < 2 then
       bbye.bdelete(false, bufnr)
     end
   end
