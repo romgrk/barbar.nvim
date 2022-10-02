@@ -107,20 +107,20 @@ function bufferline.setup(user_config)
     'BufferClose',
     function(tbl)
       local focus_buffer = state.find_next_buffer(get_current_buf())
-      bbye.bdelete(tbl.bang, tbl.args, tbl.mods, focus_buffer)
+      bbye.bdelete(tbl.bang, tbl.args, tbl.smods or tbl.mods, focus_buffer)
     end,
     {bang = true, complete = 'buffer', desc = 'Close the current buffer.', nargs = '?'}
   )
 
   create_user_command(
     'BufferDelete',
-    function(tbl) bbye.bdelete(tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl) bbye.bdelete(tbl.bang, tbl.args, tbl.smods or tbl.mods) end,
     {bang = true, complete = 'buffer', desc = 'Synonym for `:BufferClose`', nargs = '?'}
   )
 
   create_user_command(
     'BufferWipeout',
-    function(tbl) bbye.bwipeout(tbl.bang, tbl.args, tbl.mods) end,
+    function(tbl) bbye.bwipeout(tbl.bang, tbl.args, tbl.smods or tbl.mods) end,
     {bang = true, complete = 'buffer', desc = 'Wipe out the buffer', nargs = '?'}
   )
 

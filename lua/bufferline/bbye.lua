@@ -50,6 +50,22 @@ local utils = require'bufferline.utils'
 -- Section: helpers
 -------------------
 
+local cmd = vim.api.nvim_cmd and
+  --- @param action string
+  --- @param buffer_number integer
+  --- @param force? boolean
+  --- @param mods? {[string]: any}
+  function(action, buffer_number, force, mods)
+    vim.cmd[action] {bang = force, count = buffer_number, mods = mods}
+  end or
+  --- @param action string
+  --- @param buffer_number integer
+  --- @param force? boolean
+  --- @param mods? string
+  function(action, buffer_number, force, mods)
+    command(mods .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
+  end
+
 --- Use `vim.notify` to print an error `msg`
 --- @param msg string
 local function err(msg)
@@ -93,10 +109,10 @@ local bbye = {}
 --- @param action string the command to use to delete the buffer (e.g. `'bdelete'`)
 --- @param force boolean if true, forcefully delete the buffer
 --- @param buffer? integer|string the name of the buffer.
---- @param mods? string the modifiers to the command (e.g. `'verbose'`)
+--- @param mods? string|{[string]: any} the modifiers to the command (e.g. `'verbose'`)
 --- @param focus_id? number the preferred buffer to focus
 function bbye.delete(action, force, buffer, mods, focus_id)
-  local buffer_number = type(buffer) == 'string' and bufnr(buffer) or buffer or get_current_buf()
+  local buffer_number = type(buffer) == 'string' and bufnr(buffer) or tonumber(buffer) or get_current_buf()
   mods = mods or ''
 
   if buffer_number < 0 then
@@ -105,7 +121,13 @@ function bbye.delete(action, force, buffer, mods, focus_id)
   end
 
   local is_modified = buf_get_option(buffer_number, 'modified')
-  local has_confirm = vim.o.confirm or mods:match('conf') ~= nil
+
+  local has_confirm = vim.o.confirm
+  if type(mods) == 'table' then
+    has_confirm = has_confirm or mods.confirm
+  else
+    has_confirm = has_confirm or mods:match('conf') ~= nil
+  end
 
   if is_modified and not (force or has_confirm) then
     err("E89: No write since last change for buffer " .. buffer_number .. " (add ! to override)")
@@ -162,10 +184,7 @@ function bbye.delete(action, force, buffer, mods, focus_id)
   -- Using buflisted() over bufexists() because bufhidden=delete causes the
   -- buffer to still _exist_ even though it won't be :bdelete-able.
   if buflisted(buffer_number) == 1 and buffer_number ~= get_current_buf() then
-    local no_errors = pcall(function()
-      command(mods .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
-    end)
-
+    local no_errors = pcall(cmd, action, buffer_number, force, mods)
     if not no_errors then
       if vim.v.errmsg:match('E516') then
         set_current_buf(buffer_number)
