@@ -41,6 +41,9 @@ local state = require'bufferline.state'
 --- @type bufferline.utils
 local utils = require'bufferline.utils'
 
+--- @type bufferline.buffer
+local Buffer = require'bufferline.buffer'
+
 --- Shows an error that `bufnr` was not among the `state.buffers`
 --- @param bufnr integer
 local function notify_buffer_not_found(bufnr)
@@ -78,6 +81,17 @@ function api.close_all_but_current()
 
   for _, bufnr in ipairs(state.buffers) do
     if bufnr ~= current_bufnr then
+      bbye.bdelete(false, bufnr)
+    end
+  end
+
+  render.update()
+end
+
+--- Close all open buffers, except those in visible windows.
+function api.close_all_but_visible()
+  for _, bufnr in ipairs(state.buffers) do
+    if Buffer.get_activity(bufnr) < 2 then
       bbye.bdelete(false, bufnr)
     end
   end
