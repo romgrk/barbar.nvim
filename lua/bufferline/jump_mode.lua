@@ -91,6 +91,12 @@ function JumpMode.assign_next_letter(bufnr)
   end
 end
 
+--- @param bufnr integer
+--- @return string letter assiegned to `bufnr`
+function JumpMode.get_letter(bufnr)
+  return JumpMode.letter_by_buffer[bufnr] or JumpMode.assign_next_letter(bufnr)
+end
+
 --- @param letter string
 function JumpMode.unassign_letter(letter)
   if letter == '' or letter == nil then
@@ -110,16 +116,10 @@ function JumpMode.unassign_letter(letter)
   JumpMode.reinitialize = true
 end
 
---- @param bufnr integer
---- @return string letter assiegned to `bufnr`
-function JumpMode.get_letter(bufnr)
-  return JumpMode.letter_by_buffer[bufnr] or JumpMode.assign_next_letter(bufnr)
-end
-
 --- Unassign the letter which is assigned to `bufnr.`
 --- @param bufnr integer
 function JumpMode.unassign_letter_for(bufnr)
-  JumpMode.unassign_letter(JumpMode.get_letter(bufnr))
+  JumpMode.unassign_letter(JumpMode.letter_by_buffer[bufnr])
 end
 
 return JumpMode

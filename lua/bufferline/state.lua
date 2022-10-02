@@ -140,7 +140,8 @@ end
 
 -- Open/close buffers
 
---- Close the `bufnr`.
+--- Stop tracking the `bufnr` with barbar.
+--- WARN: does NOT close the buffer in Neovim (see `:h nvim_buf_delete`)
 --- @param bufnr integer
 --- @param do_name_update? boolean refreshes all buffer names iff `true`
 function state.close_buffer(bufnr, do_name_update)
