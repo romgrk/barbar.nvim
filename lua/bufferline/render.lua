@@ -420,11 +420,8 @@ function render.enable()
     group = augroup_bufferline,
   })
 
-  create_autocmd('BufDelete', {
-    callback = function(tbl)
-      JumpMode.unassign_letter_for(tbl.buf)
-      schedule(render.update)
-    end,
+  create_autocmd({'BufDelete', 'BufWipeout'}, {
+    callback = function(tbl) JumpMode.unassign_letter_for(tbl.buf) end,
     group = augroup_bufferline,
   })
 
@@ -488,7 +485,7 @@ function render.enable()
   })
 
   create_autocmd(
-    {'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWipeout', 'BufWritePost', 'SessionLoadPost', 'TabEnter', 'VimResized', 'WinEnter', 'WinLeave'},
+    {'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost', 'SessionLoadPost', 'TabEnter', 'VimResized', 'WinEnter', 'WinLeave'},
     {
       callback = function() render.update() end,
       group = augroup_bufferline_update,
