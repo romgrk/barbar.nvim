@@ -703,7 +703,7 @@ end
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   if options.auto_hide() then
-    if #bufnrs <= 1 then
+    if #bufnrs + #list_tabpages() < 3 then -- 3 because the condition for auto-hiding is 1 visible buffer and 1 tabpage (2).
       if vim.o.showtabline == 2 then
         vim.o.showtabline = 0
       end
