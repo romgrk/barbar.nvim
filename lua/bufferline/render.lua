@@ -274,14 +274,23 @@ local function close_buffer_animated_tick(bufnr, new_width, animation)
     return
   end
   animate.stop(animation)
-  state.close_buffer(bufnr, true)
+  render.close_buffer(bufnr, true)
+end
+
+--- Stop tracking the `bufnr` with barbar, and update the bufferline.
+--- WARN: does NOT close the buffer in Neovim (see `:h nvim_buf_delete`)
+--- @param bufnr integer
+--- @param do_name_update? boolean refreshes all buffer names iff `true`
+function render.close_buffer(bufnr, do_name_update)
+  state.close_buffer(bufnr, do_name_update)
+  render.update()
 end
 
 --- Same as `close_buffer`, but animated.
 --- @param bufnr integer
 function render.close_buffer_animated(bufnr)
   if options.animation() == false then
-    return state.close_buffer(bufnr)
+    return render.close_buffer(bufnr)
   end
 
   local buffer_data = state.get_buffer_data(bufnr)
@@ -550,7 +559,7 @@ function render.get_updated_buffers(update_names)
       did_change = true
 
       if buffer_data.real_width == nil then
-        state.close_buffer(buffer_number)
+        render.close_buffer(buffer_number)
       else
         render.close_buffer_animated(buffer_number)
       end
