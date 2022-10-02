@@ -205,11 +205,16 @@ end
 --- @param text nil|string
 --- @param hl nil|string
 function state.set_offset(width, text, hl)
-  vim.notify(
-    "`require'bufferline.state'.set_offset` is deprecated, use `require'bufferline.api'.set_offset` instead",
-    vim.log.levels.WARN,
-    {title = 'barbar.nvim'}
-  )
+  if vim.deprecate then
+    vim.deprecate('`bufferline.state.set_offset`', '`bufferline.api.set_offset`', '2.0.0', 'barbar.nvim')
+  else
+    vim.notify_once(
+      "`bufferline.state.set_offset` is deprecated, use `bufferline.api.set_offset` instead",
+      vim.log.levels.WARN,
+      {title = 'barbar.nvim'}
+    )
+  end
+
   require'bufferline.api'.set_offset(width, text, hl)
 end
 
