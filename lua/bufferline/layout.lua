@@ -5,7 +5,6 @@
 local floor = math.floor
 local max = math.max
 local min = math.min
-local table_insert = table.insert
 
 local buf_get_option = vim.api.nvim_buf_get_option
 local strwidth = vim.api.nvim_strwidth
@@ -90,7 +89,7 @@ function Layout.calculate_buffers_width(base_width)
       end
     end
     sum = sum + width
-    table_insert(widths, width)
+    widths[#widths + 1] = width
   end
 
   return sum, widths
