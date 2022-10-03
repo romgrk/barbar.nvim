@@ -63,7 +63,7 @@ local cmd = vim.api.nvim_cmd and
   --- @param force? boolean
   --- @param mods? string
   function(action, buffer_number, force, mods)
-    command(mods .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
+    command((mods or '') .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
   end
 
 --- Use `vim.notify` to print an error `msg`
@@ -113,7 +113,6 @@ local bbye = {}
 --- @param focus_id? number the preferred buffer to focus
 function bbye.delete(action, force, buffer, mods, focus_id)
   local buffer_number = type(buffer) == 'string' and bufnr(buffer) or tonumber(buffer) or get_current_buf()
-  mods = mods or ''
 
   if buffer_number < 0 then
     err("E516: No buffers were deleted. No match for " .. buffer)
@@ -125,7 +124,7 @@ function bbye.delete(action, force, buffer, mods, focus_id)
   local has_confirm = vim.o.confirm
   if type(mods) == 'table' then
     has_confirm = has_confirm or mods.confirm
-  else
+  elseif mods then
     has_confirm = has_confirm or mods:match('conf') ~= nil
   end
 
@@ -201,7 +200,7 @@ end
 --- 'bdelete' a buffer
 --- @param force boolean if true, forcefully delete the buffer
 --- @param buffer? integer|string the name of the buffer.
---- @param mods? string the modifiers to the command (e.g. `'verbose'`)
+--- @param mods? string|{[string]: any} the modifiers to the command (e.g. `'verbose'`)
 --- @param focus_id? number the preferred buffer to focus
 function bbye.bdelete(force, buffer, mods, focus_id)
   bbye.delete('bdelete', force, buffer, mods, focus_id)
@@ -210,7 +209,7 @@ end
 --- 'bwipeout' a buffer
 --- @param force boolean if true, forcefully delete the buffer
 --- @param buffer? integer|string the name of the buffer.
---- @param mods? string the modifiers to the command (e.g. `'verbose'`)
+--- @param mods? string|{[string]: any} the modifiers to the command (e.g. `'verbose'`)
 --- @param focus_id? number the preferred buffer to focus
 function bbye.bwipeout(force, buffer, mods, focus_id)
   bbye.delete('bwipeout', force, buffer, mods, focus_id)
