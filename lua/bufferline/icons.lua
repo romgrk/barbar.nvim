@@ -2,8 +2,6 @@
 -- get-icon.lua
 --
 
-local table_insert = table.insert
-
 local command = vim.api.nvim_command
 local fnamemodify = vim.fn.fnamemodify
 local hlexists = vim.fn.hlexists
@@ -13,6 +11,7 @@ local notify = vim.notify
 --- @type bufferline.utils.hl
 local hl = require'bufferline.utils'.hl
 
+--- @type boolean, {get_icon: fun(name: string, ext?: string, opts?: {default: nil|boolean}): string, string}
 local status, web = pcall(require, 'nvim-web-devicons')
 
 --- @class bufferline.icons.group
@@ -88,7 +87,7 @@ return {
         hl.bg_or_default({'Buffer' .. buffer_status}, 'none'),
         hl.fg_or_default({icon_hl}, 'none')
       )
-      table_insert(hl_groups, { buffer_status = buffer_status, icon_hl = icon_hl })
+      hl_groups[#hl_groups + 1] = { buffer_status = buffer_status, icon_hl = icon_hl }
     end
 
     return icon_char, icon_hl .. buffer_status

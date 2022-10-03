@@ -5,14 +5,17 @@
 local floor = math.floor
 local max = math.max
 local min = math.min
-local table_insert = table.insert
 
+local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
 local strwidth = vim.api.nvim_strwidth
 local tabpagenr = vim.fn.tabpagenr
 
 --- @type bufferline.buffer
 local Buffer = require'bufferline.buffer'
+
+--- @type bufferline.icons
+local icons = require'bufferline.icons'
 
 --- @type bufferline.options
 local options = require'bufferline.options'
@@ -26,8 +29,7 @@ local SIDES_OF_BUFFER = 2
 --- @class bufferline.layout.data
 --- @field actual_width integer
 --- @field available_width integer
---- @field base_width integer
---- @field base_widths integer
+--- @field base_widths integer[]
 --- @field buffers_width integer
 --- @field padding_width integer
 --- @field tabpages_width integer
@@ -47,50 +49,46 @@ function Layout.calculate_tabpages_width()
   return 1 + tostring(current):len() + 1 + tostring(total):len() + 1
 end
 
---- @param base_width integer
-function Layout.calculate_buffers_width(base_width)
-  local icons = options.icons()
-  local has_numbers = icons == 'both' or icons == 'numbers'
+--- Calculate the width of the buffers
+--- @return integer sum, integer[] widths
+function Layout.calculate_buffers_width()
+  local icons_enabled = options.icons()
+  local has_icons = (icons_enabled == true) or (icons_enabled == 'both') or (icons_enabled == 'buffer_number_with_icon')
+  local has_numbers = icons_enabled == 'both' or icons_enabled == 'numbers'
 
   local sum = 0
   local widths = {}
 
-  for i, buffer_number in ipairs(state.buffers) do
-    local buffer_data = state.get_buffer_data(buffer_number)
+  for i, bufnr in ipairs(state.buffers) do
+    local buffer_data = state.get_buffer_data(bufnr)
     local buffer_name = buffer_data.name or '[no name]'
 
-    local width
+    local width = 0
     if buffer_data.closing then
       width = buffer_data.real_width
     else
-      width = base_width
-        + strwidth(Buffer.get_activity(buffer_number) > 1 -- separator
-            and options.icon_separator_active()
-            or options.icon_separator_inactive())
-        + strwidth(buffer_name) -- name
+      width = strwidth(buffer_name) + 1 + -- name + space after name
+        strwidth(options['icon_separator_' .. (Buffer.get_activity(bufnr) > 1 and '' or 'in') .. 'active']()) -- separator
+
+      if has_icons then
+        local file_icon = icons.get_icon(buf_get_name(bufnr), buf_get_option(bufnr, 'filetype'), '')
+        width = width + strwidth(file_icon) + 1 -- icon + space after icon
+      end
 
       if has_numbers then
-        width = width
-          + #tostring(i) -- buffer-index
-          + 1 -- space-after-buffer-index
+        width = width + #tostring(i) + 1 -- buffer-index + space after buffer-index
       end
 
-      local is_pinned = state.is_pinned(buffer_number)
-
+      local is_pinned = state.is_pinned(bufnr)
       if options.closable() or is_pinned then
-        local is_modified = buf_get_option(buffer_number, 'modified')
-        local icon = is_pinned and options.icon_pinned() or
-          (not is_modified -- close-icon
-            and options.icon_close_tab()
-             or options.icon_close_tab_modified())
-
-        width = width
-          + strwidth(icon)
-          + 1 -- space-after-close-icon
+        width = width + strwidth(is_pinned and options.icon_pinned() or (
+          buf_get_option(bufnr, 'modified') and options.icon_close_tab_modified() or options.icon_close_tab()
+        )) + 1 -- pin-icon + space after pin-icon
       end
     end
+
     sum = sum + width
-    table_insert(widths, width)
+    widths[#widths + 1] = width
   end
 
   return sum, widths
@@ -99,18 +97,10 @@ end
 --- Calculate the current layout of the bufferline.
 --- @return bufferline.layout.data
 function Layout.calculate()
-  local icons = options.icons()
-  local has_icons = (icons == true) or (icons == 'both') or (icons == 'buffer_number_with_icon')
-
-  -- [icon + space-after-icon] + space-after-name
-  local base_width =
-    (has_icons and (1 + 1) or 0) -- icon + space-after-icon
-    + 1 -- space-after-name
-
   local available_width = vim.o.columns
   available_width = available_width - state.offset.width
 
-  local used_width, base_widths = Layout.calculate_buffers_width(base_width)
+  local used_width, base_widths = Layout.calculate_buffers_width()
   local tabpages_width = Layout.calculate_tabpages_width()
 
   local buffers_width = available_width - tabpages_width
@@ -125,7 +115,6 @@ function Layout.calculate()
   return {
     actual_width = actual_width,
     available_width = available_width,
-    base_width = base_width,
     base_widths = base_widths,
     buffers_width = buffers_width,
     padding_width = padding_width,
@@ -149,12 +138,11 @@ function Layout.calculate_buffers_position_by_buffer_number()
   return positions
 end
 
---- @param buffer_name string
 --- @param base_width integer
 --- @param padding_width integer
 --- @return integer width
-function Layout.calculate_width(buffer_name, base_width, padding_width)
-  return strwidth(buffer_name) + base_width + padding_width * SIDES_OF_BUFFER
+function Layout.calculate_width(base_width, padding_width)
+  return base_width + (padding_width * SIDES_OF_BUFFER)
 end
 
 return Layout

@@ -2,7 +2,6 @@
 -- m.lua
 --
 
-local table_insert = table.insert
 local table_remove = table.remove
 
 local buf_get_name = vim.api.nvim_buf_get_name
@@ -97,7 +96,7 @@ function state.get_buffer_list()
       goto continue
     end
 
-    table_insert(result, buffer)
+    result[#result + 1] = buffer
 
     ::continue::
   end
@@ -123,7 +122,7 @@ function state.sort_pins_to_left()
     if state.is_pinned(state.buffers[i]) then
       i = i + 1
     else
-      table_insert(unpinned, table_remove(state.buffers, i))
+      unpinned[#unpinned + 1] = table_remove(state.buffers, i)
     end
   end
 
