@@ -341,9 +341,12 @@ end
 
 --- Opens a buffer with animation.
 --- @param bufnr integer
+--- @param layout bufferline.layout.data
 local function open_buffer_start_animation(layout, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
-  buffer_data.real_width = Layout.calculate_width(buffer_data.name, layout.base_width, layout.padding_width)
+  local index = utils.index_of(state.buffers, bufnr)
+
+  buffer_data.real_width = Layout.calculate_width(layout.base_widths[index], layout.padding_width)
 
   local target_width = buffer_data.real_width
 
@@ -738,7 +741,7 @@ local function generate_tabline(bufnrs, refocus)
     local buffer_data = state.get_buffer_data(bufnr)
     local buffer_name = buffer_data.name or '[no name]'
 
-    buffer_data.real_width    = Layout.calculate_width(buffer_name, layout.base_width, layout.padding_width)
+    buffer_data.real_width    = Layout.calculate_width(layout.base_widths[i], layout.padding_width)
     buffer_data.real_position = current_buffer_position
 
     local activity = Buffer.get_activity(bufnr)

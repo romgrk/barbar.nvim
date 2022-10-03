@@ -11,6 +11,7 @@ local notify = vim.notify
 --- @type bufferline.utils.hl
 local hl = require'bufferline.utils'.hl
 
+--- @type boolean, {get_icon: fun(name: string, ext?: string, opts?: {default: nil|boolean}): string, string}
 local status, web = pcall(require, 'nvim-web-devicons')
 
 --- @class bufferline.icons.group
