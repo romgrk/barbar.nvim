@@ -512,7 +512,10 @@ function render.enable()
           return
         end
 
-        if utils.win_is_floating(get_current_win()) or vim.tbl_contains(vim.g.bufferline.winbar_disabled_filetypes or {}, buf_get_option(get_current_buf(), 'filetype')) then
+        if utils.win_is_floating(get_current_win())
+          or vim.tbl_contains(vim.g.bufferline.winbar_disabled_filetypes or {}, buf_get_option(get_current_buf(), 'filetype'))
+          or vim.tbl_contains(vim.g.bufferline.winbar_disabled_buftypes or {}, buf_get_option(get_current_buf(), 'buftype'))
+        then
           vim.wo.winbar = ''
         else
           vim.wo.winbar = "%{%v:lua.require'bufferline.render'.update()%}"

@@ -49,6 +49,7 @@ local DEFAULT_OPTIONS = {
   tabpages = true,
   use_winbar = false,
   winbar_disabled_filetypes = {},
+  winbar_disabled_buftypes = {},
 }
 
 -------------------------------
