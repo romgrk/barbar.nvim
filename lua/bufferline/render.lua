@@ -346,7 +346,11 @@ local function open_buffer_start_animation(layout, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
   local index = utils.index_of(Layout.buffers, bufnr)
 
-  buffer_data.real_width = Layout.calculate_width(layout.base_widths[index], layout.padding_width)
+  buffer_data.real_width = Layout.calculate_width(
+    layout.base_widths[index] or
+      Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1, options.index_buffers(), options.file_icons()),
+    layout.padding_width
+  )
 
   local target_width = buffer_data.real_width
 

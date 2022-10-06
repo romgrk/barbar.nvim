@@ -46,6 +46,12 @@ function options.exclude_name()
   return get('exclude_name', {})
 end
 
+--- @return boolean enabled
+function options.file_icons()
+  local enabled = options.icons()
+  return enabled == true or enabled == 'both' or enabled == 'buffer_number_with_icon'
+end
+
 --- @return {current: nil|boolean, visible: nil|boolean, inactive: nil|boolean} hidden
 function options.hide()
   return get('hide', {})
@@ -84,6 +90,12 @@ end
 --- @return boolean enabled
 function options.icon_custom_colors()
   return get('icon_custom_colors', false)
+end
+
+--- @return boolean enabled
+function options.index_buffers()
+  local enabled = options.icons()
+  return enabled == 'both' or enabled == 'numbers'
 end
 
 --- @return boolean enabled
