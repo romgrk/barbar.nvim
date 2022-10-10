@@ -156,8 +156,10 @@ end
 function api.goto_buffer(index)
   render.get_updated_buffers()
 
-  if index < 0 then
-    index = #state.buffers - index + 1
+  if index < -#state.buffers then
+    index = 1
+  elseif index < 0 then
+    index = #state.buffers + index + 1
   else
     index = math.max(1, math.min(index, #state.buffers))
   end
