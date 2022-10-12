@@ -154,17 +154,13 @@ end
 --- Set the current buffer to the `number`
 --- @param index integer
 function api.goto_buffer(index)
-  render.get_updated_buffers()
-
-  if index < -#state.buffers then
-    index = 1
-  elseif index < 0 then
+  if index < 0 then
     index = #state.buffers + index + 1
   else
-    index = math.max(1, math.min(index, #state.buffers))
+    index = math.min(index, #state.buffers)
   end
 
-  set_current_buf(state.buffers[index])
+  set_current_buf(state.buffers[math.max(1, index)])
 end
 
 --- Go to the buffer a certain number of buffers away from the current buffer.
