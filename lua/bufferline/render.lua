@@ -955,6 +955,7 @@ function render.update(update_names, refocus)
     return
   elseif result ~= last_tabline then
     set_tabline(result)
+    command('redrawtabline')
   end
 end
 
