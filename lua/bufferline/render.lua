@@ -955,7 +955,7 @@ function render.update(update_names, refocus)
     return
   elseif result ~= last_tabline then
     set_tabline(result)
-    vim.api.nvim_exec('redrawt', false)
+    command('redrawtabline')
   end
 end
 
