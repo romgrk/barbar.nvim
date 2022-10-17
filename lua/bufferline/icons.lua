@@ -2,10 +2,11 @@
 -- get-icon.lua
 --
 
+local buf_get_name = vim.api.nvim_buf_get_name
+local buf_get_option = vim.api.nvim_buf_get_option
 local command = vim.api.nvim_command
 local fnamemodify = vim.fn.fnamemodify
 local hlexists = vim.fn.hlexists
-local matchstr = vim.fn.matchstr
 local notify = vim.notify
 
 --- @type bufferline.utils.hl
@@ -36,11 +37,10 @@ return {
     end
  end,
 
-  --- @param buffer_name string
-  --- @param filetype string
+  --- @param bufnr integer
   --- @param buffer_status "Current"|"Inactive"|"Visible"
   --- @return string icon, string highlight_group
-  get_icon = function(buffer_name, filetype, buffer_status)
+  get_icon = function(bufnr, buffer_status)
     if status == false then
       notify(
         'barbar: bufferline.icons is set to v:true but "nvim-dev-icons" was not found.' ..
@@ -59,23 +59,20 @@ return {
       return '', ''
     end
 
-    local basename
-    local extension
-    local icon_char
-    local icon_hl
+    local basename, extension = '', ''
+    local filetype = buf_get_option(bufnr, 'filetype')
+    local icon_char, icon_hl = '', ''
 
     -- nvim-web-devicon only handles filetype icons, not other types (eg directory)
     -- thus we need to do some work here
     if filetype == 'netrw' or filetype == 'LuaTree' then
-      icon_char = ''
-      icon_hl = 'Directory'
+      icon_char, icon_hl = '', 'Directory'
     else
       if filetype == 'fugitive' or filetype == 'gitcommit' then
-        basename = 'git'
-        extension = 'git'
+        basename, extension = 'git', 'git'
       else
-        basename = fnamemodify(buffer_name, ':t')
-        extension = matchstr(basename, [[\v\.@<=\w+$]], '', '')
+        basename = fnamemodify(buf_get_name(bufnr), ':t')
+        extension = fnamemodify(basename, ':e')
       end
 
       icon_char, icon_hl = web.get_icon(basename, extension, { default = true })

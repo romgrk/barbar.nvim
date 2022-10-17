@@ -13,6 +13,12 @@ local function get(key, default)
   end
 end
 
+--- @class bufferline.options.hide
+--- @field current? boolean
+--- @field extensions? boolean
+--- @field inactive? boolean
+--- @field visible? boolean
+
 --- @class bufferline.options
 local options = {}
 
@@ -52,7 +58,7 @@ function options.file_icons()
   return enabled == true or enabled == 'both' or enabled == 'buffer_number_with_icon'
 end
 
---- @return {current: nil|boolean, visible: nil|boolean, inactive: nil|boolean} hidden
+--- @return bufferline.options.hide
 function options.hide()
   return get('hide', {})
 end

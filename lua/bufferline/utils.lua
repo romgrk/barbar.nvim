@@ -7,6 +7,9 @@ local get_hl_by_name = vim.api.nvim_get_hl_by_name
 local list_slice = vim.list_slice
 local set_hl = vim.api.nvim_set_hl
 
+--- @type bufferline.options
+local options = require'bufferline.options'
+
 --- Generate a color.
 --- @param default integer|string a color name (`string`), GUI hex (`string`), or cterm color code (`integer`).
 --- @param groups string[] the groups to source the color from.
@@ -47,7 +50,13 @@ end
 --- @class bufferline.utils
 return {
   basename = function(path)
-     return fnamemodify(path, ':t')
+    local modifier = ':t'
+
+    if options.hide().extensions then
+      modifier = modifier .. ':r'
+    end
+
+    return fnamemodify(path, modifier)
   end,
 
   --- Return whether element `n` is in a `list.
