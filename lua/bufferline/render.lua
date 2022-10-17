@@ -452,6 +452,11 @@ function render.enable()
 
   create_autocmd('User', {
     callback = function()
+      local commands = vim.g.session_save_commands
+      if not commands then
+        return
+      end
+
       -- We're allowed to use relative paths for buffers iff there are no tabpages
       -- or windows with a local directory (:tcd and :lcd)
       local use_relative_file_paths = true
@@ -480,7 +485,6 @@ function render.enable()
       end
 
       local bufarr = '{' .. table_concat(bufnames, ',') .. '}'
-      local commands = vim.g.session_save_commands
 
       commands[#commands + 1] = '" barbar.nvim'
       commands[#commands + 1] = "lua require'bufferline.render'.restore_buffers(" .. bufarr .. ")"
