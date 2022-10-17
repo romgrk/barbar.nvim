@@ -344,9 +344,13 @@ end
 --- @param layout bufferline.layout.data
 local function open_buffer_start_animation(layout, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
-  local index = utils.index_of(state.buffers, bufnr)
+  local index = utils.index_of(Layout.buffers, bufnr)
 
-  buffer_data.real_width = Layout.calculate_width(layout.base_widths[index], layout.padding_width)
+  buffer_data.real_width = Layout.calculate_width(
+    layout.base_widths[index] or
+      Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1, options.index_buffers(), options.file_icons()),
+    layout.padding_width
+  )
 
   local target_width = buffer_data.real_width
 
@@ -703,12 +707,13 @@ end
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   if options.auto_hide() then
-    if #bufnrs <= 1 then
+    if #bufnrs + #list_tabpages() < 3 then -- 3 because the condition for auto-hiding is 1 visible buffer and 1 tabpage (2).
       if vim.o.showtabline == 2 then
         vim.o.showtabline = 0
       end
       return
     end
+
     if vim.o.showtabline == 0 then
       vim.o.showtabline = 2
     end
@@ -943,8 +948,12 @@ function render.update(update_names, refocus)
     return
   end
 
-  local ok, result =
-    xpcall(generate_tabline, debug.traceback, render.get_updated_buffers(update_names), refocus)
+  local ok, result = xpcall(
+    generate_tabline,
+    debug.traceback,
+    Buffer.hide(render.get_updated_buffers(update_names)),
+    refocus
+  )
 
   if not ok then
     render.disable()

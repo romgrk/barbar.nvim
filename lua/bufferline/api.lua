@@ -190,7 +190,7 @@ local move_animation_data = nil
 local function move_buffer_animated_tick(ratio, current_animation)
   local data = move_animation_data
 
-  for _, current_number in ipairs(state.buffers) do
+  for _, current_number in ipairs(Layout.buffers) do
     local current_data = state.get_buffer_data(current_number)
 
     if current_animation.running == true then
@@ -236,7 +236,7 @@ local function move_buffer(from_idx, to_idx)
   state.sort_pins_to_left()
 
   if animation == true then
-    local current_index = utils.index_of(state.buffers, bufnr)
+    local current_index = utils.index_of(Layout.buffers, bufnr)
     local start_index = min(from_idx, current_index)
     local end_index   = max(from_idx, current_index)
 
@@ -248,15 +248,14 @@ local function move_buffer(from_idx, to_idx)
 
     local next_positions = Layout.calculate_buffers_position_by_buffer_number()
 
-    for i, _ in ipairs(state.buffers) do
-      local current_number = state.buffers[i]
-      local current_data = state.get_buffer_data(current_number)
+    for _, layout_bufnr  in ipairs(Layout.buffers) do
+      local current_data = state.get_buffer_data(layout_bufnr)
 
-      local previous_position = previous_positions[current_number]
-      local next_position     = next_positions[current_number]
+      local previous_position = previous_positions[layout_bufnr]
+      local next_position     = next_positions[layout_bufnr]
 
       if next_position ~= previous_position then
-        current_data.position = previous_positions[current_number]
+        current_data.position = previous_positions[layout_bufnr]
         current_data.moving = true
       end
     end
