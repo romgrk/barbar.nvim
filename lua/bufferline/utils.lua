@@ -7,9 +7,6 @@ local get_hl_by_name = vim.api.nvim_get_hl_by_name
 local list_slice = vim.list_slice
 local set_hl = vim.api.nvim_set_hl
 
---- @type bufferline.options
-local options = require'bufferline.options'
-
 --- Generate a color.
 --- @param default integer|string a color name (`string`), GUI hex (`string`), or cterm color code (`integer`).
 --- @param groups string[] the groups to source the color from.
@@ -49,10 +46,13 @@ end
 
 --- @class bufferline.utils
 return {
-  basename = function(path)
+  --- @param path string
+  --- @param hide_extension? boolean if `true`, exclude the extension of the file in the basename
+  --- @return string basename
+  basename = function(path, hide_extension)
     local modifier = ':t'
 
-    if options.hide().extensions then
+    if hide_extension then
       modifier = modifier .. ':r'
     end
 
@@ -155,4 +155,3 @@ return {
     return reversed
   end,
 }
-
