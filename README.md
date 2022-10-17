@@ -229,8 +229,11 @@ let bufferline.clickable = v:true
 let bufferline.exclude_ft = ['javascript']
 let bufferline.exclude_name = ['package.json']
 
-" Show every buffer
-let bufferline.hide = {'current': v:false, 'inactive': v:false, 'visible': v:false}
+" Hide file extensions
+let bufferline.file_extensions = v:false
+
+" Hide inactive buffers and file extensions. Other options are `current` and `visible`
+let bufferline.hide = {'extensions': v:true, 'inactive': v:true}
 
 " Enable/disable icons
 " if set to 'buffer_number', will show buffer number in the tabline
@@ -307,8 +310,8 @@ require'bufferline'.setup {
   exclude_ft = {'javascript'},
   exclude_name = {'package.json'},
 
-  -- Show every buffer
-  hide = {current = false, inactive = false, visible = false},
+  -- Hide inactive buffers and file extensions. Other options are `current` and `visible`
+  hide = {extensions = true, inactive = true},
 
 
   -- Enable/disable icons

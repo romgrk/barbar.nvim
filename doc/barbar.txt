@@ -312,11 +312,16 @@ Controls if icons are rendered on each tab.
                                                            *g:bufferline.hide*
 `g:bufferline.hide`  table  (default |v:false| for all)
 
-  Sets which buffers are hidden in the bufferline: `current`, `inactive`, and
-  `visible` are possible.
+  Sets which elements are hidden in the bufferline. Possible options are:
+
+  - `current`, which controls the visibility of the current buffer;
+  - `extensions`, which controls the visibility of file extensions;
+  - `inactive`, which controls the visibility of the inactive buffers; and
+  - `visible`, which controls the visibility of visible buffers.
 >
     let g:bufferline.hide = {'current': v:false, 'inactive': v:true}
 <
+
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
 
