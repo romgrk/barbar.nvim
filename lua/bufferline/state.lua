@@ -45,10 +45,10 @@ local state = {
 
   --- The offset of the tabline (from the left).
   --- @class bufferline.render.offset
-  --- @field hl nil|string the highlight group to use
-  --- @field text nil|string the text to fill the offset with
+  --- @field hl? string the highlight group to use
+  --- @field text string the text to fill the offset with
   --- @field width integer the size of the offset
-  offset = {width = 0}
+  offset = {text = '', width = 0}
 }
 
 --- Get the state of the `id`
@@ -202,8 +202,8 @@ end
 
 --- @deprecated exists for backwards compatability
 --- @param width integer
---- @param text nil|string
---- @param hl nil|string
+--- @param text? string
+--- @param hl? string
 function state.set_offset(width, text, hl)
   if vim.deprecate then
     vim.deprecate('`bufferline.state.set_offset`', '`bufferline.api.set_offset`', '2.0.0', 'barbar.nvim')
