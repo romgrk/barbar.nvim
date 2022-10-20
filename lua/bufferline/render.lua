@@ -499,7 +499,7 @@ function render.enable()
     pattern = 'SessionSavePre',
   })
 
-  create_autocmd('BufNew', {
+  create_autocmd({'BufNew', 'BufEnter'}, {
     callback = function() render.update(true) end,
     group = augroup_bufferline_update,
   })
