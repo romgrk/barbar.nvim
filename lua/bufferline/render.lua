@@ -636,10 +636,14 @@ function render.restore_buffers(bufnames)
 
   state.buffers = {}
   for _,name in ipairs(bufnames) do
-    state[#state + 1].buffers = bufadd(name)
+    table_insert(state.buffers, bufadd(name))
   end
 
-  render.update()
+  -- Update after a delay - sometimes buffer names aren't updated
+  local timer = vim.loop.new_timer()
+  timer:start(500, 1, vim.schedule_wrap(function()
+    render.update()
+  end))
 end
 
 --- Open the window which contained the buffer which was clicked on.
