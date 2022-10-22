@@ -499,7 +499,7 @@ function render.enable()
     pattern = 'SessionSavePre',
   })
 
-  create_autocmd({'BufNew', 'BufEnter'}, {
+  create_autocmd({'BufEnter', 'BufNew'}, {
     callback = function() render.update(true) end,
     group = augroup_bufferline_update,
   })
@@ -518,7 +518,7 @@ function render.enable()
     pattern = 'buflisted',
   })
 
-  create_autocmd('WinClosed', {
+  create_autocmd({'SessionLoadPost', 'WinClosed'}, {
     callback = function() schedule(render.update) end,
     group = augroup_bufferline_update,
   })
