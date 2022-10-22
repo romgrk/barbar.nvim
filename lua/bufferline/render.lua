@@ -740,7 +740,7 @@ local function generate_tabline(bufnrs, refocus)
   local has_close = options.closable()
   local has_icons = (icons_enabled == true) or (icons_enabled == 'both') or (icons_enabled == 'buffer_number_with_icon')
   local has_icon_custom_colors = options.icon_custom_colors()
-  local has_buffer_number = (icons_enabled == 'buffer_numbers') or (icons_enabled == 'buffer_number_with_icon')
+  local has_buffer_number = (icons_enabled == 'buffer_number') or (icons_enabled == 'buffer_number_with_icon')
   local has_numbers = (icons_enabled == 'numbers') or (icons_enabled == 'both')
 
   local layout = Layout.calculate()

@@ -175,9 +175,9 @@ Controls if icons are rendered on each tab.
 
   - If `v:false`, show neither |devicons| nor buffer numbers.
   - If `v:true`, show |devicons| for each buffer's |'filetype'|.
-  - If `"buffer_numbers"`, show the buffer number for current buffer.
   - If `"numbers"`, show the buffer index for current buffer.
   - If `"both"`, show the buffer index and |devicons|.
+  - If `"buffer_number"`, show the buffer number for current buffer.
   - If `"buffer_number_with_icon"`, show the buffer number for current buffer
     and |devicons|.
 
