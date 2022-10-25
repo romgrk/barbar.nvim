@@ -7,12 +7,14 @@ local min = math.min
 local table_concat = table.concat
 
 local buf_get_name = vim.api.nvim_buf_get_name
-local buf_is_valid = vim.api.nvim_buf_is_valid
 local buf_get_option = vim.api.nvim_buf_get_option
+local buf_is_valid = vim.api.nvim_buf_is_valid
 local bufwinnr = vim.fn.bufwinnr
 local get_current_buf = vim.api.nvim_get_current_buf
 local matchlist = vim.fn.matchlist
 local split = vim.split
+local strcharpart = vim.fn.strcharpart
+local strwidth = vim.api.nvim_strwidth
 
 --- @type bufferline.options
 local options = require'bufferline.options'
@@ -70,19 +72,18 @@ return {
     end
 
     local ellipsis = '…'
-    local max_len = maximum_length
-    if #name > max_len then
+    if strwidth(name) > maximum_length then
       local ext_index = name:reverse():find('%.')
 
-      if ext_index ~= nil and (ext_index < max_len - #ellipsis) then
+      if ext_index ~= nil and (ext_index < maximum_length - #ellipsis) then
         local extension = name:sub(-ext_index)
-        name = name:sub(1, max_len - #ellipsis - #extension) .. ellipsis .. extension
+        name = strcharpart(name, 0, maximum_length - #ellipsis - #extension) .. ellipsis .. extension
       else
-        name = name:sub(1, max_len - #ellipsis) .. ellipsis
+        name = strcharpart(name, 0, maximum_length - #ellipsis) .. ellipsis
       end
 
       -- safety to prevent recursion in any future edge case
-      name = name:sub(1, max_len)
+      name = name:sub(1, maximum_length)
     end
 
     return name
