@@ -63,12 +63,14 @@ return {
 
     if name then
       name = buf_get_option(bufnr, 'buftype') == 'terminal' and terminalname(name) or utils.basename(name)
-    elseif no_name_title ~= nil and no_name_title ~= vim.NIL then
-      name = no_name_title
     end
 
     if name == '' or not name then
-      name = '[buffer ' .. bufnr .. ']'
+      if no_name_title ~= nil and no_name_title ~= vim.NIL then
+        name = no_name_title
+      else
+        name = '[buffer ' .. bufnr .. ']'
+      end
     end
 
     local ellipsis = '…'
