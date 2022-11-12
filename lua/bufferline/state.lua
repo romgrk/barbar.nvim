@@ -81,24 +81,16 @@ function state.get_buffer_list()
   local exclude_name = options.exclude_name()
 
   for _, buffer in ipairs(buffers) do
-    if not buf_get_option(buffer, 'buflisted') then
-      goto continue
+    if buf_get_option(buffer, 'buflisted') then
+      local ft = buf_get_option(buffer, 'filetype')
+      if not utils.has(exclude_ft, ft) then
+        local fullname = buf_get_name(buffer)
+        local name = utils.basename(fullname)
+        if not utils.has(exclude_name, name) then
+          result[#result + 1] = buffer
+        end
+      end
     end
-
-    local ft = buf_get_option(buffer, 'filetype')
-    if utils.has(exclude_ft, ft) then
-      goto continue
-    end
-
-    local fullname = buf_get_name(buffer)
-    local name = utils.basename(fullname)
-    if utils.has(exclude_name, name) then
-      goto continue
-    end
-
-    result[#result + 1] = buffer
-
-    ::continue::
   end
 
   return result
