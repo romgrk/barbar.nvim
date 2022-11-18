@@ -6,7 +6,6 @@ local floor = math.floor
 local max = math.max
 local min = math.min
 
-local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
 local strwidth = vim.api.nvim_strwidth
 local tabpagenr = vim.fn.tabpagenr
@@ -71,7 +70,7 @@ function Layout.calculate_buffer_width(bufnr, index, use_buffer_index, use_file_
     end
 
     if use_file_icon then
-      local file_icon = icons.get_icon(buf_get_name(bufnr), buf_get_option(bufnr, 'filetype'), '')
+      local file_icon = icons.get_icon(bufnr, '')
       width = width + strwidth(file_icon) + 1 -- icon + space after icon
     end
 

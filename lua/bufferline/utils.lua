@@ -46,8 +46,17 @@ end
 
 --- @class bufferline.utils
 return {
-  basename = function(path)
-     return fnamemodify(path, ':t')
+  --- @param path string
+  --- @param hide_extension? boolean if `true`, exclude the extension of the file in the basename
+  --- @return string basename
+  basename = function(path, hide_extension)
+    local modifier = ':t'
+
+    if hide_extension then
+      modifier = modifier .. ':r'
+    end
+
+    return fnamemodify(path, modifier)
   end,
 
   --- Return whether element `n` is in a `list.
@@ -146,4 +155,3 @@ return {
     return reversed
   end,
 }
-

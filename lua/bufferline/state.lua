@@ -77,8 +77,9 @@ function state.get_buffer_list()
   local buffers = list_bufs()
   local result = {}
 
-  local exclude_ft   = options.exclude_ft()
+  local exclude_ft = options.exclude_ft()
   local exclude_name = options.exclude_name()
+  local hide_extensions = options.hide().extensions
 
   for _, buffer in ipairs(buffers) do
     if buf_get_option(buffer, 'buflisted') then
@@ -166,10 +167,11 @@ end
 --- Update the names of all buffers in the bufferline.
 function state.update_names()
   local buffer_index_by_name = {}
+  local hide_extensions = options.hide().extensions
 
   -- Compute names
   for i, buffer_n in ipairs(state.buffers) do
-    local name = Buffer.get_name(buffer_n)
+    local name = Buffer.get_name(buffer_n, hide_extensions)
 
     if buffer_index_by_name[name] == nil then
       buffer_index_by_name[name] = i
