@@ -32,19 +32,17 @@ files you can even type the letter ahead from memory.
 
 #### Using [vim-plug](https://github.com/junegunn/vim-plug)
 ```vim
-Plug 'kyazdani42/nvim-web-devicons'
+Plug 'nvim-tree/nvim-web-devicons'
 Plug 'romgrk/barbar.nvim'
 ```
 
 #### Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
-use {
-  'romgrk/barbar.nvim',
-  requires = {'kyazdani42/nvim-web-devicons'}
-}
+use 'nvim-tree/nvim-web-devicons'
+use {'romgrk/barbar.nvim', wants = 'nvim-web-devicons'}
 ```
 
-You can skip the dependency on `'kyazdani42/nvim-web-devicons'` if you
+You can skip the dependency on `'nvim-tree/nvim-web-devicons'` if you
 [disable icons](#options).  If you want the icons, don't forget to
 install [nerd fonts](https://www.nerdfonts.com/).
 
