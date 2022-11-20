@@ -51,10 +51,11 @@ end
 
 --- @param bufnr integer the buffer to calculate the width of.
 --- @param index integer the buffer's numerical index
+--- @param diagnostics bufferline.options.diagnostics
 --- @param use_buffer_index boolean whether the buffer index is rendered
 --- @param use_file_icon boolean whether an filetype icon is rendered
 --- @return integer width
-function Layout.calculate_buffer_width(bufnr, index, use_buffer_index, use_file_icon)
+function Layout.calculate_buffer_width(bufnr, index, diagnostics, use_buffer_index, use_file_icon)
   local buffer_data = state.get_buffer_data(bufnr)
   local buffer_name = buffer_data.name or '[no name]'
   local width
@@ -70,9 +71,14 @@ function Layout.calculate_buffer_width(bufnr, index, use_buffer_index, use_file_
     end
 
     if use_file_icon then
+      --- @diagnostic disable-next-line:param-type-mismatch
       local file_icon = icons.get_icon(bufnr, '')
       width = width + strwidth(file_icon) + 1 -- icon + space after icon
     end
+
+    Buffer.for_each_counted_enabled_diagnostic(bufnr, diagnostics, function(c, d, _)
+      width = width + 1 + strwidth(d.icon) + #tostring(c) -- space before icon + icon + diagnostic count
+    end)
 
     local is_pinned = state.is_pinned(bufnr)
     if options.closable() or is_pinned then
@@ -90,14 +96,15 @@ end
 function Layout.calculate_buffers_width()
   Layout.buffers = Buffer.hide(state.buffers)
 
-  local use_file_icons = options.file_icons()
+  local diagnostics = options.diagnostics()
   local use_buffer_index = options.index_buffers()
+  local use_file_icons = options.file_icons()
 
   local sum = 0
   local widths = {}
 
   for i, bufnr in ipairs(Layout.buffers) do
-    local width = Layout.calculate_buffer_width(bufnr, i, use_buffer_index, use_file_icons)
+    local width = Layout.calculate_buffer_width(bufnr, i, diagnostics, use_buffer_index, use_file_icons)
     sum = sum + width
     widths[#widths + 1] = width
   end

@@ -1,3 +1,8 @@
+local ERROR = vim.diagnostic.severity.ERROR
+local HINT = vim.diagnostic.severity.HINT
+local INFO = vim.diagnostic.severity.INFO
+local WARN = vim.diagnostic.severity.WARN
+
 --- Retrieve some value under `key` from `g:bufferline`, or return a `default` if none was present.
 --- PERF: this implementation was profiled be an improvement over `vim.g.bufferline and vim.g.bufferline[key] or default`
 --- @generic T
@@ -12,6 +17,22 @@ local function get(key, default)
     return value
   end
 end
+
+--- @class bufferline.options.diagnostics.severity
+--- @field enabled boolean
+--- @field icon string
+
+--- @class bufferline.options.diagnostics
+--- @field [1] bufferline.options.diagnostics.severity
+--- @field [2] bufferline.options.diagnostics.severity
+--- @field [3] bufferline.options.diagnostics.severity
+--- @field [4] bufferline.options.diagnostics.severity
+local DEFAULT_DIAGNOSTICS = {
+  [ERROR] = {enabled = false, icon = 'Ⓧ '},
+  [HINT] = {enabled = false, icon = '💡'},
+  [INFO] = {enabled = false, icon = 'ⓘ '},
+  [WARN] = {enabled = false, icon = '⚠️ '},
+}
 
 --- @class bufferline.options.hide
 --- @field current? boolean
@@ -40,6 +61,11 @@ end
 --- @return boolean enabled
 function options.closable()
   return get('closable', true)
+end
+
+--- @return bufferline.options.diagnostics
+function options.diagnostics()
+  return vim.tbl_deep_extend('keep', get('diagnostics', {}), DEFAULT_DIAGNOSTICS)
 end
 
 --- @return string[] excluded
