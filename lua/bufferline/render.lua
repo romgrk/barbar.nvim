@@ -876,7 +876,6 @@ local function generate_tabline(bufnrs, refocus)
 
     vim.list_extend(item.groups, {
       {hl = '',          text = padding},
-      {hl = '',          text = ' '},
       {hl = closePrefix, text = close},
     })
 

@@ -63,8 +63,8 @@ function Layout.calculate_buffer_width(bufnr, index, diagnostics, use_buffer_ind
   if buffer_data.closing then
     width = buffer_data.real_width
   else
-    width = strwidth(buffer_name) + 1 + -- name + space after name
-      strwidth(options['icon_separator_' .. (Buffer.get_activity(bufnr) > 1 and '' or 'in') .. 'active']()) -- separator
+    local activity = Buffer.get_activity(bufnr) > 1 and 'active' or 'inactive'
+    width = strwidth(options['icon_separator_' .. activity]()) + strwidth(buffer_name) -- separator + name
 
     if use_buffer_index then
       width = width + #tostring(index) + 1 -- buffer-index + space after buffer-index
