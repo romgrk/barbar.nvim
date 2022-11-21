@@ -20,11 +20,11 @@ local options = require'bufferline.options'
 local letters = {}
 
 --- @class bufferline.JumpMode
---- @field private buffer_by_letter {[string]: integer} a bi-directional map of buffer integers and their letters.
+--- @field buffer_by_letter {[string]: integer} a bi-directional map of buffer integers and their letters.
 --- @field private index_by_letter {[string]: integer} `letters` in the order they were provided
 --- @field private letter_by_buffer {[integer]: string} a bi-directional map of buffer integers and their letters.
 --- @field private letter_status {[integer]: boolean}
---- @field private reinitialize boolean whether an `initialize_indexes` operation has been queued.
+--- @field reinitialize boolean whether an `initialize_indexes` operation has been queued.
 local JumpMode = {}
 
 --- Reset the module to a valid default state

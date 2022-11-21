@@ -55,8 +55,8 @@ local function notify_buffer_not_found(bufnr)
 end
 
 --- Forwards some `order_func` after ensuring that all buffers sorted in the order of pinned first.
---- @param order_func fun(bufnr_a: integer, bufnr_b: integer) accepts `(integer, integer)` params.
---- @return fun(bufnr_a: integer, bufnr_b: integer)
+--- @param order_func fun(bufnr_a: integer, bufnr_b: integer): boolean accepts `(integer, integer)` params.
+--- @return fun(bufnr_a: integer, bufnr_b: integer): boolean
 local function with_pin_order(order_func)
   return function(a, b)
     local a_pinned = state.is_pinned(a)

@@ -85,8 +85,7 @@ function state.get_buffer_list()
     if buf_get_option(buffer, 'buflisted') then
       local ft = buf_get_option(buffer, 'filetype')
       if not utils.has(exclude_ft, ft) then
-        local fullname = buf_get_name(buffer)
-        local name = utils.basename(fullname)
+        local name = utils.basename(buf_get_name(buffer), hide_extensions)
         if not utils.has(exclude_name, name) then
           result[#result + 1] = buffer
         end
