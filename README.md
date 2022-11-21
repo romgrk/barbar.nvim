@@ -225,6 +225,15 @@ let bufferline.closable = v:true
 "  - middle-click: delete buffer
 let bufferline.clickable = v:true
 
+" Enables / disables diagnostic symbols
+" ERROR / WARN / INFO / HINT
+let bufferline.diagnostics = [
+  \ {'enabled': v:true, 'icon': 'ﬀ'},
+  \ {'enabled': v:false},
+  \ {'enabled': v:false},
+  \ {'enabled': v:true},
+\]
+
 " Excludes buffers from the tabline
 let bufferline.exclude_ft = ['javascript']
 let bufferline.exclude_name = ['package.json']
@@ -305,6 +314,21 @@ require'bufferline'.setup {
   --  - left-click: go to buffer
   --  - middle-click: delete buffer
   clickable = true,
+
+  -- Enables / disables diagnostic symbols
+  diagnostics = {
+    -- you can use a list
+    {enabled = true, icon = 'ﬀ'}, -- ERROR
+    {enabled = false}, -- WARN
+    {enabled = false}, -- INFO
+    {enabled = true},  -- HINT
+
+    -- OR `vim.diagnostic.severity`
+    [vim.diagnostic.severity.ERROR] = {enabled = true, icon = 'ﬀ'},
+    [vim.diagnostic.severity.WARN] = {enabled = false},
+    [vim.diagnostic.severity.INFO] = {enabled = false},
+    [vim.diagnostic.severity.HINT] = {enabled = true},
+  },
 
   -- Excludes buffers from the tabline
   exclude_ft = {'javascript'},
