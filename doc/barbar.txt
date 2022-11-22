@@ -314,10 +314,13 @@ Controls if icons are rendered on each tab.
 
   Sets which elements are hidden in the bufferline. Possible options are:
 
+  - `alternate`, which controls the visibility of the alternate buffer
+    (`g:bufferline.highlight.alternate` must be |v:true|);
   - `current`, which controls the visibility of the current buffer;
   - `extensions`, which controls the visibility of file extensions;
   - `inactive`, which controls the visibility of the inactive buffers; and
-  - `visible`, which controls the visibility of visible buffers.
+  - `visible`, which controls the visibility of visible buffers
+    (`g:bufferline.highlight.visible` must be |v:true|).
 >
     let g:bufferline.hide = {'current': v:false, 'inactive': v:true}
 <
@@ -342,6 +345,18 @@ Controls if icons are rendered on each tab.
   - `enabled`, whether this diagnostics of this severity are shown in the
     bufferline.
   - `icon`, which controls what icon accompanies the number of diagnostics.
+
+                                                      *g:bufferline.highlight*
+`g:bufferline.highlight`  table  (default |v:false| for `alternate`, and
+                                        |v:true| for `visible`)
+
+  Enables highlighting certain types of buffers.
+
+  - `alternate`, which controls highlighting the alternate buffer; and
+  - `visible`, which controls the highlighting visible buffers.
+>
+    let g:bufferline.highlight = {'alternate': v:true, 'visible': v:false}
+<
 
 ==============================================================================
 5. Integrations                                          *barbar-integrations*

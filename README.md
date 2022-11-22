@@ -217,6 +217,9 @@ let bufferline.auto_hide = v:false
 " Enable/disable current/total tabpages indicator (top right corner)
 let bufferline.tabpages = v:true
 
+" Enable/disable distinguishing between certain types of buffers
+let bufferline.categories = {'alternate': v:false, 'visible': v:true},
+
 " Enable/disable close button
 let bufferline.closable = v:true
 
@@ -238,10 +241,7 @@ let bufferline.diagnostics = [
 let bufferline.exclude_ft = ['javascript']
 let bufferline.exclude_name = ['package.json']
 
-" Hide file extensions
-let bufferline.file_extensions = v:false
-
-" Hide inactive buffers and file extensions. Other options are `current` and `visible`
+" Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
 let bufferline.hide = {'extensions': v:true, 'inactive': v:true}
 
 " Enable/disable icons
@@ -307,6 +307,9 @@ require'bufferline'.setup {
   -- Enable/disable current/total tabpages indicator (top right corner)
   tabpages = true,
 
+  -- Enable/disable distinguishing between certain types of buffers
+  categories = {alternate = false, visible = true},
+
   -- Enable/disable close button
   closable = true,
 
@@ -334,7 +337,7 @@ require'bufferline'.setup {
   exclude_ft = {'javascript'},
   exclude_name = {'package.json'},
 
-  -- Hide inactive buffers and file extensions. Other options are `current` and `visible`
+  -- Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
   hide = {extensions = true, inactive = true},
 
 
