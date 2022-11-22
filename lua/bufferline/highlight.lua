@@ -7,6 +7,17 @@ local hl = require'bufferline.utils'.hl
 local icons = require 'bufferline.icons'
 
 -- Setup the highlight groups used by the plugin.
+hl.set_default_link('BufferAlternate', 'BufferDefaultAlternate')
+hl.set_default_link('BufferAlternateERROR', 'BufferDefaultAlternateERROR')
+hl.set_default_link('BufferAlternateHINT', 'BufferDefaultAlternateHINT')
+hl.set_default_link('BufferAlternateIcon', 'BufferAlternate')
+hl.set_default_link('BufferAlternateIndex', 'BufferDefaultAlternateIndex')
+hl.set_default_link('BufferAlternateINFO', 'BufferDefaultAlternateINFO')
+hl.set_default_link('BufferAlternateMod', 'BufferDefaultAlternateMod')
+hl.set_default_link('BufferAlternateSign', 'BufferDefaultAlternateSign')
+hl.set_default_link('BufferAlternateTarget', 'BufferDefaultAlternateTarget')
+hl.set_default_link('BufferAlternateWARN', 'BufferDefaultAlternateWARN')
+
 hl.set_default_link('BufferCurrent', 'BufferDefaultCurrent')
 hl.set_default_link('BufferCurrentERROR', 'BufferDefaultCurrentERROR')
 hl.set_default_link('BufferCurrentHINT', 'BufferDefaultCurrentHINT')
@@ -60,9 +71,10 @@ return {
     local fg_target = {cterm = 'red'}
     fg_target.gui = fg_target.cterm
 
-    local fg_current  = hl.fg_or_default({'Normal'}, '#efefef', 255)
-    local fg_visible  = hl.fg_or_default({'TabLineSel'}, '#efefef', 255)
+    local fg_alternate = hl.fg_or_default({'TabLineFill'}, '#ead0a0', 223)
+    local fg_current = hl.fg_or_default({'Normal'}, '#efefef', 255)
     local fg_inactive = hl.fg_or_default({'TabLineFill'}, '#888888', 102)
+    local fg_visible = hl.fg_or_default({'TabLineSel'}, '#efefef', 255)
 
     local fg_error = hl.fg_or_default({'ErrorMsg'}, '#A80000', 124)
     local fg_hint = hl.fg_or_default({'HintMsg'}, '#D5508F', 168)
@@ -70,13 +82,15 @@ return {
     local fg_warn = hl.fg_or_default({'WarningMsg'}, '#FF8900', 208)
 
     local fg_modified = hl.fg_or_default({'WarningMsg'}, '#E5AB0E', 178)
-    local fg_special  = hl.fg_or_default({'Special'}, '#599eff', 75)
+    local fg_special = hl.fg_or_default({'Special'}, '#599eff', 75)
     local fg_subtle = hl.fg_or_default({'NonText', 'Comment'}, '#555555', 240)
 
-    local bg_current  = hl.bg_or_default({'Normal'}, 'none')
-    local bg_visible  = hl.bg_or_default({'TabLineSel', 'Normal'}, 'none')
+    local bg_alternate = hl.bg_or_default({'TabLineSel', 'Normal'}, 'none')
+    local bg_current = hl.bg_or_default({'Normal'}, 'none')
+    local bg_visible = hl.bg_or_default({'TabLineSel', 'Normal'}, 'none')
     local bg_inactive = hl.bg_or_default({'TabLineFill', 'StatusLine'}, 'none')
 
+    --    Alternate: alternate buffer
     --      Current: current buffer
     --      Visible: visible but not current buffer
     --     Inactive: invisible but not current buffer
@@ -85,6 +99,16 @@ return {
     --         -Mod: when modified
     --        -Sign: the separator between buffers
     --      -Target: letter in buffer-picking mode
+    hl.set('BufferDefaultAlternate',        bg_alternate, fg_alternate)
+    hl.set('BufferDefaultAlternateERROR',   bg_alternate, fg_error)
+    hl.set('BufferDefaultAlternateHINT',    bg_alternate, fg_hint)
+    hl.set('BufferDefaultAlternateIndex',   bg_alternate, fg_special)
+    hl.set('BufferDefaultAlternateINFO',    bg_alternate, fg_info)
+    hl.set('BufferDefaultAlternateMod',     bg_alternate, fg_modified)
+    hl.set('BufferDefaultAlternateSign',    bg_alternate, fg_special)
+    hl.set('BufferDefaultAlternateTarget',  bg_alternate, fg_target, true)
+    hl.set('BufferDefaultAlternateWARN',    bg_alternate, fg_warn)
+
     hl.set('BufferDefaultCurrent',        bg_current, fg_current)
     hl.set('BufferDefaultCurrentERROR',   bg_current, fg_error)
     hl.set('BufferDefaultCurrentHINT',    bg_current, fg_hint)

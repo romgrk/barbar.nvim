@@ -6,6 +6,7 @@ local max = math.max
 local min = math.min
 local table_concat = table.concat
 
+local bufnr = vim.fn.bufnr
 local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
 local buf_is_valid = vim.api.nvim_buf_is_valid
@@ -27,6 +28,8 @@ local options = require'bufferline.options'
 --- @type bufferline.utils
 local utils = require'bufferline.utils'
 
+--- @alias bufferline.buffer.activity 1|2|3|4
+
 --- The character used to delimit paths (e.g. `/` or `\`).
 local separator = package.config:sub(1,1)
 
@@ -41,24 +44,28 @@ local function terminalname(name)
   end
 end
 
---- @param bufnr integer
---- @return 1|2|3 # whether `bufnr` is inactive, visible, and currently selected (in that order).
-local function get_activity(bufnr)
-  if get_current_buf() == bufnr then
+--- @param buffer_number integer
+--- @return bufferline.buffer.activity # whether `bufnr` is inactive, visible, the alternate file, or currently selected (in that order).
+local function get_activity(buffer_number)
+  local highlight = options.highlight()
+
+  if get_current_buf() == buffer_number then
+    return 4
+  elseif highlight.alternate and bufnr('#') == buffer_number then
     return 3
-  elseif bufwinnr(bufnr) ~= -1 then
+  elseif highlight.visible and bufwinnr(buffer_number) ~= -1 then
     return 2
   end
 
   return 1
 end
 
---- @param bufnr number
+--- @param buffer_number number
 --- @return {[number]: number} count keyed on `vim.diagnostic.severity`
-local function count_diagnostics(bufnr)
+local function count_diagnostics(buffer_number)
   local count = {[ERROR] = 0, [HINT] = 0, [INFO] = 0, [WARN] = 0}
 
-  for _, diagnostic in ipairs(get_diagnostics(bufnr)) do
+  for _, diagnostic in ipairs(get_diagnostics(buffer_number)) do
     count[diagnostic.severity] = count[diagnostic.severity] + 1
   end
 
@@ -69,15 +76,15 @@ end
 return {
   count_diagnostics = count_diagnostics,
 
-  --- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `bufnr` provided, call `f`.
-  --- @param bufnr integer the buffer number to count diagnostics in
+  --- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `buffer_number` provided, call `f`.
+  --- @param buffer_number integer the buffer number to count diagnostics in
   --- @param diagnostics bufferline.options.diagnostics the user configuration for diagnostics
-  --- @param f fun(count: integer, diagnostic: bufferline.options.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `bufnr`
-  for_each_counted_enabled_diagnostic = function(bufnr, diagnostics, f)
+  --- @param f fun(count: integer, diagnostic: bufferline.options.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
+  for_each_counted_enabled_diagnostic = function(buffer_number, diagnostics, f)
     local count
     for i, v in ipairs(diagnostics) do
       if v.enabled then
-        count = count or count_diagnostics(bufnr)
+        count = count or count_diagnostics(buffer_number)
         if count[i] > 0 then
           f(count[i], v, i)
         end
@@ -87,24 +94,24 @@ return {
 
   get_activity = get_activity,
 
-  --- @param bufnr integer
+  --- @param buffer_number integer
   --- @param hide_extensions boolean? if `true`, exclude the extension of the file
   --- @return string name
-  get_name = function(bufnr, hide_extensions)
+  get_name = function(buffer_number, hide_extensions)
     --- @type string
-    local name = buf_is_valid(bufnr) and buf_get_name(bufnr) or ''
+    local name = buf_is_valid(buffer_number) and buf_get_name(buffer_number) or ''
 
     local no_name_title = options.no_name_title()
     local maximum_length = options.maximum_length()
 
     if name ~= '' then
-      name = buf_get_option(bufnr, 'buftype') == 'terminal' and terminalname(name) or utils.basename(name, hide_extensions)
+      name = buf_get_option(buffer_number, 'buftype') == 'terminal' and terminalname(name) or utils.basename(name, hide_extensions)
     elseif no_name_title ~= nil and no_name_title ~= vim.NIL then
       name = no_name_title
     end
 
     if name == '' then
-      name = '[buffer ' .. bufnr .. ']'
+      name = '[buffer ' .. buffer_number .. ']'
     end
 
     local ellipsis = '…'
@@ -153,16 +160,13 @@ return {
   --- @return integer[] bufnrs
   hide = function(bufnrs)
     local hide = options.hide()
-    if hide.current or hide.inactive or hide.visible then
+    if hide.alternate or hide.current or hide.inactive or hide.visible then
       local shown = {}
 
-      for _, bufnr in ipairs(bufnrs) do
-        local activity = get_activity(bufnr)
-        if (activity == 1 and not hide.inactive) or
-           (activity == 2 and not hide.visible) or
-           (activity == 3 and not hide.current)
-        then
-          shown[#shown + 1] = bufnr
+      hide = {hide.inactive, hide.visible, hide.alternate, hide.current}
+      for _, buffer_number in ipairs(bufnrs) do
+        if not hide[get_activity(buffer_number)] then
+          shown[#shown + 1] = buffer_number
         end
       end
 

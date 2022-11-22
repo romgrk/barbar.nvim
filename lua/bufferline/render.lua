@@ -72,7 +72,7 @@ local state = require'bufferline.state'
 local utils = require'bufferline.utils'
 
 --- The highlight to use based on the state of a buffer.
-local HL_BY_ACTIVITY = {'Inactive', 'Visible', 'Current'}
+local HL_BY_ACTIVITY = {'Inactive', 'Visible', 'Alternate', 'Current'}
 
 --- Last value for tabline
 --- @type nil|string
@@ -768,8 +768,7 @@ local function generate_tabline(bufnrs, refocus)
 
     local activity = Buffer.get_activity(bufnr)
     local is_inactive = activity == 1
-    -- local is_visible = activity == 2
-    local is_current = activity == 3
+    local is_current = activity == 4
     local is_modified = buf_get_option(bufnr, 'modified')
     -- local is_closing = buffer_data.closing
     local is_pinned = state.is_pinned(bufnr)
@@ -820,7 +819,7 @@ local function generate_tabline(bufnrs, refocus)
       if has_icons then
         local iconChar, iconHl = icons.get_icon(bufnr, status)
         local hlName = is_inactive and 'BufferInactive' or iconHl
-        iconPrefix = has_icon_custom_colors and hl_tabline('Buffer' .. status .. 'Icon') or hlName and hl_tabline(hlName) or namePrefix
+        iconPrefix = has_icon_custom_colors and hl_tabline('Buffer' .. status .. 'Icon') or (hlName and hl_tabline(hlName) or namePrefix)
         icon = iconChar .. ' '
       end
     end
@@ -852,7 +851,6 @@ local function generate_tabline(bufnrs, refocus)
     local padding = (' '):rep(layout.padding_width)
 
     local item = {
-      is_current = is_current,
       width = buffer_data.width
         -- <padding> <base_widths[i]> <padding>
         or layout.base_widths[i] + (2 * layout.padding_width),
