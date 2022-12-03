@@ -6,6 +6,7 @@ local fnamemodify = vim.fn.fnamemodify
 local get_hl_by_name = vim.api.nvim_get_hl_by_name
 local list_slice = vim.list_slice
 local set_hl = vim.api.nvim_set_hl
+local hlexists = vim.fn.hlexists
 
 --- Generate a color.
 --- @param default integer|string a color name (`string`), GUI hex (`string`), or cterm color code (`integer`).
@@ -15,9 +16,11 @@ local set_hl = vim.api.nvim_set_hl
 --- @return integer|string color
 local function attribute_or_default(groups, index, default, guicolors)
   for _, group in ipairs(groups) do
-    local hl = get_hl_by_name(group, guicolors)
-    if hl[index] then
-      return guicolors and ('#%06x'):format(hl[index]) or hl[index]
+    if hlexists(group) > 0 then
+      local hl = get_hl_by_name(group, guicolors)
+      if hl[index] then
+        return guicolors and ('#%06x'):format(hl[index]) or hl[index]
+      end
     end
   end
 

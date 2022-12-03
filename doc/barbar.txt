@@ -322,6 +322,27 @@ Controls if icons are rendered on each tab.
     let g:bufferline.hide = {'current': v:false, 'inactive': v:true}
 <
 
+                                                    *g:bufferline.diagnostics*
+`g:bufferline.diagnostics`  list
+
+  Default: >
+  {
+    [vim.diagnostic.severity.ERROR] = {enabled = false, icon = 'Ⓧ '},
+    [vim.diagnostic.severity.HINT] = {enabled = false, icon = '💡'},
+    [vim.diagnostic.severity.INFO] = {enabled = false, icon = 'ⓘ '},
+    [vim.diagnostic.severity.WARN] = {enabled = false, icon = '⚠️ '},
+  }
+<
+
+  Enables or disables showing diagnostics in the bufferline. You can use
+  |vim.diagnostic.severity| or a list (e.g.
+  `{{enabled = true}, {enabled = true},` …`}`) in the order of
+  ERROR/WARN/INFO/HINT.
+
+  - `enabled`, whether this diagnostics of this severity are shown in the
+    bufferline.
+  - `icon`, which controls what icon accompanies the number of diagnostics.
+
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
 

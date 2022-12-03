@@ -10,11 +10,16 @@ local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
 local buf_is_valid = vim.api.nvim_buf_is_valid
 local bufwinnr = vim.fn.bufwinnr
+local ERROR = vim.diagnostic.severity.ERROR
 local get_current_buf = vim.api.nvim_get_current_buf
+local get_diagnostics = vim.diagnostic.get
+local HINT = vim.diagnostic.severity.HINT
+local INFO = vim.diagnostic.severity.INFO
 local matchlist = vim.fn.matchlist
 local split = vim.split
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
+local WARN = vim.diagnostic.severity.WARN
 
 --- @type bufferline.options
 local options = require'bufferline.options'
@@ -48,8 +53,38 @@ local function get_activity(bufnr)
   return 1
 end
 
+--- @param bufnr number
+--- @return {[number]: number} count keyed on `vim.diagnostic.severity`
+local function count_diagnostics(bufnr)
+  local count = {[ERROR] = 0, [HINT] = 0, [INFO] = 0, [WARN] = 0}
+
+  for _, diagnostic in ipairs(get_diagnostics(bufnr)) do
+    count[diagnostic.severity] = count[diagnostic.severity] + 1
+  end
+
+  return count
+end
+
 --- @class bufferline.buffer
 return {
+  count_diagnostics = count_diagnostics,
+
+  --- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `bufnr` provided, call `f`.
+  --- @param bufnr integer the buffer number to count diagnostics in
+  --- @param diagnostics bufferline.options.diagnostics the user configuration for diagnostics
+  --- @param f fun(count: integer, diagnostic: bufferline.options.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `bufnr`
+  for_each_counted_enabled_diagnostic = function(bufnr, diagnostics, f)
+    local count
+    for i, v in ipairs(diagnostics) do
+      if v.enabled then
+        count = count or count_diagnostics(bufnr)
+        if count[i] > 0 then
+          f(count[i], v, i)
+        end
+      end
+    end
+  end,
+
   get_activity = get_activity,
 
   --- @param bufnr integer

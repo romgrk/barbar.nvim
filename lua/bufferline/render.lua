@@ -32,6 +32,7 @@ local notify = vim.notify
 local schedule = vim.schedule
 local set_current_buf = vim.api.nvim_set_current_buf
 local set_current_win = vim.api.nvim_set_current_win
+local severity = vim.diagnostic.severity
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 local tabpage_list_wins = vim.api.nvim_tabpage_list_wins
@@ -348,7 +349,7 @@ local function open_buffer_start_animation(layout, bufnr)
 
   buffer_data.real_width = Layout.calculate_width(
     layout.base_widths[index] or
-      Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1, options.index_buffers(), options.file_icons()),
+      Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1, options.diagnostics(), options.index_buffers(), options.file_icons()),
     layout.padding_width
   )
 
@@ -505,7 +506,14 @@ function render.enable()
   })
 
   create_autocmd(
-    {'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost', 'SessionLoadPost', 'TabEnter', 'VimResized', 'WinEnter', 'WinLeave'},
+    {
+      'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost',
+      'CursorHold', 'CursorHoldI',
+      'SessionLoadPost',
+      'TabEnter',
+      'VimResized',
+      'WinEnter', 'WinLeave',
+    },
     {
       callback = function() render.update() end,
       group = augroup_bufferline_update,
@@ -734,12 +742,13 @@ local function generate_tabline(bufnrs, refocus)
     end
   end
 
+  local click_enabled = has('tablineat') and options.clickable()
+  local diagnostics = options.diagnostics()
+  local has_close = options.closable()
+  local has_icon_custom_colors = options.icon_custom_colors()
   local icons_enabled = options.icons()
 
-  local click_enabled = has('tablineat') and options.clickable()
-  local has_close = options.closable()
   local has_icons = (icons_enabled == true) or (icons_enabled == 'both') or (icons_enabled == 'buffer_number_with_icon')
-  local has_icon_custom_colors = options.icon_custom_colors()
   local has_buffer_number = (icons_enabled == 'buffer_numbers') or (icons_enabled == 'buffer_number_with_icon')
   local has_numbers = (icons_enabled == 'numbers') or (icons_enabled == 'both')
 
@@ -855,11 +864,20 @@ local function generate_tabline(bufnrs, refocus)
         {hl = clickable .. iconPrefix,      text = icon},
         {hl = jumpLetterPrefix,             text = jumpLetter},
         {hl = clickable .. namePrefix,      text = name},
-        {hl = '',                           text = padding},
-        {hl = '',                           text = ' '},
-        {hl = closePrefix,                  text = close},
       }
     }
+
+    Buffer.for_each_counted_enabled_diagnostic(bufnr, diagnostics, function(c, d, s)
+      table_insert(item.groups, {
+        hl = hl_tabline('Buffer' .. status .. severity[s]),
+        text = ' ' .. d.icon .. c,
+      })
+    end)
+
+    vim.list_extend(item.groups, {
+      {hl = '',          text = padding},
+      {hl = closePrefix, text = close},
+    })
 
     if is_current and refocus ~= false then
       current_buffer_index = i
