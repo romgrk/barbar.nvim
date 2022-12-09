@@ -91,19 +91,19 @@ return {
   --- @param hide_extensions boolean? if `true`, exclude the extension of the file
   --- @return string name
   get_name = function(bufnr, hide_extensions)
-    --- @type nil|string
-    local name = buf_is_valid(bufnr) and buf_get_name(bufnr) or nil
+    --- @type string
+    local name = buf_is_valid(bufnr) and buf_get_name(bufnr) or ''
 
     local no_name_title = options.no_name_title()
     local maximum_length = options.maximum_length()
 
-    if name then
+    if name ~= '' then
       name = buf_get_option(bufnr, 'buftype') == 'terminal' and terminalname(name) or utils.basename(name, hide_extensions)
     elseif no_name_title ~= nil and no_name_title ~= vim.NIL then
       name = no_name_title
     end
 
-    if name == '' or not name then
+    if name == '' then
       name = '[buffer ' .. bufnr .. ']'
     end
 
