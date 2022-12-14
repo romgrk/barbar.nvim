@@ -704,6 +704,11 @@ end
 function render.set_scroll(target)
   scroll.target = target
 
+  if not options.animation() then
+    scroll.current = target
+    return
+  end
+
   if scroll_animation ~= nil then
     animate.stop(scroll_animation)
   end
