@@ -2,7 +2,6 @@ local ERROR = vim.diagnostic.severity.ERROR
 local HINT = vim.diagnostic.severity.HINT
 local INFO = vim.diagnostic.severity.INFO
 local tbl_deep_extend = vim.tbl_deep_extend
-local tbl_extend = vim.tbl_extend
 local WARN = vim.diagnostic.severity.WARN
 
 --- Retrieve some value under `key` from `g:bufferline`, or return a `default` if none was present.
@@ -19,10 +18,6 @@ local function get(key, default)
     return value
   end
 end
-
-
---- @class bufferline.options.highlight
-local DEFAULT_HIGHLIGHTS = {alternate = false, visible = true}
 
 --- @class bufferline.options.diagnostics.severity
 --- @field enabled boolean
@@ -96,9 +91,14 @@ function options.hide()
   return get('hide', {})
 end
 
---- @return bufferline.options.highlight # `true` in a field enables distinguishing buffers of a particular kind
-function options.highlight()
-  return tbl_extend('keep', get('categories', {}), DEFAULT_HIGHLIGHTS)
+--- @return boolean
+function options.highlight_alternate()
+  return get('highlight_alternate', false)
+end
+
+--- @return boolean
+function options.highlight_visible()
+  return get('highlight_visible', true)
 end
 
 --- @return string icon

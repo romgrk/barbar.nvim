@@ -69,8 +69,6 @@ hl.set_default_link('BufferDefaultOffset', 'BufferDefaultTabpageFill')
 return {
   --- Setup the highlight groups for this plugin.
   setup = function()
-    local highlight = options.highlight()
-
     local fg_current = hl.fg_or_default({'Normal'}, '#efefef', 255)
     local fg_inactive = hl.fg_or_default({'TabLineFill'}, '#888888', 102)
     --- @type barbar.utils.hl.group
@@ -98,7 +96,7 @@ return {
     --         -Mod: when modified
     --        -Sign: the separator between buffers
     --      -Target: letter in buffer-picking mode
-    if highlight.alternate then
+    if options.highlight_alternate() then
       local fg_alternate = hl.fg_or_default({'TabLineFill'}, '#ead0a0', 223)
       local bg_alternate = hl.bg_or_default({'TabLineSel', 'Normal'}, 'none')
 
@@ -136,7 +134,7 @@ return {
     hl.set('BufferDefaultTabpageFill',    bg_inactive, fg_inactive)
     hl.set('BufferDefaultTabpages',       bg_inactive, fg_special, true)
 
-    if highlight.visible then
+    if options.highlight_visible() then
       local fg_visible = hl.fg_or_default({'TabLineSel'}, '#efefef', 255)
       local bg_visible = hl.bg_or_default({'TabLineSel', 'Normal'}, 'none')
 

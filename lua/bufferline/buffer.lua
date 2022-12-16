@@ -47,13 +47,11 @@ end
 --- @param buffer_number integer
 --- @return bufferline.buffer.activity # whether `bufnr` is inactive, visible, the alternate file, or currently selected (in that order).
 local function get_activity(buffer_number)
-  local highlight = options.highlight()
-
   if get_current_buf() == buffer_number then
     return 4
-  elseif highlight.alternate and bufnr('#') == buffer_number then
+  elseif options.highlight_alternate() and bufnr('#') == buffer_number then
     return 3
-  elseif highlight.visible and bufwinnr(buffer_number) ~= -1 then
+  elseif options.highlight_visible() and bufwinnr(buffer_number) ~= -1 then
     return 2
   end
 

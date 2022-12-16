@@ -346,16 +346,20 @@ Controls if icons are rendered on each tab.
     bufferline.
   - `icon`, which controls what icon accompanies the number of diagnostics.
 
-                                                      *g:bufferline.highlight*
-`g:bufferline.highlight`  table  (default |v:false| for `alternate`, and
-                                        |v:true| for `visible`)
+                                            *g:bufferline.highlight_alternate*
+`g:bufferline.highlight_alternate`  boolean  (default |v:false|)
 
-  Enables highlighting certain types of buffers.
-
-  - `alternate`, which controls highlighting the alternate buffer; and
-  - `visible`, which controls the highlighting visible buffers.
+  Enables highlighting of alternate buffers.
 >
-    let g:bufferline.highlight = {'alternate': v:true, 'visible': v:false}
+    let g:bufferline.highlight_alternate = v:true
+<
+
+                                              *g:bufferline.highlight_visible*
+`g:bufferline.highlight_visible`  boolean  (default |v:true|)
+
+  Enables highlighting of visible buffers.
+>
+    let g:bufferline.highlight_visible = v:true
 <
 
 ==============================================================================

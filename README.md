@@ -217,9 +217,6 @@ let bufferline.auto_hide = v:false
 " Enable/disable current/total tabpages indicator (top right corner)
 let bufferline.tabpages = v:true
 
-" Enable/disable distinguishing between certain types of buffers
-let bufferline.categories = {'alternate': v:false, 'visible': v:true},
-
 " Enable/disable close button
 let bufferline.closable = v:true
 
@@ -243,6 +240,12 @@ let bufferline.exclude_name = ['package.json']
 
 " Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
 let bufferline.hide = {'extensions': v:true, 'inactive': v:true}
+
+" Disable highlighting alternate buffers
+let bufferline.highlight_alternate = v:false
+
+" Enable highlighting visible buffers
+let bufferline.highlight_visible = v:true
 
 " Enable/disable icons
 " if set to 'buffer_number', will show buffer number in the tabline
@@ -307,9 +310,6 @@ require'bufferline'.setup {
   -- Enable/disable current/total tabpages indicator (top right corner)
   tabpages = true,
 
-  -- Enable/disable distinguishing between certain types of buffers
-  categories = {alternate = false, visible = true},
-
   -- Enable/disable close button
   closable = true,
 
@@ -340,6 +340,11 @@ require'bufferline'.setup {
   -- Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
   hide = {extensions = true, inactive = true},
 
+  -- Disable highlighting alternate buffers
+  highlight_alternate = false,
+
+  -- Enable highlighting visible buffers
+  highlight_visible = true,
 
   -- Enable/disable icons
   -- if set to 'numbers', will show buffer index in the tabline
