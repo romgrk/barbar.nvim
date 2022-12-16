@@ -238,11 +238,14 @@ let bufferline.diagnostics = [
 let bufferline.exclude_ft = ['javascript']
 let bufferline.exclude_name = ['package.json']
 
-" Hide file extensions
-let bufferline.file_extensions = v:false
-
-" Hide inactive buffers and file extensions. Other options are `current` and `visible`
+" Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
 let bufferline.hide = {'extensions': v:true, 'inactive': v:true}
+
+" Disable highlighting alternate buffers
+let bufferline.highlight_alternate = v:false
+
+" Enable highlighting visible buffers
+let bufferline.highlight_visible = v:true
 
 " Enable/disable icons
 " if set to 'buffer_number', will show buffer number in the tabline
@@ -334,9 +337,14 @@ require'bufferline'.setup {
   exclude_ft = {'javascript'},
   exclude_name = {'package.json'},
 
-  -- Hide inactive buffers and file extensions. Other options are `current` and `visible`
+  -- Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
   hide = {extensions = true, inactive = true},
 
+  -- Disable highlighting alternate buffers
+  highlight_alternate = false,
+
+  -- Enable highlighting visible buffers
+  highlight_visible = true,
 
   -- Enable/disable icons
   -- if set to 'numbers', will show buffer index in the tabline

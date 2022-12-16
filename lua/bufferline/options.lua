@@ -1,6 +1,7 @@
 local ERROR = vim.diagnostic.severity.ERROR
 local HINT = vim.diagnostic.severity.HINT
 local INFO = vim.diagnostic.severity.INFO
+local tbl_deep_extend = vim.tbl_deep_extend
 local WARN = vim.diagnostic.severity.WARN
 
 --- Retrieve some value under `key` from `g:bufferline`, or return a `default` if none was present.
@@ -35,6 +36,7 @@ local DEFAULT_DIAGNOSTICS = {
 }
 
 --- @class bufferline.options.hide
+--- @field alternate? boolean
 --- @field current? boolean
 --- @field extensions? boolean
 --- @field inactive? boolean
@@ -65,7 +67,7 @@ end
 
 --- @return bufferline.options.diagnostics
 function options.diagnostics()
-  return vim.tbl_deep_extend('keep', get('diagnostics', {}), DEFAULT_DIAGNOSTICS)
+  return tbl_deep_extend('keep', get('diagnostics', {}), DEFAULT_DIAGNOSTICS)
 end
 
 --- @return string[] excluded
@@ -87,6 +89,16 @@ end
 --- @return bufferline.options.hide
 function options.hide()
   return get('hide', {})
+end
+
+--- @return boolean
+function options.highlight_alternate()
+  return get('highlight_alternate', false)
+end
+
+--- @return boolean
+function options.highlight_visible()
+  return get('highlight_visible', true)
 end
 
 --- @return string icon
@@ -111,6 +123,11 @@ end
 
 --- @return string icon
 function options.icon_separator_inactive()
+  return get('icon_separator_inactive', '▎')
+end
+
+--- @return string icon
+function options.icon_separator_visible()
   return get('icon_separator_inactive', '▎')
 end
 
