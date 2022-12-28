@@ -91,8 +91,7 @@ end
 --- Close all open buffers, except those in visible windows.
 function api.close_all_but_visible()
   for _, bufnr in ipairs(state.buffers) do
-    local activity = Buffer.get_activity(bufnr)
-    if not (activity == 2 or activity == 4) then
+    if Buffer.get_activity(bufnr) < 3 then
       bbye.bdelete(false, bufnr)
     end
   end
