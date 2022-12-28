@@ -49,13 +49,11 @@ function Layout.calculate_tabpages_width()
   return 1 + tostring(current):len() + 1 + tostring(total):len() + 1
 end
 
---- @param bufnr integer the buffer to calculate the width of.
+--- @param bufnr integer the buffer to calculate the width of
 --- @param index integer the buffer's numerical index
---- @param diagnostics bufferline.options.diagnostics
---- @param use_buffer_index boolean whether the buffer index is rendered
---- @param use_file_icon boolean whether an filetype icon is rendered
+--- @param render {buffer_index: boolean, buffer_number: boolean, diagnostics: bufferline.options.diagnostics, file_icon: boolean}
 --- @return integer width
-function Layout.calculate_buffer_width(bufnr, index, diagnostics, use_buffer_index, use_file_icon)
+function Layout.calculate_buffer_width(bufnr, index, render)
   local buffer_data = state.get_buffer_data(bufnr)
   local buffer_name = buffer_data.name or '[no name]'
   local width
@@ -66,17 +64,19 @@ function Layout.calculate_buffer_width(bufnr, index, diagnostics, use_buffer_ind
     local activity = Buffer.get_activity(bufnr) > 1 and 'active' or 'inactive'
     width = strwidth(options['icon_separator_' .. activity]()) + strwidth(buffer_name) -- separator + name
 
-    if use_buffer_index then
+    if render.buffer_index then
       width = width + #tostring(index) + 1 -- buffer-index + space after buffer-index
+    elseif render.buffer_number then
+      width = width + #tostring(bufnr) + 1 -- buffer-number + space after buffer-index
     end
 
-    if use_file_icon then
+    if render.file_icon then
       --- @diagnostic disable-next-line:param-type-mismatch
       local file_icon = icons.get_icon(bufnr, '')
       width = width + strwidth(file_icon) + 1 -- icon + space after icon
     end
 
-    Buffer.for_each_counted_enabled_diagnostic(bufnr, diagnostics, function(c, d, _)
+    Buffer.for_each_counted_enabled_diagnostic(bufnr, render.diagnostics, function(c, d, _)
       width = width + 1 + strwidth(d.icon) + #tostring(c) -- space before icon + icon + diagnostic count
     end)
 
@@ -96,15 +96,19 @@ end
 function Layout.calculate_buffers_width()
   Layout.buffers = Buffer.hide(state.buffers)
 
-  local diagnostics = options.diagnostics()
-  local use_buffer_index = options.index_buffers()
-  local use_file_icons = options.file_icons()
+  local icons_option = options.icons()
+  local render = {
+    buffer_index = options.index_buffers(icons_option),
+    buffer_number = options.number_buffers(icons_option),
+    diagnostics = options.diagnostics(),
+    file_icon = options.file_icons(icons_option),
+  }
 
   local sum = 0
   local widths = {}
 
   for i, bufnr in ipairs(Layout.buffers) do
-    local width = Layout.calculate_buffer_width(bufnr, i, diagnostics, use_buffer_index, use_file_icons)
+    local width = Layout.calculate_buffer_width(bufnr, i, render)
     sum = sum + width
     widths[#widths + 1] = width
   end

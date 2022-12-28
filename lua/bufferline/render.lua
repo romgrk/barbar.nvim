@@ -345,11 +345,16 @@ end
 --- @param layout bufferline.layout.data
 local function open_buffer_start_animation(layout, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
+  local icons_option = options.icons()
   local index = utils.index_of(Layout.buffers, bufnr)
 
   buffer_data.real_width = Layout.calculate_width(
-    layout.base_widths[index] or
-      Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1, options.diagnostics(), options.index_buffers(), options.file_icons()),
+    layout.base_widths[index] or Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1, {
+      buffer_index = options.index_buffers(icons_option),
+      buffer_number = options.number_buffers(icons_option),
+      diagnostics = options.diagnostics(),
+      file_icon = options.file_icons(icons_option)
+    }),
     layout.padding_width
   )
 
