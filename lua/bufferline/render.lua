@@ -72,7 +72,7 @@ local state = require'bufferline.state'
 local utils = require'bufferline.utils'
 
 --- The highlight to use based on the state of a buffer.
-local HL_BY_ACTIVITY = {'Inactive', 'Visible', 'Alternate', 'Current'}
+local HL_BY_ACTIVITY = {'Inactive', 'Alternate', 'Visible', 'Current'}
 
 --- Last value for tabline
 --- @type nil|string
