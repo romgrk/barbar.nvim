@@ -30,6 +30,8 @@ local utils = require'bufferline.utils'
 
 --- @alias bufferline.buffer.activity 1|2|3|4
 
+--- @alias bufferline.buffer.activity.name 'Inactive'|'Alternate'|'Visible'|'Current'
+
 --- The character used to delimit paths (e.g. `/` or `\`).
 local separator = package.config:sub(1,1)
 

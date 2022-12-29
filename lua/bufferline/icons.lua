@@ -16,11 +16,22 @@ local hl = require'bufferline.utils'.hl
 local status, web = pcall(require, 'nvim-web-devicons')
 
 --- @class bufferline.icons.group
---- @field buffer_status "Current"|"Inactive"|"Visible" the state of the buffer whose icon is being highlighted
+--- @field buffer_status bufferline.buffer.activity.name the state of the buffer whose icon is being highlighted
 --- @field icon_hl string the group to highlight an icon with
 
 --- @type bufferline.icons.group[]
 local hl_groups = {}
+
+--- Sets the highlight group used for a type of buffer's file icon
+--- @param buffer_status bufferline.buffer.activity.name
+--- @param icon_hl string
+local function hl_buffer_icon(buffer_status, icon_hl)
+  hl.set(
+    icon_hl .. buffer_status,
+    hl.bg_or_default({'Buffer' .. buffer_status}, 'none'),
+    hl.fg_or_default({icon_hl}, 'none')
+  )
+end
 
 --- @class bufferline.icons
 return {
@@ -29,16 +40,12 @@ return {
   -- already highlighted.
   set_highlights = function()
     for _, group in ipairs(hl_groups) do
-      hl.set(
-        group.icon_hl .. group.buffer_status,
-        hl.bg_or_default({'Buffer' .. group.buffer_status}, 'none'),
-        hl.fg_or_default({group.icon_hl}, 'none')
-      )
+      hl_buffer_icon(group.buffer_status, group.icon_hl)
     end
  end,
 
   --- @param bufnr integer
-  --- @param buffer_status "Current"|"Inactive"|"Visible"
+  --- @param buffer_status bufferline.buffer.activity.name
   --- @return string icon, string highlight_group
   get_icon = function(bufnr, buffer_status)
     if status == false then
@@ -79,11 +86,7 @@ return {
     end
 
     if icon_hl and hlexists(icon_hl .. buffer_status) < 1 then
-      hl.set(
-        icon_hl .. buffer_status,
-        hl.bg_or_default({'Buffer' .. buffer_status}, 'none'),
-        hl.fg_or_default({icon_hl}, 'none')
-      )
+      hl_buffer_icon(buffer_status, icon_hl)
       hl_groups[#hl_groups + 1] = { buffer_status = buffer_status, icon_hl = icon_hl }
     end
 
