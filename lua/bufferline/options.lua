@@ -42,6 +42,8 @@ local DEFAULT_DIAGNOSTICS = {
 --- @field inactive? boolean
 --- @field visible? boolean
 
+--- @alias bufferline.options.icons boolean|"both"|"buffer_number_with_icon"|"buffer_numbers"|"numbers"
+
 --- @class bufferline.options
 local options = {}
 
@@ -80,10 +82,10 @@ function options.exclude_name()
   return get('exclude_name', {})
 end
 
+--- @param icon_option bufferline.options.icons
 --- @return boolean enabled
-function options.file_icons()
-  local enabled = options.icons()
-  return enabled == true or enabled == 'both' or enabled == 'buffer_number_with_icon'
+function options.file_icons(icon_option)
+  return icon_option == true or icon_option == 'both' or icon_option == 'buffer_number_with_icon'
 end
 
 --- @return bufferline.options.hide
@@ -131,7 +133,7 @@ function options.icon_separator_visible()
   return get('icon_separator_inactive', '▎')
 end
 
---- @return boolean enabled
+--- @return bufferline.options.icons
 function options.icons()
   return get('icons', true)
 end
@@ -141,10 +143,10 @@ function options.icon_custom_colors()
   return get('icon_custom_colors', false)
 end
 
+--- @param icon_option bufferline.options.icons
 --- @return boolean enabled
-function options.index_buffers()
-  local enabled = options.icons()
-  return enabled == 'both' or enabled == 'numbers'
+function options.index_buffers(icon_option)
+  return icon_option == 'both' or icon_option == 'numbers'
 end
 
 --- @return boolean enabled
@@ -180,6 +182,12 @@ end
 --- @return nil|string title
 function options.no_name_title()
   return get('no_name_title')
+end
+
+--- @param icon_option bufferline.options.icons
+--- @return boolean enabled
+function options.number_buffers(icon_option)
+  return icon_option == 'buffer_numbers' or icon_option == 'buffer_number_with_icon'
 end
 
 --- @return boolean enabled
