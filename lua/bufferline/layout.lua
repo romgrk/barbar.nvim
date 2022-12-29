@@ -84,8 +84,10 @@ function Layout.calculate_buffer_width(bufnr, index, render)
     if options.closable() or is_pinned then
       width = width + strwidth(is_pinned and options.icon_pinned() or (
         buf_get_option(bufnr, 'modified') and options.icon_close_tab_modified() or options.icon_close_tab()
-      )) + 1 -- pin-icon + space after pin-icon
+      )) -- close-or-pin-or-save-icon
     end
+
+    width = width + 1 -- space after close-or-pin-or-save-icon
   end
 
   return width or 0

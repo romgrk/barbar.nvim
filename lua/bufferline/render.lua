@@ -835,7 +835,7 @@ local function generate_tabline(bufnrs, refocus)
     end
 
     local closePrefix = ''
-    local close = ''
+    local close = ' '
     if has_close or is_pinned then
       local closeIcon =
         is_pinned and
@@ -845,7 +845,7 @@ local function generate_tabline(bufnrs, refocus)
           options.icon_close_tab_modified())
 
       closePrefix = namePrefix
-      close = closeIcon .. ' '
+      close = closeIcon .. close
 
       if click_enabled then
         closePrefix =
