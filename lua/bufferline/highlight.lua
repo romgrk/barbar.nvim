@@ -13,7 +13,7 @@ local options = require 'bufferline.options'
 hl.set_default_link('BufferAlternate', 'BufferDefaultAlternate')
 hl.set_default_link('BufferAlternateERROR', 'BufferDefaultAlternateERROR')
 hl.set_default_link('BufferAlternateHINT', 'BufferDefaultAlternateHINT')
-hl.set_default_link('BufferAlternateIcon', 'BufferAlternate')
+hl.set_default_link('BufferAlternateIcon', 'BufferDefaultAlternateIcon')
 hl.set_default_link('BufferAlternateIndex', 'BufferDefaultAlternateIndex')
 hl.set_default_link('BufferAlternateINFO', 'BufferDefaultAlternateINFO')
 hl.set_default_link('BufferAlternateMod', 'BufferDefaultAlternateMod')
@@ -24,7 +24,7 @@ hl.set_default_link('BufferAlternateWARN', 'BufferDefaultAlternateWARN')
 hl.set_default_link('BufferCurrent', 'BufferDefaultCurrent')
 hl.set_default_link('BufferCurrentERROR', 'BufferDefaultCurrentERROR')
 hl.set_default_link('BufferCurrentHINT', 'BufferDefaultCurrentHINT')
-hl.set_default_link('BufferCurrentIcon', 'BufferCurrent')
+hl.set_default_link('BufferCurrentIcon', 'BufferDefaultCurrentIcon')
 hl.set_default_link('BufferCurrentIndex', 'BufferDefaultCurrentIndex')
 hl.set_default_link('BufferCurrentINFO', 'BufferDefaultCurrentINFO')
 hl.set_default_link('BufferCurrentMod', 'BufferDefaultCurrentMod')
@@ -35,7 +35,7 @@ hl.set_default_link('BufferCurrentWARN', 'BufferDefaultCurrentWARN')
 hl.set_default_link('BufferInactive', 'BufferDefaultInactive')
 hl.set_default_link('BufferInactiveERROR', 'BufferDefaultInactiveERROR')
 hl.set_default_link('BufferInactiveHINT', 'BufferDefaultInactiveHINT')
-hl.set_default_link('BufferInactiveIcon', 'BufferInactive')
+hl.set_default_link('BufferInactiveIcon', 'BufferDefaultInactiveIcon')
 hl.set_default_link('BufferInactiveIndex', 'BufferDefaultInactiveIndex')
 hl.set_default_link('BufferInactiveINFO', 'BufferDefaultInactiveINFO')
 hl.set_default_link('BufferInactiveMod', 'BufferDefaultInactiveMod')
@@ -51,7 +51,7 @@ hl.set_default_link('BufferTabpages', 'BufferDefaultTabpages')
 hl.set_default_link('BufferVisible', 'BufferDefaultVisible')
 hl.set_default_link('BufferVisibleERROR', 'BufferDefaultVisibleERROR')
 hl.set_default_link('BufferVisibleHINT', 'BufferDefaultVisibleHINT')
-hl.set_default_link('BufferVisibleIcon', 'BufferVisible')
+hl.set_default_link('BufferVisibleIcon', 'BufferDefaultVisibleIcon')
 hl.set_default_link('BufferVisibleIndex', 'BufferDefaultVisibleIndex')
 hl.set_default_link('BufferVisibleINFO', 'BufferDefaultVisibleINFO')
 hl.set_default_link('BufferVisibleMod', 'BufferDefaultVisibleMod')
@@ -60,10 +60,11 @@ hl.set_default_link('BufferVisibleTarget', 'BufferDefaultVisibleTarget')
 hl.set_default_link('BufferVisibleWARN', 'BufferDefaultVisibleWARN')
 
 -- NOTE: these should move to `setup_defaults` if the definition stops being a link
-hl.set_default_link('BufferDefaultCurrentIcon', 'BufferDefaultCurrent')
-hl.set_default_link('BufferDefaultInactiveIcon', 'BufferDefaultInactive')
-hl.set_default_link('BufferDefaultVisibleIcon', 'BufferDefaultVisible')
-hl.set_default_link('BufferDefaultOffset', 'BufferDefaultTabpageFill')
+hl.set_default_link('BufferDefaultAlternateIcon', 'BufferAlternate')
+hl.set_default_link('BufferDefaultCurrentIcon', 'BufferCurrent')
+hl.set_default_link('BufferDefaultInactiveIcon', 'BufferInactive')
+hl.set_default_link('BufferDefaultVisibleIcon', 'BufferVisible')
+hl.set_default_link('BufferDefaultOffset', 'BufferTabpageFill')
 
 --- @class bufferline.highlight
 return {
@@ -72,8 +73,8 @@ return {
     local fg_current = hl.fg_or_default({'Normal'}, '#efefef', 255)
     local fg_inactive = hl.fg_or_default({'TabLineFill'}, '#888888', 102)
     --- @type barbar.utils.hl.group
-    local fg_target = {cterm = 'red'}
-    fg_target.gui = fg_target.cterm
+    local fg_target = {gui = 'red'}
+    fg_target.cterm = fg_target.gui
 
     local fg_error = hl.fg_or_default({'ErrorMsg'}, '#A80000', 124)
     local fg_hint = hl.fg_or_default({'HintMsg'}, '#D5508F', 168)
