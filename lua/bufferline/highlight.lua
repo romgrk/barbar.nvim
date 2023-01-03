@@ -72,8 +72,8 @@ return {
     local fg_current = hl.fg_or_default({'Normal'}, '#efefef', 255)
     local fg_inactive = hl.fg_or_default({'TabLineFill'}, '#888888', 102)
     --- @type barbar.utils.hl.group
-    local fg_target = {cterm = 'red'}
-    fg_target.gui = fg_target.cterm
+    local fg_target = {gui = 'red'}
+    fg_target.cterm = fg_target.gui
 
     local fg_error = hl.fg_or_default({'ErrorMsg'}, '#A80000', 124)
     local fg_hint = hl.fg_or_default({'HintMsg'}, '#D5508F', 168)

@@ -9,17 +9,17 @@ local set_hl = vim.api.nvim_set_hl
 local hlexists = vim.fn.hlexists
 
 --- Generate a color.
---- @param default integer|string a color name (`string`), GUI hex (`string`), or cterm color code (`integer`).
 --- @param groups string[] the groups to source the color from.
+--- @param attribute string where to look for the color.
+--- @param default integer|string a color name (`string`), GUI hex (`string`), or cterm color code (`integer`).
 --- @param guicolors boolean if `true`, look for GUI values. Else, look for `cterm`.
---- @param index string where to look for the color.
 --- @return integer|string color
-local function attribute_or_default(groups, index, default, guicolors)
+local function attribute_or_default(groups, attribute, default, guicolors)
   for _, group in ipairs(groups) do
     if hlexists(group) > 0 then
       local hl = get_hl_by_name(group, guicolors)
-      if hl[index] then
-        return guicolors and ('#%06x'):format(hl[index]) or hl[index]
+      if hl[attribute] then
+        return guicolors and ('#%06x'):format(hl[attribute]) or hl[attribute]
       end
     end
   end
@@ -76,7 +76,7 @@ return {
   hl = {
     --- @class barbar.utils.hl.group
     --- @field cterm integer|string
-    --- @field gui integer|string
+    --- @field gui string
 
     --- Generate a background color.
     --- @param groups string[] the groups to source the background color from.
