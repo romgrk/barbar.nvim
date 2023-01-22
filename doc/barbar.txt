@@ -365,6 +365,14 @@ Controls if icons are rendered on each tab.
     let g:bufferline.highlight_visible = v:true
 <
 
+                                  *g:bufferline.highlight_inactive_file_icons*
+`g:bufferline.highlight_inactive_file_icons`  boolean  (default |v:false|)
+
+  Enables highlighting the file icons of inactive buffers.
+>
+    let g:bufferline.highlight_inactive_file_icons = v:true
+<
+
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
 

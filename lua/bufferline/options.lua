@@ -99,6 +99,11 @@ function options.highlight_alternate()
 end
 
 --- @return boolean
+function options.highlight_inactive_file_icons()
+  return get('highlight_inactive_file_icons', false)
+end
+
+--- @return boolean
 function options.highlight_visible()
   return get('highlight_visible', true)
 end

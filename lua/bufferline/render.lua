@@ -828,7 +828,7 @@ local function generate_tabline(bufnrs, refocus)
 
       if has_file_icons then
         local iconChar, iconHl = icons.get_icon(bufnr, status)
-        local hlName = is_inactive and 'BufferInactive' or iconHl
+        local hlName = is_inactive and not options.highlight_inactive_file_icons() and 'BufferInactive' or iconHl
         iconPrefix = has_icon_custom_colors and hl_tabline('Buffer' .. status .. 'Icon') or (hlName and hl_tabline(hlName) or namePrefix)
         icon = iconChar .. ' '
       end

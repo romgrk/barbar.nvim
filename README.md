@@ -252,6 +252,9 @@ let bufferline.hide = {'extensions': v:true, 'inactive': v:true}
 " Disable highlighting alternate buffers
 let bufferline.highlight_alternate = v:false
 
+" Disable highlighting file icons in inactive buffers
+let bufferline.highlight_inactive_file_icons = v:false
+
 " Enable highlighting visible buffers
 let bufferline.highlight_visible = v:true
 
@@ -350,6 +353,9 @@ require'bufferline'.setup {
 
   -- Disable highlighting alternate buffers
   highlight_alternate = false,
+
+  -- Disable highlighting file icons in inactive buffers
+  highlight_inactive_file_icons = false,
 
   -- Enable highlighting visible buffers
   highlight_visible = true,
