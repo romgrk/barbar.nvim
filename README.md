@@ -39,7 +39,7 @@ Plug 'romgrk/barbar.nvim'
 #### Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
 use 'nvim-tree/nvim-web-devicons'
-use {'romgrk/barbar.nvim', wants = 'nvim-web-devicons'}
+use {'romgrk/barbar.nvim', requires = 'nvim-web-devicons'}
 ```
 
 You can skip the dependency on `'nvim-tree/nvim-web-devicons'` if you
