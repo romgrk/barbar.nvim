@@ -36,6 +36,13 @@ Plug 'nvim-tree/nvim-web-devicons'
 Plug 'romgrk/barbar.nvim'
 ```
 
+#### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
+```lua
+require('lazy').setup {
+  {'romgrk/barbar.nvim', dependencies = 'nvim-tree/nvim-web-devicons'},
+}
+```
+
 #### Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 ```lua
 use 'nvim-tree/nvim-web-devicons'
