@@ -5,8 +5,8 @@
 
 local max = math.max
 local min = math.min
-local table_insert = table.insert
 local table_concat = table.concat
+local table_insert = table.insert
 
 local buf_call = vim.api.nvim_buf_call
 local buf_delete = vim.api.nvim_buf_delete
@@ -460,13 +460,49 @@ function render.enable()
     group = augroup_bufferline,
   })
 
-  create_autocmd('User', {
+  create_autocmd({'BufEnter', 'BufNew'}, {
+    callback = function() render.update(true) end,
+    group = augroup_bufferline_update,
+  })
+
+  create_autocmd(
+    {
+      'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost',
+      'CursorHold', 'CursorHoldI',
+      'TabEnter',
+      'VimResized',
+      'WinEnter', 'WinLeave',
+    },
+    {
+      callback = function() render.update() end,
+      group = augroup_bufferline_update,
+    }
+  )
+
+  create_autocmd('OptionSet', {
+    callback = function() render.update() end,
+    group = augroup_bufferline_update,
+    pattern = 'buflisted',
+  })
+
+  create_autocmd('SessionLoadPost', {
     callback = function()
-      local commands = vim.g.session_save_commands
-      if not commands then
-        return
+      if vim.g.Bufferline__session_restore then
+        command(vim.g.Bufferline__session_restore)
       end
 
+      schedule(function() render.update(true) end)
+    end,
+    group = augroup_bufferline_update,
+  })
+
+  create_autocmd('TermOpen', {
+    callback = function() defer_fn(function() render.update(true) end, 500) end,
+    group = augroup_bufferline_update,
+  })
+
+  create_autocmd('User', {
+    callback = function()
       -- We're allowed to use relative paths for buffers iff there are no tabpages
       -- or windows with a local directory (:tcd and :lcd)
       local use_relative_file_paths = true
@@ -494,50 +530,14 @@ function render.enable()
         bufnames[#bufnames + 1] = '"' .. name .. '"'
       end
 
-      local bufarr = '{' .. table_concat(bufnames, ',') .. '}'
-
-      commands[#commands + 1] = '" barbar.nvim'
-      commands[#commands + 1] = "lua require'bufferline.render'.restore_buffers(" .. bufarr .. ")"
-
-      vim.g.session_save_commands = commands
+      vim.g.Bufferline__session_restore = "lua require'bufferline.render'.restore_buffers {" .. table_concat(bufnames, ',') .. "}"
     end,
     group = augroup_bufferline,
     pattern = 'SessionSavePre',
   })
 
-  create_autocmd({'BufEnter', 'BufNew'}, {
-    callback = function() render.update(true) end,
-    group = augroup_bufferline_update,
-  })
-
-  create_autocmd(
-    {
-      'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost',
-      'CursorHold', 'CursorHoldI',
-      'SessionLoadPost',
-      'TabEnter',
-      'VimResized',
-      'WinEnter', 'WinLeave',
-    },
-    {
-      callback = function() render.update() end,
-      group = augroup_bufferline_update,
-    }
-  )
-
-  create_autocmd('OptionSet', {
-    callback = function() render.update() end,
-    group = augroup_bufferline_update,
-    pattern = 'buflisted',
-  })
-
-  create_autocmd({'SessionLoadPost', 'WinClosed'}, {
+  create_autocmd('WinClosed', {
     callback = function() schedule(render.update) end,
-    group = augroup_bufferline_update,
-  })
-
-  create_autocmd('TermOpen', {
-    callback = function() defer_fn(function() render.update(true) end, 500) end,
     group = augroup_bufferline_update,
   })
 
@@ -651,12 +651,6 @@ function render.restore_buffers(bufnames)
   for _,name in ipairs(bufnames) do
     table_insert(state.buffers, bufadd(name))
   end
-
-  -- Update after a delay - sometimes buffer names aren't updated
-  local timer = vim.loop.new_timer()
-  timer:start(500, 1, vim.schedule_wrap(function()
-    render.update()
-  end))
 end
 
 --- Open the window which contained the buffer which was clicked on.
