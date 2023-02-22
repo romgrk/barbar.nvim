@@ -6,6 +6,7 @@ local table_remove = table.remove
 
 local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
+local bufadd = vim.fn.bufadd
 local get_current_buf = vim.api.nvim_get_current_buf
 local list_bufs = vim.api.nvim_list_bufs
 local list_extend = vim.list_extend
@@ -199,7 +200,7 @@ function state.update_names()
   end
 end
 
---- @deprecated exists for backwards compatability
+--- @deprecated use `api.set_offset` instead
 --- @param width integer
 --- @param text? string
 --- @param hl? string
@@ -215,6 +216,38 @@ function state.set_offset(width, text, hl)
   end
 
   require'bufferline.api'.set_offset(width, text, hl)
+end
+
+--- Restore the buffers
+--- @param buffer_data string[]|{name: string, pinned: boolean}[]
+function state.restore_buffers(buffer_data)
+  --- PERF: since this function is only run once (`nvim -S`) I avoided importing the called functions at top-level
+  local table_insert = table.insert
+  local buf_delete = vim.api.nvim_buf_delete
+  local buf_get_lines = vim.api.nvim_buf_get_lines
+  local buf_line_count = vim.api.nvim_buf_line_count
+
+  -- Close all empty buffers. Loading a session may call :tabnew several times
+  -- and create useless empty buffers.
+  for _, bufnr in ipairs(list_bufs()) do
+    if buf_get_name(bufnr) == ''
+      and buf_get_option(bufnr, 'buftype') == ''
+      and buf_line_count(bufnr) == 1
+      and buf_get_lines(bufnr, 0, 1, true)[1] == ''
+    then
+      buf_delete(bufnr, {})
+    end
+  end
+
+  state.buffers = {}
+  for _, data in ipairs(buffer_data) do
+    local bufnr = bufadd(data.name or data)
+
+    table_insert(state.buffers, bufnr)
+    if data.pinned then
+      state.toggle_pin(bufnr)
+    end
+  end
 end
 
 -- Exports
