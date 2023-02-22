@@ -6,8 +6,7 @@ local table_remove = table.remove
 
 local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
-local buf_get_var = vim.api.nvim_buf_get_var
-local buf_set_var = vim.api.nvim_buf_set_var
+local get_current_buf = vim.api.nvim_get_current_buf
 local list_bufs = vim.api.nvim_list_bufs
 local list_extend = vim.list_extend
 local tbl_filter = vim.tbl_filter
@@ -21,8 +20,6 @@ local options = require'bufferline.options'
 --- @type bufferline.utils
 local utils = require'bufferline.utils'
 
-local PIN = 'bufferline_pin'
-
 --------------------------------
 -- Section: Application state --
 --------------------------------
@@ -32,12 +29,14 @@ local PIN = 'bufferline_pin'
 --- @field name? string the name of the buffer
 --- @field position? integer the absolute position of the buffer
 --- @field real_width? integer the width of the buffer + invisible characters
+--- @field pinned boolean whether the buffer is pinned
 --- @field width? integer the width of the buffer - invisible characters
 
 --- @class bufferline.state
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
 --- @field buffers integer[] the open buffers, in visual order.
 --- @field buffers_by_id {[integer]: bufferline.state.data} the buffer data
+--- @field pins {[integer]: boolean} whether a buffer is pinned
 local state = {
   is_picking_buffer = false,
   buffers = {},
@@ -101,8 +100,8 @@ end
 --- @param bufnr integer
 --- @return boolean pinned `true` if `bufnr` is pinned
 function state.is_pinned(bufnr)
-  local ok, val = pcall(buf_get_var, bufnr, PIN)
-  return ok and val
+  local data = state.buffers_by_id[bufnr]
+  return data and data.pinned
 end
 
 --- Sort the pinned tabs to the left of the bufferline.
@@ -125,7 +124,13 @@ end
 --- WARN: does not redraw the bufferline. See `Render.toggle_pin`.
 --- @param bufnr integer
 function state.toggle_pin(bufnr)
-  buf_set_var(bufnr, PIN, not state.is_pinned(bufnr))
+  if bufnr == 0 then
+    bufnr = get_current_buf()
+  end
+
+  local data = state.buffers_by_id[bufnr]
+  data.pinned = not data.pinned
+
   state.sort_pins_to_left()
 end
 
@@ -151,7 +156,10 @@ end
 -- @return int|nil
 function state.find_next_buffer(buffer_number)
   local index = utils.index_of(state.buffers, buffer_number)
-  if index == nil then return nil end
+  if index == nil then
+    return
+  end
+
   if index + 1 > #state.buffers then
     index = index - 1
     if index <= 0 then
