@@ -268,7 +268,7 @@ local render = {}
 --- @param bufnr integer
 --- @param new_width integer
 local function close_buffer_animated_tick(bufnr, new_width, animation)
-  if new_width > 0 and state.buffers_by_id[bufnr] ~= nil then
+  if new_width > 0 and state.data_by_bufnr[bufnr] ~= nil then
     local buffer_data = state.get_buffer_data(bufnr)
     buffer_data.width = new_width
     render.update()
@@ -506,12 +506,13 @@ function render.enable()
       -- We're allowed to use relative paths for buffers iff there are no tabpages
       -- or windows with a local directory (:tcd and :lcd)
       local use_relative_file_paths = true
-      for tabnr,tabpage in ipairs(list_tabpages()) do
+      for tabnr, tabpage in ipairs(list_tabpages()) do
         if not use_relative_file_paths or haslocaldir(-1, tabnr) == 1 then
           use_relative_file_paths = false
           break
         end
-        for _,win in ipairs(tabpage_list_wins(tabpage)) do
+
+        for _, win in ipairs(tabpage_list_wins(tabpage)) do
           if haslocaldir(win, tabnr) == 1 then
             use_relative_file_paths = false
             break
@@ -520,11 +521,12 @@ function render.enable()
       end
 
       local bufnames = {}
-      for _,bufnr in ipairs(state.buffers) do
+      for _, bufnr in ipairs(state.buffers) do
         local name = buf_get_name(bufnr)
         if use_relative_file_paths then
           name = utils.relative(name)
         end
+
         -- escape quotes
         name = name:gsub('"', '\\"')
         bufnames[#bufnames + 1] = '"' .. name .. '"'
@@ -643,7 +645,7 @@ function render.restore_buffers(bufnames)
       and buf_line_count(bufnr) == 1
       and buf_get_lines(bufnr, 0, 1, true)[1] == ''
     then
-        buf_delete(bufnr, {})
+      buf_delete(bufnr, {})
     end
   end
 

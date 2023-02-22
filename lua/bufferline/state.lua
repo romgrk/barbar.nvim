@@ -35,12 +35,12 @@ local utils = require'bufferline.utils'
 --- @class bufferline.state
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
 --- @field buffers integer[] the open buffers, in visual order.
---- @field buffers_by_id {[integer]: bufferline.state.data} the buffer data
+--- @field data_by_bufnr {[integer]: bufferline.state.data} the buffer data indexed on buffer number
 --- @field pins {[integer]: boolean} whether a buffer is pinned
 local state = {
   is_picking_buffer = false,
   buffers = {},
-  buffers_by_id = {},
+  data_by_bufnr = {},
 
   --- The offset of the tabline (from the left).
   --- @class bufferline.render.offset
@@ -51,16 +51,18 @@ local state = {
 }
 
 --- Get the state of the `id`
---- @param id integer the `bufnr`
+--- @param bufnr integer the `bufnr`
 --- @return bufferline.state.data
-function state.get_buffer_data(id)
-  local data = state.buffers_by_id[id]
+function state.get_buffer_data(bufnr)
+  local data = state.data_by_bufnr[bufnr]
 
   if data ~= nil then
     return data
+  elseif bufnr == 0 then
+    bufnr = get_current_buf()
   end
 
-  state.buffers_by_id[id] = {
+  state.data_by_bufnr[bufnr] = {
     closing = false,
     name = nil,
     position = nil,
@@ -68,7 +70,7 @@ function state.get_buffer_data(id)
     width = nil,
   }
 
-  return state.buffers_by_id[id]
+  return state.data_by_bufnr[bufnr]
 end
 
 --- Get the list of buffers
@@ -100,7 +102,7 @@ end
 --- @param bufnr integer
 --- @return boolean pinned `true` if `bufnr` is pinned
 function state.is_pinned(bufnr)
-  local data = state.buffers_by_id[bufnr]
+  local data = state.get_buffer_data(bufnr)
   return data and data.pinned
 end
 
@@ -124,11 +126,7 @@ end
 --- WARN: does not redraw the bufferline. See `Render.toggle_pin`.
 --- @param bufnr integer
 function state.toggle_pin(bufnr)
-  if bufnr == 0 then
-    bufnr = get_current_buf()
-  end
-
-  local data = state.buffers_by_id[bufnr]
+  local data = state.get_buffer_data(bufnr)
   data.pinned = not data.pinned
 
   state.sort_pins_to_left()
@@ -142,7 +140,7 @@ end
 --- @param do_name_update? boolean refreshes all buffer names iff `true`
 function state.close_buffer(bufnr, do_name_update)
   state.buffers = tbl_filter(function(b) return b ~= bufnr end, state.buffers)
-  state.buffers_by_id[bufnr] = nil
+  state.data_by_bufnr[bufnr] = nil
 
   if do_name_update then
     state.update_names()
