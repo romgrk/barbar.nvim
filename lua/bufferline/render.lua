@@ -468,7 +468,7 @@ function render.enable()
   create_autocmd(
     {
       'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost',
-      'CursorHold', 'CursorHoldI',
+      'DiagnosticChanged',
       'TabEnter',
       'VimResized',
       'WinEnter', 'WinLeave',
