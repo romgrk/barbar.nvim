@@ -9,14 +9,10 @@ local table_concat = table.concat
 local table_insert = table.insert
 
 local buf_call = vim.api.nvim_buf_call
-local buf_delete = vim.api.nvim_buf_delete
-local buf_get_lines = vim.api.nvim_buf_get_lines
 local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
 local buf_is_valid = vim.api.nvim_buf_is_valid
-local buf_line_count = vim.api.nvim_buf_line_count
 local buf_set_var = vim.api.nvim_buf_set_var
-local bufadd = vim.fn.bufadd
 local command = vim.api.nvim_command
 local create_augroup = vim.api.nvim_create_augroup
 local create_autocmd = vim.api.nvim_create_autocmd
@@ -24,8 +20,6 @@ local defer_fn = vim.defer_fn
 local exec_autocmds = vim.api.nvim_exec_autocmds
 local get_current_buf = vim.api.nvim_get_current_buf
 local has = vim.fn.has
-local haslocaldir = vim.fn.haslocaldir
-local list_bufs = vim.api.nvim_list_bufs
 local list_tabpages = vim.api.nvim_list_tabpages
 local list_wins = vim.api.nvim_list_wins
 local notify = vim.notify
@@ -268,7 +262,7 @@ local render = {}
 --- @param bufnr integer
 --- @param new_width integer
 local function close_buffer_animated_tick(bufnr, new_width, animation)
-  if new_width > 0 and state.buffers_by_id[bufnr] ~= nil then
+  if new_width > 0 and state.data_by_bufnr[bufnr] ~= nil then
     local buffer_data = state.get_buffer_data(bufnr)
     buffer_data.width = new_width
     render.update()
@@ -468,7 +462,7 @@ function render.enable()
   create_autocmd(
     {
       'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost',
-      'CursorHold', 'CursorHoldI',
+      'DiagnosticChanged',
       'TabEnter',
       'VimResized',
       'WinEnter', 'WinLeave',
@@ -506,12 +500,17 @@ function render.enable()
       -- We're allowed to use relative paths for buffers iff there are no tabpages
       -- or windows with a local directory (:tcd and :lcd)
       local use_relative_file_paths = true
-      for tabnr,tabpage in ipairs(list_tabpages()) do
+
+      -- PERF: I didn't import `haslocaldir` since it is only used her, (just before calling `:mksession` and exiting vim)
+      local haslocaldir = vim.fn.haslocaldir
+
+      for tabnr, tabpage in ipairs(list_tabpages()) do
         if not use_relative_file_paths or haslocaldir(-1, tabnr) == 1 then
           use_relative_file_paths = false
           break
         end
-        for _,win in ipairs(tabpage_list_wins(tabpage)) do
+
+        for _, win in ipairs(tabpage_list_wins(tabpage)) do
           if haslocaldir(win, tabnr) == 1 then
             use_relative_file_paths = false
             break
@@ -520,17 +519,22 @@ function render.enable()
       end
 
       local bufnames = {}
-      for _,bufnr in ipairs(state.buffers) do
+      for _, bufnr in ipairs(state.buffers) do
         local name = buf_get_name(bufnr)
         if use_relative_file_paths then
           name = utils.relative(name)
         end
+
         -- escape quotes
         name = name:gsub('"', '\\"')
-        bufnames[#bufnames + 1] = '"' .. name .. '"'
+
+        bufnames[#bufnames + 1] = '{' ..
+          'name = "' .. name .. '",' ..
+          'pinned = ' .. tostring(state.data_by_bufnr[bufnr].pinned == true) .. ',' ..
+        '}'
       end
 
-      vim.g.Bufferline__session_restore = "lua require'bufferline.render'.restore_buffers {" .. table_concat(bufnames, ',') .. "}"
+      vim.g.Bufferline__session_restore = "lua require'bufferline.state'.restore_buffers {" .. table_concat(bufnames, ',') .. "}"
     end,
     group = augroup_bufferline,
     pattern = 'SessionSavePre',
@@ -632,26 +636,8 @@ function render.on_option_changed(_, key, _)
   end
 end
 
---- Restore the buffers
---- @param bufnames string[]
-function render.restore_buffers(bufnames)
-  -- Close all empty buffers. Loading a session may call :tabnew several times
-  -- and create useless empty buffers.
-  for _, bufnr in ipairs(list_bufs()) do
-    if buf_get_name(bufnr) == ''
-      and buf_get_option(bufnr, 'buftype') == ''
-      and buf_line_count(bufnr) == 1
-      and buf_get_lines(bufnr, 0, 1, true)[1] == ''
-    then
-        buf_delete(bufnr, {})
-    end
-  end
-
-  state.buffers = {}
-  for _,name in ipairs(bufnames) do
-    table_insert(state.buffers, bufadd(name))
-  end
-end
+--- @deprecated use `state.restore_buffers` instead
+render.restore_buffers = state.restore_buffers
 
 --- Open the window which contained the buffer which was clicked on.
 --- @return integer current_bufnr

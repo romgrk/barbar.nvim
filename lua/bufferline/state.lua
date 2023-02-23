@@ -6,8 +6,8 @@ local table_remove = table.remove
 
 local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
-local buf_get_var = vim.api.nvim_buf_get_var
-local buf_set_var = vim.api.nvim_buf_set_var
+local bufadd = vim.fn.bufadd
+local get_current_buf = vim.api.nvim_get_current_buf
 local list_bufs = vim.api.nvim_list_bufs
 local list_extend = vim.list_extend
 local tbl_filter = vim.tbl_filter
@@ -21,8 +21,6 @@ local options = require'bufferline.options'
 --- @type bufferline.utils
 local utils = require'bufferline.utils'
 
-local PIN = 'bufferline_pin'
-
 --------------------------------
 -- Section: Application state --
 --------------------------------
@@ -32,16 +30,18 @@ local PIN = 'bufferline_pin'
 --- @field name? string the name of the buffer
 --- @field position? integer the absolute position of the buffer
 --- @field real_width? integer the width of the buffer + invisible characters
+--- @field pinned boolean whether the buffer is pinned
 --- @field width? integer the width of the buffer - invisible characters
 
 --- @class bufferline.state
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
 --- @field buffers integer[] the open buffers, in visual order.
---- @field buffers_by_id {[integer]: bufferline.state.data} the buffer data
+--- @field data_by_bufnr {[integer]: bufferline.state.data} the buffer data indexed on buffer number
+--- @field pins {[integer]: boolean} whether a buffer is pinned
 local state = {
   is_picking_buffer = false,
   buffers = {},
-  buffers_by_id = {},
+  data_by_bufnr = {},
 
   --- The offset of the tabline (from the left).
   --- @class bufferline.render.offset
@@ -52,16 +52,19 @@ local state = {
 }
 
 --- Get the state of the `id`
---- @param id integer the `bufnr`
+--- @param bufnr integer the `bufnr`
 --- @return bufferline.state.data
-function state.get_buffer_data(id)
-  local data = state.buffers_by_id[id]
+function state.get_buffer_data(bufnr)
+  if bufnr == 0 then
+    bufnr = get_current_buf()
+  end
 
+  local data = state.data_by_bufnr[bufnr]
   if data ~= nil then
     return data
   end
 
-  state.buffers_by_id[id] = {
+  state.data_by_bufnr[bufnr] = {
     closing = false,
     name = nil,
     position = nil,
@@ -69,7 +72,7 @@ function state.get_buffer_data(id)
     width = nil,
   }
 
-  return state.buffers_by_id[id]
+  return state.data_by_bufnr[bufnr]
 end
 
 --- Get the list of buffers
@@ -101,8 +104,8 @@ end
 --- @param bufnr integer
 --- @return boolean pinned `true` if `bufnr` is pinned
 function state.is_pinned(bufnr)
-  local ok, val = pcall(buf_get_var, bufnr, PIN)
-  return ok and val
+  local data = state.get_buffer_data(bufnr)
+  return data and data.pinned
 end
 
 --- Sort the pinned tabs to the left of the bufferline.
@@ -125,7 +128,9 @@ end
 --- WARN: does not redraw the bufferline. See `Render.toggle_pin`.
 --- @param bufnr integer
 function state.toggle_pin(bufnr)
-  buf_set_var(bufnr, PIN, not state.is_pinned(bufnr))
+  local data = state.get_buffer_data(bufnr)
+  data.pinned = not data.pinned
+
   state.sort_pins_to_left()
 end
 
@@ -137,7 +142,7 @@ end
 --- @param do_name_update? boolean refreshes all buffer names iff `true`
 function state.close_buffer(bufnr, do_name_update)
   state.buffers = tbl_filter(function(b) return b ~= bufnr end, state.buffers)
-  state.buffers_by_id[bufnr] = nil
+  state.data_by_bufnr[bufnr] = nil
 
   if do_name_update then
     state.update_names()
@@ -151,7 +156,10 @@ end
 -- @return int|nil
 function state.find_next_buffer(buffer_number)
   local index = utils.index_of(state.buffers, buffer_number)
-  if index == nil then return nil end
+  if index == nil then
+    return
+  end
+
   if index + 1 > #state.buffers then
     index = index - 1
     if index <= 0 then
@@ -193,7 +201,7 @@ function state.update_names()
   end
 end
 
---- @deprecated exists for backwards compatability
+--- @deprecated use `api.set_offset` instead
 --- @param width integer
 --- @param text? string
 --- @param hl? string
@@ -209,6 +217,38 @@ function state.set_offset(width, text, hl)
   end
 
   require'bufferline.api'.set_offset(width, text, hl)
+end
+
+--- Restore the buffers
+--- @param buffer_data string[]|{name: string, pinned: boolean}[]
+function state.restore_buffers(buffer_data)
+  --- PERF: since this function is only run once (`nvim -S`) I avoided importing the called functions at top-level
+  local table_insert = table.insert
+  local buf_delete = vim.api.nvim_buf_delete
+  local buf_get_lines = vim.api.nvim_buf_get_lines
+  local buf_line_count = vim.api.nvim_buf_line_count
+
+  -- Close all empty buffers. Loading a session may call :tabnew several times
+  -- and create useless empty buffers.
+  for _, bufnr in ipairs(list_bufs()) do
+    if buf_get_name(bufnr) == ''
+      and buf_get_option(bufnr, 'buftype') == ''
+      and buf_line_count(bufnr) == 1
+      and buf_get_lines(bufnr, 0, 1, true)[1] == ''
+    then
+      buf_delete(bufnr, {})
+    end
+  end
+
+  state.buffers = {}
+  for _, data in ipairs(buffer_data) do
+    local bufnr = bufadd(data.name or data)
+
+    table_insert(state.buffers, bufnr)
+    if data.pinned then
+      state.toggle_pin(bufnr)
+    end
+  end
 end
 
 -- Exports
