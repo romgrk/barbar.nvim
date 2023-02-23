@@ -55,12 +55,13 @@ local state = {
 --- @param bufnr integer the `bufnr`
 --- @return bufferline.state.data
 function state.get_buffer_data(bufnr)
-  local data = state.data_by_bufnr[bufnr]
+  if bufnr == 0 then
+    bufnr = get_current_buf()
+  end
 
+  local data = state.data_by_bufnr[bufnr]
   if data ~= nil then
     return data
-  elseif bufnr == 0 then
-    bufnr = get_current_buf()
   end
 
   state.data_by_bufnr[bufnr] = {
