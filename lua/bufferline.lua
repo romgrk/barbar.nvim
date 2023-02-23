@@ -1,6 +1,7 @@
 local command = vim.api.nvim_command
 local create_user_command = vim.api.nvim_create_user_command
 local get_current_buf = vim.api.nvim_get_current_buf
+local bufnr = vim.fn.bufnr
 
 --- @type bufferline.api
 local api = require'bufferline.api'
@@ -89,7 +90,11 @@ function bufferline.setup(user_config)
 
   create_user_command('BufferPickDelete', api.pick_buffer_delete, {desc = 'Pick buffers to delete'})
 
-  create_user_command('BufferPin', function() api.toggle_pin() end, {desc = 'Un/pin a buffer'})
+  create_user_command(
+    'BufferPin',
+    function(tbl) api.toggle_pin(tbl.fargs[1] and bufnr(tbl.fargs[1])) end,
+    {complete = 'buffer', desc = 'Un/pin a buffer', nargs = '?'}
+  )
 
   create_user_command(
     'BufferOrderByBufferNumber',
