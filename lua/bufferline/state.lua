@@ -40,6 +40,7 @@ local utils = require'bufferline.utils'
 --- @field pins {[integer]: boolean} whether a buffer is pinned
 local state = {
   is_picking_buffer = false,
+  loading_session = false,
   buffers = {},
   data_by_bufnr = {},
 
