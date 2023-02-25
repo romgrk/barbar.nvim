@@ -481,9 +481,19 @@ function render.enable()
 
   create_autocmd('SessionLoadPost', {
     callback = function()
+      if state.loading_session then
+        return
+      end
+
+      state.loading_session = true
+
       if vim.g.Bufferline__session_restore then
         command(vim.g.Bufferline__session_restore)
       end
+
+      vim.fn.timer_start(100, function()
+        state.loading_session = false
+      end)
 
       schedule(function() render.update(true) end)
     end,

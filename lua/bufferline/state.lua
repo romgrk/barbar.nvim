@@ -35,11 +35,13 @@ local utils = require'bufferline.utils'
 
 --- @class bufferline.state
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
+--- @field loading_session boolean `true` if a `SessionLoadPost` event is being processed
 --- @field buffers integer[] the open buffers, in visual order.
 --- @field data_by_bufnr {[integer]: bufferline.state.data} the buffer data indexed on buffer number
 --- @field pins {[integer]: boolean} whether a buffer is pinned
 local state = {
   is_picking_buffer = false,
+  loading_session = false,
   buffers = {},
   data_by_bufnr = {},
 
