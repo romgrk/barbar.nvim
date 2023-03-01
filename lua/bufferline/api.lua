@@ -7,6 +7,7 @@ local table_sort = table.sort
 
 local buf_get_name = vim.api.nvim_buf_get_name
 local buf_get_option = vim.api.nvim_buf_get_option
+local bufnr = vim.fn.bufnr
 local bufwinnr = vim.fn.bufwinnr
 local command = vim.api.nvim_command
 local get_current_buf = vim.api.nvim_get_current_buf
@@ -49,11 +50,10 @@ local function pick_buffer_wrap(fn)
 end
 
 --- Shows an error that `bufnr` was not among the `state.buffers`
---- @param bufnr integer
---- @return nil
-local function notify_buffer_not_found(bufnr)
+--- @param buffer_number integer
+local function notify_buffer_not_found(buffer_number)
   notify(
-    'Current buffer (' .. bufnr .. ") not found in bufferline.nvim's list of buffers: " .. vim.inspect(state.buffers),
+    'Current buffer (' .. buffer_number .. ") not found in bufferline.nvim's list of buffers: " .. vim.inspect(state.buffers),
     vim.log.levels.ERROR,
     {title = 'barbar.nvim'}
   )
@@ -85,9 +85,9 @@ local api = {}
 function api.close_all_but_current()
   local current_bufnr = get_current_buf()
 
-  for _, bufnr in ipairs(state.buffers) do
-    if bufnr ~= current_bufnr then
-      bbye.bdelete(false, bufnr)
+  for _, buffer_number in ipairs(state.buffers) do
+    if buffer_number ~= current_bufnr then
+      bbye.bdelete(false, buffer_number)
     end
   end
 
@@ -97,9 +97,9 @@ end
 --- Close all open buffers, except those in visible windows.
 --- @return nil
 function api.close_all_but_visible()
-  for _, bufnr in ipairs(state.buffers) do
-    if Buffer.get_activity(bufnr) < 3 then
-      bbye.bdelete(false, bufnr)
+  for _, buffer_number in ipairs(state.buffers) do
+    if Buffer.get_activity(buffer_number) < 3 then
+      bbye.bdelete(false, buffer_number)
     end
   end
 
@@ -109,9 +109,9 @@ end
 --- Close all open buffers, except pinned ones.
 --- @return nil
 function api.close_all_but_pinned()
-  for _, bufnr in ipairs(state.buffers) do
-    if not state.is_pinned(bufnr) then
-      bbye.bdelete(false, bufnr)
+  for _, buffer_number in ipairs(state.buffers) do
+    if not state.is_pinned(buffer_number) then
+      bbye.bdelete(false, buffer_number)
     end
   end
 
@@ -123,9 +123,9 @@ end
 function api.close_all_but_current_or_pinned()
   local current_bufnr = get_current_buf()
 
-  for _, bufnr in ipairs(state.buffers) do
-    if not state.is_pinned(bufnr) and bufnr ~= current_bufnr then
-      bbye.bdelete(false, bufnr)
+  for _, buffer_number in ipairs(state.buffers) do
+    if not state.is_pinned(buffer_number) and buffer_number ~= current_bufnr then
+      bbye.bdelete(false, buffer_number)
     end
   end
 
@@ -172,7 +172,18 @@ function api.goto_buffer(index)
     index = math.min(index, #state.buffers)
   end
 
-  set_current_buf(state.buffers[math.max(1, index)])
+  index = math.max(1, index)
+
+  local buffer_number = state.buffers[index]
+  if buffer_number then
+    set_current_buf(buffer_number)
+  else
+    notify(
+      'E86: buffer at index ' .. index .. ' in list ' .. vim.inspect(state.buffers) .. ' does not exist.',
+      vim.log.levels.ERROR,
+      {title = 'barbar.nvim'}
+    )
+  end
 end
 
 --- Go to the buffer a certain number of buffers away from the current buffer.
@@ -182,18 +193,25 @@ end
 function api.goto_buffer_relative(steps)
   render.get_updated_buffers()
 
-  local current = render.set_current_win_listed_buffer()
-
-  local idx = utils.index_of(state.buffers, current)
-
-  if idx == nil then
-    print("Couldn't find buffer " .. current .. ' in the list: ' .. vim.inspect(state.buffers))
+  if #state.buffers < 1 then
+    notify('E85: There is no listed buffer', vim.log.levels.ERROR, {title = 'barbar.nvim'})
     return
-  else
-    idx = (idx + steps - 1) % #state.buffers + 1
   end
 
-  set_current_buf(state.buffers[idx])
+  local current_bufnr = render.set_current_win_listed_buffer()
+  local idx = utils.index_of(state.buffers, current_bufnr)
+
+  if not idx then -- fall back to: 1. the alternate buffer, 2. the first buffer
+    idx = utils.index_of(state.buffers, bufnr'#') or 1
+    notify(
+      "Couldn't find buffer #" .. current_bufnr .. ' in the list: ' .. vim.inspect(state.buffers) ..
+        '. Falling back to buffer #' .. state.buffers[idx],
+      vim.log.levels.INFO,
+      {title = 'barbar.nvim'}
+    )
+  end
+
+  set_current_buf(state.buffers[(idx + steps - 1) % #state.buffers + 1])
 end
 
 local move_animation = nil
@@ -240,7 +258,7 @@ local function move_buffer(from_idx, to_idx)
   end
 
   local animation = options.animation()
-  local bufnr = state.buffers[from_idx]
+  local buffer_number = state.buffers[from_idx]
 
   local previous_positions
   if animation == true then
@@ -248,11 +266,11 @@ local function move_buffer(from_idx, to_idx)
   end
 
   table_remove(state.buffers, from_idx)
-  table_insert(state.buffers, to_idx, bufnr)
+  table_insert(state.buffers, to_idx, buffer_number)
   state.sort_pins_to_left()
 
   if animation == true then
-    local current_index = utils.index_of(Layout.buffers, bufnr)
+    local current_index = utils.index_of(Layout.buffers, buffer_number)
     local start_index = min(from_idx, current_index)
     local end_index   = max(from_idx, current_index)
 
@@ -448,10 +466,9 @@ function api.set_offset(width, text, hl)
 end
 
 --- Toggle the `bufnr`'s "pin" state, visually.
---- @param bufnr? integer
---- @return nil
-function api.toggle_pin(bufnr)
-  state.toggle_pin(bufnr or 0)
+--- @param buffer_number? integer
+function api.toggle_pin(buffer_number)
+  state.toggle_pin(buffer_number or 0)
   render.update()
 end
 
