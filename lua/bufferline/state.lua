@@ -75,21 +75,19 @@ end
 --- Get the list of buffers
 --- @return integer[] bufnrs
 function state.get_buffer_list()
-  local buffers = list_bufs()
   local result = {}
 
   local exclude_ft = options.exclude_ft()
   local exclude_name = options.exclude_name()
   local hide_extensions = options.hide().extensions
 
-  for _, buffer in ipairs(buffers) do
-    if buf_get_option(buffer, 'buflisted') then
-      local ft = buf_get_option(buffer, 'filetype')
-      if not utils.has(exclude_ft, ft) then
-        local name = utils.basename(buf_get_name(buffer), hide_extensions)
-        if not utils.has(exclude_name, name) then
-          result[#result + 1] = buffer
-        end
+  for _, bufnr in ipairs(list_bufs()) do
+    if buf_get_option(bufnr, 'buflisted') and
+      not utils.has(exclude_ft, buf_get_option(bufnr, 'filetype'))
+    then
+      local name = buf_get_name(bufnr)
+      if not utils.has(exclude_name, utils.basename(name, hide_extensions)) then
+        table.insert(result, bufnr)
       end
     end
   end
