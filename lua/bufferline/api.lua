@@ -415,11 +415,11 @@ function api.pick_buffer()
         if JumpMode.buffer_by_letter[letter] ~= nil then
           set_current_buf(JumpMode.buffer_by_letter[letter])
         else
-          notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
+          notify("Couldn't find buffer", vim.log.levels.ERROR, {title = 'barbar.nvim'})
         end
       end
     else
-      notify("Invalid input", vim.log.levels.WARN, {title = 'barbar.nvim'})
+      notify("Invalid input", vim.log.levels.ERROR, {title = 'barbar.nvim'})
     end
   end)
 end
@@ -439,11 +439,11 @@ function api.pick_buffer_delete()
           elseif letter == ESC then
             break
           else
-            notify("Couldn't find buffer", vim.log.levels.WARN, {title = 'barbar.nvim'})
+            notify("Couldn't find buffer", vim.log.levels.ERROR, {title = 'barbar.nvim'})
           end
         end
       else
-        notify("Invalid input", vim.log.levels.WARN, {title = 'barbar.nvim'})
+        notify("Invalid input", vim.log.levels.ERROR, {title = 'barbar.nvim'})
       end
 
       render.update()
