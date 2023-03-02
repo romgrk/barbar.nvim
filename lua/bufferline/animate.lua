@@ -4,6 +4,18 @@
 
 local floor = math.floor
 
+--- @class bufferline.animate.state
+--- @field current number
+--- @field duration number
+--- @field final number
+--- @field fn fun(current: number, state: self)
+--- @field initial number
+--- @field running boolean
+--- @field start number
+--- @field step number
+--- @field timer userdata
+--- @field type unknown
+
 --- @class bufferline.animate
 local animate = {}
 
@@ -20,6 +32,10 @@ local function time(start)
   return t
 end
 
+--- @param ratio number
+--- @param initial number
+--- @param final number
+--- @return number
 function animate.lerp(ratio, initial, final, delta_type)
   delta_type = delta_type or vim.v.t_number
 
@@ -29,6 +45,8 @@ function animate.lerp(ratio, initial, final, delta_type)
   return initial + delta
 end
 
+--- @param state bufferline.animate.state
+--- @return nil
 local function animate_tick(state)
   -- Alternative to finding current value:
   --
@@ -57,20 +75,27 @@ local function animate_tick(state)
   end
 end
 
+--- @param callback fun(current: number, state: bufferline.animate.state)
+--- @param duration number
+--- @param final number
+--- @param initial number
+--- @param type unknown
+--- @return bufferline.animate.state
 function animate.start(duration, initial, final, type, callback)
   local ticks = (duration / ANIMATION_FREQUENCY) + 10
 
-  local state = {}
-  state.running = true
-  state.fn = callback
-  state.type = type
-  state.step = (final - initial) / ticks
-  state.duration = duration
-  state.current = initial
-  state.initial = initial
-  state.final = final
-  state.start = time()
-  state.timer = vim.loop.new_timer()
+  local state = {
+    current = initial,
+    duration = duration,
+    final = final,
+    fn = callback,
+    initial = initial,
+    running = true,
+    start = time(),
+    step = (final - initial) / ticks,
+    timer = vim.loop.new_timer(),
+    type = type,
+  }
 
   state.timer:start(0, ANIMATION_FREQUENCY, vim.schedule_wrap(function()
     animate_tick(state)
@@ -80,6 +105,8 @@ function animate.start(duration, initial, final, type, callback)
   return state
 end
 
+--- @param state bufferline.animate.state
+--- @return nil
 function animate.stop(state)
   if state.timer then
     state.timer:stop()

@@ -8,8 +8,7 @@ local split = vim.fn.split
 local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 
---- @type bufferline.options
-local options = require'bufferline.options'
+local options = require'bufferline.options' --- @type bufferline.options
 
 ----------------------------------------
 -- Section: Buffer-picking mode state --
@@ -28,6 +27,7 @@ local letters = {}
 local JumpMode = {}
 
 --- Reset the module to a valid default state
+--- @return nil
 function JumpMode.initialize_indexes()
   JumpMode.buffer_by_letter = {}
   JumpMode.index_by_letter = {}
@@ -44,12 +44,11 @@ end
 
 --- Set the letters which can be used by jump mode.
 --- @param chars string
+--- @return nil
 function JumpMode.set_letters(chars)
   letters = split(chars, [[\zs]])
   JumpMode.initialize_indexes()
 end
-
--- local empty_bufnr = vim.api.nvim_create_buf(0, 1)
 
 --- @param bufnr integer
 --- @return nil|string assigned
@@ -98,6 +97,7 @@ function JumpMode.get_letter(bufnr)
 end
 
 --- @param letter string
+--- @return nil
 function JumpMode.unassign_letter(letter)
   if letter == '' or letter == nil then
     return
@@ -118,6 +118,7 @@ end
 
 --- Unassign the letter which is assigned to `bufnr.`
 --- @param bufnr integer
+--- @return nil
 function JumpMode.unassign_letter_for(bufnr)
   JumpMode.unassign_letter(JumpMode.letter_by_buffer[bufnr])
 end

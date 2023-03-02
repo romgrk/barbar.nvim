@@ -10,17 +10,10 @@ local buf_get_option = vim.api.nvim_buf_get_option
 local strwidth = vim.api.nvim_strwidth
 local tabpagenr = vim.fn.tabpagenr
 
---- @type bufferline.buffer
-local Buffer = require'bufferline.buffer'
-
---- @type bufferline.icons
-local icons = require'bufferline.icons'
-
---- @type bufferline.options
-local options = require'bufferline.options'
-
---- @type bufferline.state
-local state = require'bufferline.state'
+local Buffer = require'bufferline.buffer' --- @type bufferline.buffer
+local icons = require'bufferline.icons' --- @type bufferline.icons
+local options = require'bufferline.options' --- @type bufferline.options
+local state = require'bufferline.state' --- @type bufferline.state
 
 --- The number of sides of each buffer in the tabline.
 local SIDES_OF_BUFFER = 2

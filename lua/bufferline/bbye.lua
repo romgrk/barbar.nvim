@@ -40,11 +40,8 @@ local win_is_valid = vim.api.nvim_win_is_valid
 local buf_get_option = vim.api.nvim_buf_get_option
 local buf_set_option = vim.api.nvim_buf_set_option
 
---- @type bufferline.state
-local state = require'bufferline.state'
-
---- @type bufferline.utils
-local utils = require'bufferline.utils'
+local state = require'bufferline.state' --- @type bufferline.state
+local utils = require'bufferline.utils' --- @type bufferline.utils
 
 -------------------
 -- Section: helpers
@@ -68,6 +65,7 @@ local cmd = vim.api.nvim_cmd and
 
 --- Use `vim.notify` to print an error `msg`
 --- @param msg string
+--- @return nil
 local function err(msg)
   notify(msg, vim.log.levels.ERROR, {title = 'bbye'})
   vim.v.errmsg = msg
@@ -77,6 +75,7 @@ local empty_buffer = nil
 
 --- Create a new buffer.
 --- @param force boolean if `true`, forcefully create the new buffer
+--- @return nil
 local function new(force)
   command("enew" .. (force and '!' or ''))
 
@@ -111,6 +110,7 @@ local bbye = {}
 --- @param buffer? integer|string the name of the buffer.
 --- @param mods? string|{[string]: any} the modifiers to the command (e.g. `'verbose'`)
 --- @param focus_id? number the preferred buffer to focus
+--- @return nil
 function bbye.delete(action, force, buffer, mods, focus_id)
   local buffer_number = type(buffer) == 'string' and bufnr(buffer) or tonumber(buffer) or get_current_buf()
 
@@ -202,6 +202,7 @@ end
 --- @param buffer? integer|string the name of the buffer.
 --- @param mods? string|{[string]: any} the modifiers to the command (e.g. `'verbose'`)
 --- @param focus_id? number the preferred buffer to focus
+--- @return nil
 function bbye.bdelete(force, buffer, mods, focus_id)
   bbye.delete('bdelete', force, buffer, mods, focus_id)
 end
@@ -211,6 +212,7 @@ end
 --- @param buffer? integer|string the name of the buffer.
 --- @param mods? string|{[string]: any} the modifiers to the command (e.g. `'verbose'`)
 --- @param focus_id? number the preferred buffer to focus
+--- @return nil
 function bbye.bwipeout(force, buffer, mods, focus_id)
   bbye.delete('bwipeout', force, buffer, mods, focus_id)
 end

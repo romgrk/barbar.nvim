@@ -69,11 +69,11 @@ hl.set_default_link('BufferDefaultOffset', 'BufferTabpageFill')
 --- @class bufferline.highlight
 return {
   --- Setup the highlight groups for this plugin.
+  --- @return nil
   setup = function()
     local fg_current = hl.fg_or_default({'Normal'}, '#efefef', 255)
     local fg_inactive = hl.fg_or_default({'TabLineFill'}, '#888888', 102)
-    --- @type barbar.utils.hl.group
-    local fg_target = {gui = 'red'}
+    local fg_target = {gui = 'red'} --- @type barbar.utils.hl.group
     fg_target.cterm = fg_target.gui
 
     local fg_error = hl.fg_or_default({'ErrorMsg'}, '#A80000', 124)

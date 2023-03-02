@@ -41,7 +41,7 @@ local function index_of(list, t)
   return nil
 end
 
-  --- @param path string
+--- @param path string
 --- @return string relative_path
 local function relative(path)
   return fnamemodify(path, ':~:.')
@@ -107,6 +107,7 @@ return {
     --- @param bg barbar.utils.hl.group
     --- @param fg barbar.utils.hl.group
     --- @param bold? boolean whether the highlight group should be bolded
+    --- @return nil
     set = function(group, bg, fg, bold)
       set_hl(0, group, {
         bold = bold,
@@ -122,7 +123,8 @@ return {
     --- Set the default highlight `group_name` as a link to `link_name`
     --- @param group_name string the name of the group to by-default be linked to `link_name`
     --- @param link_name string the name of the group to by-default link `group_name` to
-    set_default_link = function (group_name, link_name)
+    --- @return nil
+    set_default_link = function(group_name, link_name)
       set_hl(0, group_name, {default = true, link = link_name})
     end,
   },
