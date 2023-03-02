@@ -504,20 +504,23 @@ To ensure tabs begin with the shown buffer you can set an offset for the tabline
 Add this autocmds to your configuration.
 
 ```lua
-vim.api.nvim_create_autocmd('BufWinEnter', {
-  callback = function(tbl)
-    if vim.bo[tbl.buf].filetype == 'NvimTree' then
-      require'bufferline.api'.set_offset(31, 'FileTree')
+local filetreename = 'neo-tree'
+vim.api.nvim_create_autocmd({ 'BufWinEnter', 'WinScrolled' }, {
+    callback = function(tbl)
+        if vim.bo[tbl.buf].filetype == filetreename then
+            local window_id = vim.fn.bufwinid(tbl.buf)
+            local width = vim.fn.winwidth(window_id)
+            require 'bufferline.api'.set_offset(width, 'FileTree')
+        end
     end
-  end
 })
 
-vim.api.nvim_create_autocmd({'BufWinLeave', 'BufWipeout'}, {
-  callback = function(tbl)
-    if vim.bo[tbl.buf].filetype == 'NvimTree' then
-      require'bufferline.api'.set_offset(0)
+vim.api.nvim_create_autocmd({ 'BufWinLeave', 'BufWipeout' }, {
+    callback = function(tbl)
+        if vim.bo[tbl.buf].filetype == filetreename then
+            require 'bufferline.api'.set_offset(0)
+        end
     end
-  end
 })
 ```
 
