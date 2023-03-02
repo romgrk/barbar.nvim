@@ -480,6 +480,8 @@ function render.enable()
       local restore_cmd = vim.g.Bufferline__session_restore
       if restore_cmd then command(restore_cmd) end
 
+      -- TODO: I'm not sure if these two statements can be merged, but it's working now so I don't want to touch it.
+      vim.defer_fn(function() state.loading_session = false end, 100)
       schedule(function() render.update(true) end)
     end,
     group = augroup_bufferline_update,
