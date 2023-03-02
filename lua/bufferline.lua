@@ -1,7 +1,8 @@
+local bufnr = vim.fn.bufnr
 local command = vim.api.nvim_command
 local create_user_command = vim.api.nvim_create_user_command
 local get_current_buf = vim.api.nvim_get_current_buf
-local bufnr = vim.fn.bufnr
+local notify = vim.notify
 
 --- @type bufferline.api
 local api = require'bufferline.api'
@@ -55,8 +56,32 @@ function bufferline.setup(user_config)
 
   create_user_command(
     'BufferGoto',
-    function(tbl) api.goto_buffer(tonumber(tbl.args) or 1) end,
-    {desc = 'Go to the buffer at the specified index', nargs = 1}
+    function(tbl)
+      local index = tonumber(tbl.args)
+      if not index then
+        notify('Invalid argument to `:BufferGoto`', vim.log.levels.ERROR, {title = 'barbar.nvim'})
+        return
+      end
+      api.goto_buffer(index)
+    end,
+    {
+      complete = function()
+        local buffers = require'bufferline.state'.buffers
+        local buffer_indices = {}
+
+        for i = 1, #buffers do
+          table.insert(buffer_indices, tostring(i))
+        end
+
+        for i = -#buffers, -1, 1 do
+          table.insert(buffer_indices, tostring(i))
+        end
+
+        return buffer_indices
+      end,
+      desc = 'Go to the buffer at the specified index',
+      nargs = 1,
+    }
   )
 
   create_user_command('BufferFirst', 'BufferGoto 1', {desc = 'Go to the first buffer'})
