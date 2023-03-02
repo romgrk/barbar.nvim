@@ -4,6 +4,7 @@ local bufnr = vim.fn.bufnr --- @type function
 local command = vim.api.nvim_command --- @type function
 local create_user_command = vim.api.nvim_create_user_command --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
+local set_option = vim.api.nvim_set_option --- @type function
 
 local api = require'bufferline.api'
 local bbye = require'bufferline.bbye'
@@ -26,7 +27,7 @@ local bufferline = {}
 --- @return nil
 function bufferline.setup(user_config)
   -- Show the tabline
-  vim.opt.showtabline = 2
+  set_option('showtabline', 2)
 
   -- Create all necessary commands
   create_user_command('BarbarEnable', render.enable, {desc = 'Enable barbar.nvim'})

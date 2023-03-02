@@ -8,6 +8,7 @@ local min = math.min
 local table_insert = table.insert
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local get_option = vim.api.nvim_get_option --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 local tabpagenr = vim.fn.tabpagenr --- @type function
 
@@ -115,7 +116,7 @@ end
 --- Calculate the current layout of the bufferline.
 --- @return bufferline.layout.data
 function Layout.calculate()
-  local available_width = vim.o.columns
+  local available_width = get_option'columns'
   available_width = available_width - state.offset.width
 
   local used_width, base_widths = Layout.calculate_buffers_width()

@@ -19,12 +19,14 @@ local create_autocmd = vim.api.nvim_create_autocmd --- @type function
 local defer_fn = vim.defer_fn
 local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
+local get_option = vim.api.nvim_get_option --- @type function
 local has = vim.fn.has --- @type function
 local list_tabpages = vim.api.nvim_list_tabpages --- @type function
 local list_wins = vim.api.nvim_list_wins --- @type function
 local schedule = vim.schedule --- @type function
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local set_current_win = vim.api.nvim_set_current_win --- @type function
+local set_option = vim.api.nvim_set_option --- @type function
 local severity = vim.diagnostic.severity --- @type function
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
@@ -235,7 +237,7 @@ end
 --- @return nil
 local function set_tabline(tabline)
   last_tabline = tabline
-  vim.opt.tabline = last_tabline
+  set_option('tabline', tabline or '')
 end
 
 --- @class bufferline.render
@@ -715,14 +717,14 @@ end
 local function generate_tabline(bufnrs, refocus)
   if options.auto_hide() then
     if #bufnrs + #list_tabpages() < 3 then -- 3 because the condition for auto-hiding is 1 visible buffer and 1 tabpage (2).
-      if vim.o.showtabline == 2 then
-        vim.o.showtabline = 0
+      if get_option'showtabline' == 2 then
+        set_option('showtabline', 0)
       end
       return
     end
 
-    if vim.o.showtabline == 0 then
-      vim.o.showtabline = 2
+    if get_option'showtabline' == 0 then
+      set_option('showtabline', 2)
     end
   end
 
