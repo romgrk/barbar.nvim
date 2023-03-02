@@ -22,7 +22,6 @@ local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local has = vim.fn.has --- @type function
 local list_tabpages = vim.api.nvim_list_tabpages --- @type function
 local list_wins = vim.api.nvim_list_wins --- @type function
-local notify = vim.notify
 local schedule = vim.schedule --- @type function
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local set_current_win = vim.api.nvim_set_current_win --- @type function
@@ -977,12 +976,11 @@ function render.update(update_names, refocus)
 
   if not ok then
     render.disable()
-    notify(
+    utils.notify(
       "Barbar detected an error while running. Barbar disabled itself :/ " ..
         "Include this in your report: " ..
         tostring(result),
-      vim.log.levels.ERROR,
-      {title = 'barbar.nvim'}
+      vim.log.levels.ERROR
     )
 
     return

@@ -7,12 +7,12 @@ local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local command = vim.api.nvim_command --- @type function
 local fnamemodify = vim.fn.fnamemodify --- @type function
 local hlexists = vim.fn.hlexists --- @type function
-local notify = vim.notify
 
-local hl = require'bufferline.utils'.hl --- @type bufferline.utils.hl
+local utils = require'bufferline.utils' --- @type bufferline.utils
+local hl = utils.hl
 
 --- @type boolean, {get_icon: fun(name: string, ext?: string, opts?: {default: nil|boolean}): string, string}
-local status, web = pcall(require, 'nvim-web-devicons')
+local ok, web = pcall(require, 'nvim-web-devicons')
 
 --- @class bufferline.icons.group
 --- @field buffer_status bufferline.buffer.activity.name the state of the buffer whose icon is being highlighted
@@ -47,13 +47,12 @@ return {
   --- @param buffer_status bufferline.buffer.activity.name
   --- @return string icon, string highlight_group
   get_icon = function(bufnr, buffer_status)
-    if status == false then
-      notify(
+    if ok == false then
+      utils.notify(
         'barbar: bufferline.icons is set to v:true but "nvim-dev-icons" was not found.' ..
           '\nbarbar: icons have been disabled. Set `bufferline.icons` to `false` or ' ..
           'install "nvim-dev-icons" to disable this message.',
-        vim.log.levels.WARN,
-        {title = 'barbar.nvim'}
+        vim.log.levels.WARN
       )
 
       if type(vim.g.bufferline) == 'table' then
