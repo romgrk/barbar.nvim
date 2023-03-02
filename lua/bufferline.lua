@@ -1,3 +1,5 @@
+local table_insert = table.insert
+
 local bufnr = vim.fn.bufnr --- @type function
 local command = vim.api.nvim_command --- @type function
 local create_user_command = vim.api.nvim_create_user_command --- @type function
@@ -57,7 +59,7 @@ function bufferline.setup(user_config)
         local buffer_indices = {}
 
         for i = 1, #buffers do
-          table.insert(buffer_indices, tostring(i))
+          table_insert(buffer_indices, tostring(i))
         end
 
         for i = -#buffers, -1 do

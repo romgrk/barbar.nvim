@@ -118,7 +118,7 @@ local function groups_insert(groups, position, others)
 
     -- While we haven't found the position...
     if current_position + group_width <= position then
-      new_groups[#new_groups + 1] = group
+      table_insert(new_groups, group)
       i = i + 1
       current_position = current_position + group_width
 
@@ -128,10 +128,10 @@ local function groups_insert(groups, position, others)
 
       -- Slice current group if it `position` is inside it
       if available_width > 0 then
-        new_groups[#new_groups + 1] = {
+        table_insert(new_groups, {
           text = strcharpart(group.text, 0, available_width),
           hl = group.hl,
-        }
+        })
       end
 
       -- Add new other groups
@@ -139,7 +139,7 @@ local function groups_insert(groups, position, others)
       for _, other in ipairs(others) do
         local other_width = strwidth(other.text)
         others_width = others_width + other_width
-        new_groups[#new_groups + 1] = other
+        table_insert(new_groups, other)
       end
 
       local end_position = position + others_width
@@ -156,14 +156,14 @@ local function groups_insert(groups, position, others)
           -- continue
         elseif previous_group_start_position >= end_position then
           -- table.insert(new_groups, 'direct')
-          new_groups[#new_groups + 1] = previous_group
+          table_insert(new_groups, previous_group)
         else
           local remaining_width = previous_group_end_position - end_position
           local start = previous_group_width - remaining_width
           local end_  = previous_group_width
           local new_group = { hl = previous_group.hl, text = strcharpart(previous_group.text, start, end_) }
           -- table.insert(new_groups, { group_start_position, group_end_position, end_position })
-          new_groups[#new_groups + 1] = new_group
+          table_insert(new_groups, new_group)
         end
 
         i = i + 1
@@ -193,11 +193,11 @@ local function slice_groups_right(groups, width)
     if accumulated_width >= width then
       local diff = text_width - (accumulated_width - width)
       local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff)}
-      new_groups[#new_groups + 1] = new_group
+      table_insert(new_groups, new_group)
       break
     end
 
-    new_groups[#new_groups + 1] = group
+    table_insert(new_groups, group)
   end
 
   return new_groups
@@ -477,15 +477,8 @@ function render.enable()
         return
       end
 
-      state.loading_session = true
-
-      if vim.g.Bufferline__session_restore then
-        command(vim.g.Bufferline__session_restore)
-      end
-
-      vim.fn.timer_start(100, function()
-        state.loading_session = false
-      end)
+      local restore_cmd = vim.g.Bufferline__session_restore
+      if restore_cmd then command(restore_cmd) end
 
       schedule(function() render.update(true) end)
     end,
@@ -530,13 +523,15 @@ function render.enable()
         -- escape quotes
         name = name:gsub('"', '\\"')
 
-        bufnames[#bufnames + 1] = '{' ..
+        table_insert(bufnames, '{' ..
           'name = "' .. name .. '",' ..
           'pinned = ' .. tostring(state.data_by_bufnr[bufnr].pinned == true) .. ',' ..
-        '}'
+        '}')
       end
 
-      vim.g.Bufferline__session_restore = "lua require'bufferline.state'.restore_buffers {" .. table_concat(bufnames, ',') .. "}"
+      vim.g.Bufferline__session_restore = "lua require'bufferline.state'.restore_buffers {" ..
+        table_concat(bufnames, ',') ..
+      "}"
     end,
     group = augroup_bufferline,
     pattern = 'SessionSavePre',
@@ -889,7 +884,7 @@ local function generate_tabline(bufnrs, refocus)
       end
     end
 
-    items[#items + 1] = item
+    table_insert(items, item)
     current_buffer_position = current_buffer_position + item.width
   end
 
