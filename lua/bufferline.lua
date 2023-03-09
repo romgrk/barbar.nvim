@@ -128,26 +128,16 @@ function bufferline.setup(user_config)
     {desc = 'Order the bufferline by window number'}
   )
 
-  create_user_command(
-    'BufferClose',
-    function(tbl)
-      local focus_buffer = state.find_next_buffer(get_current_buf())
-      bbye.bdelete(tbl.bang, tbl.args, tbl.smods or tbl.mods, focus_buffer)
-    end,
-    {bang = true, complete = 'buffer', desc = 'Close the current buffer.', nargs = '?'}
-  )
-
-  create_user_command(
-    'BufferDelete',
-    function(tbl) bbye.bdelete(tbl.bang, tbl.args, tbl.smods or tbl.mods) end,
-    {bang = true, complete = 'buffer', desc = 'Synonym for `:BufferClose`', nargs = '?'}
-  )
-
-  create_user_command(
-    'BufferWipeout',
-    function(tbl) bbye.bwipeout(tbl.bang, tbl.args, tbl.smods or tbl.mods) end,
-    {bang = true, complete = 'buffer', desc = 'Wipe out the buffer', nargs = '?'}
-  )
+  for cmd, desc in pairs {
+    Close = 'Close the current buffer',
+    Delete = 'Synonym for `:BufferClose`',
+  } do
+    create_user_command(
+      'Buffer' .. cmd,
+      function(tbl) bbye.bdelete(tbl.bang, tbl.args, tbl.smods or tbl.mods) end,
+      {bang = true, complete = 'buffer', desc = desc, nargs = '?'}
+    )
+  end
 
   create_user_command(
     'BufferCloseAllButCurrent',
