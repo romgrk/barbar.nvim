@@ -1,4 +1,3 @@
-
 ![demo](./static/demo.gif)
 
 <h1 align="center">
@@ -501,54 +500,37 @@ To ensure tabs begin with the shown buffer you can set an offset for the tabline
 
 ![filetree-with-offset](./static/filetree-with-offset.png)
 
-Add this autocmds to your configuration.
+Add this `autocmd` to your configuration:
 
 ```lua
-vim.api.nvim_create_autocmd('BufWinEnter', {
+vim.api.nvim_create_autocmd('FileType', {
   callback = function(tbl)
-    if vim.bo[tbl.buf].filetype == 'NvimTree' then
-      require'bufferline.api'.set_offset(31, 'FileTree')
-    end
-  end
+    local set_offset = require('bufferline.api').set_offset
+
+    local bufwinid
+    local last_width
+    local autocmd = vim.api.nvim_create_autocmd('WinScrolled', {
+      callback = function()
+        bufwinid = bufwinid or vim.fn.bufwinid(tbl.buf)
+        local width = vim.api.nvim_win_get_width(bufwinid)
+
+        if last_width ~= width then
+          set_offset(width, 'FileTree')
+        end
+      end,
+    })
+
+    vim.api.nvim_create_autocmd('BufWipeout', {
+      buffer = tbl.buf,
+      callback = function()
+        vim.api.nvim_del_autocmd(autocmd)
+        set_offset(0)
+      end,
+      once = true,
+    })
+  end,
+  pattern = 'NvimTree', -- or any other filetree's `ft`
 })
-
-vim.api.nvim_create_autocmd({'BufWinLeave', 'BufWipeout'}, {
-  callback = function(tbl)
-    if vim.bo[tbl.buf].filetype == 'NvimTree' then
-      require'bufferline.api'.set_offset(0)
-    end
-  end
-})
-```
-
-And add a mapping to use the above functions:
-
-```vim
-noremap <silent> <C-n> :lua require'tree'.toggle()<CR>
-```
-
-In the case of `nvim-tree`, there is an even simpler solution because it exposes an events API.
-You can add the following functions and then use `nvim-tree` mappings:
-
-```lua
-local nvim_tree_events = require('nvim-tree.events')
-local bufferline_api = require('bufferline.api')
-
-local function get_tree_size()
-  return require'nvim-tree.view'.View.width
-end
-
-nvim_tree_events.subscribe('TreeOpen', function()
-  bufferline_api.set_offset(get_tree_size())
-end)
-
-nvim_tree_events.subscribe('Resize', function()
-  bufferline_api.set_offset(get_tree_size())
-end)
-
-nvim_tree_events.subscribe('TreeClose', function()
-  bufferline_api.set_offset(0)
-end)
 ```
 
 ## Known Issues
