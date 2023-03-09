@@ -512,10 +512,11 @@ vim.api.nvim_create_autocmd('FileType', {
     local autocmd = vim.api.nvim_create_autocmd('WinScrolled', {
       callback = function()
         bufwinid = bufwinid or vim.fn.bufwinid(tbl.buf)
-        local width = vim.api.nvim_win_get_width(bufwinid)
 
-        if last_width ~= width then
+        local width = vim.api.nvim_win_get_width(bufwinid)
+        if width ~= last_width then
           set_offset(width, 'FileTree')
+          last_width = width
         end
       end,
     })
