@@ -172,8 +172,8 @@ local utils = {
   --- @return T[] reversed
   reverse = function(list)
     local reversed = {}
-    while #reversed < #list do
-      reversed[#reversed + 1] = list[#list - #reversed]
+    for i = #list, 1, -1 do
+      table.insert(reversed, list[i])
     end
     return reversed
   end,
