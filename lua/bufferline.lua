@@ -4,26 +4,13 @@ local create_user_command = vim.api.nvim_create_user_command
 local get_current_buf = vim.api.nvim_get_current_buf
 local notify = vim.notify
 
---- @type bufferline.api
-local api = require'bufferline.api'
-
---- @type bbye
-local bbye = require'bufferline.bbye'
-
---- @type bufferline.highlight
-local highlight = require'bufferline.highlight'
-
---- @type bufferline.JumpMode
-local JumpMode = require'bufferline.jump_mode'
-
---- @type bufferline.options
-local options = require'bufferline.options'
-
---- @type bufferline.render
-local render = require'bufferline.render'
-
---- @type bufferline.state
-local state = require'bufferline.state'
+local api = require'bufferline.api' --- @type bufferline.api
+local bbye = require'bufferline.bbye' --- @type bbye
+local highlight = require'bufferline.highlight' --- @type bufferline.highlight
+local JumpMode = require'bufferline.jump_mode' --- @type bufferline.JumpMode
+local options = require'bufferline.options' --- @type bufferline.options
+local render = require'bufferline.render' --- @type bufferline.render
+local state = require'bufferline.state' --- @type bufferline.state
 
 -------------------------------
 -- Section: `bufferline` module
@@ -34,6 +21,7 @@ local bufferline = {}
 
 --- Setup this plugin.
 --- @param user_config? table
+--- @return nil
 function bufferline.setup(user_config)
   -- Show the tabline
   vim.opt.showtabline = 2

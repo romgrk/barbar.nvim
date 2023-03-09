@@ -12,14 +12,9 @@ local list_bufs = vim.api.nvim_list_bufs
 local list_extend = vim.list_extend
 local tbl_filter = vim.tbl_filter
 
---- @type bufferline.buffer
-local Buffer = require'bufferline.buffer'
-
---- @type bufferline.options
-local options = require'bufferline.options'
-
---- @type bufferline.utils
-local utils = require'bufferline.utils'
+local Buffer = require'bufferline.buffer' --- @type bufferline.buffer
+local options = require'bufferline.options' --- @type bufferline.options
+local utils = require'bufferline.utils' --- @type bufferline.utils
 
 --------------------------------
 -- Section: Application state --
@@ -78,6 +73,7 @@ function state.get_buffer_data(bufnr)
 end
 
 --- Get the list of buffers
+--- @return integer[] bufnrs
 function state.get_buffer_list()
   local buffers = list_bufs()
   local result = {}
@@ -111,6 +107,7 @@ function state.is_pinned(bufnr)
 end
 
 --- Sort the pinned tabs to the left of the bufferline.
+--- @return nil
 function state.sort_pins_to_left()
   local unpinned = {}
 
@@ -129,6 +126,7 @@ end
 --- Toggle the `bufnr`'s "pin" state.
 --- WARN: does not redraw the bufferline. See `Render.toggle_pin`.
 --- @param bufnr integer
+--- @return nil
 function state.toggle_pin(bufnr)
   local data = state.get_buffer_data(bufnr)
   data.pinned = not data.pinned
@@ -142,6 +140,7 @@ end
 --- WARN: does NOT close the buffer in Neovim (see `:h nvim_buf_delete`)
 --- @param bufnr integer
 --- @param do_name_update? boolean refreshes all buffer names iff `true`
+--- @return nil
 function state.close_buffer(bufnr, do_name_update)
   state.buffers = tbl_filter(function(b) return b ~= bufnr end, state.buffers)
   state.data_by_bufnr[bufnr] = nil
@@ -174,6 +173,7 @@ function state.find_next_buffer(buffer_number)
 end
 
 --- Update the names of all buffers in the bufferline.
+--- @return nil
 function state.update_names()
   local buffer_index_by_name = {}
   local hide_extensions = options.hide().extensions
@@ -207,6 +207,7 @@ end
 --- @param width integer
 --- @param text? string
 --- @param hl? string
+--- @return nil
 function state.set_offset(width, text, hl)
   if vim.deprecate then
     vim.deprecate('`bufferline.state.set_offset`', '`bufferline.api.set_offset`', '2.0.0', 'barbar.nvim')
@@ -223,6 +224,7 @@ end
 
 --- Restore the buffers
 --- @param buffer_data string[]|{name: string, pinned: boolean}[]
+--- @return nil
 function state.restore_buffers(buffer_data)
   --- PERF: since this function is only run once (`nvim -S`) I avoided importing the called functions at top-level
   local table_insert = table.insert

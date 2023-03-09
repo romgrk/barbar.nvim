@@ -9,8 +9,7 @@ local fnamemodify = vim.fn.fnamemodify
 local hlexists = vim.fn.hlexists
 local notify = vim.notify
 
---- @type bufferline.utils.hl
-local hl = require'bufferline.utils'.hl
+local hl = require'bufferline.utils'.hl --- @type bufferline.utils.hl
 
 --- @type boolean, {get_icon: fun(name: string, ext?: string, opts?: {default: nil|boolean}): string, string}
 local status, web = pcall(require, 'nvim-web-devicons')
@@ -25,6 +24,7 @@ local hl_groups = {}
 --- Sets the highlight group used for a type of buffer's file icon
 --- @param buffer_status bufferline.buffer.activity.name
 --- @param icon_hl string
+--- @return nil
 local function hl_buffer_icon(buffer_status, icon_hl)
   hl.set(
     icon_hl .. buffer_status,
@@ -35,14 +35,13 @@ end
 
 --- @class bufferline.icons
 return {
-  -- It's not possible to purely delete an HL group when the colorscheme
-  -- changes, therefore we need to re-define colors for all groups we have
-  -- already highlighted.
+  --- Re-highlight all of the groups which have been set before. Checks for updated highlight groups.
+  --- @return nil
   set_highlights = function()
     for _, group in ipairs(hl_groups) do
       hl_buffer_icon(group.buffer_status, group.icon_hl)
     end
- end,
+  end,
 
   --- @param bufnr integer
   --- @param buffer_status bufferline.buffer.activity.name

@@ -35,35 +35,16 @@ local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf
 
---- @type bufferline.animate
-local animate = require'bufferline.animate'
-
---- @type bbye
-local bbye = require'bufferline.bbye'
-
---- @type bufferline.buffer
-local Buffer = require'bufferline.buffer'
-
---- @type bufferline.highlight
-local highlight = require'bufferline.highlight'
-
---- @type bufferline.icons
-local icons = require'bufferline.icons'
-
---- @type bufferline.JumpMode
-local JumpMode = require'bufferline.jump_mode'
-
---- @type bufferline.Layout
-local Layout = require'bufferline.layout'
-
---- @type bufferline.options
-local options = require'bufferline.options'
-
---- @type bufferline.state
-local state = require'bufferline.state'
-
---- @type bufferline.utils
-local utils = require'bufferline.utils'
+local animate = require'bufferline.animate' --- @type bufferline.animate
+local bbye = require'bufferline.bbye' --- @type bbye
+local Buffer = require'bufferline.buffer' --- @type bufferline.buffer
+local highlight = require'bufferline.highlight' --- @type bufferline.highlight
+local icons = require'bufferline.icons' --- @type bufferline.icons
+local JumpMode = require'bufferline.jump_mode' --- @type bufferline.JumpMode
+local Layout = require'bufferline.layout' --- @type bufferline.Layout
+local options = require'bufferline.options' --- @type bufferline.options
+local state = require'bufferline.state' --- @type bufferline.state
+local utils = require'bufferline.utils' --- @type bufferline.utils
 
 --- The highlight to use based on the state of a buffer.
 local HL_BY_ACTIVITY = {'Inactive', 'Alternate', 'Visible', 'Current'}
@@ -200,6 +181,7 @@ end
 --- Select from `groups` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
 --- @param groups bufferline.render.group[]
 --- @param width integer
+--- @return bufferline.render.group[]
 local function slice_groups_right(groups, width)
   local accumulated_width = 0
 
@@ -225,6 +207,7 @@ end
 --- Select from `groups` in reverse while fitting within the provided `width`, discarding all indices less than the last index that fits.
 --- @param groups bufferline.render.group[]
 --- @param width integer
+--- @return bufferline.render.group[]
 local function slice_groups_left(groups, width)
   local accumulated_width = 0
 
@@ -250,6 +233,7 @@ end
 
 --- Clears the tabline. Does not stop the tabline from being redrawn via autocmd.
 --- @param tabline? string
+--- @return nil
 local function set_tabline(tabline)
   last_tabline = tabline
   vim.opt.tabline = last_tabline
@@ -261,6 +245,7 @@ local render = {}
 --- An incremental animation for `close_buffer_animated`.
 --- @param bufnr integer
 --- @param new_width integer
+--- @return nil
 local function close_buffer_animated_tick(bufnr, new_width, animation)
   if new_width > 0 and state.data_by_bufnr[bufnr] ~= nil then
     local buffer_data = state.get_buffer_data(bufnr)
@@ -276,6 +261,7 @@ end
 --- WARN: does NOT close the buffer in Neovim (see `:h nvim_buf_delete`)
 --- @param bufnr integer
 --- @param do_name_update? boolean refreshes all buffer names iff `true`
+--- @return nil
 function render.close_buffer(bufnr, do_name_update)
   state.close_buffer(bufnr, do_name_update)
   render.update()
@@ -283,6 +269,7 @@ end
 
 --- Same as `close_buffer`, but animated.
 --- @param bufnr integer
+--- @return nil
 function render.close_buffer_animated(bufnr)
   if options.animation() == false then
     return render.close_buffer(bufnr)
@@ -303,6 +290,7 @@ end
 
 --- What to do when clicking a buffer close button.
 --- @param buffer integer
+--- @return nil
 function render.close_click_handler(buffer)
   if buf_get_option(buffer, 'modified') then
     buf_call(buffer, function() command('w') end)
@@ -313,6 +301,7 @@ function render.close_click_handler(buffer)
 end
 
 --- Disable the bufferline
+--- @return nil
 function render.disable()
   create_augroups()
   set_tabline(nil)
@@ -327,6 +316,7 @@ end
 --- @param bufnr integer
 --- @param new_width integer
 --- @param animation unknown
+--- @return nil
 local function open_buffer_animated_tick(bufnr, new_width, animation)
   local buffer_data = state.get_buffer_data(bufnr)
   buffer_data.width = animation.running and new_width or nil
@@ -337,6 +327,7 @@ end
 --- Opens a buffer with animation.
 --- @param bufnr integer
 --- @param layout bufferline.layout.data
+--- @return nil
 local function open_buffer_start_animation(layout, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
   local icons_option = options.icons()
@@ -366,6 +357,7 @@ local function open_buffer_start_animation(layout, bufnr)
 end
 
 --- Open the `new_buffers` in the bufferline.
+--- @return nil
 local function open_buffers(new_buffers)
   local initial_buffers = #state.buffers
 
@@ -428,6 +420,7 @@ local function open_buffers(new_buffers)
 end
 
 --- Enable the bufferline.
+--- @return nil
 function render.enable()
   local augroup_bufferline, augroup_bufferline_update = create_augroups()
 
@@ -579,6 +572,7 @@ function render.enable()
 end
 
 --- Refresh the buffer list.
+--- @return integer[] state.buffers
 function render.get_updated_buffers(update_names)
   local current_buffers = state.get_buffer_list()
   local new_buffers =
@@ -624,6 +618,7 @@ end
 --- What to do when clicking a buffer label.
 --- @param bufnr integer the buffer nummber
 --- @param btn string
+--- @return nil
 function render.main_click_handler(bufnr, _, btn, _)
   if bufnr == 0 then
     return
@@ -640,6 +635,7 @@ end
 
 --- What to do when `vim.g.bufferline` is changed.
 --- @param key string what option was changed.
+--- @return nil
 function render.on_option_changed(_, key, _)
   if vim.g.bufferline and key == 'letters' then
     JumpMode.set_letters(options.letters())
@@ -679,6 +675,7 @@ end
 
 --- Scroll the bufferline relative to its current position.
 --- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
+--- @return nil
 function render.scroll(n)
   render.set_scroll(math.max(0, scroll.target + n))
 end
@@ -686,6 +683,7 @@ end
 local scroll_animation = nil
 
 --- An incremental animation for `set_scroll`.
+--- @return nil
 local function set_scroll_tick(new_scroll, animation)
   scroll.current = new_scroll
   if animation.running == false then
@@ -696,6 +694,7 @@ end
 
 --- Scrolls the bufferline to the `target`.
 --- @param target integer where to scroll to
+--- @return nil
 function render.set_scroll(target)
   scroll.target = target
 
@@ -963,6 +962,7 @@ end
 --- Update `&tabline`
 --- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
 --- @param update_names? boolean whether to refresh the names of the buffers (default: `false`)
+--- @return nil
 function render.update(update_names, refocus)
   if vim.g.SessionLoad then
     return

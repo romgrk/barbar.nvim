@@ -22,11 +22,8 @@ local strcharpart = vim.fn.strcharpart
 local strwidth = vim.api.nvim_strwidth
 local WARN = vim.diagnostic.severity.WARN
 
---- @type bufferline.options
-local options = require'bufferline.options'
-
---- @type bufferline.utils
-local utils = require'bufferline.utils'
+local options = require'bufferline.options' --- @type bufferline.options
+local utils = require'bufferline.utils' --- @type bufferline.utils
 
 --- @alias bufferline.buffer.activity 1|2|3|4
 
@@ -61,7 +58,7 @@ local function get_activity(buffer_number)
 end
 
 --- @param buffer_number number
---- @return {[number]: number} count keyed on `vim.diagnostic.severity`
+--- @return number[] # indexed on `vim.diagnostic.severity`
 local function count_diagnostics(buffer_number)
   local count = {[ERROR] = 0, [HINT] = 0, [INFO] = 0, [WARN] = 0}
 
@@ -80,13 +77,14 @@ return {
   --- @param buffer_number integer the buffer number to count diagnostics in
   --- @param diagnostics bufferline.options.diagnostics the user configuration for diagnostics
   --- @param f fun(count: integer, diagnostic: bufferline.options.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
+  --- @return nil
   for_each_counted_enabled_diagnostic = function(buffer_number, diagnostics, f)
     local count
-    for i, v in ipairs(diagnostics) do
-      if v.enabled then
+    for severity, severity_config in ipairs(diagnostics) do
+      if severity_config.enabled then
         count = count or count_diagnostics(buffer_number)
-        if count[i] > 0 then
-          f(count[i], v, i)
+        if count[severity] > 0 then
+          f(count[severity], severity_config, severity)
         end
       end
     end
@@ -155,9 +153,9 @@ return {
   end,
 
   --- Filter buffer numbers which are not to be shown during the render process.
-  --- Does not mutate `bufnrs`.
+  --- Does **not** mutate `bufnrs`.
   --- @param bufnrs integer[]
-  --- @return integer[] bufnrs
+  --- @return integer[] bufnrs the shown buffers
   hide = function(bufnrs)
     local hide = options.hide()
     if hide.alternate or hide.current or hide.inactive or hide.visible then

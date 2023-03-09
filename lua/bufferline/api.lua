@@ -17,37 +17,21 @@ local set_current_buf = vim.api.nvim_set_current_buf
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
 
---- @type bufferline.animate
-local animate = require'bufferline.animate'
-
---- @type bbye
-local bbye = require'bufferline.bbye'
-
---- @type bufferline.JumpMode
-local JumpMode = require'bufferline.jump_mode'
-
---- @type bufferline.Layout
-local Layout = require'bufferline.layout'
-
---- @type bufferline.options
-local options = require'bufferline.options'
-
---- @type bufferline.render
-local render = require'bufferline.render'
-
---- @type bufferline.state
-local state = require'bufferline.state'
-
---- @type bufferline.utils
-local utils = require'bufferline.utils'
-
---- @type bufferline.buffer
-local Buffer = require'bufferline.buffer'
+local animate = require'bufferline.animate' --- @type bufferline.animate
+local bbye = require'bufferline.bbye' --- @type bbye
+local Buffer = require'bufferline.buffer' --- @type bufferline.buffer
+local JumpMode = require'bufferline.jump_mode' --- @type bufferline.JumpMode
+local Layout = require'bufferline.layout' --- @type bufferline.Layout
+local options = require'bufferline.options' --- @type bufferline.options
+local render = require'bufferline.render' --- @type bufferline.render
+local state = require'bufferline.state' --- @type bufferline.state
+local utils = require'bufferline.utils' --- @type bufferline.utils
 
 local ESC = vim.api.nvim_replace_termcodes('<Esc>', true, false, true)
 
 --- Initialize the buffer pick mode.
 --- @param fn fun()
+--- @return nil
 local function pick_buffer_wrap(fn)
   if JumpMode.reinitialize then
     JumpMode.initialize_indexes()
@@ -66,6 +50,7 @@ end
 
 --- Shows an error that `bufnr` was not among the `state.buffers`
 --- @param bufnr integer
+--- @return nil
 local function notify_buffer_not_found(bufnr)
   notify(
     'Current buffer (' .. bufnr .. ") not found in bufferline.nvim's list of buffers: " .. vim.inspect(state.buffers),
@@ -96,6 +81,7 @@ end
 local api = {}
 
 --- Close all open buffers, except the current one.
+--- @return nil
 function api.close_all_but_current()
   local current_bufnr = get_current_buf()
 
@@ -109,6 +95,7 @@ function api.close_all_but_current()
 end
 
 --- Close all open buffers, except those in visible windows.
+--- @return nil
 function api.close_all_but_visible()
   for _, bufnr in ipairs(state.buffers) do
     if Buffer.get_activity(bufnr) < 3 then
@@ -120,6 +107,7 @@ function api.close_all_but_visible()
 end
 
 --- Close all open buffers, except pinned ones.
+--- @return nil
 function api.close_all_but_pinned()
   for _, bufnr in ipairs(state.buffers) do
     if not state.is_pinned(bufnr) then
@@ -131,6 +119,7 @@ function api.close_all_but_pinned()
 end
 
 --- Close all open buffers, except pinned ones or the current one.
+--- @return nil
 function api.close_all_but_current_or_pinned()
   local current_bufnr = get_current_buf()
 
@@ -144,6 +133,7 @@ function api.close_all_but_current_or_pinned()
 end
 
 --- Close all buffers which are visually left of the current buffer.
+--- @return nil
 function api.close_buffers_left()
   local idx = utils.index_of(state.buffers, get_current_buf())
   if idx == nil or idx == 1 then
@@ -158,6 +148,7 @@ function api.close_buffers_left()
 end
 
 --- Close all buffers which are visually right of the current buffer.
+--- @return nil
 function api.close_buffers_right()
   local idx = utils.index_of(state.buffers, get_current_buf())
   if idx == nil then
@@ -173,6 +164,7 @@ end
 
 --- Set the current buffer to the `number`
 --- @param index integer
+--- @return nil
 function api.goto_buffer(index)
   if index < 0 then
     index = #state.buffers + index + 1
@@ -186,6 +178,7 @@ end
 --- Go to the buffer a certain number of buffers away from the current buffer.
 --- Use a positive number to go "right", and a negative one to go "left".
 --- @param steps integer
+--- @return nil
 function api.goto_buffer_relative(steps)
   render.get_updated_buffers()
 
@@ -207,6 +200,7 @@ local move_animation = nil
 local move_animation_data = nil
 
 --- An incremental animation for `move_buffer_animated`.
+--- @return nil
 local function move_buffer_animated_tick(ratio, current_animation)
   local data = move_animation_data
 
@@ -234,9 +228,11 @@ local function move_buffer_animated_tick(ratio, current_animation)
 end
 
 local MOVE_DURATION = 150
+
 --- Move a buffer (with animation, if configured).
 --- @param from_idx integer the buffer's original index.
 --- @param to_idx integer the buffer's new index.
+--- @return nil
 local function move_buffer(from_idx, to_idx)
   to_idx = max(1, min(#state.buffers, to_idx))
   if to_idx == from_idx then
@@ -295,6 +291,7 @@ end
 
 --- Move the current buffer to the index specified.
 --- @param idx integer
+--- @return nil
 function api.move_current_buffer_to(idx)
   render.update()
 
@@ -315,6 +312,7 @@ end
 
 --- Move the current buffer a certain number of times over.
 --- @param steps integer
+--- @return nil
 function api.move_current_buffer(steps)
   render.update()
 
@@ -330,12 +328,14 @@ function api.move_current_buffer(steps)
 end
 
 --- Order the buffers by their buffer number.
+--- @return nil
 function api.order_by_buffer_number()
   table_sort(state.buffers, function(a, b) return a < b end)
   render.update()
 end
 
 --- Order the buffers by their parent directory.
+--- @return nil
 function api.order_by_directory()
   table_sort(state.buffers, with_pin_order(function(a, b)
     local name_of_a = buf_get_name(a)
@@ -366,6 +366,7 @@ function api.order_by_directory()
 end
 
 --- Order the buffers by filetype.
+--- @return nil
 function api.order_by_language()
   table_sort(state.buffers, with_pin_order(function(a, b)
     return buf_get_option(a, 'filetype') < buf_get_option(b, 'filetype')
@@ -375,6 +376,7 @@ function api.order_by_language()
 end
 
 --- Order the buffers by their respective window number.
+--- @return nil
 function api.order_by_window_number()
   table_sort(state.buffers, with_pin_order(function(a, b)
     return bufwinnr(buf_get_name(a)) < bufwinnr(buf_get_name(b))
@@ -384,6 +386,7 @@ function api.order_by_window_number()
 end
 
 --- Activate the buffer pick mode.
+--- @return nil
 function api.pick_buffer()
   pick_buffer_wrap(function()
     local ok, byte = pcall(getchar)
@@ -404,6 +407,7 @@ function api.pick_buffer()
 end
 
 --- Activate the buffer pick delete mode.
+--- @return nil
 function api.pick_buffer_delete()
   pick_buffer_wrap(function()
     while true do
@@ -434,6 +438,7 @@ end
 --- @param width integer the amount to offset
 --- @param text? string text to put in the offset
 --- @param hl? string
+--- @return nil
 function api.set_offset(width, text, hl)
   state.offset = width > 0 and
     {hl = hl, text = text or '', width = width} or
@@ -444,6 +449,7 @@ end
 
 --- Toggle the `bufnr`'s "pin" state, visually.
 --- @param bufnr? integer
+--- @return nil
 function api.toggle_pin(bufnr)
   state.toggle_pin(bufnr or 0)
   render.update()
