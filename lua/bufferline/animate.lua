@@ -4,6 +4,8 @@
 
 local floor = math.floor
 
+local schedule_wrap = vim.schedule_wrap
+
 --- @class bufferline.animate.state
 --- @field current number
 --- @field duration number
@@ -83,7 +85,6 @@ end
 --- @return bufferline.animate.state
 function animate.start(duration, initial, final, type, callback)
   local ticks = (duration / ANIMATION_FREQUENCY) + 10
-
   local state = {
     current = initial,
     duration = duration,
@@ -97,7 +98,10 @@ function animate.start(duration, initial, final, type, callback)
     type = type,
   }
 
-  state.timer:start(0, ANIMATION_FREQUENCY, vim.schedule_wrap(function() animate_tick(state) end))
+  state.timer:start(0, ANIMATION_FREQUENCY, schedule_wrap(function()
+    animate_tick(state)
+  end))
+
   state.fn(state.current, state)
   return state
 end

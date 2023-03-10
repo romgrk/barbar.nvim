@@ -24,6 +24,7 @@ local has = vim.fn.has --- @type function
 local list_tabpages = vim.api.nvim_list_tabpages --- @type function
 local list_wins = vim.api.nvim_list_wins --- @type function
 local schedule = vim.schedule --- @type function
+local schedule_wrap = vim.schedule_wrap
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local set_current_win = vim.api.nvim_set_current_win --- @type function
 local set_option = vim.api.nvim_set_option --- @type function
@@ -542,7 +543,7 @@ function render.enable()
   })
 
   create_autocmd('WinClosed', {
-    callback = function() schedule(render.update) end,
+    callback = schedule_wrap(render.update),
     group = augroup_bufferline_update,
   })
 
