@@ -2,11 +2,11 @@
 -- get-icon.lua
 --
 
-local buf_get_name = vim.api.nvim_buf_get_name
-local buf_get_option = vim.api.nvim_buf_get_option
-local command = vim.api.nvim_command
-local fnamemodify = vim.fn.fnamemodify
-local hlexists = vim.fn.hlexists
+local buf_get_name = vim.api.nvim_buf_get_name --- @type function
+local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local command = vim.api.nvim_command --- @type function
+local fnamemodify = vim.fn.fnamemodify --- @type function
+local hlexists = vim.fn.hlexists --- @type function
 local notify = vim.notify
 
 local hl = require'bufferline.utils'.hl --- @type bufferline.utils.hl

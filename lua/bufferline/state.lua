@@ -4,11 +4,11 @@
 
 local table_remove = table.remove
 
-local buf_get_name = vim.api.nvim_buf_get_name
-local buf_get_option = vim.api.nvim_buf_get_option
-local bufadd = vim.fn.bufadd
-local get_current_buf = vim.api.nvim_get_current_buf
-local list_bufs = vim.api.nvim_list_bufs
+local buf_get_name = vim.api.nvim_buf_get_name --- @type function
+local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local bufadd = vim.fn.bufadd --- @type function
+local get_current_buf = vim.api.nvim_get_current_buf --- @type function
+local list_bufs = vim.api.nvim_list_bufs --- @type function
 local list_extend = vim.list_extend
 local tbl_filter = vim.tbl_filter
 

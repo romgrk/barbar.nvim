@@ -23,22 +23,22 @@
 -- For the full copy of the GNU Affero General Public License see:
 -- http://www.gnu.org/licenses.
 
-local buflisted = vim.fn.buflisted
-local bufnr = vim.fn.bufnr
-local command = vim.api.nvim_command
-local create_augroup = vim.api.nvim_create_augroup
-local create_autocmd = vim.api.nvim_create_autocmd
-local exec_autocmds = vim.api.nvim_exec_autocmds
-local get_current_buf = vim.api.nvim_get_current_buf
-local get_current_win = vim.api.nvim_get_current_win
-local list_wins = vim.api.nvim_list_wins
+local buflisted = vim.fn.buflisted --- @type function
+local bufnr = vim.fn.bufnr --- @type function
+local command = vim.api.nvim_command --- @type function
+local create_augroup = vim.api.nvim_create_augroup --- @type function
+local create_autocmd = vim.api.nvim_create_autocmd --- @type function
+local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
+local get_current_buf = vim.api.nvim_get_current_buf --- @type function
+local get_current_win = vim.api.nvim_get_current_win --- @type function
+local list_wins = vim.api.nvim_list_wins --- @type function
 local notify = vim.notify
-local set_current_buf = vim.api.nvim_set_current_buf
-local set_current_win = vim.api.nvim_set_current_win
-local win_get_buf = vim.api.nvim_win_get_buf
-local win_is_valid = vim.api.nvim_win_is_valid
-local buf_get_option = vim.api.nvim_buf_get_option
-local buf_set_option = vim.api.nvim_buf_set_option
+local set_current_buf = vim.api.nvim_set_current_buf --- @type function
+local set_current_win = vim.api.nvim_set_current_win --- @type function
+local win_get_buf = vim.api.nvim_win_get_buf --- @type function
+local win_is_valid = vim.api.nvim_win_is_valid --- @type function
+local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local buf_set_option = vim.api.nvim_buf_set_option --- @type function
 
 local state = require'bufferline.state' --- @type bufferline.state
 local utils = require'bufferline.utils' --- @type bufferline.utils
@@ -71,7 +71,7 @@ local function err(msg)
   vim.v.errmsg = msg
 end
 
-local empty_buffer = nil
+local empty_buffer = nil --- @type nil|integer
 
 --- Create a new buffer.
 --- @param force boolean if `true`, forcefully create the new buffer

@@ -6,9 +6,9 @@ local floor = math.floor
 local max = math.max
 local min = math.min
 
-local buf_get_option = vim.api.nvim_buf_get_option
-local strwidth = vim.api.nvim_strwidth
-local tabpagenr = vim.fn.tabpagenr
+local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local strwidth = vim.api.nvim_strwidth --- @type function
+local tabpagenr = vim.fn.tabpagenr --- @type function
 
 local Buffer = require'bufferline.buffer' --- @type bufferline.buffer
 local icons = require'bufferline.icons' --- @type bufferline.icons
