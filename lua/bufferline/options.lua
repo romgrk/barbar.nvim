@@ -1,8 +1,8 @@
-local ERROR = vim.diagnostic.severity.ERROR
-local HINT = vim.diagnostic.severity.HINT
-local INFO = vim.diagnostic.severity.INFO
+local ERROR = vim.diagnostic.severity.ERROR --- @type integer
+local HINT = vim.diagnostic.severity.HINT --- @type integer
+local INFO = vim.diagnostic.severity.INFO --- @type integer
 local tbl_deep_extend = vim.tbl_deep_extend
-local WARN = vim.diagnostic.severity.WARN
+local WARN = vim.diagnostic.severity.WARN --- @type integer
 
 --- Retrieve some value under `key` from `g:bufferline`, or return a `default` if none was present.
 --- PERF: this implementation was profiled be an improvement over `vim.g.bufferline and vim.g.bufferline[key] or default`

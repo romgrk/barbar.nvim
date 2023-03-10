@@ -2,11 +2,11 @@
 -- jump_mode.lua
 --
 
-local buf_get_name = vim.api.nvim_buf_get_name
-local fnamemodify = vim.fn.fnamemodify
-local split = vim.fn.split
-local strcharpart = vim.fn.strcharpart
-local strwidth = vim.api.nvim_strwidth
+local buf_get_name = vim.api.nvim_buf_get_name --- @type function
+local fnamemodify = vim.fn.fnamemodify --- @type function
+local split = vim.fn.split --- @type function
+local strcharpart = vim.fn.strcharpart --- @type function
+local strwidth = vim.api.nvim_strwidth --- @type function
 
 local options = require'bufferline.options' --- @type bufferline.options
 

@@ -2,11 +2,11 @@
 -- utils.lua
 --
 
-local fnamemodify = vim.fn.fnamemodify
-local get_hl_by_name = vim.api.nvim_get_hl_by_name
+local fnamemodify = vim.fn.fnamemodify --- @type function
+local get_hl_by_name = vim.api.nvim_get_hl_by_name --- @type function
 local list_slice = vim.list_slice
-local set_hl = vim.api.nvim_set_hl
-local hlexists = vim.fn.hlexists
+local set_hl = vim.api.nvim_set_hl --- @type function
+local hlexists = vim.fn.hlexists --- @type function
 
 --- Generate a color.
 --- @param groups string[] the groups to source the color from.

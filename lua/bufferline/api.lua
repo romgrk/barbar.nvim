@@ -5,15 +5,15 @@ local table_insert = table.insert
 local table_remove = table.remove
 local table_sort = table.sort
 
-local buf_get_name = vim.api.nvim_buf_get_name
-local buf_get_option = vim.api.nvim_buf_get_option
-local bufnr = vim.fn.bufnr
-local bufwinnr = vim.fn.bufwinnr
-local command = vim.api.nvim_command
-local get_current_buf = vim.api.nvim_get_current_buf
-local getchar = vim.fn.getchar
+local buf_get_name = vim.api.nvim_buf_get_name --- @type function
+local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local bufnr = vim.fn.bufnr --- @type function
+local bufwinnr = vim.fn.bufwinnr --- @type function
+local command = vim.api.nvim_command --- @type function
+local get_current_buf = vim.api.nvim_get_current_buf --- @type function
+local getchar = vim.fn.getchar --- @type function
 local notify = vim.notify
-local set_current_buf = vim.api.nvim_set_current_buf
+local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
@@ -51,6 +51,7 @@ end
 
 --- Shows an error that `bufnr` was not among the `state.buffers`
 --- @param buffer_number integer
+--- @return nil
 local function notify_buffer_not_found(buffer_number)
   notify(
     'Current buffer (' .. buffer_number .. ") not found in bufferline.nvim's list of buffers: " .. vim.inspect(state.buffers),
@@ -467,6 +468,7 @@ end
 
 --- Toggle the `bufnr`'s "pin" state, visually.
 --- @param buffer_number? integer
+--- @return nil
 function api.toggle_pin(buffer_number)
   state.toggle_pin(buffer_number or 0)
   render.update()
