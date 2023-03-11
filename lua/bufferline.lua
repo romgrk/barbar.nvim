@@ -1,3 +1,4 @@
+local max = math.max
 local table_insert = table.insert
 
 local bufnr = vim.fn.bufnr --- @type function
@@ -35,13 +36,13 @@ function bufferline.setup(user_config)
 
   create_user_command(
     'BufferNext',
-    function(tbl) api.goto_buffer_relative(math.max(1, tbl.count)) end,
+    function(tbl) api.goto_buffer_relative(max(1, tbl.count)) end,
     {count = true, desc = 'Go to the next buffer'}
   )
 
   create_user_command(
     'BufferPrevious',
-    function(tbl) api.goto_buffer_relative(-math.max(1, tbl.count)) end,
+    function(tbl) api.goto_buffer_relative(-max(1, tbl.count)) end,
     {count = true, desc = 'Go to the previous buffer'}
   )
 
@@ -85,13 +86,13 @@ function bufferline.setup(user_config)
 
   create_user_command(
     'BufferMoveNext',
-    function(tbl) api.move_current_buffer(math.max(1, tbl.count)) end,
+    function(tbl) api.move_current_buffer(max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the right'}
   )
 
   create_user_command(
     'BufferMovePrevious',
-    function(tbl) api.move_current_buffer(-math.max(1, tbl.count)) end,
+    function(tbl) api.move_current_buffer(-max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the left'}
   )
 
@@ -180,13 +181,13 @@ function bufferline.setup(user_config)
 
   create_user_command(
     'BufferScrollLeft',
-    function(tbl) render.scroll(-math.max(1, tbl.count)) end,
+    function(tbl) render.scroll(-max(1, tbl.count)) end,
     {count = true, desc = 'Scroll the bufferline left'}
   )
 
   create_user_command(
     'BufferScrollRight',
-    function(tbl) render.scroll(math.max(1, tbl.count)) end,
+    function(tbl) render.scroll(max(1, tbl.count)) end,
     {count = true, desc = 'Scroll the bufferline right'}
   )
 

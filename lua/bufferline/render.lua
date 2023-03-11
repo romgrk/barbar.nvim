@@ -676,7 +676,7 @@ end
 --- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
 --- @return nil
 function render.scroll(n)
-  render.set_scroll(math.max(0, scroll.target + n))
+  render.set_scroll(max(0, scroll.target + n))
 end
 
 local scroll_animation = nil
