@@ -65,44 +65,46 @@ local cmd = vim.api.nvim_cmd and
     command((mods or '') .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
   end
 
---- @param buffer_number integer
+--- @param closing_number integer
 --- @return nil|integer bufnr of the buffer to focus
-local function get_focus_on_close(buffer_number)
+local function get_focus_on_close(closing_number)
   local state_bufnrs = state.buffers
   local focus_on_close = options.focus_on_close()
 
-  if #state_bufnrs < 1 -- all of the buffers are excluded or unlisted
-    or (#state_bufnrs == 1 and state_bufnrs[1] == buffer_number) -- only one buffer is open, and that buffer is the current one
-  then
-    local buffers = list_bufs()
+  if #state_bufnrs < 1 then -- all of the buffers are excluded or unlisted
+    local open_bufnrs = list_bufs()
     if focus_on_close == 'right' then
-      buffers = utils.reverse(buffers)
+      open_bufnrs = utils.reverse(open_bufnrs)
     end
 
-    for _, nr in ipairs(buffers) do
+    for _, nr in ipairs(open_bufnrs) do
       if buf_get_option(nr, 'buflisted') then
         return nr -- there was a listed buffer open, focus it.
       end
     end
 
-    -- there are no listed, focusable buffers open
-    return nil
+    return -- there are no listed, focusable buffers open
   end
 
-  local add, fallback --- @type integer, integer
-  if focus_on_close == 'left' then
-    add, fallback = -1, 1
-  else -- focus_on_close == 'right'
-    add, fallback = 1, #state_bufnrs
+  if focus_on_close == 'right' then
+    state_bufnrs = utils.reverse(state.buffers)
   end
 
-  local to_focus --- @type nil|integer
-  local index = utils.index_of(state_bufnrs, buffer_number)
+  local index = utils.index_of(state_bufnrs, closing_number)
   if index then
-    to_focus = state_bufnrs[index + add]
+    index = index - 1
+
+    local buffer_number = state_bufnrs[index]
+    if buffer_number then
+      return buffer_number
+    end
   end
 
-  return to_focus or state_bufnrs[fallback]
+  for _, buffer_number in ipairs(state_bufnrs) do
+    if buffer_number ~= closing_number then
+      return buffer_number
+    end
+  end
 end
 
 --- Use `vim.notify` to print an error `msg`
