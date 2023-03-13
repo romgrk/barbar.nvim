@@ -1,8 +1,8 @@
 -- !::exe [So]
 
-local hl = require'bufferline.utils'.hl --- @type bufferline.utils.hl
-local icons = require 'bufferline.icons' --- @type bufferline.icons
-local options = require 'bufferline.options' --- @type bufferline.options
+local hl = require'bufferline.utils'.hl
+local icons = require 'bufferline.icons'
+local options = require 'bufferline.options'
 
 -- Setup the highlight groups used by the plugin.
 hl.set_default_link('BufferAlternate', 'BufferDefaultAlternate')
@@ -62,7 +62,7 @@ hl.set_default_link('BufferDefaultVisibleIcon', 'BufferVisible')
 hl.set_default_link('BufferDefaultOffset', 'BufferTabpageFill')
 
 --- @class bufferline.highlight
-return {
+local highlight = {
   --- Setup the highlight groups for this plugin.
   --- @return nil
   setup = function()
@@ -148,3 +148,5 @@ return {
     icons.set_highlights()
   end
 }
+
+return highlight

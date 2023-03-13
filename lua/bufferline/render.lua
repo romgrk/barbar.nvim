@@ -34,16 +34,16 @@ local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 
-local animate = require'bufferline.animate' --- @type bufferline.animate
-local bbye = require'bufferline.bbye' --- @type bbye
-local Buffer = require'bufferline.buffer' --- @type bufferline.buffer
-local highlight = require'bufferline.highlight' --- @type bufferline.highlight
-local icons = require'bufferline.icons' --- @type bufferline.icons
-local JumpMode = require'bufferline.jump_mode' --- @type bufferline.JumpMode
-local Layout = require'bufferline.layout' --- @type bufferline.Layout
-local options = require'bufferline.options' --- @type bufferline.options
-local state = require'bufferline.state' --- @type bufferline.state
-local utils = require'bufferline.utils' --- @type bufferline.utils
+local animate = require'bufferline.animate'
+local bbye = require'bufferline.bbye'
+local Buffer = require'bufferline.buffer'
+local highlight = require'bufferline.highlight'
+local icons = require'bufferline.icons'
+local JumpMode = require'bufferline.jump_mode'
+local Layout = require'bufferline.layout'
+local options = require'bufferline.options'
+local state = require'bufferline.state'
+local utils = require'bufferline.utils'
 
 --- The highlight to use based on the state of a buffer.
 local HL_BY_ACTIVITY = {'Inactive', 'Alternate', 'Visible', 'Current'}

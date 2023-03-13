@@ -8,7 +8,7 @@ local split = vim.fn.split --- @type function
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 
-local options = require'bufferline.options' --- @type bufferline.options
+local options = require'bufferline.options'
 
 ----------------------------------------
 -- Section: Buffer-picking mode state --

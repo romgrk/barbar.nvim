@@ -40,8 +40,8 @@ local win_is_valid = vim.api.nvim_win_is_valid --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_set_option = vim.api.nvim_buf_set_option --- @type function
 
-local state = require'bufferline.state' --- @type bufferline.state
-local utils = require'bufferline.utils' --- @type bufferline.utils
+local state = require'bufferline.state'
+local utils = require'bufferline.utils'
 
 -------------------
 -- Section: helpers

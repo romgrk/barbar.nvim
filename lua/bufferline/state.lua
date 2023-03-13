@@ -12,9 +12,9 @@ local list_bufs = vim.api.nvim_list_bufs --- @type function
 local list_extend = vim.list_extend
 local tbl_filter = vim.tbl_filter
 
-local Buffer = require'bufferline.buffer' --- @type bufferline.buffer
-local options = require'bufferline.options' --- @type bufferline.options
-local utils = require'bufferline.utils' --- @type bufferline.utils
+local Buffer = require'bufferline.buffer'
+local options = require'bufferline.options'
+local utils = require'bufferline.utils'
 
 --------------------------------
 -- Section: Application state --

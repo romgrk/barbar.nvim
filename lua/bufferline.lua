@@ -3,14 +3,14 @@ local command = vim.api.nvim_command --- @type function
 local create_user_command = vim.api.nvim_create_user_command --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 
-local api = require'bufferline.api' --- @type bufferline.api
-local bbye = require'bufferline.bbye' --- @type bbye
-local highlight = require'bufferline.highlight' --- @type bufferline.highlight
-local JumpMode = require'bufferline.jump_mode' --- @type bufferline.JumpMode
+local api = require'bufferline.api'
+local bbye = require'bufferline.bbye'
+local highlight = require'bufferline.highlight'
+local JumpMode = require'bufferline.jump_mode'
 local notify = require'bufferline.utils'.notify
-local options = require'bufferline.options' --- @type bufferline.options
-local render = require'bufferline.render' --- @type bufferline.render
-local state = require'bufferline.state' --- @type bufferline.state
+local options = require'bufferline.options'
+local render = require'bufferline.render'
+local state = require'bufferline.state'
 
 -------------------------------
 -- Section: `bufferline` module
