@@ -7,6 +7,7 @@ local api = require'bufferline.api' --- @type bufferline.api
 local bbye = require'bufferline.bbye' --- @type bbye
 local highlight = require'bufferline.highlight' --- @type bufferline.highlight
 local JumpMode = require'bufferline.jump_mode' --- @type bufferline.JumpMode
+local notify = require'bufferline.utils'.notify
 local options = require'bufferline.options' --- @type bufferline.options
 local render = require'bufferline.render' --- @type bufferline.render
 local state = require'bufferline.state' --- @type bufferline.state
@@ -46,7 +47,7 @@ function bufferline.setup(user_config)
     function(tbl)
       local index = tonumber(tbl.args)
       if not index then
-        return utils.notify('Invalid argument to `:BufferGoto`', vim.log.levels.ERROR)
+        return notify('Invalid argument to `:BufferGoto`', vim.log.levels.ERROR)
       end
       api.goto_buffer(index)
     end,
