@@ -187,8 +187,16 @@ function bufferline.setup(user_config)
     {count = true, desc = 'Scroll the bufferline right'}
   )
 
+  if user_config then
+    if user_config.validate then
+      options.validate(user_config)
+    end
+  else
+    user_config = vim.empty_dict()
+  end
+
   -- Set the options and watchers for when they are edited
-  vim.g.bufferline = user_config or vim.empty_dict()
+  vim.g.bufferline = user_config
 
   highlight.setup()
   JumpMode.set_letters(options.letters())

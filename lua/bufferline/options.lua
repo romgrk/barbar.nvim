@@ -210,4 +210,90 @@ function options.tabpages()
   return get('tabpages', true)
 end
 
+--- `vim.validate` the `user_config` provided
+--- @param user_config table
+--- @return nil # errors otherwise
+function options.validate(user_config)
+  vim.validate {
+    animation = {user_config.animation, 'boolean', true},
+    auto_hide = {user_config.auto_hide, 'boolean', true},
+    clickable = {user_config.clickable, 'boolean', true},
+    closable = {user_config.closable, 'boolean', true},
+    diagnostics = {user_config.diagnostics, 'table', true},
+    exclude_ft = {user_config.exclude_ft, 'table', true},
+    exclude_name = {user_config.exclude_name, 'table', true},
+    focus_on_close = {
+      user_config.focus_on_close,
+      function(v) return v == 'left' or v == 'right' end,
+      '"left" or "right"',
+    },
+    file_icons = {user_config.file_icons, 'boolean', true},
+    hide = {user_config.hide, 'table', true},
+    highlight_alternate = {user_config.highlight_alternate, 'boolean', true},
+    highlight_inactive_file_icons = {user_config.highlight_inactive_file_icons, 'boolean', true},
+    highlight_visible = {user_config.highlight_visible, 'boolean', true},
+    icon_close_tab = {user_config.icon_close_tab, 'string', true},
+    icon_close_tab_modified = {user_config.icon_close_tab_modified, 'string', true},
+    icon_pinned = {user_config.icon_pinned, 'string', true},
+    icon_separator_active = {user_config.icon_separator_active, 'string', true},
+    icon_separator_inactive = {user_config.icon_separator_inactive, 'string', true},
+    icon_separator_visible = {user_config.icon_separator_visible, 'string', true},
+    icons = {
+      user_config.icons,
+      function(v)
+        return v == true or
+          v == 'both' or
+          v == 'buffer_number_with_icon' or
+          v == 'buffer_numbers' or
+          v == 'numbers' or
+          not v
+      end,
+      'true, false, "both", "buffer_number_with_icon", "buffer_numbers", or "numbers"',
+    },
+    icon_custom_colors = {user_config.icon_custom_colors, 'boolean', true},
+    index_buffers = {user_config.index_buffers, 'boolean', true},
+    insert_at_start = {user_config.insert_at_start, 'boolean', true},
+    insert_at_end = {user_config.insert_at_end, 'boolean', true},
+    letters = {user_config.letters, 'string', true},
+    maximum_padding = {user_config.maximum_padding, 'number', true},
+    minimum_padding = {user_config.minimum_padding, 'number', true},
+    maximum_length = {user_config.maximum_length, 'number', true},
+    no_name_title = {user_config.no_name_title, 'string', true},
+    number_buffers = {user_config.number_buffers, 'boolean', true},
+    semantic_letters = {user_config.semantic_letters, 'boolean', true},
+    tabpages = {user_config.tabpages, 'boolean', true},
+  }
+
+  if user_config.diagnostics then
+    for severity, config in ipairs(user_config.diagnostics) do
+      local arg = 'diagnostics[' ..
+        'vim.diagnostic.severity.' .. vim.diagnostic.severity[severity] ..
+      ']'
+
+      config = config or {}
+      vim.validate {
+        [arg] = {config, 'table'},
+        [arg .. '.enabled'] = {config.enabled, 'boolean', true},
+        [arg .. '.icon'] = {config.icon, 'string', true},
+      }
+    end
+  end
+
+  if user_config.hide then
+    local arg = 'hide.'
+    for _, field in ipairs {'alternate', 'current', 'extensions', 'inactive', 'visible'} do
+      vim.validate {[arg .. field] = {user_config.hide[field], 'boolean', true}}
+    end
+  end
+
+  for option_name, value_type in pairs {exclude_ft = 'string', exclude_name = 'string'} do
+    local option_value = user_config[option_name]
+    if option_value then
+      for i, v in ipairs(option_value) do
+        vim.validate {['user_config.' .. option_name .. '[' .. i .. ']'] = {v, value_type}}
+      end
+    end
+  end
+end
+
 return options
