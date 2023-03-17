@@ -409,11 +409,11 @@ function api.pick_buffer()
         if JumpMode.buffer_by_letter[letter] ~= nil then
           set_current_buf(JumpMode.buffer_by_letter[letter])
         else
-          utils.notify("Couldn't find buffer", vim.log.levels.ERROR)
+          utils.notify("Couldn't find buffer", vim.log.levels.WARN)
         end
       end
     else
-      utils.notify('Invalid input', vim.log.levels.ERROR)
+      utils.notify('Invalid input', vim.log.levels.WARN)
     end
   end)
 end
@@ -423,21 +423,17 @@ end
 function api.pick_buffer_delete()
   pick_buffer_wrap(function()
     while true do
-      local ok, byte = pcall(getchar)
-      if ok then
-        local letter = char(byte)
-
-        if letter ~= '' then
-          if JumpMode.buffer_by_letter[letter] ~= nil then
-            bbye.bdelete(false, JumpMode.buffer_by_letter[letter])
-          elseif letter == ESC then
-            break
-          else
-            utils.notify("Couldn't find buffer", vim.log.levels.ERROR)
-          end
+      local ok, letter = pcall(function() return char(getchar()) end)
+      if ok and letter ~= '' then
+        if JumpMode.buffer_by_letter[letter] ~= nil then
+          bbye.bdelete(false, JumpMode.buffer_by_letter[letter])
+        elseif letter == ESC then
+          break
+        else
+          utils.notify("Couldn't find buffer with letter '" .. letter .. "'", vim.log.levels.WARN)
         end
       else
-        utils.notify('Invalid input', vim.log.levels.ERROR)
+        utils.notify('Invalid input', vim.log.levels.WARN)
       end
 
       render.update()
