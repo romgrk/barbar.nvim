@@ -37,11 +37,11 @@ local hl_groups = {}
 local icons = {
   --- Re-highlight all of the groups which have been set before. Checks for updated highlight groups.
   --- @return nil
-  set_highlights = function()
+  set_highlights = vim.schedule_wrap(function()
     for _, group in ipairs(hl_groups) do
       hl_buffer_icon(group.buffer_status, group.icon_hl)
     end
-  end,
+  end),
 
   --- @param bufnr integer
   --- @param buffer_status bufferline.buffer.activity.name
