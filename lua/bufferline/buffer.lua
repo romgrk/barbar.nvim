@@ -13,7 +13,7 @@ local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
 local bufwinnr = vim.fn.bufwinnr --- @type function
 local ERROR = vim.diagnostic.severity.ERROR --- @type integer
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
-local get_diagnostics = vim.diagnostic.get
+local get_diagnostics = vim.diagnostic.get --- @type fun(bufnr: integer): {severity: integer}[]
 local HINT = vim.diagnostic.severity.HINT --- @type integer
 local INFO = vim.diagnostic.severity.INFO --- @type integer
 local matchlist = vim.fn.matchlist --- @type function
@@ -22,8 +22,8 @@ local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 local WARN = vim.diagnostic.severity.WARN --- @type integer
 
-local options = require'bufferline.options' --- @type bufferline.options
-local utils = require'bufferline.utils' --- @type bufferline.utils
+local options = require'bufferline.options'
+local utils = require'bufferline.utils'
 
 --- @alias bufferline.buffer.activity 1|2|3|4
 
@@ -57,8 +57,8 @@ local function get_activity(buffer_number)
   return 1
 end
 
---- @param buffer_number number
---- @return number[] # indexed on `vim.diagnostic.severity`
+--- @param buffer_number integer
+--- @return integer[] # indexed on `vim.diagnostic.severity`
 local function count_diagnostics(buffer_number)
   local count = {[ERROR] = 0, [HINT] = 0, [INFO] = 0, [WARN] = 0}
 
@@ -70,7 +70,7 @@ local function count_diagnostics(buffer_number)
 end
 
 --- @class bufferline.buffer
-return {
+local buffer = {
   count_diagnostics = count_diagnostics,
 
   --- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `buffer_number` provided, call `f`.
@@ -174,3 +174,5 @@ return {
     return bufnrs
   end,
 }
+
+return buffer

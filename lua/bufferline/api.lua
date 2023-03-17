@@ -17,15 +17,15 @@ local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
 
-local animate = require'bufferline.animate' --- @type bufferline.animate
-local bbye = require'bufferline.bbye' --- @type bbye
-local Buffer = require'bufferline.buffer' --- @type bufferline.buffer
-local JumpMode = require'bufferline.jump_mode' --- @type bufferline.JumpMode
-local Layout = require'bufferline.layout' --- @type bufferline.Layout
-local options = require'bufferline.options' --- @type bufferline.options
-local render = require'bufferline.render' --- @type bufferline.render
-local state = require'bufferline.state' --- @type bufferline.state
-local utils = require'bufferline.utils' --- @type bufferline.utils
+local animate = require'bufferline.animate'
+local bbye = require'bufferline.bbye'
+local Buffer = require'bufferline.buffer'
+local JumpMode = require'bufferline.jump_mode'
+local Layout = require'bufferline.layout'
+local options = require'bufferline.options'
+local render = require'bufferline.render'
+local state = require'bufferline.state'
+local utils = require'bufferline.utils'
 
 local ESC = vim.api.nvim_replace_termcodes('<Esc>', true, false, true)
 

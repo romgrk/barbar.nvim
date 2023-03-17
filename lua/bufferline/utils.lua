@@ -49,7 +49,7 @@ local function relative(path)
 end
 
 --- @class bufferline.utils
-return {
+local utils = {
   --- @param path string
   --- @param hide_extension? boolean if `true`, exclude the extension of the file in the basename
   --- @return string basename
@@ -169,3 +169,5 @@ return {
     return reversed
   end,
 }
+
+return utils
