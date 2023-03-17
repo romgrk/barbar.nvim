@@ -96,8 +96,9 @@ end
 --- Close all open buffers, except those in visible windows.
 --- @return nil
 function api.close_all_but_visible()
+  local visible = Buffer.activities.Visible
   for _, buffer_number in ipairs(state.buffers) do
-    if Buffer.get_activity(buffer_number) < 3 then
+    if Buffer.get_activity(buffer_number) < visible then
       bbye.bdelete(false, buffer_number)
     end
   end

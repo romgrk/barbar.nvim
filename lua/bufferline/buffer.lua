@@ -30,6 +30,10 @@ local utils = require'bufferline.utils'
 
 --- @alias bufferline.buffer.activity.name 'Inactive'|'Alternate'|'Visible'|'Current'
 
+--- A bidirectional map of activities to activity names
+--- @type {[bufferline.buffer.activity]: bufferline.buffer.activity.name, [bufferline.buffer.activity.name]: bufferline.buffer.activity}
+local activities = vim.tbl_add_reverse_lookup {'Inactive', 'Alternate', 'Visible', 'Current'}
+
 --- The character used to delimit paths (e.g. `/` or `\`).
 local separator = package.config:sub(1, 1)
 
@@ -48,14 +52,14 @@ end
 --- @return bufferline.buffer.activity # whether `bufnr` is inactive, the alternate file, visible, or currently selected (in that order).
 local function get_activity(buffer_number)
   if get_current_buf() == buffer_number then
-    return 4
+    return activities.Current
   elseif options.highlight_alternate() and bufnr('#') == buffer_number then
-    return 2
+    return activities.Alternate
   elseif options.highlight_visible() and bufwinnr(buffer_number) ~= -1 then
-    return 3
+    return activities.Visible
   end
 
-  return 1
+  return activities.Inactive
 end
 
 --- @param buffer_number integer
@@ -72,6 +76,8 @@ end
 
 --- @class bufferline.buffer
 local buffer = {
+  activities = activities,
+
   count_diagnostics = count_diagnostics,
 
   --- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `buffer_number` provided, call `f`.
@@ -165,9 +171,9 @@ local buffer = {
     if hide.alternate or hide.current or hide.inactive or hide.visible then
       local shown = {}
 
-      hide = {hide.inactive, hide.visible, hide.alternate, hide.current}
       for _, buffer_number in ipairs(bufnrs) do
-        if not hide[get_activity(buffer_number)] then
+        local activity = activities[get_activity(buffer_number)]
+        if not hide[activity:lower()] then
           table_insert(shown, buffer_number)
         end
       end

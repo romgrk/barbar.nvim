@@ -586,7 +586,7 @@ local function generate_tabline(bufnrs, refocus)
     -- local is_closing = buffer_data.closing
     local is_pinned = state.is_pinned(bufnr)
 
-    local status = HL_BY_ACTIVITY[activity]
+    local status = Buffer.activities[activity]
     local mod = is_modified and 'Mod' or ''
 
     local separatorPrefix = hl_tabline('Buffer' .. status .. 'Sign')
