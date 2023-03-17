@@ -210,10 +210,9 @@ function state.set_offset(width, text, hl)
   if vim.deprecate then
     vim.deprecate('`bufferline.state.set_offset`', '`bufferline.api.set_offset`', '2.0.0', 'barbar.nvim')
   else
-    vim.notify_once(
+    utils.notify_once(
       "`bufferline.state.set_offset` is deprecated, use `bufferline.api.set_offset` instead",
-      vim.log.levels.WARN,
-      {title = 'barbar.nvim'}
+      vim.log.levels.WARN
     )
   end
 

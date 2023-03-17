@@ -7,6 +7,7 @@ local get_hl_by_name = vim.api.nvim_get_hl_by_name --- @type function
 local hlexists = vim.fn.hlexists --- @type function
 local list_slice = vim.list_slice
 local notify = vim.notify
+local notify_once = vim.notify_once
 local set_hl = vim.api.nvim_set_hl --- @type function
 
 --- Generate a color.
@@ -153,6 +154,14 @@ local utils = {
   --- @return nil
   notify = function(msg, level)
     notify(msg, level, {title = 'barbar.nvim'})
+  end,
+
+  --- Use `vim.notify` with a `msg` and log `level`. Integrates with `nvim-notify`.
+  --- @param msg string
+  --- @param level 0|1|2|3|4|5
+  --- @return nil
+  notify_once = function(msg, level)
+    notify_once(msg, level, {title = 'barbar.nvim'})
   end,
 
   relative = relative,
