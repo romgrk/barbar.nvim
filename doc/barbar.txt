@@ -382,6 +382,17 @@ Controls if icons are rendered on each tab.
     let g:bufferline.focus_on_close = "left"
 <
 
+                                                       *g:bufferline.validate*
+`g:bufferline.validate`  boolean  (default |v:false|)
+
+  Ensures that all |barbar-settings| have the expected data types.
+
+  Recommended while experimenting with barbar, then once you have a
+  configuration you like, turn it off.
+>
+    let g:bufferline.validate = v:true
+<
+
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
 
