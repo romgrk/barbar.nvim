@@ -45,6 +45,14 @@ local function index_of(list, t)
   return nil
 end
 
+--- Use `vim.notify` with a `msg` and log `level`. Integrates with `nvim-notify`.
+--- @param msg string
+--- @param level 0|1|2|3|4|5
+--- @return nil
+local function notify_once_util(msg, level)
+  notify_once(msg, level, {title = 'barbar.nvim'})
+end
+
 --- @param path string
 --- @return string relative_path
 local function relative(path)
@@ -65,6 +73,18 @@ local utils = {
 
     return fnamemodify(path, modifier)
   end,
+
+  deprecate = vim.deprecate and
+    --- Notify a user that something has been deprecated, and that there is an alternative.
+    --- @param name string
+    --- @param alternative string
+    --- @return nil
+    function(name, alternative)
+      vim.deprecate(name, alternative, '2.0.0', 'barbar.nvim')
+    end or
+    function(name, alternative)
+      notify_once_util(name .. ' is deprecated. Use ' .. alternative .. 'instead.', vim.log.levels.WARN)
+    end,
 
   --- Return whether element `n` is in a `list.
   --- @generic T
@@ -158,13 +178,7 @@ local utils = {
     notify(msg, level, {title = 'barbar.nvim'})
   end,
 
-  --- Use `vim.notify` with a `msg` and log `level`. Integrates with `nvim-notify`.
-  --- @param msg string
-  --- @param level 0|1|2|3|4|5
-  --- @return nil
-  notify_once = function(msg, level)
-    notify_once(msg, level, {title = 'barbar.nvim'})
-  end,
+  notify_once = notify_once_util,
 
   relative = relative,
 

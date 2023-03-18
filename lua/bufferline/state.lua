@@ -188,16 +188,8 @@ end
 --- @param hl? string
 --- @return nil
 function state.set_offset(width, text, hl)
-  if vim.deprecate then
-    vim.deprecate('`bufferline.state.set_offset`', '`bufferline.api.set_offset`', '2.0.0', 'barbar.nvim')
-  else
-    utils.notify_once(
-      "`bufferline.state.set_offset` is deprecated, use `bufferline.api.set_offset` instead",
-      vim.log.levels.WARN
-    )
-  end
-
-  require'bufferline.api'.set_offset(width, text, hl)
+  utils.deprecate('`bufferline.state.set_offset`', '`bufferline.api.set_offset`')
+  require.set_offset(width, text, hl)
 end
 
 --- Restore the buffers
