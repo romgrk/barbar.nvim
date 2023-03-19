@@ -1,24 +1,23 @@
 local table_concat = table.concat
 
-local ERROR = vim.diagnostic.severity.ERROR --- @type integer
-local HINT = vim.diagnostic.severity.HINT --- @type integer
-local INFO = vim.diagnostic.severity.INFO --- @type integer
+local deepcopy = vim.deepcopy
 local tbl_deep_extend = vim.tbl_deep_extend
-local WARN = vim.diagnostic.severity.WARN --- @type integer
 
 local utils = require'bufferline.utils'
 
 --- The prefix used for `utils.deprecate`
 local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
 
+--- A cached value of `g:bufferline`
+local g_bufferline = {}
+
 --- Retrieve some value under `key` from `g:bufferline`, or return a `default` if none was present.
 --- @generic T
---- @param g_bufferline table
 --- @param default? T
 --- @param key string
 --- @return T value
-local function get(g_bufferline, key, default)
-  local value = (g_bufferline or {})[key]
+local function get(key, default)
+  local value = g_bufferline[key]
   if value == nil or value == vim.NIL then
     return default
   else
@@ -111,15 +110,6 @@ local PRESETS = {
   },
 }
 
---- @type bufferline.options.icons
-local DEFAULT_ICONS = vim.tbl_extend('keep', PRESETS[true], {
-  button = '',
-  inactive = {separator = {left = '▎', right = ''}},
-  modified = {button = '●'},
-  pinned = {button = ''},
-  separator = {left = '▎', right = ''},
-})
-
 --- A table of options that used to exist, and where they are located now.
 --- @type {[string]: string[]}
 local DEPRECATED_ICON_OPTIONS = {
@@ -135,40 +125,29 @@ local DEPRECATED_ICON_OPTIONS = {
 --- @class bufferline.options
 local options = {}
 
---- @param g_bufferline table
 --- @return boolean enabled
-function options.animation(g_bufferline)
-  return get(g_bufferline, 'animation', true)
+function options.animation()
+  return get('animation', true)
 end
 
---- @param g_bufferline table
 --- @return boolean enabled
-function options.auto_hide(g_bufferline)
-  return get(g_bufferline, 'auto_hide', false)
+function options.auto_hide()
+  return get('auto_hide', false)
 end
 
---- @param g_bufferline table
 --- @return boolean enabled
-function options.clickable(g_bufferline)
-  return get(g_bufferline, 'clickable', true)
+function options.clickable()
+  return get('clickable', true)
 end
 
---- @param g_bufferline table
---- @return bufferline.options.diagnostics
-function options.diagnostics(g_bufferline)
-  return tbl_deep_extend('keep', get(g_bufferline, 'diagnostics', {}), DEFAULT_DIAGNOSTICS)
-end
-
---- @param g_bufferline table
 --- @return string[] excluded
-function options.exclude_ft(g_bufferline)
-  return get(g_bufferline, 'exclude_ft', {})
+function options.exclude_ft()
+  return get('exclude_ft', {})
 end
 
---- @param g_bufferline table
 --- @return string[] excluded
-function options.exclude_name(g_bufferline)
-  return get(g_bufferline, 'exclude_name', {})
+function options.exclude_name()
+  return get('exclude_name', {})
 end
 
 --- @return 'left'|'right' enabled
@@ -176,35 +155,30 @@ function options.focus_on_close()
   return get('focus_on_close', 'left')
 end
 
---- @param g_bufferline table
 --- @return bufferline.options.hide
-function options.hide(g_bufferline)
-  return get(g_bufferline, 'hide', {})
+function options.hide()
+  return deepcopy(get('hide', {}))
 end
 
---- @param g_bufferline table
 --- @return boolean
-function options.highlight_alternate(g_bufferline)
-  return get(g_bufferline, 'highlight_alternate', false)
+function options.highlight_alternate()
+  return get('highlight_alternate', false)
 end
 
---- @param g_bufferline table
 --- @return boolean
-function options.highlight_inactive_file_icons(g_bufferline)
-  return get(g_bufferline, 'highlight_inactive_file_icons', false)
+function options.highlight_inactive_file_icons()
+  return get('highlight_inactive_file_icons', false)
 end
 
---- @param g_bufferline table
 --- @return boolean
-function options.highlight_visible(g_bufferline)
-  return get(g_bufferline, 'highlight_visible', true)
+function options.highlight_visible()
+  return get('highlight_visible', true)
 end
 
---- @param g_bufferline table
 --- @return bufferline.options.icons
-function options.icons(g_bufferline)
+function options.icons()
   --- @type bufferline.options.icons|bufferline.options.icons.preset
-  local icons = get(g_bufferline, 'icons', {})
+  local icons = get('icons', {})
 
   local do_global_option_sync = false
   if type(icons) ~= 'table' then
@@ -223,7 +197,7 @@ function options.icons(g_bufferline)
 
   local corrected_options = {}
   for deprecated_option, new_option in pairs(DEPRECATED_ICON_OPTIONS) do
-    local user_setting = get(g_bufferline, deprecated_option)
+    local user_setting = get(deprecated_option)
     if user_setting then
       utils.tbl_set(icons, new_option, user_setting)
       utils.deprecate(
@@ -239,7 +213,7 @@ function options.icons(g_bufferline)
   do
     --- Edge case deprecated option
     --- @type boolean|nil
-    local closable = get(g_bufferline, 'closable')
+    local closable = get'closable'
     if closable == false then
       icons.button = false
       utils.tbl_set(icons, {'modified', 'button'}, false)
@@ -256,10 +230,21 @@ function options.icons(g_bufferline)
 
   if do_global_option_sync then
     corrected_options.icons = icons
-    vim.g.bufferline = tbl_deep_extend('force', g_bufferline, corrected_options)
+
+    g_bufferline = tbl_deep_extend('force', g_bufferline, corrected_options)
+    vim.schedule(function() vim.g.bufferline = g_bufferline end)
   end
 
-  icons = tbl_deep_extend('keep', deepcopy(icons), DEFAULT_ICONS)
+  icons = tbl_deep_extend('keep', deepcopy(icons), {
+    buffer_index = false,
+    buffer_number = false,
+    button = '',
+    filetype = {enabled = true},
+    inactive = {separator = {left = '▎', right = ''}},
+    modified = {button = '●'},
+    pinned = {button = ''},
+    separator = {left = '▎', right = ''},
+  })
 
   if icons.diagnostics == nil then
     icons.diagnostics = {}
@@ -281,58 +266,58 @@ function options.icons(g_bufferline)
   return icons
 end
 
---- @param g_bufferline table
 --- @return boolean enabled
-function options.insert_at_start(g_bufferline)
-  return get(g_bufferline, 'insert_at_start', false)
+function options.insert_at_start()
+  return get('insert_at_start', false)
 end
 
---- @param g_bufferline table
 --- @return boolean enabled
-function options.insert_at_end(g_bufferline)
-  return get(g_bufferline, 'insert_at_end', false)
+function options.insert_at_end()
+  return get('insert_at_end', false)
 end
 
---- @param g_bufferline table
 --- @return string letters
-function options.letters(g_bufferline)
-  return get(g_bufferline, 'letters', 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP')
+function options.letters()
+  return get('letters', 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP')
 end
 
---- @param g_bufferline table
 --- @return integer padding
-function options.maximum_padding(g_bufferline)
-  return get(g_bufferline, 'maximum_padding', 4)
+function options.maximum_padding()
+  return get('maximum_padding', 4)
 end
 
---- @param g_bufferline table
 --- @return integer padding
-function options.minimum_padding(g_bufferline)
-  return get(g_bufferline, 'minimum_padding', 1)
+function options.minimum_padding()
+  return get('minimum_padding', 1)
 end
 
---- @param g_bufferline table
 --- @return integer length
-function options.maximum_length(g_bufferline)
-  return get(g_bufferline, 'maximum_length', 30)
+function options.maximum_length()
+  return get('maximum_length', 30)
 end
 
---- @param g_bufferline table
 --- @return nil|string title
-function options.no_name_title(g_bufferline)
-  return get(g_bufferline, 'no_name_title')
+function options.no_name_title()
+  return get('no_name_title')
 end
 
---- @param g_bufferline table
 --- @return boolean enabled
-function options.semantic_letters(g_bufferline)
-  return get(g_bufferline, 'semantic_letters', true)
+function options.semantic_letters()
+  return get('semantic_letters', true)
 end
 
---- @param g_bufferline table
+--- @param user_config? table
+function options.setup(user_config)
+  if user_config == nil or user_config == vim.NIL then
+    user_config = {}
+  end
+
+  g_bufferline = user_config
+end
+
 --- @return boolean enabled
-function options.tabpages(g_bufferline)
-  return get(g_bufferline, 'tabpages', true)
+function options.tabpages()
+  return get('tabpages', true)
 end
 
 return options

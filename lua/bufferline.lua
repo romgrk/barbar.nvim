@@ -4,15 +4,12 @@ local table_insert = table.insert
 local bufnr = vim.fn.bufnr --- @type function
 local command = vim.api.nvim_command --- @type function
 local create_user_command = vim.api.nvim_create_user_command --- @type function
-local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local set_option = vim.api.nvim_set_option --- @type function
 
 local api = require'bufferline.api'
 local bbye = require'bufferline.bbye'
-local highlight = require'bufferline.highlight'
-local JumpMode = require'bufferline.jump_mode'
+local events = require'bufferline.events'
 local notify = require'bufferline.utils'.notify
-local options = require'bufferline.options'
 local render = require'bufferline.render'
 local state = require'bufferline.state'
 local utils = require'bufferline.utils'
@@ -28,12 +25,15 @@ local bufferline = {}
 --- @param user_config? table
 --- @return nil
 function bufferline.setup(user_config)
-  -- Show the tabline
-  set_option('showtabline', 2)
+  if type(user_config) ~= "table" then
+    user_config = vim.empty_dict()
+  else
+    user_config[vim.type_idx] = vim.types.dictionary
+  end
 
   -- Create all necessary commands
-  create_user_command('BarbarEnable', render.enable, {desc = 'Enable barbar.nvim'})
-  create_user_command('BarbarDisable', render.disable, {desc = 'Disable barbar.nvim'})
+  create_user_command('BarbarEnable', events.enable, {desc = 'Enable barbar.nvim'})
+  create_user_command('BarbarDisable', events.disable, {desc = 'Disable barbar.nvim'})
 
   create_user_command(
     'BufferNext',
@@ -62,7 +62,7 @@ function bufferline.setup(user_config)
     end,
     {
       complete = function()
-        local buffers = require'bufferline.state'.buffers
+        local buffers = state.buffers
         local buffer_indices = {}
 
         for i = 1, #buffers do
@@ -196,12 +196,12 @@ function bufferline.setup(user_config)
     {count = true, desc = 'Scroll the bufferline right'}
   )
 
-  -- Set the options and watchers for when they are edited
-  vim.g.bufferline = user_config or vim.empty_dict()
+  -- Setup barbar
+  events.enable()
+  vim.g.bufferline = user_config
 
-  highlight.setup()
-  JumpMode.set_letters(options.letters())
-  render.enable()
+  -- Show the tabline
+  set_option('showtabline', 2)
 end
 
 return bufferline

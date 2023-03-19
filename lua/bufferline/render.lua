@@ -5,17 +5,12 @@
 
 local max = math.max
 local min = math.min
-local table_concat = table.concat
 local table_insert = table.insert
 
 local buf_call = vim.api.nvim_buf_call --- @type function
-local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
-local buf_set_var = vim.api.nvim_buf_set_var --- @type function
 local command = vim.api.nvim_command --- @type function
-local create_augroup = vim.api.nvim_create_augroup --- @type function
-local create_autocmd = vim.api.nvim_create_autocmd --- @type function
 local defer_fn = vim.defer_fn
 local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
@@ -23,15 +18,12 @@ local get_option = vim.api.nvim_get_option --- @type function
 local has = vim.fn.has --- @type function
 local list_tabpages = vim.api.nvim_list_tabpages --- @type function
 local list_wins = vim.api.nvim_list_wins --- @type function
-local schedule = vim.schedule --- @type function
-local schedule_wrap = vim.schedule_wrap
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local set_current_win = vim.api.nvim_set_current_win --- @type function
 local set_option = vim.api.nvim_set_option --- @type function
-local severity = vim.diagnostic.severity --- @type function
+local severity = vim.diagnostic.severity
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
-local tabpage_list_wins = vim.api.nvim_tabpage_list_wins --- @type function
 local tabpagenr = vim.fn.tabpagenr --- @type function
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
@@ -40,7 +32,6 @@ local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 local animate = require'bufferline.animate'
 local bbye = require'bufferline.bbye'
 local Buffer = require'bufferline.buffer'
-local highlight = require'bufferline.highlight'
 local icons = require'bufferline.icons'
 local JumpMode = require'bufferline.jump_mode'
 local Layout = require'bufferline.layout'
@@ -48,24 +39,73 @@ local options = require'bufferline.options'
 local state = require'bufferline.state'
 local utils = require'bufferline.utils'
 
---- The highlight to use based on the state of a buffer.
-local HL_BY_ACTIVITY = {'Inactive', 'Alternate', 'Visible', 'Current'}
-
 --- Last value for tabline
 --- @type nil|string
 local last_tabline
-
---- Create and reset autocommand groups associated with this plugin.
---- @return integer bufferline, integer bufferline_update
-local function create_augroups()
-  return create_augroup('bufferline', {}), create_augroup('bufferline_update', {})
-end
 
 --- Create valid `&tabline` syntax which highlights the next item in the tabline with the highlight `group` specified.
 --- @param group string
 --- @return string syntax
 local function hl_tabline(group)
   return '%#' .. group .. '#'
+end
+
+--- Open the window which contained the buffer which was clicked on.
+--- @return integer current_bufnr
+local function set_current_win_listed_buffer()
+  local current = get_current_buf()
+  local is_listed = buf_get_option(current, 'buflisted')
+
+  -- Check previous window first
+  if not is_listed then
+    command('wincmd p')
+    current = get_current_buf()
+    is_listed = buf_get_option(current, 'buflisted')
+  end
+  -- Check all windows now
+  if not is_listed then
+    local wins = list_wins()
+    for _, win in ipairs(wins) do
+      current = win_get_buf(win)
+      is_listed = buf_get_option(current, 'buflisted')
+      if is_listed then
+        set_current_win(win)
+        break
+      end
+    end
+  end
+
+  return current
+end
+
+--- What to do when clicking a buffer close button
+--- @param buffer integer
+--- @return nil
+function BufferlineCloseClickHandler(buffer)
+  if buf_get_option(buffer, 'modified') then
+    buf_call(buffer, function() command('w') end)
+    exec_autocmds('BufModifiedSet', {buffer = buffer})
+  else
+    bbye.bdelete(false, buffer)
+  end
+end
+
+--- What to do when clicking a buffer label
+--- @param bufnr integer the buffer nummber
+--- @param btn string
+--- @return nil
+function BufferlineMainClickHandler(bufnr, _, btn, _)
+  if bufnr == 0 then
+    return
+  end
+
+  -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
+  if btn == 'm' then
+    bbye.bdelete(false, bufnr)
+  else
+    set_current_win_listed_buffer()
+    set_current_buf(bufnr)
+  end
 end
 
 --- @class bufferline.render.animation
@@ -233,14 +273,6 @@ local function slice_groups_left(groups, width)
   return new_groups
 end
 
---- Clears the tabline. Does not stop the tabline from being redrawn via autocmd.
---- @param tabline? string
---- @return nil
-local function set_tabline(tabline)
-  last_tabline = tabline
-  set_option('tabline', tabline or '')
-end
-
 --- @class bufferline.render
 local render = {}
 
@@ -288,30 +320,6 @@ function render.close_buffer_animated(bufnr)
     function(new_width, m)
       close_buffer_animated_tick(bufnr, new_width, m)
     end)
-end
-
---- What to do when clicking a buffer close button.
---- @param buffer integer
---- @return nil
-function render.close_click_handler(buffer)
-  if buf_get_option(buffer, 'modified') then
-    buf_call(buffer, function() command('w') end)
-    exec_autocmds('BufModifiedSet', {buffer = buffer})
-  else
-    bbye.bdelete(false, buffer)
-  end
-end
-
---- Disable the bufferline
---- @return nil
-function render.disable()
-  create_augroups()
-  set_tabline(nil)
-  vim.cmd [[
-    delfunction! BufferlineCloseClickHandler
-    delfunction! BufferlineMainClickHandler
-    delfunction! BufferlineOnOptionChanged
-  ]]
 end
 
 --- The incremental animation for `open_buffer_start_animation`.
@@ -421,155 +429,6 @@ local function open_buffers(new_buffers)
   end
 end
 
---- Enable the bufferline.
---- @return nil
-function render.enable()
-  local augroup_bufferline, augroup_bufferline_update = create_augroups()
-
-  create_autocmd({'BufNewFile', 'BufReadPost'}, {
-    callback = function(tbl) JumpMode.assign_next_letter(tbl.buf) end,
-    group = augroup_bufferline,
-  })
-
-  create_autocmd({'BufDelete', 'BufWipeout'}, {
-    callback = function(tbl) JumpMode.unassign_letter_for(tbl.buf) end,
-    group = augroup_bufferline,
-  })
-
-  create_autocmd('ColorScheme', {callback = highlight.setup, group = augroup_bufferline})
-
-  create_autocmd('BufModifiedSet', {
-    callback = function(tbl)
-      local is_modified = buf_get_option(tbl.buf, 'modified')
-      if is_modified ~= vim.b[tbl.buf].checked then
-        buf_set_var(tbl.buf, 'checked', is_modified)
-        render.update()
-      end
-    end,
-    group = augroup_bufferline,
-  })
-
-  create_autocmd({'BufEnter', 'BufNew'}, {
-    callback = function() render.update(true) end,
-    group = augroup_bufferline_update,
-  })
-
-  create_autocmd(
-    {
-      'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost',
-      'DiagnosticChanged',
-      'TabEnter',
-      'VimResized',
-      'WinEnter', 'WinLeave',
-    },
-    {
-      callback = function() render.update() end,
-      group = augroup_bufferline_update,
-    }
-  )
-
-  create_autocmd('OptionSet', {
-    callback = function() render.update() end,
-    group = augroup_bufferline_update,
-    pattern = 'buflisted',
-  })
-
-  create_autocmd('SessionLoadPost', {
-    callback = function()
-      if state.loading_session then
-        return
-      end
-
-      local restore_cmd = vim.g.Bufferline__session_restore
-      if restore_cmd then command(restore_cmd) end
-
-      -- TODO: I'm not sure if these two statements can be merged, but it's working now so I don't want to touch it.
-      vim.defer_fn(function() state.loading_session = false end, 100)
-      schedule(function() render.update(true) end)
-    end,
-    group = augroup_bufferline_update,
-  })
-
-  create_autocmd('TermOpen', {
-    callback = function() defer_fn(function() render.update(true) end, 500) end,
-    group = augroup_bufferline_update,
-  })
-
-  create_autocmd('User', {
-    callback = function()
-      -- We're allowed to use relative paths for buffers iff there are no tabpages
-      -- or windows with a local directory (:tcd and :lcd)
-      local use_relative_file_paths = true
-
-      -- PERF: I didn't import `haslocaldir` since it is only used her, (just before calling `:mksession` and exiting vim)
-      local haslocaldir = vim.fn.haslocaldir
-
-      for tabnr, tabpage in ipairs(list_tabpages()) do
-        if not use_relative_file_paths or haslocaldir(-1, tabnr) == 1 then
-          use_relative_file_paths = false
-          break
-        end
-
-        for _, win in ipairs(tabpage_list_wins(tabpage)) do
-          if haslocaldir(win, tabnr) == 1 then
-            use_relative_file_paths = false
-            break
-          end
-        end
-      end
-
-      local bufnames = {}
-      for _, bufnr in ipairs(state.buffers) do
-        local name = buf_get_name(bufnr)
-        if use_relative_file_paths then
-          name = utils.relative(name)
-        end
-
-        -- escape quotes
-        name = name:gsub('"', '\\"')
-
-        table_insert(bufnames, '{' ..
-          'name = "' .. name .. '",' ..
-          'pinned = ' .. tostring(state.data_by_bufnr[bufnr].pinned == true) .. ',' ..
-        '}')
-      end
-
-      vim.g.Bufferline__session_restore = "lua require'bufferline.state'.restore_buffers {" ..
-        table_concat(bufnames, ',') ..
-      "}"
-    end,
-    group = augroup_bufferline,
-    pattern = 'SessionSavePre',
-  })
-
-  create_autocmd('WinClosed', {
-    callback = schedule_wrap(render.update),
-    group = augroup_bufferline_update,
-  })
-
-  vim.cmd [[
-    " Must be global -_-
-    function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline.render'.close_click_handler(_A)", a:minwid)
-    endfunction
-
-    " Must be global -_-
-    function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline.render'.main_click_handler(_A[1], nil, _A[2])", [a:minwid, a:btn])
-    endfunction
-
-    " Must be global -_-
-    function! BufferlineOnOptionChanged(dict, key, changes) abort
-      call luaeval("require'bufferline.render'.on_option_changed(nil, _A)", a:key)
-    endfunction
-
-    call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
-  ]]
-
-  render.update()
-  command('redrawtabline')
-end
-
 --- Refresh the buffer list.
 --- @return integer[] state.buffers
 function render.get_updated_buffers(update_names)
@@ -614,63 +473,10 @@ function render.get_updated_buffers(update_names)
   return state.buffers
 end
 
---- What to do when clicking a buffer label.
---- @param bufnr integer the buffer nummber
---- @param btn string
---- @return nil
-function render.main_click_handler(bufnr, _, btn, _)
-  if bufnr == 0 then
-    return
-  end
-
-  -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
-  if btn == 'm' then
-    bbye.bdelete(false, bufnr)
-  else
-    render.set_current_win_listed_buffer()
-    set_current_buf(bufnr)
-  end
-end
-
---- What to do when `vim.g.bufferline` is changed.
---- @param key string what option was changed.
---- @return nil
-function render.on_option_changed(_, key, _)
-  if vim.g.bufferline and key == 'letters' then
-    JumpMode.set_letters(options.letters())
-  end
-end
-
 --- @deprecated use `state.restore_buffers` instead
 render.restore_buffers = state.restore_buffers
 
---- Open the window which contained the buffer which was clicked on.
---- @return integer current_bufnr
-function render.set_current_win_listed_buffer()
-  local current = get_current_buf()
-  local is_listed = buf_get_option(current, 'buflisted')
-
-  -- Check previous window first
-  if not is_listed then
-    command('wincmd p')
-    current = get_current_buf()
-    is_listed = buf_get_option(current, 'buflisted')
-  end
-  -- Check all windows now
-  if not is_listed then
-    local wins = list_wins()
-    for _, win in ipairs(wins) do
-      current = win_get_buf(win)
-      is_listed = buf_get_option(current, 'buflisted')
-      if is_listed then
-        set_current_win(win)
-        break
-      end
-    end
-  end
-
-  return current
-end
+render.set_current_win_listed_buffer = set_current_win_listed_buffer
 
 --- Scroll the bufferline relative to its current position.
 --- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
@@ -709,6 +515,15 @@ function render.set_scroll(target)
   scroll_animation = animate.start(
     ANIMATION.SCROLL_DURATION, scroll.current, target, vim.v.t_number,
     set_scroll_tick)
+end
+
+--- Clears the tabline. Does not stop the tabline from being redrawn via autocmd.
+--- @param tabline? string
+--- @return nil
+function render.set_tabline(tabline)
+  last_tabline = tabline
+  set_option('tabline', tabline or '')
+  command('redrawtabline')
 end
 
 --- Generate the `&tabline` representing the current state of Neovim.
@@ -837,13 +652,13 @@ local function generate_tabline(bufnrs, refocus)
 
       if click_enabled then
         closePrefix =
-            '%' .. bufnr .. '@BufferlineCloseClickHandler@' .. closePrefix
+            '%' .. bufnr .. '@v:lua.BufferlineCloseClickHandler@' .. closePrefix
       end
     end
 
     local clickable = ''
     if click_enabled then
-      clickable = '%' .. bufnr .. '@BufferlineMainClickHandler@'
+      clickable = '%' .. bufnr .. '@v:lua.BufferlineMainClickHandler@'
     end
 
     local padding = (' '):rep(layout.padding_width)
@@ -941,7 +756,7 @@ local function generate_tabline(bufnrs, refocus)
   result = result .. groups_to_string(bufferline_groups)
 
   -- To prevent the expansion of the last click group
-  result = result .. '%0@BufferlineMainClickHandler@' .. hl_tabline('BufferTabpageFill')
+  result = result .. '%0@v:lua.BufferlineMainClickHandler@' .. hl_tabline('BufferTabpageFill')
 
   if layout.actual_width + strwidth(options.icon_separator_inactive()) <= layout.buffers_width and #items > 0 then
     result = result .. options.icon_separator_inactive()
@@ -975,18 +790,15 @@ function render.update(update_names, refocus)
   )
 
   if not ok then
-    render.disable()
+    command('BarbarDisable')
     utils.notify(
       "Barbar detected an error while running. Barbar disabled itself :/ " ..
         "Include this in your report: " ..
         tostring(result),
       vim.log.levels.ERROR
     )
-
-    return
   elseif result ~= last_tabline then
-    set_tabline(result)
-    command('redrawtabline')
+    render.set_tabline(result)
   end
 end
 
