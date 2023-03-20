@@ -29,16 +29,13 @@ files you can even type the letter ahead from memory.
 
 ## Install
 
-#### Using [vim-plug](https://github.com/junegunn/vim-plug)
-```vim
-Plug 'nvim-tree/nvim-web-devicons'
-Plug 'romgrk/barbar.nvim'
-```
-
 #### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 ```lua
 require('lazy').setup {
-  {'romgrk/barbar.nvim', dependencies = 'nvim-tree/nvim-web-devicons'},
+  {'romgrk/barbar.nvim',
+    dependencies = 'nvim-tree/nvim-web-devicons',
+    version = '^1.0.0', -- optional: only update when a new 1.x version is released
+  },
 }
 ```
 
@@ -46,6 +43,12 @@ require('lazy').setup {
 ```lua
 use 'nvim-tree/nvim-web-devicons'
 use {'romgrk/barbar.nvim', requires = 'nvim-web-devicons'}
+```
+
+#### Using [vim-plug](https://github.com/junegunn/vim-plug)
+```vim
+Plug 'nvim-tree/nvim-web-devicons'
+Plug 'romgrk/barbar.nvim'
 ```
 
 You can skip the dependency on `'nvim-tree/nvim-web-devicons'` if you
