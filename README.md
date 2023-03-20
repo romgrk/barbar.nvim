@@ -252,6 +252,10 @@ let bufferline.diagnostics = [
 let bufferline.exclude_ft = ['javascript']
 let bufferline.exclude_name = ['package.json']
 
+" A buffer to this direction will be focused (if it exists) when closing the current buffer.
+" Valid options are 'left' (the default) and 'right'
+let bufferline.focus_on_close = 'left'
+
 " Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
 let bufferline.hide = {'extensions': v:true, 'inactive': v:true}
 
@@ -353,6 +357,10 @@ require'bufferline'.setup {
   -- Excludes buffers from the tabline
   exclude_ft = {'javascript'},
   exclude_name = {'package.json'},
+
+  -- A buffer to this direction will be focused (if it exists) when closing the current buffer.
+  -- Valid options are 'left' (the default) and 'right'
+  focus_on_close = 'left',
 
   -- Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
   hide = {extensions = true, inactive = true},

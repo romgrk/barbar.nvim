@@ -373,6 +373,15 @@ Controls if icons are rendered on each tab.
     let g:bufferline.highlight_inactive_file_icons = v:true
 <
 
+                                                 *g:bufferline.focus_on_close*
+`g:bufferline.focus_on_close`  "left"|"right"  (default "left")
+
+  A buffer to this direction will be focused (if it exists) when closing the
+  current buffer.
+>
+    let g:bufferline.focus_on_close = "left"
+<
+
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
 
