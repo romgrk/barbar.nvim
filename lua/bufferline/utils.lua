@@ -201,6 +201,16 @@ local utils = {
     return reversed
   end,
 
+  --- Get `tbl[key]`, return it, and remove it from the `tbl`.
+  --- @param tbl table
+  --- @param key string
+  --- @return any
+  tbl_remove_key = function(tbl, key)
+    local value = rawget(tbl, key)
+    rawset(tbl, key, nil)
+    return value
+  end,
+
   --- Set a `value` in a `tbl` multiple `keys` deep.
   --
   --- ```lua
