@@ -201,6 +201,28 @@ local utils = {
     return reversed
   end,
 
+  --- Set `fallback` as a secondary source of keys when indexing `tbl`. Example:
+  ---
+  --- ```lua
+  --- local fallback = {bar = true}
+  --- local tbl = {}
+  ---
+  --- print(tbl.bar) -- `nil`
+  --- setfallbacktable(tbl, fallback)
+  --- print(tbl.bar) -- `true`
+  ---
+  --- tbl.bar = false
+  --- print(tbl.bar, fallback.bar) -- `false`, `true`
+  --- ```
+  ---
+  --- WARN: this mutates `tbl`!
+  --- @param tbl? table
+  --- @param fallback table
+  --- @return table tbl corresponding to the `tbl` parameter
+  setfallbacktable = function(tbl, fallback)
+    return setmetatable(tbl or {}, {__index = fallback})
+  end,
+
   --- Get `tbl[key]`, return it, and remove it from the `tbl`.
   --- @param tbl table
   --- @param key string
