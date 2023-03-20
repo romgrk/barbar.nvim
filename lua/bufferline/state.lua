@@ -11,11 +11,49 @@ local bufadd = vim.fn.bufadd --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local list_bufs = vim.api.nvim_list_bufs --- @type function
 local list_extend = vim.list_extend
+local severity = vim.diagnostic.severity --- @type {[integer]: string, [string]: integer}
 local tbl_filter = vim.tbl_filter
 
 local Buffer = require'bufferline.buffer'
 local options = require'bufferline.options'
 local utils = require'bufferline.utils'
+
+--- Set `higher` to have higher priority than `lower` when resolving the `icons` option.
+--- @param higher? bufferline.options.icons.buffer
+--- @param lower bufferline.options.icons.buffer
+--- @return table bufferline.options.icons.buffer corresponding to the `tbl` parameter
+local function icons_option_prioritize(higher, lower)
+  if higher and lower then -- set the sub-table fallbacks
+    do
+      local lower_diagnostics = utils.tbl_remove_key(lower, 'diagnostics')
+      if lower_diagnostics then
+        if higher.diagnostics == nil then
+          higher.diagnostics = {}
+        end
+
+        for i in ipairs(severity) do
+          higher.diagnostics[i] = utils.setfallbacktable(higher.diagnostics[i], lower_diagnostics[i])
+        end
+      end
+    end
+
+    do
+      local lower_filetype = utils.tbl_remove_key(lower, 'filetype')
+      if lower_filetype then
+        higher.filetype = utils.setfallbacktable(higher.filetype, lower_filetype)
+      end
+    end
+
+    do
+      local lower_separator = utils.tbl_remove_key(lower, 'separator')
+      if lower_separator then
+        higher.separator = utils.setfallbacktable(higher.separator, lower_separator)
+      end
+    end
+  end
+
+  return utils.setfallbacktable(higher, lower)
+end
 
 --------------------------------
 -- Section: Application state --
@@ -225,6 +263,43 @@ function state.restore_buffers(buffer_data)
       state.toggle_pin(bufnr)
     end
   end
+end
+
+--- The `icons` for a particular activity.
+--- @param activity bufferline.buffer.activity.name
+--- @see bufferline.options.icons
+--- @return bufferline.options.icons.buffer
+function state.icons(bufnr, activity)
+  local activity_lower = activity:lower()
+  local icons = options.icons()
+
+  --- @type bufferline.options.icons.state
+  local activity_icons = utils.tbl_remove_key(icons, activity_lower) or {}
+
+  --- @type bufferline.options.icons.buffer
+  local buffer_icons = icons_option_prioritize(activity_icons, icons)
+
+  --- Prioritize the `modified` or `pinned` states
+  --- @param option string
+  local function icons_option_prioritize_state(option)
+    buffer_icons = icons_option_prioritize(
+      utils.tbl_remove_key(activity_icons, option),
+      icons_option_prioritize(
+        utils.tbl_remove_key(icons, option),
+        buffer_icons
+      )
+    )
+  end
+
+  if buf_get_option(bufnr, 'modified') then
+    icons_option_prioritize_state'modified'
+  end
+
+  if state.get_buffer_data(bufnr).pinned then
+    icons_option_prioritize_state'pinned'
+  end
+
+  return buffer_icons
 end
 
 -- Exports
