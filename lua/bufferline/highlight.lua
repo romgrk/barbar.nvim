@@ -10,6 +10,7 @@ hl.set_default_link('BufferAlternateERROR', 'BufferDefaultAlternateERROR')
 hl.set_default_link('BufferAlternateHINT', 'BufferDefaultAlternateHINT')
 hl.set_default_link('BufferAlternateIcon', 'BufferDefaultAlternateIcon')
 hl.set_default_link('BufferAlternateIndex', 'BufferDefaultAlternateIndex')
+hl.set_default_link('BufferAlternateNumber', 'BufferDefaultAlternateNumber')
 hl.set_default_link('BufferAlternateINFO', 'BufferDefaultAlternateINFO')
 hl.set_default_link('BufferAlternateMod', 'BufferDefaultAlternateMod')
 hl.set_default_link('BufferAlternateSign', 'BufferDefaultAlternateSign')
@@ -21,6 +22,7 @@ hl.set_default_link('BufferCurrentERROR', 'BufferDefaultCurrentERROR')
 hl.set_default_link('BufferCurrentHINT', 'BufferDefaultCurrentHINT')
 hl.set_default_link('BufferCurrentIcon', 'BufferDefaultCurrentIcon')
 hl.set_default_link('BufferCurrentIndex', 'BufferDefaultCurrentIndex')
+hl.set_default_link('BufferCurrentNumber', 'BufferDefaultCurrentNumber')
 hl.set_default_link('BufferCurrentINFO', 'BufferDefaultCurrentINFO')
 hl.set_default_link('BufferCurrentMod', 'BufferDefaultCurrentMod')
 hl.set_default_link('BufferCurrentSign', 'BufferDefaultCurrentSign')
@@ -32,6 +34,7 @@ hl.set_default_link('BufferInactiveERROR', 'BufferDefaultInactiveERROR')
 hl.set_default_link('BufferInactiveHINT', 'BufferDefaultInactiveHINT')
 hl.set_default_link('BufferInactiveIcon', 'BufferDefaultInactiveIcon')
 hl.set_default_link('BufferInactiveIndex', 'BufferDefaultInactiveIndex')
+hl.set_default_link('BufferInactiveNumber', 'BufferDefaultInactiveNumber')
 hl.set_default_link('BufferInactiveINFO', 'BufferDefaultInactiveINFO')
 hl.set_default_link('BufferInactiveMod', 'BufferDefaultInactiveMod')
 hl.set_default_link('BufferInactiveSign', 'BufferDefaultInactiveSign')
@@ -48,6 +51,7 @@ hl.set_default_link('BufferVisibleERROR', 'BufferDefaultVisibleERROR')
 hl.set_default_link('BufferVisibleHINT', 'BufferDefaultVisibleHINT')
 hl.set_default_link('BufferVisibleIcon', 'BufferDefaultVisibleIcon')
 hl.set_default_link('BufferVisibleIndex', 'BufferDefaultVisibleIndex')
+hl.set_default_link('BufferVisibleNumber', 'BufferDefaultVisibleNumber')
 hl.set_default_link('BufferVisibleINFO', 'BufferDefaultVisibleINFO')
 hl.set_default_link('BufferVisibleMod', 'BufferDefaultVisibleMod')
 hl.set_default_link('BufferVisibleSign', 'BufferDefaultVisibleSign')
@@ -56,10 +60,14 @@ hl.set_default_link('BufferVisibleWARN', 'BufferDefaultVisibleWARN')
 
 -- NOTE: these should move to `setup_defaults` if the definition stops being a link
 hl.set_default_link('BufferDefaultAlternateIcon', 'BufferAlternate')
+hl.set_default_link('BufferDefaultAlternateNumber', 'BufferAlternateIndex')
 hl.set_default_link('BufferDefaultCurrentIcon', 'BufferCurrent')
+hl.set_default_link('BufferDefaultCurrentNumber', 'BufferCurrentIndex')
 hl.set_default_link('BufferDefaultInactiveIcon', 'BufferInactive')
-hl.set_default_link('BufferDefaultVisibleIcon', 'BufferVisible')
+hl.set_default_link('BufferDefaultInactiveNumber', 'BufferInactiveIndex')
 hl.set_default_link('BufferDefaultOffset', 'BufferTabpageFill')
+hl.set_default_link('BufferDefaultVisibleIcon', 'BufferVisible')
+hl.set_default_link('BufferDefaultVisibleNumber', 'BufferVisibleIndex')
 
 --- @class bufferline.highlight
 local highlight = {
@@ -89,6 +97,7 @@ local highlight = {
     --     Inactive: invisible but not current buffer
     --        -Icon: filetype icon
     --       -Index: buffer index
+    --      -Number: buffer numebr
     --         -Mod: when modified
     --        -Sign: the separator between buffers
     --      -Target: letter in buffer-picking mode
