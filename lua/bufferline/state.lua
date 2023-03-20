@@ -2,6 +2,7 @@
 -- m.lua
 --
 
+local table_insert = table.insert
 local table_remove = table.remove
 
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
@@ -87,7 +88,7 @@ function state.get_buffer_list()
     then
       local name = buf_get_name(bufnr)
       if not utils.has(exclude_name, utils.basename(name, hide_extensions)) then
-        table.insert(result, bufnr)
+        table_insert(result, bufnr)
       end
     end
   end
@@ -114,7 +115,7 @@ function state.sort_pins_to_left()
     if state.is_pinned(state.buffers[i]) then
       i = i + 1
     else
-      unpinned[#unpinned + 1] = table_remove(state.buffers, i)
+      table_insert(unpinned, table_remove(state.buffers, i))
     end
   end
 
@@ -203,8 +204,6 @@ end
 --- @param buffer_data string[]|{name: string, pinned: boolean}[]
 --- @return nil
 function state.restore_buffers(buffer_data)
-  --- PERF: since this function is only run once (`nvim -S`) I avoided importing the called functions at top-level
-  local table_insert = table.insert
   local buf_delete = vim.api.nvim_buf_delete
   local buf_get_lines = vim.api.nvim_buf_get_lines
   local buf_line_count = vim.api.nvim_buf_line_count

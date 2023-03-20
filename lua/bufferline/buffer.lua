@@ -5,6 +5,7 @@
 local max = math.max
 local min = math.min
 local table_concat = table.concat
+local table_insert = table.insert
 
 local bufnr = vim.fn.bufnr --- @type function
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
@@ -164,7 +165,7 @@ local buffer = {
       hide = {hide.inactive, hide.visible, hide.alternate, hide.current}
       for _, buffer_number in ipairs(bufnrs) do
         if not hide[get_activity(buffer_number)] then
-          shown[#shown + 1] = buffer_number
+          table_insert(shown, buffer_number)
         end
       end
 

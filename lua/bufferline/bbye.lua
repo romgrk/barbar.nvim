@@ -23,6 +23,8 @@
 -- For the full copy of the GNU Affero General Public License see:
 -- http://www.gnu.org/licenses.
 
+local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local buf_set_option = vim.api.nvim_buf_set_option --- @type function
 local buflisted = vim.fn.buflisted --- @type function
 local bufnr = vim.fn.bufnr --- @type function
 local command = vim.api.nvim_command --- @type function
@@ -31,6 +33,7 @@ local create_autocmd = vim.api.nvim_create_autocmd --- @type function
 local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local get_current_win = vim.api.nvim_get_current_win --- @type function
+local get_option = vim.api.nvim_get_option --- @type function
 local list_bufs = vim.api.nvim_list_bufs --- @type function
 local list_wins = vim.api.nvim_list_wins --- @type function
 local notify = vim.notify
@@ -38,8 +41,6 @@ local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local set_current_win = vim.api.nvim_set_current_win --- @type function
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 local win_is_valid = vim.api.nvim_win_is_valid --- @type function
-local buf_get_option = vim.api.nvim_buf_get_option --- @type function
-local buf_set_option = vim.api.nvim_buf_set_option --- @type function
 
 local options = require'bufferline.options'
 local state = require'bufferline.state'
@@ -128,11 +129,11 @@ local function new(force)
 
   -- Regular buftype warns people if they have unsaved text there.
   -- Wouldn't want to lose someone's data:
-  vim.opt_local.buftype = ''
-  vim.opt_local.swapfile = false
+  buf_set_option(0, 'buftype', '')
+  buf_set_option(0, 'swapfile', false)
 
   -- If empty and out of sight, delete it right away:
-  vim.opt_local.bufhidden = 'wipe'
+  buf_set_option(0, 'bufhidden', 'wipe')
 
   create_autocmd('BufWipeout', {
     buffer = 0,
@@ -164,7 +165,7 @@ function bbye.delete(action, force, buffer, mods)
 
   local is_modified = buf_get_option(buffer_number, 'modified')
 
-  local has_confirm = vim.o.confirm
+  local has_confirm = get_option'confirm'
   if type(mods) == 'table' then
     has_confirm = has_confirm or mods.confirm
   elseif mods then

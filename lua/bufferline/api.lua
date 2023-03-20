@@ -168,10 +168,10 @@ function api.goto_buffer(index)
   if index < 0 then
     index = #state.buffers + index + 1
   else
-    index = math.min(index, #state.buffers)
+    index = min(index, #state.buffers)
   end
 
-  index = math.max(1, index)
+  index = max(1, index)
 
   local buffer_number = state.buffers[index]
   if buffer_number then

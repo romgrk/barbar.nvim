@@ -1,7 +1,11 @@
+local max = math.max
+local table_insert = table.insert
+
 local bufnr = vim.fn.bufnr --- @type function
 local command = vim.api.nvim_command --- @type function
 local create_user_command = vim.api.nvim_create_user_command --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
+local set_option = vim.api.nvim_set_option --- @type function
 
 local api = require'bufferline.api'
 local bbye = require'bufferline.bbye'
@@ -24,7 +28,7 @@ local bufferline = {}
 --- @return nil
 function bufferline.setup(user_config)
   -- Show the tabline
-  vim.opt.showtabline = 2
+  set_option('showtabline', 2)
 
   -- Create all necessary commands
   create_user_command('BarbarEnable', render.enable, {desc = 'Enable barbar.nvim'})
@@ -32,13 +36,13 @@ function bufferline.setup(user_config)
 
   create_user_command(
     'BufferNext',
-    function(tbl) api.goto_buffer_relative(math.max(1, tbl.count)) end,
+    function(tbl) api.goto_buffer_relative(max(1, tbl.count)) end,
     {count = true, desc = 'Go to the next buffer'}
   )
 
   create_user_command(
     'BufferPrevious',
-    function(tbl) api.goto_buffer_relative(-math.max(1, tbl.count)) end,
+    function(tbl) api.goto_buffer_relative(-max(1, tbl.count)) end,
     {count = true, desc = 'Go to the previous buffer'}
   )
 
@@ -57,7 +61,7 @@ function bufferline.setup(user_config)
         local buffer_indices = {}
 
         for i = 1, #buffers do
-          table.insert(buffer_indices, tostring(i))
+          table_insert(buffer_indices, tostring(i))
         end
 
         for i = -#buffers, -1 do
@@ -82,13 +86,13 @@ function bufferline.setup(user_config)
 
   create_user_command(
     'BufferMoveNext',
-    function(tbl) api.move_current_buffer(math.max(1, tbl.count)) end,
+    function(tbl) api.move_current_buffer(max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the right'}
   )
 
   create_user_command(
     'BufferMovePrevious',
-    function(tbl) api.move_current_buffer(-math.max(1, tbl.count)) end,
+    function(tbl) api.move_current_buffer(-max(1, tbl.count)) end,
     {count = true, desc = 'Move the current buffer to the left'}
   )
 
@@ -177,13 +181,13 @@ function bufferline.setup(user_config)
 
   create_user_command(
     'BufferScrollLeft',
-    function(tbl) render.scroll(-math.max(1, tbl.count)) end,
+    function(tbl) render.scroll(-max(1, tbl.count)) end,
     {count = true, desc = 'Scroll the bufferline left'}
   )
 
   create_user_command(
     'BufferScrollRight',
-    function(tbl) render.scroll(math.max(1, tbl.count)) end,
+    function(tbl) render.scroll(max(1, tbl.count)) end,
     {count = true, desc = 'Scroll the bufferline right'}
   )
 

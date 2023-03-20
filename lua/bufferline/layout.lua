@@ -5,8 +5,11 @@
 local floor = math.floor
 local max = math.max
 local min = math.min
+local rshift = bit.rshift
+local table_insert = table.insert
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local get_option = vim.api.nvim_get_option --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 local tabpagenr = vim.fn.tabpagenr --- @type function
 
@@ -105,7 +108,7 @@ function Layout.calculate_buffers_width()
   for i, bufnr in ipairs(Layout.buffers) do
     local width = Layout.calculate_buffer_width(bufnr, i, render)
     sum = sum + width
-    widths[#widths + 1] = width
+    table_insert(widths, width)
   end
 
   return sum, widths
@@ -114,7 +117,7 @@ end
 --- Calculate the current layout of the bufferline.
 --- @return bufferline.layout.data
 function Layout.calculate()
-  local available_width = vim.o.columns
+  local available_width = get_option'columns'
   available_width = available_width - state.offset.width
 
   local used_width, base_widths = Layout.calculate_buffers_width()
@@ -124,7 +127,9 @@ function Layout.calculate()
 
   local remaining_width              = max(buffers_width - used_width, 0)
   local remaining_width_per_buffer   = floor(remaining_width / #base_widths)
-  local remaining_padding_per_buffer = floor(remaining_width_per_buffer / SIDES_OF_BUFFER)
+  -- PERF: faster than `floor(remaining_width_per_buffer / SIDES_OF_BUFFER)`.
+  --       if `SIDES_OF_BUFFER` changes, this will have to go back to `floor`.
+  local remaining_padding_per_buffer = rshift(remaining_width_per_buffer, 1)
   local padding_width                = max(options.minimum_padding(), min(remaining_padding_per_buffer, options.maximum_padding()))
   local actual_width                 = used_width + (#base_widths * padding_width * SIDES_OF_BUFFER)
 

@@ -2,6 +2,8 @@
 -- utils.lua
 --
 
+local table_insert = table.insert
+
 local fnamemodify = vim.fn.fnamemodify --- @type function
 local get_hl_by_name = vim.api.nvim_get_hl_by_name --- @type function
 local hlexists = vim.fn.hlexists --- @type function
@@ -173,7 +175,7 @@ local utils = {
   reverse = function(list)
     local reversed = {}
     for i = #list, 1, -1 do
-      table.insert(reversed, list[i])
+      table_insert(reversed, list[i])
     end
     return reversed
   end,

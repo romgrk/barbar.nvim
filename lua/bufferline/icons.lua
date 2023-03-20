@@ -2,6 +2,8 @@
 -- get-icon.lua
 --
 
+local table_insert = table.insert
+
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local command = vim.api.nvim_command --- @type function
@@ -85,7 +87,7 @@ local icons = {
 
     if icon_hl and hlexists(icon_hl .. buffer_status) < 1 then
       hl_buffer_icon(buffer_status, icon_hl)
-      hl_groups[#hl_groups + 1] = { buffer_status = buffer_status, icon_hl = icon_hl }
+      table_insert(hl_groups, {buffer_status = buffer_status, icon_hl = icon_hl})
     end
 
     return icon_char, icon_hl .. buffer_status

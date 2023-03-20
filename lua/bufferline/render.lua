@@ -19,12 +19,15 @@ local create_autocmd = vim.api.nvim_create_autocmd --- @type function
 local defer_fn = vim.defer_fn
 local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
+local get_option = vim.api.nvim_get_option --- @type function
 local has = vim.fn.has --- @type function
 local list_tabpages = vim.api.nvim_list_tabpages --- @type function
 local list_wins = vim.api.nvim_list_wins --- @type function
 local schedule = vim.schedule --- @type function
+local schedule_wrap = vim.schedule_wrap
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local set_current_win = vim.api.nvim_set_current_win --- @type function
+local set_option = vim.api.nvim_set_option --- @type function
 local severity = vim.diagnostic.severity --- @type function
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
@@ -118,7 +121,7 @@ local function groups_insert(groups, position, others)
 
     -- While we haven't found the position...
     if current_position + group_width <= position then
-      new_groups[#new_groups + 1] = group
+      table_insert(new_groups, group)
       i = i + 1
       current_position = current_position + group_width
 
@@ -128,10 +131,10 @@ local function groups_insert(groups, position, others)
 
       -- Slice current group if it `position` is inside it
       if available_width > 0 then
-        new_groups[#new_groups + 1] = {
+        table_insert(new_groups, {
           text = strcharpart(group.text, 0, available_width),
           hl = group.hl,
-        }
+        })
       end
 
       -- Add new other groups
@@ -139,7 +142,7 @@ local function groups_insert(groups, position, others)
       for _, other in ipairs(others) do
         local other_width = strwidth(other.text)
         others_width = others_width + other_width
-        new_groups[#new_groups + 1] = other
+        table_insert(new_groups, other)
       end
 
       local end_position = position + others_width
@@ -156,14 +159,14 @@ local function groups_insert(groups, position, others)
           -- continue
         elseif previous_group_start_position >= end_position then
           -- table.insert(new_groups, 'direct')
-          new_groups[#new_groups + 1] = previous_group
+          table_insert(new_groups, previous_group)
         else
           local remaining_width = previous_group_end_position - end_position
           local start = previous_group_width - remaining_width
           local end_  = previous_group_width
           local new_group = { hl = previous_group.hl, text = strcharpart(previous_group.text, start, end_) }
           -- table.insert(new_groups, { group_start_position, group_end_position, end_position })
-          new_groups[#new_groups + 1] = new_group
+          table_insert(new_groups, new_group)
         end
 
         i = i + 1
@@ -193,11 +196,11 @@ local function slice_groups_right(groups, width)
     if accumulated_width >= width then
       local diff = text_width - (accumulated_width - width)
       local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff)}
-      new_groups[#new_groups + 1] = new_group
+      table_insert(new_groups, new_group)
       break
     end
 
-    new_groups[#new_groups + 1] = group
+    table_insert(new_groups, group)
   end
 
   return new_groups
@@ -235,7 +238,7 @@ end
 --- @return nil
 local function set_tabline(tabline)
   last_tabline = tabline
-  vim.opt.tabline = last_tabline
+  set_option('tabline', tabline or '')
 end
 
 --- @class bufferline.render
@@ -477,16 +480,11 @@ function render.enable()
         return
       end
 
-      state.loading_session = true
+      local restore_cmd = vim.g.Bufferline__session_restore
+      if restore_cmd then command(restore_cmd) end
 
-      if vim.g.Bufferline__session_restore then
-        command(vim.g.Bufferline__session_restore)
-      end
-
-      vim.fn.timer_start(100, function()
-        state.loading_session = false
-      end)
-
+      -- TODO: I'm not sure if these two statements can be merged, but it's working now so I don't want to touch it.
+      vim.defer_fn(function() state.loading_session = false end, 100)
       schedule(function() render.update(true) end)
     end,
     group = augroup_bufferline_update,
@@ -530,20 +528,22 @@ function render.enable()
         -- escape quotes
         name = name:gsub('"', '\\"')
 
-        bufnames[#bufnames + 1] = '{' ..
+        table_insert(bufnames, '{' ..
           'name = "' .. name .. '",' ..
           'pinned = ' .. tostring(state.data_by_bufnr[bufnr].pinned == true) .. ',' ..
-        '}'
+        '}')
       end
 
-      vim.g.Bufferline__session_restore = "lua require'bufferline.state'.restore_buffers {" .. table_concat(bufnames, ',') .. "}"
+      vim.g.Bufferline__session_restore = "lua require'bufferline.state'.restore_buffers {" ..
+        table_concat(bufnames, ',') ..
+      "}"
     end,
     group = augroup_bufferline,
     pattern = 'SessionSavePre',
   })
 
   create_autocmd('WinClosed', {
-    callback = function() schedule(render.update) end,
+    callback = schedule_wrap(render.update),
     group = augroup_bufferline_update,
   })
 
@@ -676,7 +676,7 @@ end
 --- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
 --- @return nil
 function render.scroll(n)
-  render.set_scroll(math.max(0, scroll.target + n))
+  render.set_scroll(max(0, scroll.target + n))
 end
 
 local scroll_animation = nil
@@ -718,14 +718,14 @@ end
 local function generate_tabline(bufnrs, refocus)
   if options.auto_hide() then
     if #bufnrs + #list_tabpages() < 3 then -- 3 because the condition for auto-hiding is 1 visible buffer and 1 tabpage (2).
-      if vim.o.showtabline == 2 then
-        vim.o.showtabline = 0
+      if get_option'showtabline' == 2 then
+        set_option('showtabline', 0)
       end
       return
     end
 
-    if vim.o.showtabline == 0 then
-      vim.o.showtabline = 2
+    if get_option'showtabline' == 0 then
+      set_option('showtabline', 2)
     end
   end
 
@@ -889,7 +889,7 @@ local function generate_tabline(bufnrs, refocus)
       end
     end
 
-    items[#items + 1] = item
+    table_insert(items, item)
     current_buffer_position = current_buffer_position + item.width
   end
 
