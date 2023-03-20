@@ -88,6 +88,11 @@ function options.file_icons(icon_option)
   return icon_option == true or icon_option == 'both' or icon_option == 'buffer_number_with_icon'
 end
 
+--- @return 'left'|'right' enabled
+function options.focus_on_close()
+  return get('focus_on_close', 'left')
+end
+
 --- @return bufferline.options.hide
 function options.hide()
   return get('hide', {})

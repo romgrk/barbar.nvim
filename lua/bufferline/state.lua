@@ -150,26 +150,6 @@ end
 
 -- Read/write state
 
--- Return the bufnr of the buffer to the right of `buffer_number`
--- @param buffer_number int
--- @return int|nil
-function state.find_next_buffer(buffer_number)
-  local index = utils.index_of(state.buffers, buffer_number)
-  if index == nil then
-    return
-  end
-
-  if index + 1 > #state.buffers then
-    index = index - 1
-    if index <= 0 then
-      return nil
-    end
-  else
-    index = index + 1
-  end
-  return state.buffers[index]
-end
-
 --- Update the names of all buffers in the bufferline.
 --- @return nil
 function state.update_names()
