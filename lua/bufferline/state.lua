@@ -96,19 +96,12 @@ function state.get_buffer_data(bufnr)
   end
 
   local data = state.data_by_bufnr[bufnr]
-  if data ~= nil then
-    return data
+  if data == nil then
+    data = {closing = false, pinned = false}
+    state.data_by_bufnr[bufnr] = data
   end
 
-  state.data_by_bufnr[bufnr] = {
-    closing = false,
-    name = nil,
-    position = nil,
-    real_width = nil,
-    width = nil,
-  }
-
-  return state.data_by_bufnr[bufnr]
+  return data
 end
 
 --- Get the list of buffers
@@ -140,7 +133,7 @@ end
 --- @return boolean pinned `true` if `bufnr` is pinned
 function state.is_pinned(bufnr)
   local data = state.get_buffer_data(bufnr)
-  return data and data.pinned
+  return data.pinned
 end
 
 --- Sort the pinned tabs to the left of the bufferline.
