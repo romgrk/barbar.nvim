@@ -188,8 +188,12 @@ end
 --- @param hl? string
 --- @return nil
 function state.set_offset(width, text, hl)
-  utils.deprecate('`bufferline.state.set_offset`', '`bufferline.api.set_offset`')
-  require.set_offset(width, text, hl)
+  utils.deprecate(
+    utils.markdown_inline_code'bufferline.state.set_offset',
+    utils.markdown_inline_code'bufferline.api.set_offset'
+  )
+
+  require'bufferline.api'.set_offset(width, text, hl)
 end
 
 --- Restore the buffers

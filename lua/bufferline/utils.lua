@@ -170,6 +170,13 @@ local utils = {
     return list_slice(list, #list - index_from_end + 1)
   end,
 
+  --- Return "\``s`\`"
+  --- @param s string
+  --- @return string inline_code
+  markdown_inline_code = function(s)
+    return '`' .. s .. '`'
+  end,
+
   --- Use `vim.notify` with a `msg` and log `level`. Integrates with `nvim-notify`.
   --- @param msg string
   --- @param level 0|1|2|3|4|5

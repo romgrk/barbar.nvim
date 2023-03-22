@@ -52,7 +52,9 @@ local icons = {
     if ok == false then
       utils.notify(
         'barbar: bufferline.icons is set to v:true but "nvim-dev-icons" was not found.' ..
-          '\nbarbar: icons have been disabled. Set `bufferline.icons` to `false` or ' ..
+          '\nbarbar: icons have been disabled. Set ' ..
+          utils.markdown_inline_code'bufferline.icons' .. ' to ' ..
+          utils.markdown_inline_code'false' .. ' or ' ..
           'install "nvim-dev-icons" to disable this message.',
         vim.log.levels.WARN
       )

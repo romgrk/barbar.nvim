@@ -15,6 +15,7 @@ local notify = require'bufferline.utils'.notify
 local options = require'bufferline.options'
 local render = require'bufferline.render'
 local state = require'bufferline.state'
+local utils = require'bufferline.utils'
 
 -------------------------------
 -- Section: `bufferline` module
@@ -51,8 +52,12 @@ function bufferline.setup(user_config)
     function(tbl)
       local index = tonumber(tbl.args)
       if not index then
-        return notify('Invalid argument to `:BufferGoto`', vim.log.levels.ERROR)
+        return notify(
+          'Invalid argument to ' .. utils.markdown_inline_code':BufferGoto',
+          vim.log.levels.ERROR
+        )
       end
+
       api.goto_buffer(index)
     end,
     {
@@ -81,7 +86,7 @@ function bufferline.setup(user_config)
   create_user_command(
     'BufferMove',
     function(tbl) command('BufferMovePrevious ' .. tbl.count) end,
-    {count = true, desc = 'Synonym for `:BufferMovePrevious`'}
+    {count = true, desc = 'Synonym for ' .. utils.markdown_inline_code':BufferMovePrevious'}
   )
 
   create_user_command(
