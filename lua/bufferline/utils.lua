@@ -200,6 +200,33 @@ local utils = {
     end
     return reversed
   end,
+
+  --- Set a `value` in a `tbl` multiple `keys` deep.
+  --
+  --- ```lua
+  --- assert(vim.deep_equal(
+  ---  {a = {b = {c = 'd'}}},
+  ---  tbl_set({}, {'a', 'b', 'c'}, 'd')
+  --- ))
+  --- ```
+  ---
+  --- WARN: this mutates `tbl`!
+  ---
+  --- @generic T
+  --- @param tbl table
+  --- @param keys table<number|string|table>
+  --- @param value T
+  --- @return nil
+  tbl_set = function(tbl, keys, value)
+    local current = tbl
+    for i = 1, #keys - 1 do
+      local key = keys[i]
+      current[key] = current[key] or {}
+      current = current[key]
+    end
+
+    current[keys[#keys]] = value
+  end,
 }
 
 return utils
