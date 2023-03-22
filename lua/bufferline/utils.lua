@@ -161,6 +161,18 @@ local utils = {
     return relative(path) == path
   end,
 
+  --- Reverse the order of elements in some `list`.
+  --- @generic T
+  --- @param list T[]
+  --- @return T[] reversed
+  list_reverse = function(list)
+    local reversed = {}
+    for i = #list, 1, -1 do
+      table_insert(reversed, list[i])
+    end
+    return reversed
+  end,
+
   --- Run `vim.list_slice` on some `list`, `index`ed from the end of the list.
   --- @generic T
   --- @param list T[]
@@ -188,18 +200,6 @@ local utils = {
   notify_once = notify_once_util,
 
   relative = relative,
-
-  --- Reverse the order of elements in some `list`.
-  --- @generic T
-  --- @param list T[]
-  --- @return T[] reversed
-  reverse = function(list)
-    local reversed = {}
-    for i = #list, 1, -1 do
-      table_insert(reversed, list[i])
-    end
-    return reversed
-  end,
 
   --- Set `fallback` as a secondary source of keys when indexing `tbl`. Example:
   ---

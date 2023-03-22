@@ -174,7 +174,7 @@ local function slice_groups_left(groups, width)
 
   local new_groups = {}
 
-  for _, group in ipairs(utils.reverse(groups)) do
+  for _, group in ipairs(utils.list_reverse(groups)) do
     local text_width = strwidth(group.text)
     accumulated_width = accumulated_width + text_width
 
