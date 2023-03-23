@@ -515,16 +515,15 @@ local function generate_tabline(bufnrs, refocus)
     end
   end
 
-  local click_enabled = has('tablineat') and options.clickable()
-
   local layout = Layout.calculate()
+  local max_scroll = max(layout.actual_width - layout.buffers_width, 0)
 
-  local items = {}
+  local click_enabled = has('tablineat') and options.clickable()
+  local inactive_separator = options.icons().inactive.separator.left
 
   local current_buffer_index = nil
   local current_buffer_position = 0
-
-  local inactive_separator = options.icons().inactive.separator.left
+  local items = {}
 
   for i, bufnr in ipairs(bufnrs) do
     local activity = Buffer.activities[Buffer.get_activity(bufnr)]
@@ -648,8 +647,22 @@ local function generate_tabline(bufnrs, refocus)
       end
     end
 
-    table_insert(items, item)
     current_buffer_position = current_buffer_position + item.width
+
+    local scroll_current = min(scroll.current, max_scroll)
+    if current_buffer_position < scroll_current  then
+      goto continue -- HACK: there is no `continue` keyword
+    end
+
+    table_insert(items, item)
+
+    if (refocus == false or (refocus ~= false and current_buffer_index ~= nil)) and
+      current_buffer_position - scroll_current > layout.buffers_width
+    then
+      break
+    end
+
+    ::continue::
   end
 
   -- Create actual tabline string
@@ -676,19 +689,12 @@ local function generate_tabline(bufnrs, refocus)
     text = (' '):rep(layout.actual_width),
   }}
 
-  for i, item in ipairs(items) do
-    if i ~= current_buffer_index then
-      bufferline_groups = groups_insert(bufferline_groups, item.position, item.groups)
-    end
-  end
-
-  if current_buffer_index ~= nil then
-    local item = items[current_buffer_index]
+  for _, item in ipairs(items) do
     bufferline_groups = groups_insert(bufferline_groups, item.position, item.groups)
   end
 
   -- Crop to scroll region
-  local max_scroll = max(layout.actual_width - layout.buffers_width, 0)
+
   local scroll_current = min(scroll.current, max_scroll)
   local buffers_end = layout.actual_width - scroll_current
 
