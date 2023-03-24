@@ -91,8 +91,11 @@ function events.enable()
   })
 
   create_autocmd({'BufDelete', 'BufWipeout'}, {
-    callback = function(tbl) JumpMode.unassign_letter_for(tbl.buf) end,
-    group = augroup_misc,
+    callback = vim.schedule_wrap(function(tbl)
+      JumpMode.unassign_letter_for(tbl.buf)
+      render.update()
+    end),
+    group = augroup_render,
   })
 
   create_autocmd('ColorScheme', {callback = highlight.setup, group = augroup_misc})

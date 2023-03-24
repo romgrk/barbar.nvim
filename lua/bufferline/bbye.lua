@@ -30,7 +30,6 @@ local bufnr = vim.fn.bufnr --- @type function
 local command = vim.api.nvim_command --- @type function
 local create_augroup = vim.api.nvim_create_augroup --- @type function
 local create_autocmd = vim.api.nvim_create_autocmd --- @type function
-local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local get_current_win = vim.api.nvim_get_current_win --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
@@ -233,8 +232,6 @@ function bbye.delete(action, force, buffer, mods)
       end
     end
   end
-
-  exec_autocmds('BufWinEnter', {})
 end
 
 --- 'bdelete' a buffer
