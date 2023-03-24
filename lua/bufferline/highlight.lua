@@ -76,7 +76,7 @@ local highlight = {
   setup = function()
     local fg_current = hl.fg_or_default({'Normal'}, '#efefef', 255)
     local fg_inactive = hl.fg_or_default({'TabLineFill'}, '#888888', 102)
-    local fg_target = {gui = 'red'} --- @type barbar.utils.hl.group
+    local fg_target = {gui = 'red'} --- @type barbar.utils.hl.color
     fg_target.cterm = fg_target.gui
 
     local fg_error = hl.fg_or_default({'ErrorMsg'}, '#A80000', 124)
@@ -112,7 +112,7 @@ local highlight = {
       hl.set('BufferDefaultAlternateINFO',    bg_alternate, fg_info)
       hl.set('BufferDefaultAlternateMod',     bg_alternate, fg_modified)
       hl.set('BufferDefaultAlternateSign',    bg_alternate, fg_special)
-      hl.set('BufferDefaultAlternateTarget',  bg_alternate, fg_target, true)
+      hl.set('BufferDefaultAlternateTarget',  bg_alternate, fg_target, nil, {bold = true})
       hl.set('BufferDefaultAlternateWARN',    bg_alternate, fg_warn)
     end
 
@@ -123,7 +123,7 @@ local highlight = {
     hl.set('BufferDefaultCurrentINFO',    bg_current, fg_info)
     hl.set('BufferDefaultCurrentMod',     bg_current, fg_modified)
     hl.set('BufferDefaultCurrentSign',    bg_current, fg_special)
-    hl.set('BufferDefaultCurrentTarget',  bg_current, fg_target, true)
+    hl.set('BufferDefaultCurrentTarget',  bg_current, fg_target, nil, {bold = true})
     hl.set('BufferDefaultCurrentWARN',    bg_current, fg_warn)
 
     hl.set('BufferDefaultInactive',       bg_inactive, fg_inactive)
@@ -133,11 +133,11 @@ local highlight = {
     hl.set('BufferDefaultInactiveINFO',   bg_inactive, fg_info)
     hl.set('BufferDefaultInactiveMod',    bg_inactive, fg_modified)
     hl.set('BufferDefaultInactiveSign',   bg_inactive, fg_subtle)
-    hl.set('BufferDefaultInactiveTarget', bg_inactive, fg_target, true)
+    hl.set('BufferDefaultInactiveTarget', bg_inactive, fg_target, nil, {bold = true})
     hl.set('BufferDefaultInactiveWARN',   bg_inactive, fg_warn)
 
     hl.set('BufferDefaultTabpageFill',    bg_inactive, fg_inactive)
-    hl.set('BufferDefaultTabpages',       bg_inactive, fg_special, true)
+    hl.set('BufferDefaultTabpages',       bg_inactive, fg_special, nil, {bold = true})
 
     if options.highlight_visible() then
       local fg_visible = hl.fg_or_default({'TabLineSel'}, '#efefef', 255)
@@ -150,7 +150,7 @@ local highlight = {
       hl.set('BufferDefaultVisibleINFO',    bg_visible, fg_info)
       hl.set('BufferDefaultVisibleMod',     bg_visible, fg_modified)
       hl.set('BufferDefaultVisibleSign',    bg_visible, fg_visible)
-      hl.set('BufferDefaultVisibleTarget',  bg_visible, fg_target, true)
+      hl.set('BufferDefaultVisibleTarget',  bg_visible, fg_target, nil, {bold = true})
       hl.set('BufferDefaultVisibleWARN',    bg_visible, fg_warn)
     end
 

@@ -20,10 +20,13 @@ local ok, web = pcall(require, 'nvim-web-devicons')
 --- @param icon_hl string
 --- @return nil
 local function hl_buffer_icon(buffer_status, icon_hl)
+  local buffer_status_hl = {'Buffer' .. buffer_status}
   hl.set(
     icon_hl .. buffer_status,
-    hl.bg_or_default({'Buffer' .. buffer_status}, 'none'),
-    hl.fg_or_default({icon_hl}, 'none')
+    hl.bg_or_default(buffer_status_hl, 'none'),
+    hl.fg_or_default({icon_hl}, 'none'),
+    hl.sp_or_default(buffer_status_hl, 'none'),
+    hl.attributes(buffer_status_hl)
   )
 end
 
