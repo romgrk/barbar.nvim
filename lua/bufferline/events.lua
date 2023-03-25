@@ -98,7 +98,13 @@ function events.enable()
     group = augroup_render,
   })
 
-  create_autocmd('ColorScheme', {callback = highlight.setup, group = augroup_misc})
+  create_autocmd('ColorScheme', {
+    callback = function()
+      utils.hl.reset_cache()
+      highlight.setup()
+    end,
+    group = augroup_misc,
+  })
 
   create_autocmd('BufModifiedSet', {
     callback = function(tbl)
