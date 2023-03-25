@@ -76,14 +76,17 @@ local buffer = {
 
   --- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `buffer_number` provided, call `f`.
   --- @param buffer_number integer the buffer number to count diagnostics in
-  --- @param diagnostics bufferline.options.diagnostics the user configuration for diagnostics
-  --- @param f fun(count: integer, diagnostic: bufferline.options.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
+  --- @param diagnostics bufferline.options.icons.diagnostics the user configuration for diagnostics
+  --- @param f fun(count: integer, diagnostic: bufferline.options.icons.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
   --- @return nil
   for_each_counted_enabled_diagnostic = function(buffer_number, diagnostics, f)
     local count
     for severity, severity_config in ipairs(diagnostics) do
       if severity_config.enabled then
-        count = count or count_diagnostics(buffer_number)
+        if count == nil then
+          count = count_diagnostics(buffer_number)
+        end
+
         if count[severity] > 0 then
           f(count[severity], severity_config, severity)
         end
