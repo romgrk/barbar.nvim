@@ -39,13 +39,11 @@ local function pick_buffer_wrap(fn)
 
   state.is_picking_buffer = true
   render.update()
-  command('redrawtabline')
 
   fn()
 
   state.is_picking_buffer = false
   render.update()
-  command('redrawtabline')
 end
 
 --- Shows an error that `bufnr` was not among the `state.buffers`
@@ -438,7 +436,6 @@ function api.pick_buffer_delete()
       end
 
       render.update()
-      command('redrawtabline')
     end
   end)
 end
