@@ -65,6 +65,14 @@ local cmd = vim.api.nvim_cmd and
     command((mods or '') .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
   end
 
+local enew = vim.api.nvim_cmd and
+  --- The `:enew` command
+  --- @param force boolean
+  function(force) vim.cmd.enew {bang = force} end or
+  --- The `:enew` command
+  --- @param force boolean
+  function(force) command("enew" .. (force and '!' or '')) end
+
 --- @param closing_number integer
 --- @return nil|integer bufnr of the buffer to focus
 local function get_focus_on_close(closing_number)
@@ -121,7 +129,7 @@ local empty_buffer = nil --- @type nil|integer
 --- @param force boolean if `true`, forcefully create the new buffer
 --- @return nil
 local function new(force)
-  command("enew" .. (force and '!' or ''))
+  enew(force)
 
   empty_buffer = get_current_buf()
   vim.b.empty_buffer = true
