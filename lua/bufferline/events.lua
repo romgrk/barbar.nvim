@@ -26,16 +26,6 @@ local utils = require'bufferline.utils'
 --- Whether barbar is currently set up to render.
 local enabled = false
 
---- Stop watching `g:bufferline`
---- WARN: must be `vim.schedule`d
---- @return nil
-local function dictwatcherdel()
-  vim.cmd [[
-    silent! call dictwatcherdel(g:, 'bufferline', 'BufferlineDictChanged')
-    silent! call dictwatcherdel(g:bufferline, '*', 'BufferlineOnOptionChanged')
-  ]]
-end
-
 --- @class bufferline.events
 local events = {}
 
@@ -68,14 +58,6 @@ end
 --- @return nil
 events.disable = schedule_wrap(function()
   events.augroups() -- clear the autocommands
-
-  -- clean up the global namespace
-  dictwatcherdel()
-  vim.cmd [[
-    delfunction! BufferlineDictChanged
-    delfunction! BufferlineOnOptionChanged
-  ]]
-
   render.set_tabline(nil) -- clear the tabline
   enabled = false -- mark as disabled
 end)
@@ -211,34 +193,12 @@ function events.enable()
   })
 
   vim.schedule(function()
-    dictwatcherdel()
     vim.cmd [[
-      " Must be global -_-
-      function! BufferlineDictChanged(dict, key, changes) abort
-        silent! call dictwatcherdel(a:changes.old, '*', 'BufferlineOnOptionChanged')
-        call dictwatcheradd(a:changes.new, '*', 'BufferlineOnOptionChanged')
-        call BufferlineOnOptionChanged(a:changes.new, v:null, v:null)
-      endfunction
+      silent! call dictwatcherdel(g:, 'bufferline', 'bufferline#events#dict_changed')
+      call dictwatcheradd(g:, 'bufferline', 'bufferline#events#dict_changed')
 
-      " TODO: get rid of this and use `v:lua` after raising minimum Neovim ver > 0.7
-      " Must be global -_-
-      function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
-        call luaeval("require'bufferline.events'.close_click_handler(_A)", a:minwid)
-      endfunction
-
-      " TODO: get rid of this and use `v:lua` after raising minimum Neovim ver > 0.7
-      " Must be global -_-
-      function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
-        call luaeval("require'bufferline.events'.main_click_handler(_A[1], nil, _A[2])", [a:minwid, a:btn])
-      endfunction
-
-      " Must be global -_-
-      function! BufferlineOnOptionChanged(dict, _1, _2) abort
-        call luaeval("require'bufferline.events'.on_option_changed(_A)", a:dict)
-      endfunction
-
-      call dictwatcheradd(g:, 'bufferline', 'BufferlineDictChanged')
-      call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
+      silent! call dictwatcherdel(g:bufferline, '*', 'bufferline#events#on_option_changed')
+      call dictwatcheradd(g:bufferline, '*', 'bufferline#events#on_option_changed')
     ]]
   end)
 
@@ -294,10 +254,11 @@ do
   --- @param k string
   --- @param v any
   function vim_g_metatable.__newindex(tbl, k, v)
-    vim_g_metatable__newindex(tbl, k, v)
-    if k == 'bufferline' then
-      events.on_option_changed(v)
+    if k == 'bufferline' and (type(v) ~= 'table' or vim.tbl_islist(v)) then
+      v = vim.empty_dict()
     end
+
+    vim_g_metatable__newindex(tbl, k, v)
   end
 end
 

@@ -540,7 +540,7 @@ local function generate_tabline(bufnrs, refocus)
     local icons_option = state.icons(bufnr, activity)
 
     --- Prefix this value to allow an element to be clicked
-    local clickable = click_enabled and ('%' .. bufnr .. '@BufferlineMainClickHandler@') or ''
+    local clickable = click_enabled and ('%' .. bufnr .. '@bufferline#events#main_click_handler@') or ''
 
     --- The name of the buffer
     --- @type bufferline.render.group
@@ -568,7 +568,7 @@ local function generate_tabline(bufnrs, refocus)
     --- @type bufferline.render.group
     local close = {hl = buffer_hl, text = button .. ' '}
     if click_enabled and #button > 0 then
-      close.hl = '%' .. bufnr .. '@BufferlineCloseClickHandler@' .. close.hl
+      close.hl = '%' .. bufnr .. '@bufferline#events#close_click_handler@' .. close.hl
     end
 
     --- The jump letter
@@ -708,7 +708,7 @@ local function generate_tabline(bufnrs, refocus)
 
   result = result ..
     groups_to_string(bufferline_groups) .. -- Render bufferline string
-    '%0@BufferlineMainClickHandler@' .. -- prevent the expansion of the last click group
+    '%0@bufferline#events#main_click_handler@' .. -- prevent the expansion of the last click group
     hl_buffer_tabpage_fill
 
   if layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width and #items > 0 then

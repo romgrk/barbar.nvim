@@ -200,7 +200,8 @@ function bufferline.setup(user_config)
 
   -- Setup barbar
   events.enable()
-  vim.g.bufferline = user_config
+  events.on_option_changed(user_config)
+  vim.api.nvim_set_var('bufferline', user_config)
 
   -- Show the tabline
   set_option('showtabline', 2)
