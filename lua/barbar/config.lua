@@ -104,6 +104,10 @@ local DEPRECATED_OPTIONS = {
   icon_separator_inactive = {'icons', 'inactive', 'separator', 'left'},
 }
 
+--- @class barbar.config.options.sidebar_filetype
+--- @field event? string
+--- @field text? string
+
 --- @class barbar.config.options
 --- @field animation boolean
 --- @field auto_hide boolean
@@ -124,6 +128,7 @@ local DEPRECATED_OPTIONS = {
 --- @field minimum_padding integer
 --- @field no_name_title string
 --- @field semantic_letters boolean
+--- @field sidebar_filetypes {[string]: nil|barbar.config.options.sidebar_filetype}
 --- @field tabpages boolean
 
 --- @class barbar.config
@@ -134,58 +139,70 @@ local config = {
   options = {},
 }
 
---- @param user_config? table
-function config.setup(user_config)
+--- @param options? table
+function config.setup(options)
   config.did_initialize = true
 
-  if type(user_config) ~= 'table' then
-    user_config = {}
+  if type(options) ~= 'table' then
+    options = {}
   end
 
   do -- TODO: remove after v2
-    local icons_type = type(user_config.icons)
+    local icons_type = type(options.icons)
     if icons_type == 'string' or icons_type == 'boolean' then
-      local preset = PRESETS[user_config.icons]
+      local preset = PRESETS[options.icons]
       utils.deprecate(
-        DEPRECATE_PREFIX .. utils.markdown_inline_code('icons = ' .. vim.inspect(user_config.icons)),
+        DEPRECATE_PREFIX .. utils.markdown_inline_code('icons = ' .. vim.inspect(options.icons)),
         utils.markdown_inline_code('icons = ' .. vim.inspect(
           vim.tbl_map(function(v) return v or nil end, preset),
           {newline = ' ', indent = ''}
         ))
       )
 
-      user_config.icons = preset
-    end
-
-    for deprecated_option, new_option in pairs(DEPRECATED_OPTIONS) do
-      local user_setting = user_config[deprecated_option]
-      if user_setting then
-        utils.tbl_set(user_config, new_option, user_setting)
-        utils.deprecate(
-          DEPRECATE_PREFIX .. utils.markdown_inline_code(deprecated_option),
-          utils.markdown_inline_code(table_concat(new_option, '.'))
-        )
-
-        user_config[deprecated_option] = nil
-      end
-    end
-
-    --- Edge case deprecated option
-    --- @type boolean|nil
-    if user_config.closable == false then
-      utils.tbl_set(user_config, {'icons', 'button'}, false)
-      utils.tbl_set(user_config, {'icons', 'modified', 'button'}, false)
-      utils.deprecate(
-        DEPRECATE_PREFIX .. utils.markdown_inline_code'closable',
-        utils.markdown_inline_code'icons.button' ..
-          ' and ' .. utils.markdown_inline_code'icons.modified.button'
-      )
-
-      user_config.closable = nil
+      options.icons = preset
     end
   end
 
-  config.options = tbl_deep_extend('keep', user_config, {
+  -- TODO: remove after v2
+  for deprecated_option, new_option in pairs(DEPRECATED_OPTIONS) do
+    local user_setting = options[deprecated_option]
+    if user_setting then
+      utils.tbl_set(options, new_option, user_setting)
+      utils.deprecate(
+        DEPRECATE_PREFIX .. utils.markdown_inline_code(deprecated_option),
+        utils.markdown_inline_code(table_concat(new_option, '.'))
+      )
+
+      options[deprecated_option] = nil
+    end
+  end
+
+  -- TODO: remove after v2
+  -- Edge case deprecated option
+  if options.closable == false then
+    utils.tbl_set(options, {'icons', 'button'}, false)
+    utils.tbl_set(options, {'icons', 'modified', 'button'}, false)
+    utils.deprecate(
+      DEPRECATE_PREFIX .. utils.markdown_inline_code'closable',
+      utils.markdown_inline_code'icons.button' ..
+        ' and ' .. utils.markdown_inline_code'icons.modified.button'
+    )
+
+    options.closable = nil
+  end
+
+  do
+    local sidebar_filetypes = options.sidebar_filetypes
+    if sidebar_filetypes then
+      for k, v in pairs(sidebar_filetypes) do
+        if v == true then
+          sidebar_filetypes[k] = {}
+        end
+      end
+    end
+  end
+
+  config.options = tbl_deep_extend('keep', options, {
     animation = true,
     auto_hide = false,
     clickable = true,
@@ -215,6 +232,7 @@ function config.setup(user_config)
     minimum_padding = 1,
     no_name_title = nil,
     semantic_letters = true,
+    sidebar_filetypes = {},
     tabpages = true,
   })
 

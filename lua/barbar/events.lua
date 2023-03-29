@@ -1,3 +1,4 @@
+local rshift = bit.rshift
 local table_insert = table.insert
 
 local buf_call = vim.api.nvim_buf_call --- @type function
@@ -8,13 +9,18 @@ local command = vim.api.nvim_command --- @type function
 local create_augroup = vim.api.nvim_create_augroup --- @type function
 local create_autocmd = vim.api.nvim_create_autocmd --- @type function
 local defer_fn = vim.defer_fn
+local del_autocmd = vim.api.nvim_del_autocmd --- @type function
 local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
+local get_option = vim.api.nvim_get_option --- @type function
 local list_tabpages = vim.api.nvim_list_tabpages --- @type function
 local schedule = vim.schedule --- @type function
 local schedule_wrap = vim.schedule_wrap
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local tabpage_list_wins = vim.api.nvim_tabpage_list_wins --- @type function
+local win_get_width = vim.api.nvim_win_get_width --- @type function
+local win_get_position = vim.api.nvim_win_get_position --- @type function
 
+local api = require'barbar.api'
 local bbye = require'barbar.bbye'
 local config = require'barbar.config'
 local highlight = require'barbar.highlight'
@@ -121,6 +127,84 @@ function events.enable()
       group = augroup_render,
     }
   )
+
+  do
+    --- The `middle` column of the screen
+    --- @type integer
+    local middle
+
+    --- Sets the `middle` of the screen
+    local function set_middle()
+      middle = rshift(get_option('columns'), 1) -- PERF: faster than math.floor(&columns / 2)
+    end
+
+    create_autocmd('VimResized', {callback = set_middle, group = augroup_misc})
+    set_middle()
+
+    local widths = {
+      left = {}, --- @type {[string]: nil|integer}
+      right = {}, --- @type {[string]: nil|integer}
+    }
+
+    --- @param side 'left'|'right'
+    --- @return integer total_width
+    local function total_widths(side)
+      local offset = 0
+      local win_separator_width = side == 'left' and 1 or 2 -- It looks better like this… don't ask me why
+      for _, width in pairs(widths[side]) do
+        offset = offset + width + win_separator_width
+      end
+
+      -- we want the offset to begin ON the first win separator
+      -- WARN: don't use `win_separator` here
+      return offset - 1
+    end
+
+    for ft, option in pairs(config.options.sidebar_filetypes) do
+      create_autocmd('FileType', {
+        callback = function(tbl)
+          local bufwinid --- @type nil|integer
+          local side --- @type 'left'|'right'
+          local autocmd = create_autocmd({'BufWinEnter', 'WinScrolled'}, {
+            callback = function()
+              if bufwinid == nil then
+                bufwinid = vim.fn.bufwinid(tbl.buf)
+              end
+
+              local col = win_get_position(bufwinid)[2]
+              local other_side
+              if col < middle then
+                side, other_side = 'left', 'right'
+              else
+                side, other_side = 'right', 'left'
+              end
+
+              local width = win_get_width(bufwinid)
+              if width ~= widths[ft] then
+                widths[side][ft] = width
+                widths[other_side][ft] = nil
+                api.set_offset(total_widths(side), option.text, nil, side)
+              end
+            end,
+            group = augroup_render,
+          })
+
+          create_autocmd(option.event or 'BufWinLeave', {
+            buffer = tbl.buf,
+            callback = function()
+              widths[side][ft] = nil
+              api.set_offset(total_widths(side), nil, nil, side)
+              del_autocmd(autocmd)
+            end,
+            group = augroup_render,
+            once = true,
+          })
+        end,
+        group = augroup_misc,
+        pattern = ft,
+      })
+    end
+  end
 
   create_autocmd('OptionSet', {
     callback = function() render.update() end,
