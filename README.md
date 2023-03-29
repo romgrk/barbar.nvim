@@ -329,6 +329,18 @@ require'barbar'.setup {
   -- usability (see order below)
   semantic_letters = true,
 
+  -- Set the filetypes which barbar will offset itself for
+  sidebar_filetypes = {
+    -- Use the default values: {event = 'BufWinLeave', text = nil}
+    NvimTree = true,
+    -- Or, specify the text used for the offset:
+    undotree = {text = 'undotree'},
+    -- Or, specify the event which the sidebar executes when leaving:
+    ['neo-tree'] = {event = 'BufWipeout'},
+    -- Or, specify both
+    Outline = {event = 'BufWinLeave', text = 'symbols-outline'},
+  },
+
   -- New buffer letters are assigned in this order. This order is
   -- optimal for the qwerty keyboard layout but might need adjustement
   -- for other layouts.
@@ -370,53 +382,7 @@ You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see
 in the demos above.
 
-### Integration with filetree plugins
-
-To ensure tabs begin with the shown buffer you can set an offset for the tabline.
-
-![filetree-with-offset](./static/filetree-with-offset.png)
-
-Add this `autocmd` to your configuration:
-
-```lua
-vim.api.nvim_create_autocmd('FileType', {
-  callback = function(tbl)
-    local set_offset = require('barbar.api').set_offset
-
-    local bufwinid
-    local last_width
-    local autocmd = vim.api.nvim_create_autocmd('WinScrolled', {
-      callback = function()
-        bufwinid = bufwinid or vim.fn.bufwinid(tbl.buf)
-
-        local width = vim.api.nvim_win_get_width(bufwinid)
-        if width ~= last_width then
-          set_offset(width, 'FileTree')
-          last_width = width
-        end
-      end,
-    })
-
-    vim.api.nvim_create_autocmd('BufWipeout', {
-      buffer = tbl.buf,
-      callback = function()
-        vim.api.nvim_del_autocmd(autocmd)
-        set_offset(0)
-      end,
-      once = true,
-    })
-  end,
-  pattern = 'NvimTree', -- or any other filetree's `ft`
-})
-```
-
 ## Known Issues
-
-#### Netrw
-
-`:BufferNext`/`:BufferPrevious` don't work in netrw buffer due to an issue in
-netrw. See [this comment](https://github.com/romgrk/barbar.nvim/issues/82#issuecomment-748498951)
-for a workaround.
 
 #### Lightline
 

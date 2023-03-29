@@ -184,7 +184,7 @@ hide ~
                                                 *barbar-setup.hide.extensions*
   hide.extensions ~
     `boolean`  (default: `false`)
-    `extensions`, which controls the visibility of file extensions;
+    Controls the visibility of file extensions.
 
                                                   *barbar-setup.hide.inactive*
   hide.inactive ~
@@ -228,27 +228,32 @@ icons ~
     `boolean`  (default: `false`)
     If `true`, show the `bufnr` for the associated buffer.
 
-                                                    *barbar-setup.icons.button*
+                                                   *barbar-setup.icons.button*
   icons.button ~
     `false | string`  (default: `''`)
-    The button which is clicked to close / save a buffer, or indicate that it
-    is pinned. Use `false` to disable it.
+    The button which is clicked to close / save a buffer, or indicate that
+    it is pinned. Use `false` to disable it.
 
                                               *barbar-setup.icons.diagnostics*
   icons.diagnostics ~
-    `{[DiagnosticSeverity]: {enabled: boolean, icon: string}}`
-    Default: >
-    {
-       [vim.diagnostic.severity.ERROR] = {enabled = false, icon = 'Ⓧ '},
-       [vim.diagnostic.severity.HINT] = {enabled = false, icon = '💡'},
-       [vim.diagnostic.severity.INFO] = {enabled = false, icon = 'ⓘ '},
-       [vim.diagnostic.severity.WARN] = {enabled = false, icon = '⚠️ '},
-    }
-<   Enables or disables showing diagnostics in the bufferline. The options
-    are:
-    - `enabled`, whether this diagnostics of this severity are shown in the
-      bufferline.
-    - `icon`, which controls what icon accompanies the number of diagnostics.
+    `{[vim.diagnostic.severity]: table}`
+
+                                      *barbar-setup.icons.diagnostics.enabled*
+     icons.diagnostics.enabled ~
+       `boolean`  (default: `false`)
+       Enable showing diagnostics of this |diagnostic-severity| in the
+       'tabline'.
+
+                                      *barbar-setup.icons.diagnostics.enabled*
+     icons.diagnostics.icon ~
+       `boolean`  (defaults: `'Ⓧ '`, `'💡'`, `'ⓘ '`, and `'⚠️ '`)
+       The icon which accompanies the number of diagnostics.
+
+    Example that disables the error icon, but still shows the count: >
+      require'barbar'.setup {icons = {diagnostics = {
+          [vim.diagnostic.severity.ERROR] = {enabled = true, icon = ''},
+      }}}
+<
 
                                    *barbar-setup.icons.filetype.custom_colors*
   icons.filetype.custom_colors ~
@@ -261,10 +266,15 @@ icons ~
     Filetype `true`, show the `devicons` for the associated buffer's
     `filetype`.
 
-                                                *barbar-setup.icons.separator*
-  icons.separator ~
-    `{left: string, right: string}`  (default: `{left = '▎', right = ''}`)
-    The separator between buffers in the tabline.
+                                           *barbar-setup.icons.separator.left*
+  icons.separator.left ~
+    `string`  (default: `'▎'`)
+    The left separator between buffers in the tabline.
+
+                                          *barbar-setup.icons.separator.right*
+  icons.separator.right ~
+    `string`  (default: `''`)
+    The right separator between buffers in the tabline.
 
   Example: >
     -- Show the file icon, a left separator, and ERROR/WARN diagnostics
@@ -347,22 +357,24 @@ icons ~
                                                 *barbar-setup.insert_at_start*
 insert_at_start ~
   `boolean`  (default: `false`)
-  If true, new buffers appear at the start of the list. Default is to
-  open after the current buffer.
+  If `true`, new buffers appear at the start of the list. Default is to open
+  after the current buffer.
+
   Has priority over |barbar-setup.insert_at_end|
 
                                                   *barbar-setup.insert_at_end*
 insert_at_end ~
   `boolean`   (default: `false`)
-  If true, new buffers appear at the end of the list. Default is to
-  open after the current buffer.
+  If `true`, new buffers appear at the end of the list. Default is to open
+  after the current buffer.
 
                                                         *barbar-setup.letters*
 letters ~
   `string`  (default: `'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP'`)
-  New buffer letters are assigned in this order. This order is
-  optimal for the qwerty keyboard layout but might need adjustement
-  for other layouts.
+  New buffer letters are assigned in this order.
+
+  This order is optimal for the QWERTY keyboard layout but might need
+  adjustement for other layouts.
 
                                                 *barbar-setup.maximum_padding*
 maximum_padding ~
@@ -382,16 +394,47 @@ minimum_padding ~
                                                   *barbar-setup.no_name_title*
 no_name_title ~
   `string`  (default: `nil`)
-  Sets the name of unnamed buffers. By default format is `'[Buffer X]'`
-  where `X` is the buffer number. But only a static string is accepted here.
+  Sets the name of unnamed buffers.
+
+  By default format is `'[Buffer X]'` where `X` is the buffer number. However,
+  only a static string is accepted here.
 
                                                *barbar-setup.semantic_letters*
 semantic_letters ~
   `boolean`  (default: `true`)
-  If set, the letters for each buffer in buffer-pick mode will be
-  assigned based on their name. Otherwise or in case all letters are
-  already assigned, the behavior is to assign letters in order of
-  usability (see order just below)
+  If `true`, the letters for each buffer in buffer-pick mode will be
+  assigned based on their name.
+
+  Otherwise (or in case all letters are already assigned), the behavior is to
+  assign letters in the order of provided to |barbar-setup.letters|.
+
+                                              *barbar-setup.sidebar_filetypes*
+sidebar_filetypes ~
+  `{[string]: true|table}`  (default `{}`)
+  Control which 'filetype's will cause barbar to add an offset.
+
+                                        *barbar-setup.sidebar_filetypes.event*
+  sidebar_filetypes.event ~
+    `string`  (default: `'BufWinLeave'`)
+    The |{event}| which is |autocmd-execute|d when the sidebar closes.
+
+                                         *barbar-setup.sidebar_filetypes.text*
+  sidebar_filetypes.text ~
+    `string`  (default: `nil`)
+    The text which will fill the offset.
+
+  Example: >
+    require'bufferline'.setup {sidebar_filetypes = {
+      -- Use the default values: {event = 'BufWinLeave', text = nil}
+      NvimTree = true,
+      -- Or, specify the text used for the offset:
+      undotree = {text = 'undotree'},
+      -- Or, specify the event which the sidebar executes when leaving:
+      ['neo-tree'] = {event = 'BufWipeout'},
+      -- Or, specify both
+      Outline = {event = 'BufWinLeave', text = 'symbols-outline'},
+    }}
+<
 
                                                        *barbar-setup.tabpages*
 tabpages ~
@@ -400,41 +443,5 @@ tabpages ~
 
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
-
-------------------------------------------------------------------------------
-FILETREE PLUGINS
-
-To ensure tabs begin with the shown buffer you can set an offset for the
-tabline. Add this |autocmd| to your configuration: >
-    vim.api.nvim_create_autocmd('FileType', {
-      callback = function(tbl)
-        local set_offset = require('bufferline.api').set_offset
-
-        local bufwinid
-        local last_width
-        local autocmd = vim.api.nvim_create_autocmd('WinScrolled', {
-          callback = function()
-            bufwinid = bufwinid or vim.fn.bufwinid(tbl.buf)
-
-            local width = vim.api.nvim_win_get_width(bufwinid)
-            if width ~= last_width then
-              set_offset(width, 'FileTree')
-              last_width = width
-            end
-          end,
-        })
-
-        vim.api.nvim_create_autocmd('BufWipeout', {
-          buffer = tbl.buf,
-          callback = function()
-            vim.api.nvim_del_autocmd(autocmd)
-            set_offset(0)
-          end,
-          once = true,
-        })
-      end,
-      pattern = 'NvimTree', -- or any other filetree's `ft`
-    })
-<
 
  vim:tw=78:ts=8:ft=help:norl:
