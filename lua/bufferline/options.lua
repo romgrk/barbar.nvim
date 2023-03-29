@@ -180,7 +180,7 @@ function options.icons()
   --- @type bufferline.options.icons|bufferline.options.icons.preset
   local icons = get('icons', {})
 
-  local do_global_option_sync = false
+  local do_option_sync = false
   if type(icons) ~= 'table' then
     local preset = PRESETS[icons]
     utils.deprecate(
@@ -191,7 +191,7 @@ function options.icons()
       ))
     )
 
-    do_global_option_sync = true
+    do_option_sync = true
     icons = preset
   end
 
@@ -205,7 +205,7 @@ function options.icons()
         utils.markdown_inline_code('icons.' .. table_concat(new_option, '.'))
       )
 
-      do_global_option_sync = true
+      do_option_sync = true
       corrected_options[deprecated_option] = vim.NIL
     end
   end
@@ -223,16 +223,14 @@ function options.icons()
           ' and ' .. utils.markdown_inline_code'icons.modified.button'
       )
 
-      do_global_option_sync = true
+      do_option_sync = true
       corrected_options.closable = vim.NIL
     end
   end
 
-  if do_global_option_sync then
+  if do_option_sync then
     corrected_options.icons = icons
-
     g_bufferline = tbl_deep_extend('force', g_bufferline, corrected_options)
-    vim.schedule(function() vim.g.bufferline = g_bufferline end)
   end
 
   icons = tbl_deep_extend('keep', deepcopy(icons), {

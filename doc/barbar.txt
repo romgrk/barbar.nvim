@@ -4,7 +4,7 @@
                       barbar.vim    by Rom Grk
 
 
-Help on barbar.vim                                                    *barbar*
+Help on barbar.nvim                                        *barbar* *barbar.nvim*
 
 1. Intro                        |barbar-intro|
 2. Mappings & Commands          |barbar-mappings| |barbar-commands|
@@ -82,350 +82,319 @@ The name of each command should be descriptive enough for you to use it.
 ==============================================================================
 3. Highlights                                              *barbar-highlights*
 ~
+Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 
-Here are the groups that you should define if you'd like to style Barbar.
+`<STATUS>`   Meaning
+---------  --------------------------------------------------
+`Alternate`  The |alternate-file|.
+`Current`    The current buffer.
+`Inactive`   |hidden-buffer|s and |inactive-buffer|s.
+`Visible`    |active-buffer|s which are not alternate or current.
 
->
-    let fg_target = 'red'
-
-    let fg_current  = s:fg(['Normal'], '#efefef')
-    let fg_visible  = s:fg(['TabLineSel'], '#efefef')
-    let fg_inactive = s:fg(['TabLineFill'], '#888888')
-
-    let fg_modified  = s:fg(['WarningMsg'], '#E5AB0E')
-    let fg_special  = s:fg(['Special'], '#599eff')
-    let fg_subtle  = s:fg(['NonText', 'Comment'], '#555555')
-
-    let bg_current  = s:bg(['Normal'], '#000000')
-    let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
-    let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
-
-    " Meaning of terms:
-    "
-    " format: "Buffer" + status + part
-    "
-    " status:
-    "     *Current: current buffer
-    "     *Visible: visible but not current buffer
-    "    *Inactive: invisible but not current buffer
-    "
-    " part:
-    "        *Icon: filetype icon
-    "       *Index: buffer index
-    "         *Mod: when modified
-    "        *Sign: the separator between buffers
-    "      *Target: letter in buffer-picking mode
-    "
-    " BufferTabpages: tabpage indicator
-    " BufferTabpageFill: filler after the buffer section
-    " BufferOffset: offset section, created with set_offset()
-
-    call s:hi_all([
-    \ ['BufferCurrent',        fg_current,  bg_current],
-    \ ['BufferCurrentIndex',   fg_special,  bg_current],
-    \ ['BufferCurrentMod',     fg_modified, bg_current],
-    \ ['BufferCurrentSign',    fg_special,  bg_current],
-    \ ['BufferCurrentTarget',  fg_target,   bg_current,   'bold'],
-    \ ['BufferVisible',        fg_visible,  bg_visible],
-    \ ['BufferVisibleIndex',   fg_visible,  bg_visible],
-    \ ['BufferVisibleMod',     fg_modified, bg_visible],
-    \ ['BufferVisibleSign',    fg_visible,  bg_visible],
-    \ ['BufferVisibleTarget',  fg_target,   bg_visible,   'bold'],
-    \ ['BufferInactive',       fg_inactive, bg_inactive],
-    \ ['BufferInactiveIndex',  fg_subtle,   bg_inactive],
-    \ ['BufferInactiveMod',    fg_modified, bg_inactive],
-    \ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
-    \ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
-    \ ['BufferTabpages',       fg_special,  bg_inactive, 'bold'],
-    \ ['BufferTabpageFill',    fg_inactive, bg_inactive],
-    \ ])
-
-    call s:hi_link([
-    \ ['BufferCurrentIcon',  'BufferCurrent'],
-    \ ['BufferVisibleIcon',  'BufferVisible'],
-    \ ['BufferInactiveIcon', 'BufferInactive'],
-    \ ['BufferOffset',       'BufferTabpageFill'],
-    \ ])
-
-    " NOTE: this is an example taken from the source, implementation of
-    " s:fg(), s:bg(), s:hi_all() and s:hi_link() is left as an exercise
-    " for the reader.
-<
+`<PART>`  Meaning
+------  -----------------------
+`ERROR`   Diagnostic errors.
+`HINT`    Diagnostic hints.
+`Icon`    The filetype icon
+        (when `icons.filetype == {custom_colors = true, enabled = true}`).
+`Index`   The buffer's position in the tabline.
+`Number`  The |bufnr()|.
+`INFO`    Diagnostic info.
+`Mod`     When the buffer is modified.
+`Sign`    The separator between buffers.
+`Target`  The letter in buffer-pick mode.
+`WARN`    Diagnostic warnings.
 
 ==============================================================================
-4. Settings                                                  *barbar-settings*
-~
+4. Settings                                                     *barbar-setup*
 
-                                                      *g:bufferline.animation*
-`g:bufferline.animation` boolean  (default |v:true|)
+`bufferline`.setup({options})                               *bufferline.setup()*
 
-  Enables animations.
+  To configure barbar or enable it for the first time, you must call this
+  `setup` function. The valid {options} are listed below.
 
-                                                      *g:bufferline.auto_hide*
-`g:bufferline.auto_hide`  boolean  (default |v:false|)
+  Lua example: >
+    require'bufferline'.setup {
+      auto_hide = true,
+      clickable = false,
+      icons = {current = {filetype = {enabled = false}}},
+      maximum_padding = math.huge,
+    }
+<
 
+  Vimscript example (see |:lua-heredoc| for more details): >
+    lua << EOF
+    require'bufferline'.setup {
+      auto_hide = true,
+      clickable = false,
+      icons = {current = {filetype = {enabled = false}}},
+      maximum_padding = math.huge,
+    }
+    EOF
+<
+                                                      *barbar-setup.animation*
+animation ~
+  `boolean`  (default: `true`)
+  Enables animations if `true`.
+
+                                                      *barbar-setup.auto_hide*
+auto_hide ~
+  `boolean`  (default: `false`)
   Enable/disable auto-hiding the tab bar when there is a single buffer.
 
-                                                       *g:bufferline.tabpages*
-`g:bufferline.tabpages`  boolean  (default |v:true|)
+                                                      *barbar-setup.clickable*
+clickable ~
+  `boolean`  (default: `true`)
+  If set, you can left-click on a tab to switch to that buffer, and
+  middle-click to delete it.
 
-  Enable/disable current/total tabpages indicator (top right corner).
+                                                     *barbar-setup.exclude_ft*
+exclude_ft ~
+  `string[]`  (default: `{}`)
+  Excludes filetypes from appearing in the tabs.
 
-                                                          *g:bufferline.icons*
-`g:bufferline.icons`  table
+                                                   *barbar-setup.exclude_name*
+exclude_name ~
+  `string[]`  (default: `{}`)
+  Excludes buffers matching name from appearing in the tabs.
 
+                                                 *barbar-setup.focus_on_close*
+focus_on_close ~
+  `'left'|'right'`  (default: `'left'`)
+  A buffer to this direction will be focused (if it exists) when closing the
+  current buffer.
+
+                                                           *barbar-setup.hide*
+hide ~
+  Sets which elements are hidden in the bufferline. Possible options are:
+
+                                                 *barbar-setup.hide.alternate*
+  hide.alternate ~
+    `boolean`  (default: `false`)
+    Controls the visibility of the |alternate-file|.
+    |barbar-setup.highlight_alternate| must be `true`.
+
+                                                   *barbar-setup.hide.current*
+  hide.current ~
+    `boolean`  (default: `false`)
+    Controls the visibility of the current buffer.
+
+                                                *barbar-setup.hide.extensions*
+  hide.extensions ~
+    `boolean`  (default: `false`)
+    `extensions`, which controls the visibility of file extensions;
+
+                                                  *barbar-setup.hide.inactive*
+  hide.inactive ~
+    `boolean`  (default: `false`)
+    Controls visibility of |hidden-buffer|s and |inactive-buffer|s.
+
+                                                   *barbar-setup.hide.visible*
+  hide.visible ~
+    `boolean`  (default: `false`)
+    Controls visibility of |active-buffer|s.
+    |barbar-setup.highlight_visible| must be `true`.
+
+                                            *barbar-setup.highlight_alternate*
+highlight_alternate ~
+  `boolean`  (default: `false`)
+  Enables highlighting of alternate buffers.
+
+                                  *barbar-setup.highlight_inactive_file_icons*
+highlight_inactive_file_icons ~
+  `boolean`  (default: `false`)
+  Enables highlighting the file icons of inactive buffers.
+
+                                              *barbar-setup.highlight_visible*
+highlight_visible ~
+  `boolean`  (default: `true`)
+  Enables highlighting of visible buffers.
+
+                                                          *barbar-setup.icons*
+icons ~
+  `table`
   Controls the icons rendered on each tab. The base options are:
 
-  buffer_index  (boolean) ~
-  - Default: |v:false|
-  - if `true`, show the index of the buffer with respect to the ordering of
+                                             *barbar-setup.icons.buffer_index*
+  icons.buffer_index ~
+    `boolean`  (default: `false`)
+    if `true`, show the index of the buffer with respect to the ordering of
     the buffers in the tabline.
 
-  buffer_number  (boolean) ~
-  - Default: |v:false|
-  - If `true`, show the `bufnr` for the associated buffer.
+                                            *barbar-setup.icons.buffer_number*
+  icons.buffer_number ~
+    `boolean`  (default: `false`)
+    If `true`, show the `bufnr` for the associated buffer.
 
-  button  (false|string) ~
-  - Default: `''`
-  - The button which is clicked to close / save a buffer, or indicate that it
+                                                    *barbar-setup.icons.button*
+  icons.button ~
+    `false | string`  (default: `''`)
+    The button which is clicked to close / save a buffer, or indicate that it
     is pinned. Use `false` to disable it.
 
-  diagnostics (table<DiagnosticSeverity, table>) ~
-  - Default: >
+                                              *barbar-setup.icons.diagnostics*
+  icons.diagnostics ~
+    `{[DiagnosticSeverity]: {enabled: boolean, icon: string}}`
+    Default: >
     {
        [vim.diagnostic.severity.ERROR] = {enabled = false, icon = 'Ⓧ '},
        [vim.diagnostic.severity.HINT] = {enabled = false, icon = '💡'},
        [vim.diagnostic.severity.INFO] = {enabled = false, icon = 'ⓘ '},
        [vim.diagnostic.severity.WARN] = {enabled = false, icon = '⚠️ '},
     }
-< - Enables or disables showing diagnostics in the bufferline. The options
+<   Enables or disables showing diagnostics in the bufferline. The options
     are:
     - `enabled`, whether this diagnostics of this severity are shown in the
       bufferline.
     - `icon`, which controls what icon accompanies the number of diagnostics.
 
+                                   *barbar-setup.icons.filetype.custom_colors*
+  icons.filetype.custom_colors ~
+    `boolean`  (default: `false`)
+    If `true`, the `Buffer<status>Icon` color will be used for icon colors.
 
-  filetype.custom_colors  (boolean) ~
-  - Default: |v:false|
-  - If present, this color will be used for ALL filetype icons
+                                         *barbar-setup.icons.filetype.enabled*
+  icons.filetype.enabled ~
+    `boolean`  (default: `true`)
+    Filetype `true`, show the `devicons` for the associated buffer's
+    `filetype`.
 
-  filetype.enabled  (boolean) ~
-  - Default: |v:true|
-  - Filetype `true`, show the `devicons` for the associated buffer's `filetype`.
-
-  separator  (table) ~
-  - Default: `{'left': '▎', 'right': ''}`
-  - The left-hand separator between buffers in the tabline.
+                                                *barbar-setup.icons.separator*
+  icons.separator ~
+    `{left: string, right: string}`  (default: `{left = '▎', right = ''}`)
+    The separator between buffers in the tabline.
 
   Example: >
-    " Show the file icon, a left separator, and ERROR/WARN diagnostics
-    let bufferline.icons = {
-      \'buffer_index': v:false,
-      \'buffer_number': v:false,
-      \'button': '',
-      \'diagnostics': [{'enabled': v:true}, {'enabled': v:true}],
-      \'filetype': {'enabled': v:true},
-      \'separator': {'left': '▎'},
-    \}
+    -- Show the file icon, a left separator, and ERROR/WARN diagnostics
+    require'bufferline'.setup {icons = {
+      buffer_index = false,
+      buffer_number = false,
+      button = '',
+      diagnostics = {{enabled = true}, {enabled = true}},
+      filetype = {enabled = true},
+      separator = {left = '▎'},
+    }}
 <
 
   You can also customize icons of 'modified' and pinned buffers:
 
-  modified (table) ~
-  - Default: `{'button': '●'}`
-  - The icons which should be used for a 'modified' buffer.
-  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+                                                 *barbar-setup.icons.modified*
+  icons.modified ~
+    `table`  (default: `{button = '●'}`)
+    The icons which should be used for a 'modified' buffer.
+    Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc)
 
-  pinned (table) ~
-  - Default: `{'button': ''}`
-  - The icons which should be used for a pinned buffer.
-  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+                                                   *barbar-setup.icons.pinned*
+  icons.pinned ~
+    `table`  (default: `{button = ''}`)
+    The icons which should be used for a pinned buffer.
+    Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc)
 
   Example: >
-    " Change the button only when the buffer is modified or pinned
-    let bufferline.icons = {
-        \'modified': {'button': '●'},
-        \'pinned': {'button': '車'},
-    \}
+    require'bufferline'.setup {icons = {
+      modified = {separator = '⋄'},
+      pinned = {button = '車'},
+    }}
 <
 
   Lastly, you can customize icons based on the visibility of a buffer:
 
-  alternate (table) ~
-  - The icons which should be used for the |alternate-file|.
-  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+                                                *barbar-setup.icons.alternate*
+  icons.alternate ~
+    `table`
+    The icons which should be used for the |alternate-file|.
+    Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc) as well as `modified` and `pinned`.
 
-  current (table) ~
-  - The icons which should be used for current buffer.
-  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+                                                  *barbar-setup.icons.current*
+  icons.current ~
+    `table`
+    The icons which should be used for current buffer.
+    Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc) as well as `modified` and `pinned`.
 
-  inactive (table) ~
-  - Default: `{'separator': {'left': '▎', 'right': ''}}`
-  - The icons which should be used for |hidden-buffer|s and |inactive-buffer|s.
-  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+                                                 *barbar-setup.icons.inactive*
+  icons.inactive ~
+    `table`  (default: `{separator = {left = '▎', right = ''}}`)
+    The icons which should be used for |hidden-buffer|s and |inactive-buffer|s.
+    Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc) as well as `modified` and `pinned`.
 
-  visible (table) ~
-  - The icons which should be used for |active-buffer|s.
-  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+                                                  *barbar-setup.icons.visible*
+  icons.visible ~
+    `table`
+    The icons which should be used for |active-buffer|s.
+    Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc) as well as `modified` and `pinned`.
 
   Example: >
-    " Enable file icons for alternate buffers.
-    " Enable buffer indices for current buffers.
-    " Override the button for inactive buffers.
-    " Disable buffer numbers for visible, modified buffers.
-    let bufferline.icons = {
-      \'alternate': {'filetype': {'enabled': v:false}},
-      \'current': {'buffer_index': v:true},
-      \'inactive': {'button': '×'},
-      \'visible': {'modified': {'buffer_number': v:false}},
-    \}
+    -- Enable file icons for alternate buffers.
+    -- Enable buffer indices for current buffers.
+    -- Override the button for inactive buffers.
+    -- Disable buffer numbers for visible, modified buffers.
+    require'bufferline'.setup {icons = {
+      alternate = {filetype = {enabled = false}},
+      current = {buffer_index = true},
+      inactive = {button = '×'},
+      visible = {modified = {buffer_number = false}},
+    }}
 <
 
-                                                *g:bufferline.insert_at_start*
-`g:bufferline.insert_at_start` boolean  (default |v:false|)
-
+                                                *barbar-setup.insert_at_start*
+insert_at_start ~
+  `boolean`  (default: `false`)
   If true, new buffers appear at the start of the list. Default is to
   open after the current buffer.
-  Has priority over `g:bufferline.insert_at_end`
+  Has priority over |barbar-setup.insert_at_end|
 
-                                                  *g:bufferline.insert_at_end*
-`g:bufferline.insert_at_end`  boolean   (default |v:false|)
-
+                                                  *barbar-setup.insert_at_end*
+insert_at_end ~
+  `boolean`   (default: `false`)
   If true, new buffers appear at the end of the list. Default is to
   open after the current buffer.
 
-                                               *g:bufferline.semantic_letters*
-`g:bufferline.semantic_letters`  boolean  (default |v:true|)
+                                                        *barbar-setup.letters*
+letters ~
+  `string`  (default: `'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP'`)
+  New buffer letters are assigned in this order. This order is
+  optimal for the qwerty keyboard layout but might need adjustement
+  for other layouts.
 
+                                                *barbar-setup.maximum_padding*
+maximum_padding ~
+  `int`  (default: `4`)
+  Sets the maximum padding width with which to surround each tab.
+
+                                                 *barbar-setup.maximum_length*
+maximum_length ~
+  `int`  (default: 30)
+  Sets the maximum buffer name length.
+
+                                                *barbar-setup.minimum_padding*
+minimum_padding ~
+  `int`  (default: `1`)
+  Sets the minimum padding width with which to surround each tab.
+
+                                                  *barbar-setup.no_name_title*
+no_name_title ~
+  `string`  (default: empty)
+  Sets the name of unnamed buffers. By default format is "[Buffer X]"
+  where X is the buffer number. But only a static string is accepted here.
+
+                                               *barbar-setup.semantic_letters*
+semantic_letters ~
+  `boolean`  (default: `true`)
   If set, the letters for each buffer in buffer-pick mode will be
   assigned based on their name. Otherwise or in case all letters are
   already assigned, the behavior is to assign letters in order of
   usability (see order just below)
 
-                                                        *g:bufferline.letters*
-`g:bufferline.letters` string
-           (default 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP')
-
-  New buffer letters are assigned in this order. This order is
-  optimal for the qwerty keyboard layout but might need adjustement
-  for other layouts.
->
-    let g:bufferline.letters =
-      \ 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP'
-<
-
-                                                      *g:bufferline.clickable*
-`g:bufferline.clickable`  boolean  (default |v:true|)
-
-  If set, you can left-click on a tab to switch to that buffer, and
-  middle-click to delete it.
->
-    let g:bufferline.clickable = v:true
-<
-
-                                                     *g:bufferline.exclude_ft*
-`g:bufferline.exclude_ft`  string[]  (default |v:null|)
-
-  Excludes filetypes from appearing in the tabs.
->
-    let g:bufferline.exclude_ft = ['javascript']
-<
-
-                                                   *g:bufferline.exclude_name*
-`g:bufferline.exclude_name`  string[]  (default |v:null|)
-
-  Excludes buffers matching name from appearing in the tabs.
->
-    let g:bufferline.exclude_name = ['package.json']
-<
-
-                                                *g:bufferline.maximum_padding*
-`g:bufferline.maximum_padding`  int  (default 4)
-
-  Sets the maximum padding width with which to surround each tab.
->
-    let g:bufferline.maximum_padding = 4
-<
-
-                                                *g:bufferline.minimum_padding*
-`g:bufferline.minimum_padding`  int  (default 1)
-
-  Sets the minimum padding width with which to surround each tab.
->
-    let g:bufferline.minimum_padding = 1
-<
-
-                                                 *g:bufferline.maximum_length*
-`g:bufferline.maximum_length`  int  (default 30)
-
-  Sets the maximum buffer name length.
->
-    let g:bufferline.maximum_length = 30
-<
-
-                                                  *g:bufferline.no_name_title*
-`g:bufferline.no_name_title`  string  (default empty)
-
-  Sets the name of unnamed buffers. By default format is "[Buffer X]"
-  where X is the buffer number. But only a static string is accepted here.
->
-    let g:bufferline.no_name_title = v:null
-<
-
-                                                           *g:bufferline.hide*
-`g:bufferline.hide`  table  (default |v:false| for all)
-
-  Sets which elements are hidden in the bufferline. Possible options are:
-
-  - `alternate`, which controls the visibility of the alternate buffer
-    (`g:bufferline.highlight.alternate` must be |v:true|);
-  - `current`, which controls the visibility of the current buffer;
-  - `extensions`, which controls the visibility of file extensions;
-  - `inactive`, which controls the visibility of the inactive buffers; and
-  - `visible`, which controls the visibility of visible buffers
-    (`g:bufferline.highlight.visible` must be |v:true|).
->
-    let g:bufferline.hide = {'current': v:false, 'inactive': v:true}
-<
-
-                                            *g:bufferline.highlight_alternate*
-`g:bufferline.highlight_alternate`  boolean  (default |v:false|)
-
-  Enables highlighting of alternate buffers.
->
-    let g:bufferline.highlight_alternate = v:true
-<
-
-                                              *g:bufferline.highlight_visible*
-`g:bufferline.highlight_visible`  boolean  (default |v:true|)
-
-  Enables highlighting of visible buffers.
->
-    let g:bufferline.highlight_visible = v:true
-<
-
-                                  *g:bufferline.highlight_inactive_file_icons*
-`g:bufferline.highlight_inactive_file_icons`  boolean  (default |v:false|)
-
-  Enables highlighting the file icons of inactive buffers.
->
-    let g:bufferline.highlight_inactive_file_icons = v:true
-<
-
-                                                 *g:bufferline.focus_on_close*
-`g:bufferline.focus_on_close`  "left"|"right"  (default "left")
-
-  A buffer to this direction will be focused (if it exists) when closing the
-  current buffer.
->
-    let g:bufferline.focus_on_close = "left"
-<
+                                                       *barbar-setup.tabpages*
+tabpages ~
+  `boolean`  (default: `true`)
+  Enable/disable current/total tabpages indicator (top right corner).
 
 ==============================================================================
 5. Integrations                                          *barbar-integrations*

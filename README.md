@@ -225,122 +225,15 @@ map('n', '<Space>bw', '<Cmd>BufferOrderByWindowNumber<CR>', opts)
 
 ## Options
 
-#### Vim Script
-
-```vim
-" NOTE: If barbar's option dict isn't created yet, create it
-let bufferline = get(g:, 'bufferline', {})
-
-" Enable/disable animations
-let bufferline.animation = v:true
-
-" Enable/disable auto-hiding the tab bar when there is a single buffer
-let bufferline.auto_hide = v:false
-
-" Enable/disable current/total tabpages indicator (top right corner)
-let bufferline.tabpages = v:true
-
-" Enables/disable clickable tabs
-"  - left-click: go to buffer
-"  - middle-click: delete buffer
-let bufferline.clickable = v:true
-
-" Excludes buffers from the tabline
-let bufferline.exclude_ft = ['javascript']
-let bufferline.exclude_name = ['package.json']
-
-" A buffer to this direction will be focused (if it exists) when closing the current buffer.
-" Valid options are 'left' (the default) and 'right'
-let bufferline.focus_on_close = 'left'
-
-" Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
-let bufferline.hide = {'extensions': v:true, 'inactive': v:true}
-
-" Disable highlighting alternate buffers
-let bufferline.highlight_alternate = v:false
-
-" Disable highlighting file icons in inactive buffers
-let bufferline.highlight_inactive_file_icons = v:false
-
-" Enable highlighting visible buffers
-let bufferline.highlight_visible = v:true
-
-" Configure the base icons on the bufferline.
-let bufferline.icons = {
-  \'buffer_index': v:false,
-  \'buffer_number': v:false,
-  \'button': '',
-  \'filetype': {'enabled': v:true},
-  \'separator': {'left': '▎', 'right': ''},
-\}
-
-" Enables / disables diagnostic symbols
-" ERROR / WARN / INFO / HINT
-let bufferline.icons = v:lua.vim.tbl_deep_extend('force', bufferline.icons, {
-  \'diagnostics': [
-    \{'enabled': v:true, 'icon': 'ﬀ'},
-    \{'enabled': v:false},
-    \{'enabled': v:false},
-    \{'enabled': v:true}
-  \],
-\})
-
-" If v:true, will use Buffer<Alternate|Current|Inactive|Visible>Icon
-" If v:false, will use nvim-web-devicons colors
-let bufferline.icons = v:lua.vim.tbl_deep_extend('force', bufferline.icons, {
-  \'filetype': {'custom_colors': v:false},
-\})
-
-" Configure the icons on the bufferline when modified or pinned.
-" Supports all the base icon options.
-" If v:true, will use Buffer<Alternate|Current|Inactive|Visible>Icon
-" If v:false, will use nvim-web-devicons colors
-let bufferline.icons = v:lua.vim.tbl_deep_extend('force', bufferline.icons, {
-  \'modified': {'button': '●'},
-  \'pinned': {'button': '車'},
-\})
-
-" Configure the icons on the bufferline based on the visibility of a buffer.
-" Supports all the base icon options, plus `modified` and `pinned`.
-let bufferline.icons = v:lua.vim.tbl_deep_extend('force', bufferline.icons, {
-  \'alternate': {'filetype': {'enabled': v:false}},
-  \'current': {'buffer_index': v:true},
-  \'inactive': {'button': '×'},
-  \'visible': {'modified': {'buffer_number': v:false}},
-\})
-
-" If true, new buffers will be inserted at the start/end of the list.
-" Default is to insert after current buffer.
-let bufferline.insert_at_start = v:false
-let bufferline.insert_at_end = v:false
-
-" Sets the maximum padding width with which to surround each tab.
-let bufferline.maximum_padding = 4
-
-" Sets the minimum padding width with which to surround each tab.
-let bufferline.minimum_padding = 1
-
-" Sets the maximum buffer name length.
-let bufferline.maximum_length = 30
-
-" If set, the letters for each buffer in buffer-pick mode will be
-" assigned based on their name. Otherwise or in case all letters are
-" already assigned, the behavior is to assign letters in order of
-" usability (see order below)
-let bufferline.semantic_letters = v:true
-
-" New buffer letters are assigned in this order. This order is
-" optimal for the qwerty keyboard layout but might need adjustement
-" for other layouts.
-let bufferline.letters =
-  \ 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP'
-
-" Sets the name of unnamed buffers. By default format is "[Buffer X]"
-" where X is the buffer number. But only a static string is accepted here.
-let bufferline.no_name_title = v:null
-```
-
-#### Lua
+> **Note**
+>
+> If you're using Vim Script, just wrap `setup` like this:
+>
+> ```vim
+> lua << EOF
+> require'bufferline'.setup {…}
+> EOF
+> ```
 
 ```lua
 -- Set barbar's options
@@ -447,78 +340,29 @@ require'bufferline'.setup {
 
 ### Highlighting
 
-For the highlight groups, here are the default ones. Your colorscheme
-can override them by defining them. See the "Meaning of terms" comment
-inside the example below.
+Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 
-```vim
-let fg_target = 'red'
+| `<STATUS>`  | Meaning                                                 |
+|:------------|:--------------------------------------------------------|
+| `Alternate` | The `:h alternate-file`.                                |
+| `Current`   | The current buffer.                                     |
+| `Inactive`  | `:h hidden-buffer`s and `:h inactive-buffer`s.          |
+| `Visible`   | `:h active-buffer`s which are not alternate or current. |
 
-let fg_current  = s:fg(['Normal'], '#efefef')
-let fg_visible  = s:fg(['TabLineSel'], '#efefef')
-let fg_inactive = s:fg(['TabLineFill'], '#888888')
+| `<PART>` | Meaning                                                                              |
+|:---------|:-------------------------------------------------------------------------------------|
+| `ERROR`  | Diagnostic errors.                                                                   |
+| `HINT`   | Diagnostic hints.                                                                    |
+| `Icon`   | The filetype icon (when `icons.filetype == {custom_colors = true, enabled = true}`). |
+| `Index`  | The buffer's position in the tabline.                                                |
+| `Number` | The `:h bufnr()`.                                                                    |
+| `INFO`   | Diagnostic info.                                                                     |
+| `Mod`    | When the buffer is modified.                                                         |
+| `Sign`   | The separator between buffers.                                                       |
+| `Target` | The letter in buffer-pick mode.                                                      |
+| `WARN`   | Diagnostic warnings.                                                                 |
 
-let fg_modified  = s:fg(['WarningMsg'], '#E5AB0E')
-let fg_special  = s:fg(['Special'], '#599eff')
-let fg_subtle  = s:fg(['NonText', 'Comment'], '#555555')
-
-let bg_current  = s:bg(['Normal'], '#000000')
-let bg_visible  = s:bg(['TabLineSel', 'Normal'], '#000000')
-let bg_inactive = s:bg(['TabLineFill', 'StatusLine'], '#000000')
-
-" Meaning of terms:
-"
-" format: "Buffer" + status + part
-"
-" status:
-"     *Current: current buffer
-"     *Visible: visible but not current buffer
-"    *Inactive: invisible but not current buffer
-"
-" part:
-"        *Icon: filetype icon
-"       *Index: buffer index
-"         *Mod: when modified
-"        *Sign: the separator between buffers
-"      *Target: letter in buffer-picking mode
-"
-" BufferTabpages: tabpage indicator
-" BufferTabpageFill: filler after the buffer section
-" BufferOffset: offset section, created with set_offset()
-
-call s:hi_all([
-\ ['BufferCurrent',        fg_current,  bg_current],
-\ ['BufferCurrentIndex',   fg_special,  bg_current],
-\ ['BufferCurrentMod',     fg_modified, bg_current],
-\ ['BufferCurrentSign',    fg_special,  bg_current],
-\ ['BufferCurrentTarget',  fg_target,   bg_current,   'bold'],
-\ ['BufferVisible',        fg_visible,  bg_visible],
-\ ['BufferVisibleIndex',   fg_visible,  bg_visible],
-\ ['BufferVisibleMod',     fg_modified, bg_visible],
-\ ['BufferVisibleSign',    fg_visible,  bg_visible],
-\ ['BufferVisibleTarget',  fg_target,   bg_visible,   'bold'],
-\ ['BufferInactive',       fg_inactive, bg_inactive],
-\ ['BufferInactiveIndex',  fg_subtle,   bg_inactive],
-\ ['BufferInactiveMod',    fg_modified, bg_inactive],
-\ ['BufferInactiveSign',   fg_subtle,   bg_inactive],
-\ ['BufferInactiveTarget', fg_target,   bg_inactive,  'bold'],
-\ ['BufferTabpages',       fg_special,  bg_inactive, 'bold'],
-\ ['BufferTabpageFill',    fg_inactive, bg_inactive],
-\ ])
-
-call s:hi_link([
-\ ['BufferCurrentIcon',  'BufferCurrent'],
-\ ['BufferVisibleIcon',  'BufferVisible'],
-\ ['BufferInactiveIcon', 'BufferInactive'],
-\ ['BufferOffset',       'BufferTabpageFill'],
-\ ])
-
-" NOTE: this is an example taken from the source, implementation of
-" s:fg(), s:bg(), s:hi_all() and s:hi_link() is left as an exercise
-" for the reader.
-```
-
-[See code for the example above](https://github.com/romgrk/barbar.nvim/blob/master/lua/bufferline/highlight.lua)
+* e.g. the current buffer's highlight when modified is `BufferCurrentMod`
 
 You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see

@@ -15,5 +15,6 @@ function! bufferline#events#main_click_handler(minwid, _clicks, btn, _modifiers)
 endfunction
 
 function! bufferline#events#on_option_changed(dict, _1, _2) abort
+  lua require'bufferline.utils'.notify_once("`g:bufferline` is deprecated, use `require'bufferline'.setup` instead. See `:h barbar-setup` for more information.", vim.log.levels.WARN)
   call luaeval("require'bufferline.events'.on_option_changed(_A)", a:dict)
 endfunction
