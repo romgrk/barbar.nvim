@@ -34,6 +34,12 @@ files you can even type the letter ahead from memory.
 require('lazy').setup {
   {'romgrk/barbar.nvim',
     dependencies = 'nvim-tree/nvim-web-devicons',
+    opts = {
+      -- lazy.nvim can automatically call setup for you. just put your options here:
+      -- insert_at_start = true,
+      -- animation = true,
+      -- …etc
+    },
     version = '^1.0.0', -- optional: only update when a new 1.x version is released
   },
 }
@@ -234,22 +240,10 @@ let bufferline.auto_hide = v:false
 " Enable/disable current/total tabpages indicator (top right corner)
 let bufferline.tabpages = v:true
 
-" Enable/disable close button
-let bufferline.closable = v:true
-
 " Enables/disable clickable tabs
 "  - left-click: go to buffer
 "  - middle-click: delete buffer
 let bufferline.clickable = v:true
-
-" Enables / disables diagnostic symbols
-" ERROR / WARN / INFO / HINT
-let bufferline.diagnostics = [
-  \ {'enabled': v:true, 'icon': 'ﬀ'},
-  \ {'enabled': v:false},
-  \ {'enabled': v:false},
-  \ {'enabled': v:true},
-\]
 
 " Excludes buffers from the tabline
 let bufferline.exclude_ft = ['javascript']
@@ -271,23 +265,49 @@ let bufferline.highlight_inactive_file_icons = v:false
 " Enable highlighting visible buffers
 let bufferline.highlight_visible = v:true
 
-" Enable/disable icons
-" if set to 'buffer_number', will show buffer number in the tabline
-" if set to 'numbers', will show buffer index in the tabline
-" if set to 'both', will show buffer index and icons in the tabline
-" if set to 'buffer_number_with_icon', will show buffer number and icons in the tabline
-let bufferline.icons = v:true
+" Configure the base icons on the bufferline.
+let bufferline.icons = {
+  \'buffer_index': v:false,
+  \'buffer_number': v:false,
+  \'button': '',
+  \'filetype': {'enabled': v:true},
+  \'separator': {'left': '▎', 'right': ''},
+\}
 
-" Sets the icon's highlight group.
-" If false, will use nvim-web-devicons colors
-let bufferline.icon_custom_colors = v:false
+" Enables / disables diagnostic symbols
+" ERROR / WARN / INFO / HINT
+let bufferline.icons = v:lua.vim.tbl_deep_extend('force', bufferline.icons, {
+  \'diagnostics': [
+    \{'enabled': v:true, 'icon': 'ﬀ'},
+    \{'enabled': v:false},
+    \{'enabled': v:false},
+    \{'enabled': v:true}
+  \],
+\})
 
-" Configure icons on the bufferline.
-let bufferline.icon_separator_active = '▎'
-let bufferline.icon_separator_inactive = '▎'
-let bufferline.icon_close_tab = ''
-let bufferline.icon_close_tab_modified = '●'
-let bufferline.icon_pinned = '車'
+" If v:true, will use Buffer<Alternate|Current|Inactive|Visible>Icon
+" If v:false, will use nvim-web-devicons colors
+let bufferline.icons = v:lua.vim.tbl_deep_extend('force', bufferline.icons, {
+  \'filetype': {'custom_colors': v:false},
+\})
+
+" Configure the icons on the bufferline when modified or pinned.
+" Supports all the base icon options.
+" If v:true, will use Buffer<Alternate|Current|Inactive|Visible>Icon
+" If v:false, will use nvim-web-devicons colors
+let bufferline.icons = v:lua.vim.tbl_deep_extend('force', bufferline.icons, {
+  \'modified': {'button': '●'},
+  \'pinned': {'button': '車'},
+\})
+
+" Configure the icons on the bufferline based on the visibility of a buffer.
+" Supports all the base icon options, plus `modified` and `pinned`.
+let bufferline.icons = v:lua.vim.tbl_deep_extend('force', bufferline.icons, {
+  \'alternate': {'filetype': {'enabled': v:false}},
+  \'current': {'buffer_index': v:true},
+  \'inactive': {'button': '×'},
+  \'visible': {'modified': {'buffer_number': v:false}},
+\})
 
 " If true, new buffers will be inserted at the start/end of the list.
 " Default is to insert after current buffer.
@@ -334,28 +354,10 @@ require'bufferline'.setup {
   -- Enable/disable current/total tabpages indicator (top right corner)
   tabpages = true,
 
-  -- Enable/disable close button
-  closable = true,
-
   -- Enables/disable clickable tabs
   --  - left-click: go to buffer
   --  - middle-click: delete buffer
   clickable = true,
-
-  -- Enables / disables diagnostic symbols
-  diagnostics = {
-    -- you can use a list
-    {enabled = true, icon = 'ﬀ'}, -- ERROR
-    {enabled = false}, -- WARN
-    {enabled = false}, -- INFO
-    {enabled = true},  -- HINT
-
-    -- OR `vim.diagnostic.severity`
-    [vim.diagnostic.severity.ERROR] = {enabled = true, icon = 'ﬀ'},
-    [vim.diagnostic.severity.WARN] = {enabled = false},
-    [vim.diagnostic.severity.INFO] = {enabled = false},
-    [vim.diagnostic.severity.HINT] = {enabled = true},
-  },
 
   -- Excludes buffers from the tabline
   exclude_ft = {'javascript'},
@@ -377,23 +379,40 @@ require'bufferline'.setup {
   -- Enable highlighting visible buffers
   highlight_visible = true,
 
-  -- Enable/disable icons
-  -- if set to 'numbers', will show buffer index in the tabline
-  -- if set to 'both', will show buffer index and icons in the tabline
-  icons = true,
+  icons = {
+    -- Configure the base icons on the bufferline.
+    buffer_index = false,
+    buffer_number = false,
+    button = '',
+    -- Enables / disables diagnostic symbols
+    diagnostics = {
+      [vim.diagnostic.severity.ERROR] = {enabled = true, icon = 'ﬀ'},
+      [vim.diagnostic.severity.WARN] = {enabled = false},
+      [vim.diagnostic.severity.INFO] = {enabled = false},
+      [vim.diagnostic.severity.HINT] = {enabled = true},
+    },
+    filetype = {
+      -- Sets the icon's highlight group.
+      -- If false, will use nvim-web-devicons colors
+      custom_colors = false,
 
-  -- If set, the icon color will follow its corresponding buffer
-  -- highlight group. By default, the Buffer*Icon group is linked to the
-  -- Buffer* group (see Highlighting below). Otherwise, it will take its
-  -- default value as defined by devicons.
-  icon_custom_colors = false,
+      -- Requires `nvim-web-devicons` if `true`
+      enabled = true,
+    },
+    separator = {left = '▎', right = ''},
 
-  -- Configure icons on the bufferline.
-  icon_separator_active = '▎',
-  icon_separator_inactive = '▎',
-  icon_close_tab = '',
-  icon_close_tab_modified = '●',
-  icon_pinned = '車',
+    -- Configure the icons on the bufferline when modified or pinned.
+    -- Supports all the base icon options.
+    modified = {button = '●'},
+    pinned = {button = '車'},
+
+    -- Configure the icons on the bufferline based on the visibility of a buffer.
+    -- Supports all the base icon options, plus `modified` and `pinned`.
+    alternate = {filetype = {enabled = false}},
+    current = {buffer_index = true},
+    inactive = {button = '×'},
+    visible = {modified = {buffer_number = false}},
+  },
 
   -- If true, new buffers will be inserted at the start/end of the list.
   -- Default is to insert after current buffer.

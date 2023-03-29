@@ -6,7 +6,6 @@ local table_insert = table.insert
 
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
-local command = vim.api.nvim_command --- @type function
 local fnamemodify = vim.fn.fnamemodify --- @type function
 local hlexists = vim.fn.hlexists --- @type function
 
@@ -21,10 +20,13 @@ local ok, web = pcall(require, 'nvim-web-devicons')
 --- @param icon_hl string
 --- @return nil
 local function hl_buffer_icon(buffer_status, icon_hl)
+  local buffer_status_hl = {'Buffer' .. buffer_status}
   hl.set(
     icon_hl .. buffer_status,
-    hl.bg_or_default({'Buffer' .. buffer_status}, 'none'),
-    hl.fg_or_default({icon_hl}, 'none')
+    hl.bg_or_default(buffer_status_hl, 'none'),
+    hl.fg_or_default({icon_hl}, 'none'),
+    hl.sp_or_default(buffer_status_hl, 'none'),
+    hl.attributes(buffer_status_hl)
   )
 end
 
@@ -45,53 +47,49 @@ local icons = {
     end
   end),
 
-  --- @param bufnr integer
-  --- @param buffer_status bufferline.buffer.activity.name
-  --- @return string icon, string highlight_group
-  get_icon = function(bufnr, buffer_status)
-    if ok == false then
-      utils.notify(
+  get_icon = ok and
+    --- @param bufnr integer
+    --- @param buffer_status bufferline.buffer.activity.name
+    --- @return string icon, string highlight_group
+    function(bufnr, buffer_status)
+      local basename, extension = '', ''
+      local filetype = buf_get_option(bufnr, 'filetype')
+      local icon_char, icon_hl = '', ''
+
+      -- nvim-web-devicon only handles filetype icons, not other types (eg directory)
+      -- thus we need to do some work here
+      if filetype == 'netrw' or filetype == 'LuaTree' then
+        icon_char, icon_hl = '', 'Directory'
+      else
+        if filetype == 'fugitive' or filetype == 'gitcommit' then
+          basename, extension = 'git', 'git'
+        else
+          basename = fnamemodify(buf_get_name(bufnr), ':t')
+          extension = fnamemodify(basename, ':e')
+        end
+
+        icon_char, icon_hl = web.get_icon(basename, extension, { default = true })
+      end
+
+      if icon_hl and hlexists(icon_hl .. buffer_status) < 1 then
+        hl_buffer_icon(buffer_status, icon_hl)
+        table_insert(hl_groups, {buffer_status = buffer_status, icon_hl = icon_hl})
+      end
+
+      return icon_char, icon_hl .. buffer_status
+    end or
+    function() --- @return string icon, string highlight_group
+      utils.notify_once(
         'barbar: bufferline.icons is set to v:true but "nvim-dev-icons" was not found.' ..
-          '\nbarbar: icons have been disabled. Set `bufferline.icons` to `false` or ' ..
+          '\nbarbar: icons have been disabled. Set ' ..
+          utils.markdown_inline_code'bufferline.icons' .. ' to ' ..
+          utils.markdown_inline_code'false' .. ' or ' ..
           'install "nvim-dev-icons" to disable this message.',
         vim.log.levels.WARN
       )
 
-      if type(vim.g.bufferline) == 'table' then
-        command('let g:bufferline.icons = v:false')
-      else
-        vim.g.bufferline = {icons = false}
-      end
-
       return '', ''
-    end
-
-    local basename, extension = '', ''
-    local filetype = buf_get_option(bufnr, 'filetype')
-    local icon_char, icon_hl = '', ''
-
-    -- nvim-web-devicon only handles filetype icons, not other types (eg directory)
-    -- thus we need to do some work here
-    if filetype == 'netrw' or filetype == 'LuaTree' then
-      icon_char, icon_hl = '', 'Directory'
-    else
-      if filetype == 'fugitive' or filetype == 'gitcommit' then
-        basename, extension = 'git', 'git'
-      else
-        basename = fnamemodify(buf_get_name(bufnr), ':t')
-        extension = fnamemodify(basename, ':e')
-      end
-
-      icon_char, icon_hl = web.get_icon(basename, extension, { default = true })
-    end
-
-    if icon_hl and hlexists(icon_hl .. buffer_status) < 1 then
-      hl_buffer_icon(buffer_status, icon_hl)
-      table_insert(hl_groups, {buffer_status = buffer_status, icon_hl = icon_hl})
-    end
-
-    return icon_char, icon_hl .. buffer_status
-  end,
+    end,
 }
 
 return icons

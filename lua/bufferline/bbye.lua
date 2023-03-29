@@ -30,7 +30,6 @@ local bufnr = vim.fn.bufnr --- @type function
 local command = vim.api.nvim_command --- @type function
 local create_augroup = vim.api.nvim_create_augroup --- @type function
 local create_autocmd = vim.api.nvim_create_autocmd --- @type function
-local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local get_current_win = vim.api.nvim_get_current_win --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
@@ -66,6 +65,14 @@ local cmd = vim.api.nvim_cmd and
     command((mods or '') .. " " .. action .. (force and '!' or '') .. " " .. buffer_number)
   end
 
+local enew = vim.api.nvim_cmd and
+  --- The `:enew` command
+  --- @param force boolean
+  function(force) vim.cmd.enew {bang = force} end or
+  --- The `:enew` command
+  --- @param force boolean
+  function(force) command("enew" .. (force and '!' or '')) end
+
 --- @param closing_number integer
 --- @return nil|integer bufnr of the buffer to focus
 local function get_focus_on_close(closing_number)
@@ -75,7 +82,7 @@ local function get_focus_on_close(closing_number)
   if #state_bufnrs < 1 then -- all of the buffers are excluded or unlisted
     local open_bufnrs = list_bufs()
     if focus_on_close == 'right' then
-      open_bufnrs = utils.reverse(open_bufnrs)
+      open_bufnrs = utils.list_reverse(open_bufnrs)
     end
 
     for _, nr in ipairs(open_bufnrs) do
@@ -88,7 +95,7 @@ local function get_focus_on_close(closing_number)
   end
 
   if focus_on_close == 'right' then
-    state_bufnrs = utils.reverse(state.buffers)
+    state_bufnrs = utils.list_reverse(state.buffers)
   end
 
   local index = utils.index_of(state_bufnrs, closing_number)
@@ -122,7 +129,7 @@ local empty_buffer = nil --- @type nil|integer
 --- @param force boolean if `true`, forcefully create the new buffer
 --- @return nil
 local function new(force)
-  command("enew" .. (force and '!' or ''))
+  enew(force)
 
   empty_buffer = get_current_buf()
   vim.b.empty_buffer = true
@@ -187,7 +194,7 @@ function bbye.delete(action, force, buffer, mods)
 
   -- For cases where adding buffers causes new windows to appear or hiding some
   -- causes windows to disappear and thereby decrement, loop backwards.
-  for _, window_number in ipairs(utils.reverse(list_wins())) do
+  for _, window_number in ipairs(utils.list_reverse(list_wins())) do
     if win_get_buf(window_number) == buffer_number then
       set_current_win(window_number)
 
@@ -233,8 +240,6 @@ function bbye.delete(action, force, buffer, mods)
       end
     end
   end
-
-  exec_autocmds('BufWinEnter', {})
 end
 
 --- 'bdelete' a buffer

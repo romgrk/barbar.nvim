@@ -4,17 +4,15 @@ local table_insert = table.insert
 local bufnr = vim.fn.bufnr --- @type function
 local command = vim.api.nvim_command --- @type function
 local create_user_command = vim.api.nvim_create_user_command --- @type function
-local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local set_option = vim.api.nvim_set_option --- @type function
 
 local api = require'bufferline.api'
 local bbye = require'bufferline.bbye'
-local highlight = require'bufferline.highlight'
-local JumpMode = require'bufferline.jump_mode'
+local events = require'bufferline.events'
 local notify = require'bufferline.utils'.notify
-local options = require'bufferline.options'
 local render = require'bufferline.render'
 local state = require'bufferline.state'
+local utils = require'bufferline.utils'
 
 -------------------------------
 -- Section: `bufferline` module
@@ -27,12 +25,15 @@ local bufferline = {}
 --- @param user_config? table
 --- @return nil
 function bufferline.setup(user_config)
-  -- Show the tabline
-  set_option('showtabline', 2)
+  if type(user_config) ~= "table" then
+    user_config = vim.empty_dict()
+  else
+    user_config[vim.type_idx] = vim.types.dictionary
+  end
 
   -- Create all necessary commands
-  create_user_command('BarbarEnable', render.enable, {desc = 'Enable barbar.nvim'})
-  create_user_command('BarbarDisable', render.disable, {desc = 'Disable barbar.nvim'})
+  create_user_command('BarbarEnable', events.enable, {desc = 'Enable barbar.nvim'})
+  create_user_command('BarbarDisable', events.disable, {desc = 'Disable barbar.nvim'})
 
   create_user_command(
     'BufferNext',
@@ -51,13 +52,17 @@ function bufferline.setup(user_config)
     function(tbl)
       local index = tonumber(tbl.args)
       if not index then
-        return notify('Invalid argument to `:BufferGoto`', vim.log.levels.ERROR)
+        return notify(
+          'Invalid argument to ' .. utils.markdown_inline_code':BufferGoto',
+          vim.log.levels.ERROR
+        )
       end
+
       api.goto_buffer(index)
     end,
     {
       complete = function()
-        local buffers = require'bufferline.state'.buffers
+        local buffers = state.buffers
         local buffer_indices = {}
 
         for i = 1, #buffers do
@@ -80,8 +85,10 @@ function bufferline.setup(user_config)
 
   create_user_command(
     'BufferMove',
-    function(tbl) command('BufferMovePrevious ' .. tbl.count) end,
-    {count = true, desc = 'Synonym for `:BufferMovePrevious`'}
+    vim.api.nvim_cmd and
+      function(tbl) vim.cmd.BufferMovePrevious {count = tbl.count} end or
+      function(tbl) command('BufferMovePrevious ' .. tbl.count) end,
+    {count = true, desc = 'Synonym for ' .. utils.markdown_inline_code':BufferMovePrevious'}
   )
 
   create_user_command(
@@ -191,12 +198,13 @@ function bufferline.setup(user_config)
     {count = true, desc = 'Scroll the bufferline right'}
   )
 
-  -- Set the options and watchers for when they are edited
-  vim.g.bufferline = user_config or vim.empty_dict()
+  -- Setup barbar
+  events.enable()
+  events.on_option_changed(user_config)
+  vim.api.nvim_set_var('bufferline', user_config)
 
-  highlight.setup()
-  JumpMode.set_letters(options.letters())
-  render.enable()
+  -- Show the tabline
+  set_option('showtabline', 2)
 end
 
 return bufferline

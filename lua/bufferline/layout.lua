@@ -8,7 +8,6 @@ local min = math.min
 local rshift = bit.rshift
 local table_insert = table.insert
 
-local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 local tabpagenr = vim.fn.tabpagenr --- @type function
@@ -47,9 +46,8 @@ end
 
 --- @param bufnr integer the buffer to calculate the width of
 --- @param index integer the buffer's numerical index
---- @param render {buffer_index: boolean, buffer_number: boolean, diagnostics: bufferline.options.diagnostics, file_icon: boolean}
 --- @return integer width
-function Layout.calculate_buffer_width(bufnr, index, render)
+function Layout.calculate_buffer_width(bufnr, index)
   local buffer_data = state.get_buffer_data(bufnr)
   local buffer_name = buffer_data.name or '[no name]'
   local width
@@ -57,33 +55,28 @@ function Layout.calculate_buffer_width(bufnr, index, render)
   if buffer_data.closing then
     width = buffer_data.real_width
   else
-    local activity = Buffer.get_activity(bufnr) > 1 and 'active' or 'inactive'
-    width = strwidth(options['icon_separator_' .. activity]()) + strwidth(buffer_name) -- separator + name
+    local icons_option = state.icons(bufnr, Buffer.activities[Buffer.get_activity(bufnr)])
 
-    if render.buffer_index then
+    width = strwidth(icons_option.separator.left) + strwidth(buffer_name) -- separator + name
+
+    if icons_option.buffer_index then
       width = width + #tostring(index) + 1 -- buffer-index + space after buffer-index
-    elseif render.buffer_number then
+    elseif icons_option.buffer_number then
       width = width + #tostring(bufnr) + 1 -- buffer-number + space after buffer-index
     end
 
-    if render.file_icon then
+    if icons_option.filetype.enabled then
       --- @diagnostic disable-next-line:param-type-mismatch
       local file_icon = icons.get_icon(bufnr, '')
       width = width + strwidth(file_icon) + 1 -- icon + space after icon
     end
 
-    Buffer.for_each_counted_enabled_diagnostic(bufnr, render.diagnostics, function(c, d, _)
+    Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(c, d, _)
       width = width + 1 + strwidth(d.icon) + #tostring(c) -- space before icon + icon + diagnostic count
     end)
 
-    local is_pinned = state.is_pinned(bufnr)
-    if options.closable() or is_pinned then
-      width = width + strwidth(is_pinned and options.icon_pinned() or (
-        buf_get_option(bufnr, 'modified') and options.icon_close_tab_modified() or options.icon_close_tab()
-      )) -- close-or-pin-or-save-icon
-    end
-
-    width = width + 1 -- space after close-or-pin-or-save-icon
+    -- close-or-pin-or-save-icon + the space after + right separator
+    width = width + strwidth(icons_option.button or '') + 1 + strwidth(icons_option.separator.right)
   end
 
   return width or 0
@@ -94,19 +87,11 @@ end
 function Layout.calculate_buffers_width()
   Layout.buffers = Buffer.hide(state.buffers)
 
-  local icons_option = options.icons()
-  local render = {
-    buffer_index = options.index_buffers(icons_option),
-    buffer_number = options.number_buffers(icons_option),
-    diagnostics = options.diagnostics(),
-    file_icon = options.file_icons(icons_option),
-  }
-
   local sum = 0
   local widths = {}
 
   for i, bufnr in ipairs(Layout.buffers) do
-    local width = Layout.calculate_buffer_width(bufnr, i, render)
+    local width = Layout.calculate_buffer_width(bufnr, i)
     sum = sum + width
     table_insert(widths, width)
   end

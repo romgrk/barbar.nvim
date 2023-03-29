@@ -39,13 +39,11 @@ local function pick_buffer_wrap(fn)
 
   state.is_picking_buffer = true
   render.update()
-  command('redrawtabline')
 
   fn()
 
   state.is_picking_buffer = false
   render.update()
-  command('redrawtabline')
 end
 
 --- Shows an error that `bufnr` was not among the `state.buffers`
@@ -96,8 +94,9 @@ end
 --- Close all open buffers, except those in visible windows.
 --- @return nil
 function api.close_all_but_visible()
+  local visible = Buffer.activities.Visible
   for _, buffer_number in ipairs(state.buffers) do
-    if Buffer.get_activity(buffer_number) < 3 then
+    if Buffer.get_activity(buffer_number) < visible then
       bbye.bdelete(false, buffer_number)
     end
   end
@@ -437,7 +436,6 @@ function api.pick_buffer_delete()
       end
 
       render.update()
-      command('redrawtabline')
     end
   end)
 end

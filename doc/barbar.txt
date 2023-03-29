@@ -172,49 +172,120 @@ Here are the groups that you should define if you'd like to style Barbar.
   Enable/disable current/total tabpages indicator (top right corner).
 
                                                           *g:bufferline.icons*
-`g:bufferline.icons`  boolean, string  (default |v:true|)
+`g:bufferline.icons`  table
 
-Controls if icons are rendered on each tab.
+  Controls the icons rendered on each tab. The base options are:
 
-  - If `v:false`, show neither |devicons| nor buffer numbers.
-  - If `v:true`, show |devicons| for each buffer's |'filetype'|.
-  - If `"buffer_numbers"`, show the buffer number for current buffer.
-  - If `"numbers"`, show the buffer index for current buffer.
-  - If `"both"`, show the buffer index and |devicons|.
-  - If `"buffer_number_with_icon"`, show the buffer number for current buffer
-    and |devicons|.
+  buffer_index  (boolean) ~
+  - Default: |v:false|
+  - if `true`, show the index of the buffer with respect to the ordering of
+    the buffers in the tabline.
 
-                                             *g:bufferline.icon_custom_colors*
-`g:bufferline.icon_custom_colors`  boolean, string   (default |v:false|)
+  buffer_number  (boolean) ~
+  - Default: |v:false|
+  - If `true`, show the `bufnr` for the associated buffer.
 
-  Sets the icon's highlight group. If false, will use |devicons|
-  colors. (see |barbar-highlights|)
+  button  (false|string) ~
+  - Default: `''`
+  - The button which is clicked to close / save a buffer, or indicate that it
+    is pinned. Use `false` to disable it.
 
-                                          *g:bufferline.icon_separator_active*
-`g:bufferline.icon_separator_active`  string  (default '▎')
+  diagnostics (table<DiagnosticSeverity, table>) ~
+  - Default: >
+    {
+       [vim.diagnostic.severity.ERROR] = {enabled = false, icon = 'Ⓧ '},
+       [vim.diagnostic.severity.HINT] = {enabled = false, icon = '💡'},
+       [vim.diagnostic.severity.INFO] = {enabled = false, icon = 'ⓘ '},
+       [vim.diagnostic.severity.WARN] = {enabled = false, icon = '⚠️ '},
+    }
+< - Enables or disables showing diagnostics in the bufferline. The options
+    are:
+    - `enabled`, whether this diagnostics of this severity are shown in the
+      bufferline.
+    - `icon`, which controls what icon accompanies the number of diagnostics.
 
-  The separator for active and visible buffers.
 
-                                        *g:bufferline.icon_separator_inactive*
-`g:bufferline.icon_separator_inactive`  string  (default '▎')
+  filetype.custom_colors  (boolean) ~
+  - Default: |v:false|
+  - If present, this color will be used for ALL filetype icons
 
-  The separator for inactive buffers and the `BufferTabpageFill`.
+  filetype.enabled  (boolean) ~
+  - Default: |v:true|
+  - Filetype `true`, show the `devicons` for the associated buffer's `filetype`.
 
-                                                 *g:bufferline.icon_close_tab*
-`g:bufferline.icon_close_tab`  string  (default '')
+  separator  (table) ~
+  - Default: `{'left': '▎', 'right': ''}`
+  - The left-hand separator between buffers in the tabline.
 
-  The button used to close the tab.
+  Example: >
+    " Show the file icon, a left separator, and ERROR/WARN diagnostics
+    let bufferline.icons = {
+      \'buffer_index': v:false,
+      \'buffer_number': v:false,
+      \'button': '',
+      \'diagnostics': [{'enabled': v:true}, {'enabled': v:true}],
+      \'filetype': {'enabled': v:true},
+      \'separator': {'left': '▎'},
+    \}
+<
 
-                                        *g:bufferline.icon_close_tab_modified*
-`g:bufferline.icon_close_tab_modified`  string  (default '●')
+  You can also customize icons of 'modified' and pinned buffers:
 
-  The button used to close the tab when it has been modified since
-  last save.
+  modified (table) ~
+  - Default: `{'button': '●'}`
+  - The icons which should be used for a 'modified' buffer.
+  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+    etc)
 
-                                                    *g:bufferline.icon_pinned*
-`g:bufferline.icon_pinned`                            string (default '車')
+  pinned (table) ~
+  - Default: `{'button': ''}`
+  - The icons which should be used for a pinned buffer.
+  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+    etc)
 
-  The icon used to indicate that a buffer is pinned.
+  Example: >
+    " Change the button only when the buffer is modified or pinned
+    let bufferline.icons = {
+        \'modified': {'button': '●'},
+        \'pinned': {'button': '車'},
+    \}
+<
+
+  Lastly, you can customize icons based on the visibility of a buffer:
+
+  alternate (table) ~
+  - The icons which should be used for the |alternate-file|.
+  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+    etc) as well as `modified` and `pinned`.
+
+  current (table) ~
+  - The icons which should be used for current buffer.
+  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+    etc) as well as `modified` and `pinned`.
+
+  inactive (table) ~
+  - Default: `{'separator': {'left': '▎', 'right': ''}}`
+  - The icons which should be used for |hidden-buffer|s and |inactive-buffer|s.
+  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+    etc) as well as `modified` and `pinned`.
+
+  visible (table) ~
+  - The icons which should be used for |active-buffer|s.
+  - Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
+    etc) as well as `modified` and `pinned`.
+
+  Example: >
+    " Enable file icons for alternate buffers.
+    " Enable buffer indices for current buffers.
+    " Override the button for inactive buffers.
+    " Disable buffer numbers for visible, modified buffers.
+    let bufferline.icons = {
+      \'alternate': {'filetype': {'enabled': v:false}},
+      \'current': {'buffer_index': v:true},
+      \'inactive': {'button': '×'},
+      \'visible': {'modified': {'buffer_number': v:false}},
+    \}
+<
 
                                                 *g:bufferline.insert_at_start*
 `g:bufferline.insert_at_start` boolean  (default |v:false|)
@@ -228,11 +299,6 @@ Controls if icons are rendered on each tab.
 
   If true, new buffers appear at the end of the list. Default is to
   open after the current buffer.
-
-                                                       *g:bufferline.closable*
-`g:bufferline.closable`  boolean  (default |v:true|)
-
-  Controls if close buttons are shown.
 
                                                *g:bufferline.semantic_letters*
 `g:bufferline.semantic_letters`  boolean  (default |v:true|)
@@ -328,27 +394,6 @@ Controls if icons are rendered on each tab.
     let g:bufferline.hide = {'current': v:false, 'inactive': v:true}
 <
 
-                                                    *g:bufferline.diagnostics*
-`g:bufferline.diagnostics`  list
-
-  Default: >
-  {
-    [vim.diagnostic.severity.ERROR] = {enabled = false, icon = 'Ⓧ '},
-    [vim.diagnostic.severity.HINT] = {enabled = false, icon = '💡'},
-    [vim.diagnostic.severity.INFO] = {enabled = false, icon = 'ⓘ '},
-    [vim.diagnostic.severity.WARN] = {enabled = false, icon = '⚠️ '},
-  }
-<
-
-  Enables or disables showing diagnostics in the bufferline. You can use
-  |vim.diagnostic.severity| or a list (e.g.
-  `{{enabled = true}, {enabled = true},` …`}`) in the order of
-  ERROR/WARN/INFO/HINT.
-
-  - `enabled`, whether this diagnostics of this severity are shown in the
-    bufferline.
-  - `icon`, which controls what icon accompanies the number of diagnostics.
-
                                             *g:bufferline.highlight_alternate*
 `g:bufferline.highlight_alternate`  boolean  (default |v:false|)
 
@@ -385,23 +430,40 @@ Controls if icons are rendered on each tab.
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
 
-with filetree plugins
+------------------------------------------------------------------------------
+FILETREE PLUGINS
 
-bind open and close commands to (e.g. nvim-tree):
+To ensure tabs begin with the shown buffer you can set an offset for the
+tabline. Add this |autocmd| to your configuration: >
+    vim.api.nvim_create_autocmd('FileType', {
+      callback = function(tbl)
+        local set_offset = require('bufferline.api').set_offset
 
->
-    local tree = {}
-    tree.open = function ()
-       require'bufferline.api'.set_offset(31, 'FileTree')
-       require'nvim-tree'.find_file(true)
-    end
+        local bufwinid
+        local last_width
+        local autocmd = vim.api.nvim_create_autocmd('WinScrolled', {
+          callback = function()
+            bufwinid = bufwinid or vim.fn.bufwinid(tbl.buf)
 
-    tree.close = function ()
-       require'bufferline.api'.set_offset(0)
-       require'nvim-tree'.close()
-    end
+            local width = vim.api.nvim_win_get_width(bufwinid)
+            if width ~= last_width then
+              set_offset(width, 'FileTree')
+              last_width = width
+            end
+          end,
+        })
 
-    return tree
+        vim.api.nvim_create_autocmd('BufWipeout', {
+          buffer = tbl.buf,
+          callback = function()
+            vim.api.nvim_del_autocmd(autocmd)
+            set_offset(0)
+          end,
+          once = true,
+        })
+      end,
+      pattern = 'NvimTree', -- or any other filetree's `ft`
+    })
 <
 
  vim:tw=78:ts=8:ft=help:norl:

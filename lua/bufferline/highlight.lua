@@ -10,6 +10,7 @@ hl.set_default_link('BufferAlternateERROR', 'BufferDefaultAlternateERROR')
 hl.set_default_link('BufferAlternateHINT', 'BufferDefaultAlternateHINT')
 hl.set_default_link('BufferAlternateIcon', 'BufferDefaultAlternateIcon')
 hl.set_default_link('BufferAlternateIndex', 'BufferDefaultAlternateIndex')
+hl.set_default_link('BufferAlternateNumber', 'BufferDefaultAlternateNumber')
 hl.set_default_link('BufferAlternateINFO', 'BufferDefaultAlternateINFO')
 hl.set_default_link('BufferAlternateMod', 'BufferDefaultAlternateMod')
 hl.set_default_link('BufferAlternateSign', 'BufferDefaultAlternateSign')
@@ -21,6 +22,7 @@ hl.set_default_link('BufferCurrentERROR', 'BufferDefaultCurrentERROR')
 hl.set_default_link('BufferCurrentHINT', 'BufferDefaultCurrentHINT')
 hl.set_default_link('BufferCurrentIcon', 'BufferDefaultCurrentIcon')
 hl.set_default_link('BufferCurrentIndex', 'BufferDefaultCurrentIndex')
+hl.set_default_link('BufferCurrentNumber', 'BufferDefaultCurrentNumber')
 hl.set_default_link('BufferCurrentINFO', 'BufferDefaultCurrentINFO')
 hl.set_default_link('BufferCurrentMod', 'BufferDefaultCurrentMod')
 hl.set_default_link('BufferCurrentSign', 'BufferDefaultCurrentSign')
@@ -32,6 +34,7 @@ hl.set_default_link('BufferInactiveERROR', 'BufferDefaultInactiveERROR')
 hl.set_default_link('BufferInactiveHINT', 'BufferDefaultInactiveHINT')
 hl.set_default_link('BufferInactiveIcon', 'BufferDefaultInactiveIcon')
 hl.set_default_link('BufferInactiveIndex', 'BufferDefaultInactiveIndex')
+hl.set_default_link('BufferInactiveNumber', 'BufferDefaultInactiveNumber')
 hl.set_default_link('BufferInactiveINFO', 'BufferDefaultInactiveINFO')
 hl.set_default_link('BufferInactiveMod', 'BufferDefaultInactiveMod')
 hl.set_default_link('BufferInactiveSign', 'BufferDefaultInactiveSign')
@@ -48,6 +51,7 @@ hl.set_default_link('BufferVisibleERROR', 'BufferDefaultVisibleERROR')
 hl.set_default_link('BufferVisibleHINT', 'BufferDefaultVisibleHINT')
 hl.set_default_link('BufferVisibleIcon', 'BufferDefaultVisibleIcon')
 hl.set_default_link('BufferVisibleIndex', 'BufferDefaultVisibleIndex')
+hl.set_default_link('BufferVisibleNumber', 'BufferDefaultVisibleNumber')
 hl.set_default_link('BufferVisibleINFO', 'BufferDefaultVisibleINFO')
 hl.set_default_link('BufferVisibleMod', 'BufferDefaultVisibleMod')
 hl.set_default_link('BufferVisibleSign', 'BufferDefaultVisibleSign')
@@ -56,10 +60,14 @@ hl.set_default_link('BufferVisibleWARN', 'BufferDefaultVisibleWARN')
 
 -- NOTE: these should move to `setup_defaults` if the definition stops being a link
 hl.set_default_link('BufferDefaultAlternateIcon', 'BufferAlternate')
+hl.set_default_link('BufferDefaultAlternateNumber', 'BufferAlternateIndex')
 hl.set_default_link('BufferDefaultCurrentIcon', 'BufferCurrent')
+hl.set_default_link('BufferDefaultCurrentNumber', 'BufferCurrentIndex')
 hl.set_default_link('BufferDefaultInactiveIcon', 'BufferInactive')
-hl.set_default_link('BufferDefaultVisibleIcon', 'BufferVisible')
+hl.set_default_link('BufferDefaultInactiveNumber', 'BufferInactiveIndex')
 hl.set_default_link('BufferDefaultOffset', 'BufferTabpageFill')
+hl.set_default_link('BufferDefaultVisibleIcon', 'BufferVisible')
+hl.set_default_link('BufferDefaultVisibleNumber', 'BufferVisibleIndex')
 
 --- @class bufferline.highlight
 local highlight = {
@@ -68,7 +76,7 @@ local highlight = {
   setup = function()
     local fg_current = hl.fg_or_default({'Normal'}, '#efefef', 255)
     local fg_inactive = hl.fg_or_default({'TabLineFill'}, '#888888', 102)
-    local fg_target = {gui = 'red'} --- @type barbar.utils.hl.group
+    local fg_target = {gui = 'red'} --- @type barbar.utils.hl.color
     fg_target.cterm = fg_target.gui
 
     local fg_error = hl.fg_or_default({'ErrorMsg'}, '#A80000', 124)
@@ -89,6 +97,7 @@ local highlight = {
     --     Inactive: invisible but not current buffer
     --        -Icon: filetype icon
     --       -Index: buffer index
+    --      -Number: buffer numebr
     --         -Mod: when modified
     --        -Sign: the separator between buffers
     --      -Target: letter in buffer-picking mode
@@ -103,7 +112,7 @@ local highlight = {
       hl.set('BufferDefaultAlternateINFO',    bg_alternate, fg_info)
       hl.set('BufferDefaultAlternateMod',     bg_alternate, fg_modified)
       hl.set('BufferDefaultAlternateSign',    bg_alternate, fg_special)
-      hl.set('BufferDefaultAlternateTarget',  bg_alternate, fg_target, true)
+      hl.set('BufferDefaultAlternateTarget',  bg_alternate, fg_target, nil, {bold = true})
       hl.set('BufferDefaultAlternateWARN',    bg_alternate, fg_warn)
     end
 
@@ -114,7 +123,7 @@ local highlight = {
     hl.set('BufferDefaultCurrentINFO',    bg_current, fg_info)
     hl.set('BufferDefaultCurrentMod',     bg_current, fg_modified)
     hl.set('BufferDefaultCurrentSign',    bg_current, fg_special)
-    hl.set('BufferDefaultCurrentTarget',  bg_current, fg_target, true)
+    hl.set('BufferDefaultCurrentTarget',  bg_current, fg_target, nil, {bold = true})
     hl.set('BufferDefaultCurrentWARN',    bg_current, fg_warn)
 
     hl.set('BufferDefaultInactive',       bg_inactive, fg_inactive)
@@ -124,11 +133,11 @@ local highlight = {
     hl.set('BufferDefaultInactiveINFO',   bg_inactive, fg_info)
     hl.set('BufferDefaultInactiveMod',    bg_inactive, fg_modified)
     hl.set('BufferDefaultInactiveSign',   bg_inactive, fg_subtle)
-    hl.set('BufferDefaultInactiveTarget', bg_inactive, fg_target, true)
+    hl.set('BufferDefaultInactiveTarget', bg_inactive, fg_target, nil, {bold = true})
     hl.set('BufferDefaultInactiveWARN',   bg_inactive, fg_warn)
 
     hl.set('BufferDefaultTabpageFill',    bg_inactive, fg_inactive)
-    hl.set('BufferDefaultTabpages',       bg_inactive, fg_special, true)
+    hl.set('BufferDefaultTabpages',       bg_inactive, fg_special, nil, {bold = true})
 
     if options.highlight_visible() then
       local fg_visible = hl.fg_or_default({'TabLineSel'}, '#efefef', 255)
@@ -141,7 +150,7 @@ local highlight = {
       hl.set('BufferDefaultVisibleINFO',    bg_visible, fg_info)
       hl.set('BufferDefaultVisibleMod',     bg_visible, fg_modified)
       hl.set('BufferDefaultVisibleSign',    bg_visible, fg_visible)
-      hl.set('BufferDefaultVisibleTarget',  bg_visible, fg_target, true)
+      hl.set('BufferDefaultVisibleTarget',  bg_visible, fg_target, nil, {bold = true})
       hl.set('BufferDefaultVisibleWARN',    bg_visible, fg_warn)
     end
 

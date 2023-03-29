@@ -5,42 +5,29 @@
 
 local max = math.max
 local min = math.min
-local table_concat = table.concat
 local table_insert = table.insert
 
-local buf_call = vim.api.nvim_buf_call --- @type function
-local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
-local buf_set_var = vim.api.nvim_buf_set_var --- @type function
 local command = vim.api.nvim_command --- @type function
-local create_augroup = vim.api.nvim_create_augroup --- @type function
-local create_autocmd = vim.api.nvim_create_autocmd --- @type function
 local defer_fn = vim.defer_fn
-local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
 local has = vim.fn.has --- @type function
 local list_tabpages = vim.api.nvim_list_tabpages --- @type function
 local list_wins = vim.api.nvim_list_wins --- @type function
-local schedule = vim.schedule --- @type function
-local schedule_wrap = vim.schedule_wrap
-local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local set_current_win = vim.api.nvim_set_current_win --- @type function
 local set_option = vim.api.nvim_set_option --- @type function
-local severity = vim.diagnostic.severity --- @type function
+local severity = vim.diagnostic.severity
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
-local tabpage_list_wins = vim.api.nvim_tabpage_list_wins --- @type function
 local tabpagenr = vim.fn.tabpagenr --- @type function
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 
 local animate = require'bufferline.animate'
-local bbye = require'bufferline.bbye'
 local Buffer = require'bufferline.buffer'
-local highlight = require'bufferline.highlight'
 local icons = require'bufferline.icons'
 local JumpMode = require'bufferline.jump_mode'
 local Layout = require'bufferline.layout'
@@ -48,44 +35,9 @@ local options = require'bufferline.options'
 local state = require'bufferline.state'
 local utils = require'bufferline.utils'
 
---- The highlight to use based on the state of a buffer.
-local HL_BY_ACTIVITY = {'Inactive', 'Alternate', 'Visible', 'Current'}
-
 --- Last value for tabline
---- @type nil|string
-local last_tabline
-
---- Create and reset autocommand groups associated with this plugin.
---- @return integer bufferline, integer bufferline_update
-local function create_augroups()
-  return create_augroup('bufferline', {}), create_augroup('bufferline_update', {})
-end
-
---- Create valid `&tabline` syntax which highlights the next item in the tabline with the highlight `group` specified.
---- @param group string
---- @return string syntax
-local function hl_tabline(group)
-  return '%#' .. group .. '#'
-end
-
---- @class bufferline.render.animation
---- @field CLOSE_DURATION integer
---- @field OPEN {DURATION: integer, DELAY: integer}
---- @field SCROLL_DURATION integer
-local ANIMATION = {
-  CLOSE_DURATION = 150,
-  OPEN = {DELAY = 50, DURATION = 150},
-  SCROLL_DURATION = 200,
-}
-
---- @class bufferline.render.group
---- @field hl string the highlight group to use
---- @field text string the content being rendered
-
---- @class bufferline.render.scroll
---- @field current integer the place where the bufferline is currently scrolled to
---- @field target integer the place where the bufferline is scrolled/wants to scroll to.
-local scroll = {current = 0, target = 0}
+--- @type string
+local last_tabline = ''
 
 --- Concatenates some `groups` into a valid string.
 --- @param groups bufferline.render.group[]
@@ -180,6 +132,13 @@ local function groups_insert(groups, position, others)
   return new_groups
 end
 
+--- Create valid `&tabline` syntax which highlights the next item in the tabline with the highlight `group` specified.
+--- @param group string
+--- @return string syntax
+local function hl_tabline(group)
+  return '%#' .. group .. '#'
+end
+
 --- Select from `groups` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
 --- @param groups bufferline.render.group[]
 --- @param width integer
@@ -215,7 +174,7 @@ local function slice_groups_left(groups, width)
 
   local new_groups = {}
 
-  for _, group in ipairs(utils.reverse(groups)) do
+  for _, group in ipairs(utils.list_reverse(groups)) do
     local text_width = strwidth(group.text)
     accumulated_width = accumulated_width + text_width
 
@@ -233,13 +192,24 @@ local function slice_groups_left(groups, width)
   return new_groups
 end
 
---- Clears the tabline. Does not stop the tabline from being redrawn via autocmd.
---- @param tabline? string
---- @return nil
-local function set_tabline(tabline)
-  last_tabline = tabline
-  set_option('tabline', tabline or '')
-end
+--- @class bufferline.render.animation
+--- @field CLOSE_DURATION integer
+--- @field OPEN {DURATION: integer, DELAY: integer}
+--- @field SCROLL_DURATION integer
+local ANIMATION = {
+  CLOSE_DURATION = 150,
+  OPEN = {DELAY = 50, DURATION = 150},
+  SCROLL_DURATION = 200,
+}
+
+--- @class bufferline.render.group
+--- @field hl string the highlight group to use
+--- @field text string the content being rendered
+
+--- @class bufferline.render.scroll
+--- @field current integer the place where the bufferline is currently scrolled to
+--- @field target integer the place where the bufferline is scrolled/wants to scroll to.
+local scroll = {current = 0, target = 0}
 
 --- @class bufferline.render
 local render = {}
@@ -252,8 +222,7 @@ local function close_buffer_animated_tick(bufnr, new_width, animation)
   if new_width > 0 and state.data_by_bufnr[bufnr] ~= nil then
     local buffer_data = state.get_buffer_data(bufnr)
     buffer_data.width = new_width
-    render.update()
-    return
+    return render.update()
   end
   animate.stop(animation)
   render.close_buffer(bufnr, true)
@@ -278,7 +247,7 @@ function render.close_buffer_animated(bufnr)
   end
 
   local buffer_data = state.get_buffer_data(bufnr)
-  local current_width = buffer_data.real_width
+  local current_width = buffer_data.real_width or 0
 
   buffer_data.closing = true
   buffer_data.width = current_width
@@ -288,30 +257,6 @@ function render.close_buffer_animated(bufnr)
     function(new_width, m)
       close_buffer_animated_tick(bufnr, new_width, m)
     end)
-end
-
---- What to do when clicking a buffer close button.
---- @param buffer integer
---- @return nil
-function render.close_click_handler(buffer)
-  if buf_get_option(buffer, 'modified') then
-    buf_call(buffer, function() command('w') end)
-    exec_autocmds('BufModifiedSet', {buffer = buffer})
-  else
-    bbye.bdelete(false, buffer)
-  end
-end
-
---- Disable the bufferline
---- @return nil
-function render.disable()
-  create_augroups()
-  set_tabline(nil)
-  vim.cmd [[
-    delfunction! BufferlineCloseClickHandler
-    delfunction! BufferlineMainClickHandler
-    delfunction! BufferlineOnOptionChanged
-  ]]
 end
 
 --- The incremental animation for `open_buffer_start_animation`.
@@ -332,20 +277,14 @@ end
 --- @return nil
 local function open_buffer_start_animation(layout, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
-  local icons_option = options.icons()
   local index = utils.index_of(Layout.buffers, bufnr)
 
   buffer_data.real_width = Layout.calculate_width(
-    layout.base_widths[index] or Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1, {
-      buffer_index = options.index_buffers(icons_option),
-      buffer_number = options.number_buffers(icons_option),
-      diagnostics = options.diagnostics(),
-      file_icon = options.file_icons(icons_option)
-    }),
+    layout.base_widths[index] or Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1),
     layout.padding_width
   )
 
-  local target_width = buffer_data.real_width
+  local target_width = buffer_data.real_width or 0
 
   buffer_data.width = 1
 
@@ -421,155 +360,6 @@ local function open_buffers(new_buffers)
   end
 end
 
---- Enable the bufferline.
---- @return nil
-function render.enable()
-  local augroup_bufferline, augroup_bufferline_update = create_augroups()
-
-  create_autocmd({'BufNewFile', 'BufReadPost'}, {
-    callback = function(tbl) JumpMode.assign_next_letter(tbl.buf) end,
-    group = augroup_bufferline,
-  })
-
-  create_autocmd({'BufDelete', 'BufWipeout'}, {
-    callback = function(tbl) JumpMode.unassign_letter_for(tbl.buf) end,
-    group = augroup_bufferline,
-  })
-
-  create_autocmd('ColorScheme', {callback = highlight.setup, group = augroup_bufferline})
-
-  create_autocmd('BufModifiedSet', {
-    callback = function(tbl)
-      local is_modified = buf_get_option(tbl.buf, 'modified')
-      if is_modified ~= vim.b[tbl.buf].checked then
-        buf_set_var(tbl.buf, 'checked', is_modified)
-        render.update()
-      end
-    end,
-    group = augroup_bufferline,
-  })
-
-  create_autocmd({'BufEnter', 'BufNew'}, {
-    callback = function() render.update(true) end,
-    group = augroup_bufferline_update,
-  })
-
-  create_autocmd(
-    {
-      'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost',
-      'DiagnosticChanged',
-      'TabEnter',
-      'VimResized',
-      'WinEnter', 'WinLeave',
-    },
-    {
-      callback = function() render.update() end,
-      group = augroup_bufferline_update,
-    }
-  )
-
-  create_autocmd('OptionSet', {
-    callback = function() render.update() end,
-    group = augroup_bufferline_update,
-    pattern = 'buflisted',
-  })
-
-  create_autocmd('SessionLoadPost', {
-    callback = function()
-      if state.loading_session then
-        return
-      end
-
-      local restore_cmd = vim.g.Bufferline__session_restore
-      if restore_cmd then command(restore_cmd) end
-
-      -- TODO: I'm not sure if these two statements can be merged, but it's working now so I don't want to touch it.
-      vim.defer_fn(function() state.loading_session = false end, 100)
-      schedule(function() render.update(true) end)
-    end,
-    group = augroup_bufferline_update,
-  })
-
-  create_autocmd('TermOpen', {
-    callback = function() defer_fn(function() render.update(true) end, 500) end,
-    group = augroup_bufferline_update,
-  })
-
-  create_autocmd('User', {
-    callback = function()
-      -- We're allowed to use relative paths for buffers iff there are no tabpages
-      -- or windows with a local directory (:tcd and :lcd)
-      local use_relative_file_paths = true
-
-      -- PERF: I didn't import `haslocaldir` since it is only used her, (just before calling `:mksession` and exiting vim)
-      local haslocaldir = vim.fn.haslocaldir
-
-      for tabnr, tabpage in ipairs(list_tabpages()) do
-        if not use_relative_file_paths or haslocaldir(-1, tabnr) == 1 then
-          use_relative_file_paths = false
-          break
-        end
-
-        for _, win in ipairs(tabpage_list_wins(tabpage)) do
-          if haslocaldir(win, tabnr) == 1 then
-            use_relative_file_paths = false
-            break
-          end
-        end
-      end
-
-      local bufnames = {}
-      for _, bufnr in ipairs(state.buffers) do
-        local name = buf_get_name(bufnr)
-        if use_relative_file_paths then
-          name = utils.relative(name)
-        end
-
-        -- escape quotes
-        name = name:gsub('"', '\\"')
-
-        table_insert(bufnames, '{' ..
-          'name = "' .. name .. '",' ..
-          'pinned = ' .. tostring(state.data_by_bufnr[bufnr].pinned == true) .. ',' ..
-        '}')
-      end
-
-      vim.g.Bufferline__session_restore = "lua require'bufferline.state'.restore_buffers {" ..
-        table_concat(bufnames, ',') ..
-      "}"
-    end,
-    group = augroup_bufferline,
-    pattern = 'SessionSavePre',
-  })
-
-  create_autocmd('WinClosed', {
-    callback = schedule_wrap(render.update),
-    group = augroup_bufferline_update,
-  })
-
-  vim.cmd [[
-    " Must be global -_-
-    function! BufferlineCloseClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline.render'.close_click_handler(_A)", a:minwid)
-    endfunction
-
-    " Must be global -_-
-    function! BufferlineMainClickHandler(minwid, clicks, btn, modifiers) abort
-      call luaeval("require'bufferline.render'.main_click_handler(_A[1], nil, _A[2])", [a:minwid, a:btn])
-    endfunction
-
-    " Must be global -_-
-    function! BufferlineOnOptionChanged(dict, key, changes) abort
-      call luaeval("require'bufferline.render'.on_option_changed(nil, _A)", a:key)
-    endfunction
-
-    call dictwatcheradd(g:bufferline, '*', 'BufferlineOnOptionChanged')
-  ]]
-
-  render.update()
-  command('redrawtabline')
-end
-
 --- Refresh the buffer list.
 --- @return integer[] state.buffers
 function render.get_updated_buffers(update_names)
@@ -612,33 +402,6 @@ function render.get_updated_buffers(update_names)
   end
 
   return state.buffers
-end
-
---- What to do when clicking a buffer label.
---- @param bufnr integer the buffer nummber
---- @param btn string
---- @return nil
-function render.main_click_handler(bufnr, _, btn, _)
-  if bufnr == 0 then
-    return
-  end
-
-  -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
-  if btn == 'm' then
-    bbye.bdelete(false, bufnr)
-  else
-    render.set_current_win_listed_buffer()
-    set_current_buf(bufnr)
-  end
-end
-
---- What to do when `vim.g.bufferline` is changed.
---- @param key string what option was changed.
---- @return nil
-function render.on_option_changed(_, key, _)
-  if vim.g.bufferline and key == 'letters' then
-    JumpMode.set_letters(options.letters())
-  end
 end
 
 --- @deprecated use `state.restore_buffers` instead
@@ -699,7 +462,7 @@ function render.set_scroll(target)
 
   if not options.animation() then
     scroll.current = target
-    return
+    return render.update(nil, false)
   end
 
   if scroll_animation ~= nil then
@@ -709,6 +472,18 @@ function render.set_scroll(target)
   scroll_animation = animate.start(
     ANIMATION.SCROLL_DURATION, scroll.current, target, vim.v.t_number,
     set_scroll_tick)
+end
+
+--- Sets and redraws `'tabline'` if `s` does not match the cached value.
+--- @param s? string
+--- @return nil
+function render.set_tabline(s)
+  s = s or ''
+  if last_tabline ~= s then
+    last_tabline = s
+    set_option('tabline', s)
+    command('redrawtabline')
+  end
 end
 
 --- Generate the `&tabline` representing the current state of Neovim.
@@ -740,142 +515,125 @@ local function generate_tabline(bufnrs, refocus)
     end
   end
 
-  local click_enabled = has('tablineat') and options.clickable()
-  local diagnostics = options.diagnostics()
-  local has_close = options.closable()
-  local has_icon_custom_colors = options.icon_custom_colors()
-
-  local icons_option = options.icons()
-  local has_file_icons = options.file_icons(icons_option)
-  local has_buffer_index = options.index_buffers(icons_option)
-  local has_buffer_number = options.number_buffers(icons_option)
-
   local layout = Layout.calculate()
+  local max_scroll = max(layout.actual_width - layout.buffers_width, 0)
 
-  local items = {}
+  local click_enabled = has('tablineat') and options.clickable()
+  local inactive_separator = options.icons().inactive.separator.left
 
   local current_buffer_index = nil
   local current_buffer_position = 0
+  local items = {}
 
   for i, bufnr in ipairs(bufnrs) do
+    local activity = Buffer.activities[Buffer.get_activity(bufnr)]
+
     local buffer_data = state.get_buffer_data(bufnr)
+    local buffer_hl = hl_tabline('Buffer' .. activity .. (
+      buf_get_option(bufnr, 'modified') and 'Mod' or ''
+    ))
     local buffer_name = buffer_data.name or '[no name]'
 
     buffer_data.real_width    = Layout.calculate_width(layout.base_widths[i], layout.padding_width)
     buffer_data.real_position = current_buffer_position
 
-    local activity = Buffer.get_activity(bufnr)
-    local is_inactive = activity == 1
-    local is_current = activity == 4
-    local is_modified = buf_get_option(bufnr, 'modified')
-    -- local is_closing = buffer_data.closing
-    local is_pinned = state.is_pinned(bufnr)
+    local icons_option = state.icons(bufnr, activity)
 
-    local status = HL_BY_ACTIVITY[activity]
-    local mod = is_modified and 'Mod' or ''
+    --- Prefix this value to allow an element to be clicked
+    local clickable = click_enabled and ('%' .. bufnr .. '@bufferline#events#main_click_handler@') or ''
 
-    local separatorPrefix = hl_tabline('Buffer' .. status .. 'Sign')
-    local separator = is_inactive and
-      options.icon_separator_inactive() or
-      options.icon_separator_active()
+    --- The name of the buffer
+    --- @type bufferline.render.group
+    local name = {hl = clickable .. buffer_hl, text = buffer_name}
 
-    local namePrefix = hl_tabline('Buffer' .. status .. mod)
-    local name = buffer_name
-
-    -- The buffer name
-    local bufferIndexPrefix = ''
-    local bufferIndex = ''
-
-    -- The jump letter
-    local jumpLetterPrefix = ''
-    local jumpLetter = ''
-
-    -- The devicon
-    local iconPrefix = ''
-    local icon = ''
-
-    if has_buffer_number or has_buffer_index then
-      local number_text = has_buffer_number and tostring(bufnr) or tostring(i)
-
-      bufferIndexPrefix = hl_tabline('Buffer' .. status .. 'Index')
-      bufferIndex = number_text .. ' '
+    --- The buffer index
+    --- @type bufferline.render.group
+    local buffer_index = {hl = '', text = ''}
+    if icons_option.buffer_index then
+      buffer_index.hl = hl_tabline('Buffer' .. activity .. 'Index')
+      buffer_index.text = tostring(i) .. ' '
     end
+
+    --- The buffer number
+    --- @type bufferline.render.group
+    local buffer_number = {hl = '', text = ''}
+    if icons_option.buffer_number then
+      buffer_number.hl = hl_tabline('Buffer' .. activity .. 'Number')
+      buffer_number.text = tostring(bufnr) .. ' '
+    end
+
+    local button = icons_option.button or ''
+
+    --- The close icon
+    --- @type bufferline.render.group
+    local close = {hl = buffer_hl, text = button .. ' '}
+    if click_enabled and #button > 0 then
+      close.hl = '%' .. bufnr .. '@bufferline#events#close_click_handler@' .. close.hl
+    end
+
+    --- The jump letter
+    --- @type bufferline.render.group
+    local jump_letter = {hl = '', text = ''}
+
+    --- The devicon
+    --- @type bufferline.render.group
+    local icon = {hl = clickable, text = ''}
 
     if state.is_picking_buffer then
       local letter = JumpMode.get_letter(bufnr)
 
       -- Replace first character of buf name with jump letter
-      if letter and not has_file_icons then
-        name = strcharpart(name, 1)
+      if letter and not icons_option.filetype.enabled then
+        name.text = strcharpart(name.text, 1)
       end
 
-      jumpLetterPrefix = hl_tabline('Buffer' .. status .. 'Target')
-      jumpLetter = (letter or '') ..
-        (has_file_icons and (' ' .. (letter and '' or ' ')) or '')
-    else
+      jump_letter.hl = hl_tabline('Buffer' .. activity .. 'Target')
+      jump_letter.text = (letter or '') ..
+        (icons_option.filetype.enabled and (' ' .. (letter and '' or ' ')) or '')
+    elseif icons_option.filetype.enabled then
+      local iconChar, iconHl = icons.get_icon(bufnr, activity)
+      local hlName = (activity == 'Inactive' and not options.highlight_inactive_file_icons())
+        and 'BufferInactive'
+        or iconHl
 
-      if has_file_icons then
-        local iconChar, iconHl = icons.get_icon(bufnr, status)
-        local hlName = is_inactive and not options.highlight_inactive_file_icons() and 'BufferInactive' or iconHl
-        iconPrefix = has_icon_custom_colors and hl_tabline('Buffer' .. status .. 'Icon') or (hlName and hl_tabline(hlName) or namePrefix)
-        icon = iconChar .. ' '
-      end
+      icon.hl = icons_option.filetype.custom_color and
+        hl_tabline('Buffer' .. activity .. 'Icon') or
+        (hlName and hl_tabline(hlName) or buffer_hl)
+      icon.text = iconChar .. ' '
     end
 
-    local closePrefix = ''
-    local close = ' '
-    if has_close or is_pinned then
-      local closeIcon =
-        is_pinned and
-          options.icon_pinned() or
-        (not is_modified and
-          options.icon_close_tab() or
-          options.icon_close_tab_modified())
+    --- The padding
+    --- @type bufferline.render.group
+    local padding = {hl = '', text = (' '):rep(layout.padding_width)}
 
-      closePrefix = namePrefix
-      close = closeIcon .. close
-
-      if click_enabled then
-        closePrefix =
-            '%' .. bufnr .. '@BufferlineCloseClickHandler@' .. closePrefix
-      end
-    end
-
-    local clickable = ''
-    if click_enabled then
-      clickable = '%' .. bufnr .. '@BufferlineMainClickHandler@'
-    end
-
-    local padding = (' '):rep(layout.padding_width)
+    --- The separator
+    --- @type bufferline.render.group
+    local left_separator = {
+      hl = clickable .. hl_tabline('Buffer' .. activity .. 'Sign'),
+      text = icons_option.separator.left,
+    }
 
     local item = {
+      groups = {left_separator, padding, buffer_index, buffer_number, icon, jump_letter, name},
+      position = buffer_data.position or buffer_data.real_position,
       width = buffer_data.width
         -- <padding> <base_widths[i]> <padding>
         or layout.base_widths[i] + (2 * layout.padding_width),
-      position = buffer_data.position or buffer_data.real_position,
-      groups = {
-        {hl = clickable .. separatorPrefix, text = separator},
-        {hl = '',                           text = padding},
-        {hl = bufferIndexPrefix,            text = bufferIndex},
-        {hl = clickable .. iconPrefix,      text = icon},
-        {hl = jumpLetterPrefix,             text = jumpLetter},
-        {hl = clickable .. namePrefix,      text = name},
-      }
     }
 
-    Buffer.for_each_counted_enabled_diagnostic(bufnr, diagnostics, function(c, d, s)
+    Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(c, d, s)
       table_insert(item.groups, {
-        hl = hl_tabline('Buffer' .. status .. severity[s]),
+        hl = hl_tabline('Buffer' .. activity .. severity[s]),
         text = ' ' .. d.icon .. c,
       })
     end)
 
-    vim.list_extend(item.groups, {
-      {hl = '',          text = padding},
-      {hl = closePrefix, text = close},
-    })
+    --- @type bufferline.render.group
+    local right_separator = {hl = left_separator.hl, text = icons_option.separator.right}
 
-    if is_current and refocus ~= false then
+    vim.list_extend(item.groups, {padding, close, right_separator})
+
+    if activity == 'Current' and refocus ~= false then
       current_buffer_index = i
       current_buffer_position = buffer_data.real_position
 
@@ -889,8 +647,22 @@ local function generate_tabline(bufnrs, refocus)
       end
     end
 
-    table_insert(items, item)
     current_buffer_position = current_buffer_position + item.width
+
+    local scroll_current = min(scroll.current, max_scroll)
+    if current_buffer_position < scroll_current  then
+      goto continue -- HACK: there is no `continue` keyword
+    end
+
+    table_insert(items, item)
+
+    if (refocus == false or (refocus ~= false and current_buffer_index ~= nil)) and
+      current_buffer_position - scroll_current > layout.buffers_width
+    then
+      break
+    end
+
+    ::continue::
   end
 
   -- Create actual tabline string
@@ -898,64 +670,56 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Add offset filler & text (for filetree/sidebar plugins)
   if state.offset.width > 0 then
+    --- @type bufferline.render.group
+    local offset = {hl = hl_tabline(state.offset.hl or 'BufferOffset'), text = ' ' .. state.offset.text}
     local offset_available_width = state.offset.width - 2
-    local groups = {{
-      hl = hl_tabline(state.offset.hl or 'BufferOffset'),
-      text = ' ' .. state.offset.text,
-    }}
 
-    result = result .. groups_to_string(slice_groups_right(groups, offset_available_width))
-    result = result .. (' '):rep(offset_available_width - #state.offset.text)
-    result = result .. ' '
+    result = result ..
+      groups_to_string(slice_groups_right({offset}, offset_available_width)) ..
+      (' '):rep(offset_available_width - #state.offset.text + 1)
   end
 
-  -- Add bufferline
+  --- The highlight of the buffer tabpage fill
+  local hl_buffer_tabpage_fill = hl_tabline('BufferTabpageFill')
+
+  --- Add bufferline
+  --- @type bufferline.render.group[]
   local bufferline_groups = {{
-    hl = hl_tabline('BufferTabpageFill'),
+    hl = hl_buffer_tabpage_fill,
     text = (' '):rep(layout.actual_width),
   }}
 
-  for i, item in ipairs(items) do
-    if i ~= current_buffer_index then
-      bufferline_groups = groups_insert(bufferline_groups, item.position, item.groups)
-    end
-  end
-  if current_buffer_index ~= nil then
-    local item = items[current_buffer_index]
+  for _, item in ipairs(items) do
     bufferline_groups = groups_insert(bufferline_groups, item.position, item.groups)
   end
 
   -- Crop to scroll region
-  local max_scroll = max(layout.actual_width - layout.buffers_width, 0)
+
   local scroll_current = min(scroll.current, max_scroll)
   local buffers_end = layout.actual_width - scroll_current
 
   if buffers_end > layout.buffers_width then
     bufferline_groups = slice_groups_right(bufferline_groups, scroll_current + layout.buffers_width)
   end
+
   if scroll_current > 0 then
     bufferline_groups = slice_groups_left(bufferline_groups, layout.buffers_width)
   end
 
-  -- Render bufferline string
-  result = result .. groups_to_string(bufferline_groups)
+  result = result ..
+    groups_to_string(bufferline_groups) .. -- Render bufferline string
+    '%0@bufferline#events#main_click_handler@' .. -- prevent the expansion of the last click group
+    hl_buffer_tabpage_fill
 
-  -- To prevent the expansion of the last click group
-  result = result .. '%0@BufferlineMainClickHandler@' .. hl_tabline('BufferTabpageFill')
-
-  if layout.actual_width + strwidth(options.icon_separator_inactive()) <= layout.buffers_width and #items > 0 then
-    result = result .. options.icon_separator_inactive()
+  if layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width and #items > 0 then
+    result = result .. inactive_separator
   end
 
-  local current_tabpage = tabpagenr()
-  local total_tabpages  = tabpagenr('$')
   if layout.tabpages_width > 0 then
-    result = result .. '%=%#BufferTabpages# ' .. tostring(current_tabpage) .. '/' .. tostring(total_tabpages) .. ' '
+    result = result .. '%=%#BufferTabpages# ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' '
   end
 
-  result = result .. hl_tabline('BufferTabpageFill')
-
-  return result
+  return result .. hl_buffer_tabpage_fill
 end
 
 --- Update `&tabline`
@@ -975,18 +739,15 @@ function render.update(update_names, refocus)
   )
 
   if not ok then
-    render.disable()
+    command('BarbarDisable')
     utils.notify(
       "Barbar detected an error while running. Barbar disabled itself :/ " ..
         "Include this in your report: " ..
         tostring(result),
       vim.log.levels.ERROR
     )
-
-    return
-  elseif result ~= last_tabline then
-    set_tabline(result)
-    command('redrawtabline')
+  else
+    render.set_tabline(result)
   end
 end
 
