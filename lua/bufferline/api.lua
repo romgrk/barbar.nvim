@@ -9,7 +9,6 @@ local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local bufnr = vim.fn.bufnr --- @type function
 local bufwinnr = vim.fn.bufwinnr --- @type function
-local command = vim.api.nvim_command --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local getchar = vim.fn.getchar --- @type function
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
@@ -20,9 +19,9 @@ local normalize = vim.fs and vim.fs.normalize
 local animate = require'bufferline.animate'
 local bbye = require'bufferline.bbye'
 local Buffer = require'bufferline.buffer'
+local config = require'bufferline.config'
 local JumpMode = require'bufferline.jump_mode'
 local Layout = require'bufferline.layout'
-local options = require'bufferline.options'
 local render = require'bufferline.render'
 local state = require'bufferline.state'
 local utils = require'bufferline.utils'
@@ -252,7 +251,7 @@ local function move_buffer(from_idx, to_idx)
     return
   end
 
-  local animation = options.animation()
+  local animation = config.options.animation
   local buffer_number = state.buffers[from_idx]
 
   local previous_positions

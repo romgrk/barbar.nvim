@@ -25,12 +25,6 @@ local bufferline = {}
 --- @param user_config? table
 --- @return nil
 function bufferline.setup(user_config)
-  if type(user_config) ~= "table" then
-    user_config = vim.empty_dict()
-  else
-    user_config[vim.type_idx] = vim.types.dictionary
-  end
-
   -- Create all necessary commands
   create_user_command('BarbarEnable', events.enable, {desc = 'Enable barbar.nvim'})
   create_user_command('BarbarDisable', events.disable, {desc = 'Disable barbar.nvim'})
@@ -199,9 +193,8 @@ function bufferline.setup(user_config)
   )
 
   -- Setup barbar
-  events.enable()
   events.on_option_changed(user_config)
-  vim.api.nvim_set_var('bufferline', user_config)
+  events.enable()
 
   -- Show the tabline
   set_option('showtabline', 2)

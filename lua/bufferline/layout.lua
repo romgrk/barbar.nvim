@@ -13,8 +13,8 @@ local strwidth = vim.api.nvim_strwidth --- @type function
 local tabpagenr = vim.fn.tabpagenr --- @type function
 
 local Buffer = require'bufferline.buffer'
+local config = require'bufferline.config'
 local icons = require'bufferline.icons'
-local options = require'bufferline.options'
 local state = require'bufferline.state'
 
 --- The number of sides of each buffer in the tabline.
@@ -38,7 +38,7 @@ local Layout = {buffers = {}}
 function Layout.calculate_tabpages_width()
   local current = tabpagenr()
   local total   = tabpagenr('$')
-  if not options.tabpages() or total == 1 then
+  if not config.options.tabpages or total == 1 then
     return 0
   end
   return 1 + tostring(current):len() + 1 + tostring(total):len() + 1
@@ -110,13 +110,13 @@ function Layout.calculate()
 
   local buffers_width = available_width - tabpages_width
 
-  local remaining_width              = max(buffers_width - used_width, 0)
-  local remaining_width_per_buffer   = floor(remaining_width / #base_widths)
+  local remaining_width = max(buffers_width - used_width, 0)
+  local remaining_width_per_buffer = floor(remaining_width / #base_widths)
   -- PERF: faster than `floor(remaining_width_per_buffer / SIDES_OF_BUFFER)`.
   --       if `SIDES_OF_BUFFER` changes, this will have to go back to `floor`.
   local remaining_padding_per_buffer = rshift(remaining_width_per_buffer, 1)
-  local padding_width                = max(options.minimum_padding(), min(remaining_padding_per_buffer, options.maximum_padding()))
-  local actual_width                 = used_width + (#base_widths * padding_width * SIDES_OF_BUFFER)
+  local padding_width = max(config.options.minimum_padding, min(remaining_padding_per_buffer, config.options.maximum_padding))
+  local actual_width = used_width + (#base_widths * padding_width * SIDES_OF_BUFFER)
 
   return {
     actual_width = actual_width,

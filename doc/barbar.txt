@@ -379,9 +379,9 @@ minimum_padding ~
 
                                                   *barbar-setup.no_name_title*
 no_name_title ~
-  `string`  (default: empty)
-  Sets the name of unnamed buffers. By default format is "[Buffer X]"
-  where X is the buffer number. But only a static string is accepted here.
+  `string`  (default: `nil`)
+  Sets the name of unnamed buffers. By default format is `'[Buffer X]'`
+  where `X` is the buffer number. But only a static string is accepted here.
 
                                                *barbar-setup.semantic_letters*
 semantic_letters ~

@@ -8,6 +8,7 @@ local table_remove = table.remove
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local bufadd = vim.fn.bufadd --- @type function
+local deepcopy = vim.deepcopy
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local list_bufs = vim.api.nvim_list_bufs --- @type function
 local list_extend = vim.list_extend
@@ -15,12 +16,12 @@ local severity = vim.diagnostic.severity --- @type {[integer]: string, [string]:
 local tbl_filter = vim.tbl_filter
 
 local Buffer = require'bufferline.buffer'
-local options = require'bufferline.options'
+local config = require'bufferline.config'
 local utils = require'bufferline.utils'
 
 --- Set `higher` to have higher priority than `lower` when resolving the `icons` option.
---- @param higher? bufferline.options.icons.buffer
---- @param lower bufferline.options.icons.buffer
+--- @param higher? bufferline.config.options.icons.buffer
+--- @param lower bufferline.config.options.icons.buffer
 --- @return table bufferline.options.icons.buffer corresponding to the `tbl` parameter
 local function icons_option_prioritize(higher, lower)
   if higher and lower then -- set the sub-table fallbacks
@@ -109,9 +110,9 @@ end
 function state.get_buffer_list()
   local result = {}
 
-  local exclude_ft = options.exclude_ft()
-  local exclude_name = options.exclude_name()
-  local hide_extensions = options.hide().extensions
+  local exclude_ft = config.options.exclude_ft
+  local exclude_name = config.options.exclude_name
+  local hide_extensions = config.options.hide.extensions
 
   for _, bufnr in ipairs(list_bufs()) do
     if buf_get_option(bufnr, 'buflisted') and
@@ -186,7 +187,7 @@ end
 --- @return nil
 function state.update_names()
   local buffer_index_by_name = {}
-  local hide_extensions = options.hide().extensions
+  local hide_extensions = config.options.hide.extensions
 
   -- Compute names
   for i, buffer_n in ipairs(state.buffers) do
@@ -261,15 +262,15 @@ end
 --- The `icons` for a particular activity.
 --- @param activity bufferline.buffer.activity.name
 --- @see bufferline.options.icons
---- @return bufferline.options.icons.buffer
+--- @return bufferline.config.options.icons.buffer
 function state.icons(bufnr, activity)
   local activity_lower = activity:lower()
-  local icons = options.icons()
+  local icons = deepcopy(config.options.icons)
 
-  --- @type bufferline.options.icons.state
+  --- @type bufferline.config.options.icons.state
   local activity_icons = utils.tbl_remove_key(icons, activity_lower) or {}
 
-  --- @type bufferline.options.icons.buffer
+  --- @type bufferline.config.options.icons.buffer
   local buffer_icons = icons_option_prioritize(activity_icons, icons)
 
   --- Prioritize the `modified` or `pinned` states

@@ -28,10 +28,10 @@ local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 
 local animate = require'bufferline.animate'
 local Buffer = require'bufferline.buffer'
+local config = require'bufferline.config'
 local icons = require'bufferline.icons'
 local JumpMode = require'bufferline.jump_mode'
 local Layout = require'bufferline.layout'
-local options = require'bufferline.options'
 local state = require'bufferline.state'
 local utils = require'bufferline.utils'
 
@@ -242,7 +242,7 @@ end
 --- @param bufnr integer
 --- @return nil
 function render.close_buffer_animated(bufnr)
-  if options.animation() == false then
+  if config.options.animation == false then
     return render.close_buffer(bufnr)
   end
 
@@ -311,13 +311,14 @@ local function open_buffers(new_buffers)
     new_index = #state.buffers + 1
   end
 
+  local should_insert_at_start = config.options.insert_at_start
+
   -- Insert the buffers where they go
   for _, new_buffer in ipairs(new_buffers) do
     if utils.index_of(state.buffers, new_buffer) == nil then
       local actual_index = new_index
 
-      local should_insert_at_start = options.insert_at_start()
-      local should_insert_at_end = options.insert_at_end() or
+      local should_insert_at_end = config.options.insert_at_end or
         -- We add special buffers at the end
         buf_get_option(new_buffer, 'buftype') ~= ''
 
@@ -337,7 +338,7 @@ local function open_buffers(new_buffers)
   state.sort_pins_to_left()
 
   -- We're done if there is no animations
-  if options.animation() == false then
+  if config.options.animation == false then
     return
   end
 
@@ -460,7 +461,7 @@ end
 function render.set_scroll(target)
   scroll.target = target
 
-  if not options.animation() then
+  if not config.options.animation then
     scroll.current = target
     return render.update(nil, false)
   end
@@ -491,7 +492,7 @@ end
 --- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
-  if options.auto_hide() then
+  if config.options.auto_hide then
     if #bufnrs + #list_tabpages() < 3 then -- 3 because the condition for auto-hiding is 1 visible buffer and 1 tabpage (2).
       if get_option'showtabline' == 2 then
         set_option('showtabline', 0)
@@ -518,8 +519,8 @@ local function generate_tabline(bufnrs, refocus)
   local layout = Layout.calculate()
   local max_scroll = max(layout.actual_width - layout.buffers_width, 0)
 
-  local click_enabled = has('tablineat') and options.clickable()
-  local inactive_separator = options.icons().inactive.separator.left
+  local click_enabled = has('tablineat') and config.options.clickable
+  local inactive_separator = config.options.icons.inactive.separator.left
 
   local current_buffer_index = nil
   local current_buffer_position = 0
@@ -592,7 +593,7 @@ local function generate_tabline(bufnrs, refocus)
         (icons_option.filetype.enabled and (' ' .. (letter and '' or ' ')) or '')
     elseif icons_option.filetype.enabled then
       local iconChar, iconHl = icons.get_icon(bufnr, activity)
-      local hlName = (activity == 'Inactive' and not options.highlight_inactive_file_icons())
+      local hlName = (activity == 'Inactive' and not config.options.highlight_inactive_file_icons)
         and 'BufferInactive'
         or iconHl
 

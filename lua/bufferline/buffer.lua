@@ -23,7 +23,7 @@ local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 local WARN = vim.diagnostic.severity.WARN --- @type integer
 
-local options = require'bufferline.options'
+local config = require'bufferline.config'
 local utils = require'bufferline.utils'
 
 --- @alias bufferline.buffer.activity 1|2|3|4
@@ -53,9 +53,9 @@ end
 local function get_activity(buffer_number)
   if get_current_buf() == buffer_number then
     return activities.Current
-  elseif options.highlight_alternate() and bufnr('#') == buffer_number then
+  elseif config.options.highlight_alternate and bufnr('#') == buffer_number then
     return activities.Alternate
-  elseif options.highlight_visible() and bufwinnr(buffer_number) ~= -1 then
+  elseif config.options.highlight_visible and bufwinnr(buffer_number) ~= -1 then
     return activities.Visible
   end
 
@@ -82,8 +82,8 @@ local buffer = {
 
   --- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `buffer_number` provided, call `f`.
   --- @param buffer_number integer the buffer number to count diagnostics in
-  --- @param diagnostics bufferline.options.icons.diagnostics the user configuration for diagnostics
-  --- @param f fun(count: integer, diagnostic: bufferline.options.icons.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
+  --- @param diagnostics bufferline.config.options.icons.diagnostics the user configuration for diagnostics
+  --- @param f fun(count: integer, diagnostic: bufferline.config.options.icons.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
   --- @return nil
   for_each_counted_enabled_diagnostic = function(buffer_number, diagnostics, f)
     local count
@@ -109,8 +109,8 @@ local buffer = {
     --- @type string
     local name = buf_is_valid(buffer_number) and buf_get_name(buffer_number) or ''
 
-    local no_name_title = options.no_name_title()
-    local maximum_length = options.maximum_length()
+    local no_name_title = config.options.no_name_title
+    local maximum_length = config.options.maximum_length
 
     if name ~= '' then
       name = buf_get_option(buffer_number, 'buftype') == 'terminal' and terminalname(name) or utils.basename(name, hide_extensions)
@@ -167,7 +167,7 @@ local buffer = {
   --- @param bufnrs integer[]
   --- @return integer[] bufnrs the shown buffers
   hide = function(bufnrs)
-    local hide = options.hide()
+    local hide = config.options.hide
     if hide.alternate or hide.current or hide.inactive or hide.visible then
       local shown = {}
 
