@@ -81,11 +81,16 @@ local function get_focus_on_close(closing_number)
 
   if #state_bufnrs < 1 then -- all of the buffers are excluded or unlisted
     local open_bufnrs = list_bufs()
-    if focus_on_close == 'right' then
-      open_bufnrs = utils.list_reverse(open_bufnrs)
+
+    local start, end_, step
+    if focus_on_close == 'left' then
+      start, end_, step = 1, #open_bufnrs, 1
+    else
+      start, end_, step = #open_bufnrs, 1, -1
     end
 
-    for _, nr in ipairs(open_bufnrs) do
+    for i = start, end_, step do
+      local nr = open_bufnrs[i]
       if buf_get_option(nr, 'buflisted') then
         return nr -- there was a listed buffer open, focus it.
       end
@@ -194,7 +199,9 @@ function bbye.delete(action, force, buffer, mods)
 
   -- For cases where adding buffers causes new windows to appear or hiding some
   -- causes windows to disappear and thereby decrement, loop backwards.
-  for _, window_number in ipairs(utils.list_reverse(list_wins())) do
+  local wins = list_wins()
+  for i = #wins, 1, -1 do
+    local window_number = wins[i]
     if win_get_buf(window_number) == buffer_number then
       set_current_win(window_number)
 
