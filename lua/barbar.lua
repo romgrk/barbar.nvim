@@ -6,25 +6,25 @@ local command = vim.api.nvim_command --- @type function
 local create_user_command = vim.api.nvim_create_user_command --- @type function
 local set_option = vim.api.nvim_set_option --- @type function
 
-local api = require'bufferline.api'
-local bbye = require'bufferline.bbye'
-local events = require'bufferline.events'
-local notify = require'bufferline.utils'.notify
-local render = require'bufferline.render'
-local state = require'bufferline.state'
-local utils = require'bufferline.utils'
+local api = require'barbar.api'
+local bbye = require'barbar.bbye'
+local events = require'barbar.events'
+local notify = require'barbar.utils'.notify
+local render = require'barbar.render'
+local state = require'barbar.state'
+local utils = require'barbar.utils'
 
 -------------------------------
 -- Section: `bufferline` module
 -------------------------------
 
---- @class bufferline
-local bufferline = {}
+--- @class barbar
+local barbar = {}
 
 --- Setup this plugin.
 --- @param user_config? table
 --- @return nil
-function bufferline.setup(user_config)
+function barbar.setup(user_config)
   -- Create all necessary commands
   create_user_command('BarbarEnable', events.enable, {desc = 'Enable barbar.nvim'})
   create_user_command('BarbarDisable', events.disable, {desc = 'Disable barbar.nvim'})
@@ -200,4 +200,4 @@ function bufferline.setup(user_config)
   set_option('showtabline', 2)
 end
 
-return bufferline
+return barbar

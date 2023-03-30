@@ -26,21 +26,21 @@ local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 
-local animate = require'bufferline.animate'
-local Buffer = require'bufferline.buffer'
-local config = require'bufferline.config'
-local icons = require'bufferline.icons'
-local JumpMode = require'bufferline.jump_mode'
-local Layout = require'bufferline.layout'
-local state = require'bufferline.state'
-local utils = require'bufferline.utils'
+local animate = require'barbar.animate'
+local Buffer = require'barbar.buffer'
+local config = require'barbar.config'
+local icons = require'barbar.icons'
+local JumpMode = require'barbar.jump_mode'
+local Layout = require'barbar.layout'
+local state = require'barbar.state'
+local utils = require'barbar.utils'
 
 --- Last value for tabline
 --- @type string
 local last_tabline = ''
 
 --- Concatenates some `groups` into a valid string.
---- @param groups bufferline.render.group[]
+--- @param groups barbar.render.group[]
 --- @return string
 local function groups_to_string(groups)
   local result = ''
@@ -57,10 +57,10 @@ local function groups_to_string(groups)
 end
 
 --- Insert `others` into `groups` at the `position`.
---- @param groups bufferline.render.group[]
+--- @param groups barbar.render.group[]
 --- @param position integer
---- @param others bufferline.render.group[]
---- @return bufferline.render.group[] with_insertions
+--- @param others barbar.render.group[]
+--- @return barbar.render.group[] with_insertions
 local function groups_insert(groups, position, others)
   local current_position = 0
 
@@ -140,9 +140,9 @@ local function hl_tabline(group)
 end
 
 --- Select from `groups` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
---- @param groups bufferline.render.group[]
+--- @param groups barbar.render.group[]
 --- @param width integer
---- @return bufferline.render.group[]
+--- @return barbar.render.group[]
 local function slice_groups_right(groups, width)
   local accumulated_width = 0
 
@@ -166,9 +166,9 @@ local function slice_groups_right(groups, width)
 end
 
 --- Select from `groups` in reverse while fitting within the provided `width`, discarding all indices less than the last index that fits.
---- @param groups bufferline.render.group[]
+--- @param groups barbar.render.group[]
 --- @param width integer
---- @return bufferline.render.group[]
+--- @return barbar.render.group[]
 local function slice_groups_left(groups, width)
   local accumulated_width = 0
 
@@ -192,7 +192,7 @@ local function slice_groups_left(groups, width)
   return new_groups
 end
 
---- @class bufferline.render.animation
+--- @class barbar.render.animation
 --- @field CLOSE_DURATION integer
 --- @field OPEN {DURATION: integer, DELAY: integer}
 --- @field SCROLL_DURATION integer
@@ -202,16 +202,16 @@ local ANIMATION = {
   SCROLL_DURATION = 200,
 }
 
---- @class bufferline.render.group
+--- @class barbar.render.group
 --- @field hl string the highlight group to use
 --- @field text string the content being rendered
 
---- @class bufferline.render.scroll
+--- @class barbar.render.scroll
 --- @field current integer the place where the bufferline is currently scrolled to
 --- @field target integer the place where the bufferline is scrolled/wants to scroll to.
 local scroll = {current = 0, target = 0}
 
---- @class bufferline.render
+--- @class barbar.render
 local render = {}
 
 --- An incremental animation for `close_buffer_animated`.
@@ -273,7 +273,7 @@ end
 
 --- Opens a buffer with animation.
 --- @param bufnr integer
---- @param layout bufferline.layout.data
+--- @param layout barbar.layout.data
 --- @return nil
 local function open_buffer_start_animation(layout, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
@@ -541,14 +541,14 @@ local function generate_tabline(bufnrs, refocus)
     local icons_option = state.icons(bufnr, activity)
 
     --- Prefix this value to allow an element to be clicked
-    local clickable = click_enabled and ('%' .. bufnr .. '@bufferline#events#main_click_handler@') or ''
+    local clickable = click_enabled and ('%' .. bufnr .. '@barbar#events#main_click_handler@') or ''
 
     --- The name of the buffer
-    --- @type bufferline.render.group
+    --- @type barbar.render.group
     local name = {hl = clickable .. buffer_hl, text = buffer_name}
 
     --- The buffer index
-    --- @type bufferline.render.group
+    --- @type barbar.render.group
     local buffer_index = {hl = '', text = ''}
     if icons_option.buffer_index then
       buffer_index.hl = hl_tabline('Buffer' .. activity .. 'Index')
@@ -556,7 +556,7 @@ local function generate_tabline(bufnrs, refocus)
     end
 
     --- The buffer number
-    --- @type bufferline.render.group
+    --- @type barbar.render.group
     local buffer_number = {hl = '', text = ''}
     if icons_option.buffer_number then
       buffer_number.hl = hl_tabline('Buffer' .. activity .. 'Number')
@@ -566,18 +566,18 @@ local function generate_tabline(bufnrs, refocus)
     local button = icons_option.button or ''
 
     --- The close icon
-    --- @type bufferline.render.group
+    --- @type barbar.render.group
     local close = {hl = buffer_hl, text = button .. ' '}
     if click_enabled and #button > 0 then
-      close.hl = '%' .. bufnr .. '@bufferline#events#close_click_handler@' .. close.hl
+      close.hl = '%' .. bufnr .. '@barbar#events#close_click_handler@' .. close.hl
     end
 
     --- The jump letter
-    --- @type bufferline.render.group
+    --- @type barbar.render.group
     local jump_letter = {hl = '', text = ''}
 
     --- The devicon
-    --- @type bufferline.render.group
+    --- @type barbar.render.group
     local icon = {hl = clickable, text = ''}
 
     if state.is_picking_buffer then
@@ -604,11 +604,11 @@ local function generate_tabline(bufnrs, refocus)
     end
 
     --- The padding
-    --- @type bufferline.render.group
+    --- @type barbar.render.group
     local padding = {hl = '', text = (' '):rep(layout.padding_width)}
 
     --- The separator
-    --- @type bufferline.render.group
+    --- @type barbar.render.group
     local left_separator = {
       hl = clickable .. hl_tabline('Buffer' .. activity .. 'Sign'),
       text = icons_option.separator.left,
@@ -629,7 +629,7 @@ local function generate_tabline(bufnrs, refocus)
       })
     end)
 
-    --- @type bufferline.render.group
+    --- @type barbar.render.group
     local right_separator = {hl = left_separator.hl, text = icons_option.separator.right}
 
     vim.list_extend(item.groups, {padding, close, right_separator})
@@ -671,7 +671,7 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Add offset filler & text (for filetree/sidebar plugins)
   if state.offset.width > 0 then
-    --- @type bufferline.render.group
+    --- @type barbar.render.group
     local offset = {hl = hl_tabline(state.offset.hl or 'BufferOffset'), text = ' ' .. state.offset.text}
     local offset_available_width = state.offset.width - 2
 
@@ -683,8 +683,7 @@ local function generate_tabline(bufnrs, refocus)
   --- The highlight of the buffer tabpage fill
   local hl_buffer_tabpage_fill = hl_tabline('BufferTabpageFill')
 
-  --- Add bufferline
-  --- @type bufferline.render.group[]
+  --- @type barbar.render.group[]
   local bufferline_groups = {{
     hl = hl_buffer_tabpage_fill,
     text = (' '):rep(layout.actual_width),
@@ -709,7 +708,7 @@ local function generate_tabline(bufnrs, refocus)
 
   result = result ..
     groups_to_string(bufferline_groups) .. -- Render bufferline string
-    '%0@bufferline#events#main_click_handler@' .. -- prevent the expansion of the last click group
+    '%0@barbar#events#main_click_handler@' .. -- prevent the expansion of the last click group
     hl_buffer_tabpage_fill
 
   if layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width and #items > 0 then

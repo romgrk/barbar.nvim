@@ -24,5 +24,5 @@
 " http://www.gnu.org/licenses.
 
 function! bufferline#bbye#delete(action, bang, buffer, ...)
-  call luaeval("require'bufferline.bbye'.delete(_A[1], _A[2], _A[3], _A[4])", [a:action, a:bang, a:buffer, get(a:, 1, v:null)])
+  call luaeval("require'barbar.bbye'.delete(_A[1], _A[2], _A[3], _A[4])", [a:action, a:bang, a:buffer, get(a:, 1, v:null)])
 endfunction

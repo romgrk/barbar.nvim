@@ -109,7 +109,7 @@ local function relative(path)
   return fnamemodify(path, ':~:.')
 end
 
---- @class bufferline.utils
+--- @class barbar.utils
 local utils = {
   --- @param path string
   --- @param hide_extension? boolean if `true`, exclude the extension of the file in the basename
@@ -146,7 +146,7 @@ local utils = {
   end,
 
   --- utilities for working with highlight groups.
-  --- @class bufferline.utils.hl
+  --- @class barbar.utils.hl
   hl = {
     --- @class barbar.utils.hl.attributes see |:h attr-list|
     --- @field blend? integer 0–100

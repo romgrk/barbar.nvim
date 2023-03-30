@@ -15,18 +15,18 @@ local schedule_wrap = vim.schedule_wrap
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local tabpage_list_wins = vim.api.nvim_tabpage_list_wins --- @type function
 
-local bbye = require'bufferline.bbye'
-local config = require'bufferline.config'
-local highlight = require'bufferline.highlight'
-local JumpMode = require'bufferline.jump_mode'
-local render = require'bufferline.render'
-local state = require'bufferline.state'
-local utils = require'bufferline.utils'
+local bbye = require'barbar.bbye'
+local config = require'barbar.config'
+local highlight = require'barbar.highlight'
+local JumpMode = require'barbar.jump_mode'
+local render = require'barbar.render'
+local state = require'barbar.state'
+local utils = require'barbar.utils'
 
 --- Whether barbar is currently set up to render.
 local enabled = false
 
---- @class bufferline.events
+--- @class barbar.events
 local events = {}
 
 --- Create and reset autocommand groups associated with this plugin.
@@ -37,8 +37,8 @@ function events.augroups(clear)
     clear = true
   end
 
-  return create_augroup('bufferline_misc', {clear = clear}),
-    create_augroup('bufferline_render', {clear = clear})
+  return create_augroup('barbar_misc', {clear = clear}),
+    create_augroup('barbar_render', {clear = clear})
 end
 
 --- What to do when clicking a buffer close button
@@ -180,7 +180,7 @@ function events.enable()
         table_insert(buffers, {name = name, pinned =  state.get_buffer_data(bufnr).pinned})
       end
 
-      vim.g.Bufferline__session_restore = "lua require'bufferline.state'.restore_buffers " ..
+      vim.g.Bufferline__session_restore = "lua require'barbar.state'.restore_buffers " ..
         vim.inspect(buffers, {newline = ' ', indent = ''})
     end,
     group = augroup_misc,
@@ -195,8 +195,8 @@ function events.enable()
   -- TODO: merge the `vim.cmd` calls and references to `vim.g.bufferline` when v2 releases
   vim.schedule(function()
     vim.cmd [[
-      silent! call dictwatcherdel(g:, 'bufferline', 'bufferline#events#dict_changed')
-      silent! call dictwatcherdel(g:bufferline, '*', 'bufferline#events#on_option_changed')
+      silent! call dictwatcherdel(g:, 'bufferline', 'barbar#events#dict_changed')
+      silent! call dictwatcherdel(g:bufferline, '*', 'barbar#events#on_option_changed')
     ]]
 
     local g_bufferline = vim.g.bufferline
@@ -205,8 +205,8 @@ function events.enable()
     end
 
     vim.cmd [[
-      call dictwatcheradd(g:, 'bufferline', 'bufferline#events#dict_changed')
-      call dictwatcheradd(g:bufferline, '*', 'bufferline#events#on_option_changed')
+      call dictwatcheradd(g:, 'bufferline', 'barbar#events#dict_changed')
+      call dictwatcheradd(g:bufferline, '*', 'barbar#events#on_option_changed')
     ]]
   end)
 

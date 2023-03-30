@@ -12,15 +12,15 @@ local get_option = vim.api.nvim_get_option --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 local tabpagenr = vim.fn.tabpagenr --- @type function
 
-local Buffer = require'bufferline.buffer'
-local config = require'bufferline.config'
-local icons = require'bufferline.icons'
-local state = require'bufferline.state'
+local Buffer = require'barbar.buffer'
+local config = require'barbar.config'
+local icons = require'barbar.icons'
+local state = require'barbar.state'
 
 --- The number of sides of each buffer in the tabline.
 local SIDES_OF_BUFFER = 2
 
---- @class bufferline.layout.data
+--- @class barbar.layout.data
 --- @field actual_width integer
 --- @field available_width integer
 --- @field base_widths integer[]
@@ -29,7 +29,7 @@ local SIDES_OF_BUFFER = 2
 --- @field tabpages_width integer
 --- @field used_width integer
 
---- @class bufferline.Layout
+--- @class barbar.Layout
 --- @field buffers integer[] different from `state.buffers` in that the `hide` option is respected. Only updated when calling `calculate_buffers_width`.
 local Layout = {buffers = {}}
 
@@ -100,7 +100,7 @@ function Layout.calculate_buffers_width()
 end
 
 --- Calculate the current layout of the bufferline.
---- @return bufferline.layout.data
+--- @return barbar.layout.data
 function Layout.calculate()
   local available_width = get_option'columns'
   available_width = available_width - state.offset.width

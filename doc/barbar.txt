@@ -108,13 +108,13 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 ==============================================================================
 4. Settings                                                     *barbar-setup*
 
-`bufferline`.setup({options})                               *bufferline.setup()*
+`barbar`.setup({options})                                       *barbar.setup()*
 
   To configure barbar or enable it for the first time, you must call this
   `setup` function. The valid {options} are listed below.
 
   Lua example: >
-    require'bufferline'.setup {
+    require'barbar'.setup {
       auto_hide = true,
       clickable = false,
       icons = {current = {filetype = {enabled = false}}},
@@ -124,7 +124,7 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 
   Vimscript example (see |:lua-heredoc| for more details): >
     lua << EOF
-    require'bufferline'.setup {
+    require'barbar'.setup {
       auto_hide = true,
       clickable = false,
       icons = {current = {filetype = {enabled = false}}},
@@ -266,7 +266,7 @@ icons ~
 
   Example: >
     -- Show the file icon, a left separator, and ERROR/WARN diagnostics
-    require'bufferline'.setup {icons = {
+    require'barbar'.setup {icons = {
       buffer_index = false,
       buffer_number = false,
       button = '',
@@ -293,7 +293,7 @@ icons ~
     etc)
 
   Example: >
-    require'bufferline'.setup {icons = {
+    require'barbar'.setup {icons = {
       modified = {separator = '⋄'},
       pinned = {button = '車'},
     }}
@@ -334,7 +334,7 @@ icons ~
     -- Enable buffer indices for current buffers.
     -- Override the button for inactive buffers.
     -- Disable buffer numbers for visible, modified buffers.
-    require'bufferline'.setup {icons = {
+    require'barbar'.setup {icons = {
       alternate = {filetype = {enabled = false}},
       current = {buffer_index = true},
       inactive = {button = '×'},

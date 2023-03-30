@@ -15,14 +15,14 @@ local list_extend = vim.list_extend
 local severity = vim.diagnostic.severity --- @type {[integer]: string, [string]: integer}
 local tbl_filter = vim.tbl_filter
 
-local Buffer = require'bufferline.buffer'
-local config = require'bufferline.config'
-local utils = require'bufferline.utils'
+local Buffer = require'barbar.buffer'
+local config = require'barbar.config'
+local utils = require'barbar.utils'
 
 --- Set `higher` to have higher priority than `lower` when resolving the `icons` option.
---- @param higher? bufferline.config.options.icons.buffer
---- @param lower bufferline.config.options.icons.buffer
---- @return table bufferline.options.icons.buffer corresponding to the `tbl` parameter
+--- @param higher? barbar.config.options.icons.buffer
+--- @param lower barbar.config.options.icons.buffer
+--- @return table barbar.options.icons.buffer corresponding to the `tbl` parameter
 local function icons_option_prioritize(higher, lower)
   if higher and lower then -- set the sub-table fallbacks
     do
@@ -60,7 +60,7 @@ end
 -- Section: Application state --
 --------------------------------
 
---- @class bufferline.state.data
+--- @class barbar.state.data
 --- @field closing boolean whether the buffer is being closed
 --- @field name? string the name of the buffer
 --- @field position? integer the absolute position of the buffer
@@ -68,11 +68,11 @@ end
 --- @field pinned boolean whether the buffer is pinned
 --- @field width? integer the width of the buffer - invisible characters
 
---- @class bufferline.state
+--- @class barbar.state
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
 --- @field loading_session boolean `true` if a `SessionLoadPost` event is being processed
 --- @field buffers integer[] the open buffers, in visual order.
---- @field data_by_bufnr {[integer]: bufferline.state.data} the buffer data indexed on buffer number
+--- @field data_by_bufnr {[integer]: barbar.state.data} the buffer data indexed on buffer number
 --- @field pins {[integer]: boolean} whether a buffer is pinned
 local state = {
   is_picking_buffer = false,
@@ -81,7 +81,7 @@ local state = {
   data_by_bufnr = {},
 
   --- The offset of the tabline (from the left).
-  --- @class bufferline.render.offset
+  --- @class barbar.render.offset
   --- @field hl? string the highlight group to use
   --- @field text string the text to fill the offset with
   --- @field width integer the size of the offset
@@ -90,7 +90,7 @@ local state = {
 
 --- Get the state of the `id`
 --- @param bufnr integer the `bufnr`
---- @return bufferline.state.data
+--- @return barbar.state.data
 function state.get_buffer_data(bufnr)
   if bufnr == 0 then
     bufnr = get_current_buf()
@@ -221,11 +221,11 @@ end
 --- @return nil
 function state.set_offset(width, text, hl)
   utils.deprecate(
-    utils.markdown_inline_code'bufferline.state.set_offset',
-    utils.markdown_inline_code'bufferline.api.set_offset'
+    utils.markdown_inline_code'barbar.state.set_offset',
+    utils.markdown_inline_code'barbar.api.set_offset'
   )
 
-  require'bufferline.api'.set_offset(width, text, hl)
+  require'barbar.api'.set_offset(width, text, hl)
 end
 
 --- Restore the buffers
@@ -260,17 +260,17 @@ function state.restore_buffers(buffer_data)
 end
 
 --- The `icons` for a particular activity.
---- @param activity bufferline.buffer.activity.name
---- @see bufferline.options.icons
---- @return bufferline.config.options.icons.buffer
+--- @param activity barbar.buffer.activity.name
+--- @see barbar.options.icons
+--- @return barbar.config.options.icons.buffer
 function state.icons(bufnr, activity)
   local activity_lower = activity:lower()
   local icons = deepcopy(config.options.icons)
 
-  --- @type bufferline.config.options.icons.state
+  --- @type barbar.config.options.icons.state
   local activity_icons = utils.tbl_remove_key(icons, activity_lower) or {}
 
-  --- @type bufferline.config.options.icons.buffer
+  --- @type barbar.config.options.icons.buffer
   local buffer_icons = icons_option_prioritize(activity_icons, icons)
 
   --- Prioritize the `modified` or `pinned` states

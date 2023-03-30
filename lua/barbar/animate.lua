@@ -6,7 +6,7 @@ local floor = math.floor
 
 local schedule_wrap = vim.schedule_wrap
 
---- @class bufferline.animate.state
+--- @class barbar.animate.state
 --- @field current number
 --- @field duration number
 --- @field final number
@@ -18,7 +18,7 @@ local schedule_wrap = vim.schedule_wrap
 --- @field timer userdata
 --- @field type unknown
 
---- @class bufferline.animate
+--- @class barbar.animate
 local animate = {}
 
 --- The amount of time between rendering the next part of the animation.
@@ -47,7 +47,7 @@ function animate.lerp(ratio, initial, final, delta_type)
   return initial + delta
 end
 
---- @param state bufferline.animate.state
+--- @param state barbar.animate.state
 --- @return nil
 local function animate_tick(state)
   -- Alternative to finding current value:
@@ -77,12 +77,12 @@ local function animate_tick(state)
   end
 end
 
---- @param callback fun(current: number, state: bufferline.animate.state)
+--- @param callback fun(current: number, state: barbar.animate.state)
 --- @param duration number
 --- @param final number
 --- @param initial number
 --- @param type integer
---- @return bufferline.animate.state
+--- @return barbar.animate.state
 function animate.start(duration, initial, final, type, callback)
   local ticks = (duration / ANIMATION_FREQUENCY) + 10
   local state = {
@@ -106,7 +106,7 @@ function animate.start(duration, initial, final, type, callback)
   return state
 end
 
---- @param state bufferline.animate.state
+--- @param state barbar.animate.state
 --- @return nil
 function animate.stop(state)
   if state.timer then

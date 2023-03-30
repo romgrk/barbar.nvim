@@ -1,8 +1,8 @@
 -- !::exe [So]
 
-local config = require 'bufferline.config'
-local hl = require'bufferline.utils'.hl
-local icons = require 'bufferline.icons'
+local config = require 'barbar.config'
+local hl = require'barbar.utils'.hl
+local icons = require 'barbar.icons'
 
 -- Setup the highlight groups used by the plugin.
 hl.set_default_link('BufferAlternate', 'BufferDefaultAlternate')
@@ -69,7 +69,7 @@ hl.set_default_link('BufferDefaultOffset', 'BufferTabpageFill')
 hl.set_default_link('BufferDefaultVisibleIcon', 'BufferVisible')
 hl.set_default_link('BufferDefaultVisibleNumber', 'BufferVisibleIndex')
 
---- @class bufferline.highlight
+--- @class barbar.highlight
 local highlight = {
   --- Setup the highlight groups for this plugin.
   --- @return nil

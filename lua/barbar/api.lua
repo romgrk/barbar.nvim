@@ -16,15 +16,15 @@ local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
 
-local animate = require'bufferline.animate'
-local bbye = require'bufferline.bbye'
-local Buffer = require'bufferline.buffer'
-local config = require'bufferline.config'
-local JumpMode = require'bufferline.jump_mode'
-local Layout = require'bufferline.layout'
-local render = require'bufferline.render'
-local state = require'bufferline.state'
-local utils = require'bufferline.utils'
+local animate = require'barbar.animate'
+local bbye = require'barbar.bbye'
+local Buffer = require'barbar.buffer'
+local config = require'barbar.config'
+local JumpMode = require'barbar.jump_mode'
+local Layout = require'barbar.layout'
+local render = require'barbar.render'
+local state = require'barbar.state'
+local utils = require'barbar.utils'
 
 local ESC = vim.api.nvim_replace_termcodes('<Esc>', true, false, true)
 
@@ -50,7 +50,7 @@ end
 --- @return nil
 local function notify_buffer_not_found(buffer_number)
   utils.notify(
-    'Current buffer (' .. buffer_number .. ") not found in bufferline.nvim's list of buffers: " .. vim.inspect(state.buffers),
+    'Current buffer (' .. buffer_number .. ") not found in barbar.nvim's list of buffers: " .. vim.inspect(state.buffers),
     vim.log.levels.ERROR
   )
 end
@@ -73,7 +73,7 @@ local function with_pin_order(order_func)
   end
 end
 
---- @class bufferline.api
+--- @class barbar.api
 local api = {}
 
 --- Close all open buffers, except the current one.

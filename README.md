@@ -231,13 +231,13 @@ map('n', '<Space>bw', '<Cmd>BufferOrderByWindowNumber<CR>', opts)
 >
 > ```vim
 > lua << EOF
-> require'bufferline'.setup {…}
+> require'barbar'.setup {…}
 > EOF
 > ```
 
 ```lua
 -- Set barbar's options
-require'bufferline'.setup {
+require'barbar'.setup {
   -- Enable/disable animations
   animation = true,
 
@@ -379,7 +379,7 @@ Add this `autocmd` to your configuration:
 ```lua
 vim.api.nvim_create_autocmd('FileType', {
   callback = function(tbl)
-    local set_offset = require('bufferline.api').set_offset
+    local set_offset = require('barbar.api').set_offset
 
     local bufwinid
     local last_width

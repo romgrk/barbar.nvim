@@ -23,15 +23,15 @@ local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 local WARN = vim.diagnostic.severity.WARN --- @type integer
 
-local config = require'bufferline.config'
-local utils = require'bufferline.utils'
+local config = require'barbar.config'
+local utils = require'barbar.utils'
 
---- @alias bufferline.buffer.activity 1|2|3|4
+--- @alias barbar.buffer.activity 1|2|3|4
 
---- @alias bufferline.buffer.activity.name 'Inactive'|'Alternate'|'Visible'|'Current'
+--- @alias barbar.buffer.activity.name 'Inactive'|'Alternate'|'Visible'|'Current'
 
 --- A bidirectional map of activities to activity names
---- @type {[bufferline.buffer.activity]: bufferline.buffer.activity.name, [bufferline.buffer.activity.name]: bufferline.buffer.activity}
+--- @type {[barbar.buffer.activity]: barbar.buffer.activity.name, [barbar.buffer.activity.name]: barbar.buffer.activity}
 local activities = vim.tbl_add_reverse_lookup {'Inactive', 'Alternate', 'Visible', 'Current'}
 
 --- The character used to delimit paths (e.g. `/` or `\`).
@@ -49,7 +49,7 @@ local function terminalname(name)
 end
 
 --- @param buffer_number integer
---- @return bufferline.buffer.activity # whether `bufnr` is inactive, the alternate file, visible, or currently selected (in that order).
+--- @return barbar.buffer.activity # whether `bufnr` is inactive, the alternate file, visible, or currently selected (in that order).
 local function get_activity(buffer_number)
   if get_current_buf() == buffer_number then
     return activities.Current
@@ -74,7 +74,7 @@ local function count_diagnostics(buffer_number)
   return count
 end
 
---- @class bufferline.buffer
+--- @class barbar.buffer
 local buffer = {
   activities = activities,
 
@@ -82,8 +82,8 @@ local buffer = {
 
   --- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `buffer_number` provided, call `f`.
   --- @param buffer_number integer the buffer number to count diagnostics in
-  --- @param diagnostics bufferline.config.options.icons.diagnostics the user configuration for diagnostics
-  --- @param f fun(count: integer, diagnostic: bufferline.config.options.icons.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
+  --- @param diagnostics barbar.config.options.icons.diagnostics the user configuration for diagnostics
+  --- @param f fun(count: integer, diagnostic: barbar.config.options.icons.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
   --- @return nil
   for_each_counted_enabled_diagnostic = function(buffer_number, diagnostics, f)
     local count

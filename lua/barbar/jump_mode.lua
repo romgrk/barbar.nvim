@@ -8,7 +8,7 @@ local split = vim.fn.split --- @type function
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 
-local config = require'bufferline.config'
+local config = require'barbar.config'
 
 ----------------------------------------
 -- Section: Buffer-picking mode state --
@@ -18,7 +18,7 @@ local config = require'bufferline.config'
 --- @type string[]
 local letters = {}
 
---- @class bufferline.JumpMode
+--- @class barbar.JumpMode
 --- @field buffer_by_letter {[string]: integer} a bi-directional map of buffer integers and their letters.
 --- @field private index_by_letter {[string]: integer} `letters` in the order they were provided
 --- @field private letter_by_buffer {[integer]: string} a bi-directional map of buffer integers and their letters.

@@ -2,27 +2,27 @@ local table_concat = table.concat
 
 local tbl_deep_extend = vim.tbl_deep_extend
 
-local utils = require'bufferline.utils'
+local utils = require'barbar.utils'
 
 --- The prefix used for `utils.deprecate`
 local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
 
---- @class bufferline.config.options.hide
+--- @class barbar.config.options.hide
 --- @field alternate? boolean
 --- @field current? boolean
 --- @field extensions? boolean
 --- @field inactive? boolean
 --- @field visible? boolean
 
---- @class bufferline.config.options.icons.diagnostics.severity
+--- @class barbar.config.options.icons.diagnostics.severity
 --- @field enabled boolean
 --- @field icon string
 
---- @class bufferline.config.options.icons.diagnostics
---- @field [1] bufferline.config.options.icons.diagnostics.severity
---- @field [2] bufferline.config.options.icons.diagnostics.severity
---- @field [3] bufferline.config.options.icons.diagnostics.severity
---- @field [4] bufferline.config.options.icons.diagnostics.severity
+--- @class barbar.config.options.icons.diagnostics
+--- @field [1] barbar.config.options.icons.diagnostics.severity
+--- @field [2] barbar.config.options.icons.diagnostics.severity
+--- @field [3] barbar.config.options.icons.diagnostics.severity
+--- @field [4] barbar.config.options.icons.diagnostics.severity
 local DEFAULT_DIAGNOSTIC_ICONS = {
   [vim.diagnostic.severity.ERROR] = {enabled = false, icon = 'Ⓧ '},
   [vim.diagnostic.severity.HINT] = {enabled = false, icon = '💡'},
@@ -30,35 +30,35 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
   [vim.diagnostic.severity.WARN] = {enabled = false, icon = '⚠️ '},
 }
 
---- @class bufferline.config.options.icons.filetype
+--- @class barbar.config.options.icons.filetype
 --- @field custom_color? boolean if present, this color will be used for ALL filetype icons
 --- @field enabled? boolean iff `true`, show the `devicons` for the associated buffer's `filetype`.
 
---- @class bufferline.config.options.icons.separator
+--- @class barbar.config.options.icons.separator
 --- @field left? string a buffer's left separator
 --- @field right? string a buffer's right separator
 
---- @class bufferline.config.options.icons.buffer
+--- @class barbar.config.options.icons.buffer
 --- @field buffer_index? boolean iff `true`, show the index of the associated buffer with respect to the ordering of the buffers in the tabline.
 --- @field buffer_number? boolean iff `true`, show the `bufnr` for the associated buffer.
 --- @field button? false|string the button which is clicked to close / save a buffer, or indicate that it is pinned.
---- @field diagnostics? bufferline.config.options.icons.diagnostics the diagnostic icons
---- @field filetype? bufferline.config.options.icons.filetype filetype icon options
---- @field separator? bufferline.config.options.icons.separator the left-hand separator between buffers in the tabline
+--- @field diagnostics? barbar.config.options.icons.diagnostics the diagnostic icons
+--- @field filetype? barbar.config.options.icons.filetype filetype icon options
+--- @field separator? barbar.config.options.icons.separator the left-hand separator between buffers in the tabline
 
---- @class bufferline.config.options.icons.state: bufferline.config.options.icons.buffer
---- @field modified? bufferline.config.options.icons.buffer the icons used for an modified buffer
---- @field pinned? bufferline.config.options.icons.buffer the icons used for a pinned buffer
+--- @class barbar.config.options.icons.state: barbar.config.options.icons.buffer
+--- @field modified? barbar.config.options.icons.buffer the icons used for an modified buffer
+--- @field pinned? barbar.config.options.icons.buffer the icons used for a pinned buffer
 
---- @class bufferline.config.options.icons: bufferline.config.options.icons.state
---- @field alternate? bufferline.config.options.icons.state the icons used for an alternate buffer
---- @field current? bufferline.config.options.icons.state the icons for the current buffer
---- @field inactive? bufferline.config.options.icons.state the icons for inactive buffers
---- @field visible? bufferline.config.options.icons.state the icons for visible buffers
+--- @class barbar.config.options.icons: barbar.config.options.icons.state
+--- @field alternate? barbar.config.options.icons.state the icons used for an alternate buffer
+--- @field current? barbar.config.options.icons.state the icons for the current buffer
+--- @field inactive? barbar.config.options.icons.state the icons for inactive buffers
+--- @field visible? barbar.config.options.icons.state the icons for visible buffers
 
---- @alias bufferline.config.options.icons.preset boolean|"both"|"buffer_number_with_icon"|"buffer_numbers"|"numbers"
+--- @alias barbar.config.options.icons.preset boolean|"both"|"buffer_number_with_icon"|"buffer_numbers"|"numbers"
 
---- @type {[bufferline.config.options.icons.preset]: bufferline.config.options.icons}
+--- @type {[barbar.config.options.icons.preset]: barbar.config.options.icons}
 local PRESETS = {
   [false] = {
     buffer_number = false,
@@ -104,18 +104,18 @@ local DEPRECATED_OPTIONS = {
   icon_separator_inactive = {'icons', 'inactive', 'separator', 'left'},
 }
 
---- @class bufferline.config.options
+--- @class barbar.config.options
 --- @field animation boolean
 --- @field auto_hide boolean
 --- @field clickable boolean
 --- @field exclude_ft string[]
 --- @field exclude_name string[]
 --- @field focus_on_close 'left'|'right'
---- @field hide bufferline.config.options.hide
+--- @field hide barbar.config.options.hide
 --- @field highlight_alternate boolean
 --- @field highlight_inactive_file_icons boolean
 --- @field highlight_visible boolean
---- @field icons bufferline.config.options.icons
+--- @field icons barbar.config.options.icons
 --- @field insert_at_end boolean
 --- @field insert_at_start boolean
 --- @field letters string
@@ -126,8 +126,8 @@ local DEPRECATED_OPTIONS = {
 --- @field semantic_letters boolean
 --- @field tabpages boolean
 
---- @class bufferline.config
---- @field options bufferline.config.options
+--- @class barbar.config
+--- @field options barbar.config.options
 local config = {options = {}}
 
 --- @param user_config? table

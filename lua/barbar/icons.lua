@@ -9,14 +9,14 @@ local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local fnamemodify = vim.fn.fnamemodify --- @type function
 local hlexists = vim.fn.hlexists --- @type function
 
-local utils = require'bufferline.utils'
+local utils = require'barbar.utils'
 local hl = utils.hl
 
 --- @type boolean, {get_icon: fun(name: string, ext?: string, opts?: {default: nil|boolean}): string, string}
 local ok, web = pcall(require, 'nvim-web-devicons')
 
 --- Sets the highlight group used for a type of buffer's file icon
---- @param buffer_status bufferline.buffer.activity.name
+--- @param buffer_status barbar.buffer.activity.name
 --- @param icon_hl string
 --- @return nil
 local function hl_buffer_icon(buffer_status, icon_hl)
@@ -30,14 +30,14 @@ local function hl_buffer_icon(buffer_status, icon_hl)
   )
 end
 
---- @class bufferline.icons.group
---- @field buffer_status bufferline.buffer.activity.name the state of the buffer whose icon is being highlighted
+--- @class barbar.icons.group
+--- @field buffer_status barbar.buffer.activity.name the state of the buffer whose icon is being highlighted
 --- @field icon_hl string the group to highlight an icon with
 
---- @type bufferline.icons.group[]
+--- @type barbar.icons.group[]
 local hl_groups = {}
 
---- @class bufferline.icons
+--- @class barbar.icons
 local icons = {
   --- Re-highlight all of the groups which have been set before. Checks for updated highlight groups.
   --- @return nil
@@ -49,9 +49,9 @@ local icons = {
 
   get_icon = ok and
     --- @param bufnr integer
-    --- @param buffer_status bufferline.buffer.activity.name
+    --- @param buffer_activity barbar.buffer.activity.name
     --- @return string icon, string highlight_group
-    function(bufnr, buffer_status)
+    function(bufnr, buffer_activity)
       local basename, extension = '', ''
       local filetype = buf_get_option(bufnr, 'filetype')
       local icon_char, icon_hl = '', ''
@@ -71,24 +71,27 @@ local icons = {
         icon_char, icon_hl = web.get_icon(basename, extension, { default = true })
       end
 
-      if icon_hl and hlexists(icon_hl .. buffer_status) < 1 then
-        hl_buffer_icon(buffer_status, icon_hl)
-        table_insert(hl_groups, {buffer_status = buffer_status, icon_hl = icon_hl})
+      if icon_hl and hlexists(icon_hl .. buffer_activity) < 1 then
+        hl_buffer_icon(buffer_activity, icon_hl)
+        table_insert(hl_groups, {buffer_status = buffer_activity, icon_hl = icon_hl})
       end
 
-      return icon_char, icon_hl .. buffer_status
+      return icon_char, icon_hl .. buffer_activity
     end or
-    function() --- @return string icon, string highlight_group
+    --- @param buffer_activity barbar.buffer.activity.name
+    --- @return string icon, string highlight_group
+    function(_, buffer_activity)
+      local invalid_option = utils.markdown_inline_code'icons.filetype.enabled'
       utils.notify_once(
-        'barbar: bufferline.icons is set to v:true but "nvim-dev-icons" was not found.' ..
-          '\nbarbar: icons have been disabled. Set ' ..
-          utils.markdown_inline_code'bufferline.icons' .. ' to ' ..
-          utils.markdown_inline_code'false' .. ' or ' ..
-          'install "nvim-dev-icons" to disable this message.',
+        'barbar.nvim: ' .. invalid_option .. ' is set to ' .. utils.markdown_inline_code'true' ..
+          ' but ' .. utils.markdown_inline_code'nvim-dev-icons' .. ' was not found.' ..
+          '\nbarbar.nvim: icons have been disabled. Set ' .. invalid_option .. ' to ' ..
+          utils.markdown_inline_code'false' .. ' or ' .. 'install ' ..
+          utils.markdown_inline_code'nvim-dev-icons' .. 'to disable this message.',
         vim.log.levels.WARN
       )
 
-      return '', ''
+      return '', 'Buffer' .. buffer_activity .. 'Icon'
     end,
 }
 
