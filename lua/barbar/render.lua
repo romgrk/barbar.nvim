@@ -174,15 +174,15 @@ local function slice_groups_left(groups, width)
 
   local new_groups = {}
 
-  for _, group in ipairs(utils.list_reverse(groups)) do
+  for i = #groups, 1, -1 do
+    local group = groups[i]
     local text_width = strwidth(group.text)
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
       local length = text_width - (accumulated_width - width)
       local start = text_width - length
-      local new_group = {hl = group.hl, text = strcharpart(group.text, start, length)}
-      table_insert(new_groups, 1, new_group)
+      table_insert(new_groups, 1, {hl = group.hl, text = strcharpart(group.text, start, length)})
       break
     end
 
@@ -526,13 +526,16 @@ local function generate_tabline(bufnrs, refocus)
   local current_buffer_position = 0
   local items = {}
 
+  local scroll_lock_pinned = config.options.scroll_lock_pinned
+  local scroll_locked = {}
+
   for i, bufnr in ipairs(bufnrs) do
     local activity = Buffer.activities[Buffer.get_activity(bufnr)]
 
     local buffer_data = state.get_buffer_data(bufnr)
     local buffer_hl = hl_tabline('Buffer' .. activity .. (
-      buf_get_option(bufnr, 'modified') and 'Mod' or ''
-    ))
+      buf_get_option(bufnr, 'modified') and 'Mod' or '')
+    )
     local buffer_name = buffer_data.name or '[no name]'
 
     buffer_data.real_width    = Layout.calculate_width(layout.base_widths[i], layout.padding_width)
@@ -552,7 +555,7 @@ local function generate_tabline(bufnrs, refocus)
     local buffer_index = {hl = '', text = ''}
     if icons_option.buffer_index then
       buffer_index.hl = hl_tabline('Buffer' .. activity .. 'Index')
-      buffer_index.text = tostring(i) .. ' '
+      buffer_index.text = i .. ' '
     end
 
     --- The buffer number
@@ -560,7 +563,7 @@ local function generate_tabline(bufnrs, refocus)
     local buffer_number = {hl = '', text = ''}
     if icons_option.buffer_number then
       buffer_number.hl = hl_tabline('Buffer' .. activity .. 'Number')
-      buffer_number.text = tostring(bufnr) .. ' '
+      buffer_number.text = bufnr .. ' '
     end
 
     local button = icons_option.button or ''
@@ -651,7 +654,11 @@ local function generate_tabline(bufnrs, refocus)
     current_buffer_position = current_buffer_position + item.width
 
     local scroll_current = min(scroll.current, max_scroll)
-    if current_buffer_position < scroll_current  then
+    if current_buffer_position < scroll_current then
+      if buffer_data.pinned and scroll_lock_pinned then
+        table_insert(scroll_locked, item)
+      end
+
       goto continue -- HACK: there is no `continue` keyword
     end
 
@@ -695,15 +702,21 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Crop to scroll region
 
-  local scroll_current = min(scroll.current, max_scroll)
-  local buffers_end = layout.actual_width - scroll_current
+  do
+    local scroll_current = min(scroll.current, max_scroll)
+    local buffers_end = layout.actual_width - scroll_current
 
-  if buffers_end > layout.buffers_width then
-    bufferline_groups = slice_groups_right(bufferline_groups, scroll_current + layout.buffers_width)
+    if buffers_end > layout.buffers_width then
+      bufferline_groups = slice_groups_right(bufferline_groups, scroll_current + layout.buffers_width)
+    end
+
+    if scroll_current > 0 then
+      bufferline_groups = slice_groups_left(bufferline_groups, layout.buffers_width)
+    end
   end
 
-  if scroll_current > 0 then
-    bufferline_groups = slice_groups_left(bufferline_groups, layout.buffers_width)
+  for i = #scroll_locked, 1, -1 do
+    bufferline_groups = groups_insert(bufferline_groups, 0, scroll_locked[i].groups)
   end
 
   result = result ..
