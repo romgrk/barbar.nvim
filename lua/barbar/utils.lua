@@ -339,7 +339,11 @@ local utils = {
     local current = tbl
     for i = 1, #keys - 1 do
       local key = keys[i]
-      current[key] = current[key] or {}
+
+      if current[key] == nil then
+        current[key] = {}
+      end
+
       current = current[key]
     end
 

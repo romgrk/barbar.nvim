@@ -8,10 +8,9 @@ local table_remove = table.remove
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local bufadd = vim.fn.bufadd --- @type function
-local bufexists = vim.fn.bufexists
-local bufname = vim.fn.bufname
-local command = vim.api.nvim_command
-local fnamemodify = vim.fn.fnamemodify
+local bufname = vim.fn.bufname --- @type function
+local command = vim.api.nvim_command --- @type function
+local fnamemodify = vim.fn.fnamemodify --- @type function
 local json_encode = vim.json.encode --- @type function
 local json_decode = vim.json.decode --- @type function
 local deepcopy = vim.deepcopy
@@ -20,7 +19,6 @@ local list_bufs = vim.api.nvim_list_bufs --- @type function
 local list_extend = vim.list_extend
 local list_slice = vim.list_slice
 local severity = vim.diagnostic.severity --- @type {[integer]: string, [string]: integer}
-local stdpath = vim.fn.stdpath --- @type function
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local tbl_map = vim.tbl_map
@@ -29,7 +27,7 @@ local Buffer = require'barbar.buffer'
 local config = require'barbar.config'
 local utils = require'barbar.utils'
 
-local CACHE_PATH = stdpath('cache') .. '/barbar.json'
+local CACHE_PATH = vim.fn.stdpath('cache') .. '/barbar.json'
 
 --- Set `higher` to have higher priority than `lower` when resolving the `icons` option.
 --- @param higher? barbar.config.options.icons.buffer
@@ -80,26 +78,32 @@ end
 --- @field pinned boolean whether the buffer is pinned
 --- @field width? integer the width of the buffer - invisible characters
 
+--- @class barbar.state.offset.side
+--- @field hl? string the highlight group to use
+--- @field text string the text to fill the offset with
+--- @field width integer the size of the offset
+
+--- @class barbar.state.offset
+--- @field left barbar.state.offset.side
+--- @field right barbar.state.offset.side
+
 --- @class barbar.state
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
 --- @field loading_session boolean `true` if a `SessionLoadPost` event is being processed
 --- @field buffers integer[] the open buffers, in visual order.
 --- @field data_by_bufnr {[integer]: barbar.state.data} the buffer data indexed on buffer number
---- @field pins {[integer]: boolean} whether a buffer is pinned
+--- @field offset barbar.state.offset
 --- @field recently_closed string[] the list of recently closed paths
 local state = {
-  is_picking_buffer = false,
-  loading_session = false,
   buffers = {},
   data_by_bufnr = {},
+  is_picking_buffer = false,
+  loading_session = false,
+  offset = {
+    left = {text = '', width = 0},
+    right = {text = '', width = 0},
+  },
   recently_closed = {},
-
-  --- The offset of the tabline (from the left).
-  --- @class barbar.render.offset
-  --- @field hl? string the highlight group to use
-  --- @field text string the text to fill the offset with
-  --- @field width integer the size of the offset
-  offset = {text = '', width = 0}
 }
 
 --- Get the state of the `id`
@@ -147,8 +151,7 @@ end
 --- @param bufnr integer
 --- @return boolean pinned `true` if `bufnr` is pinned
 function state.is_pinned(bufnr)
-  local data = state.get_buffer_data(bufnr)
-  return data.pinned
+  return state.get_buffer_data(bufnr).pinned
 end
 
 --- Sort the pinned tabs to the left of the bufferline.
@@ -262,7 +265,7 @@ end
 --- @return nil
 function state.set_offset(width, text, hl)
   utils.deprecate(
-    utils.markdown_inline_code'barbar.state.set_offset',
+    utils.markdown_inline_code'bufferline.state.set_offset',
     utils.markdown_inline_code'barbar.api.set_offset'
   )
 
