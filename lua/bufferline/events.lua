@@ -192,12 +192,20 @@ function events.enable()
     group = augroup_render,
   })
 
+  -- TODO: merge the `vim.cmd` calls and references to `vim.g.bufferline` when v2 releases
   vim.schedule(function()
     vim.cmd [[
       silent! call dictwatcherdel(g:, 'bufferline', 'bufferline#events#dict_changed')
-      call dictwatcheradd(g:, 'bufferline', 'bufferline#events#dict_changed')
-
       silent! call dictwatcherdel(g:bufferline, '*', 'bufferline#events#on_option_changed')
+    ]]
+
+    local g_bufferline = vim.g.bufferline
+    if type(g_bufferline) ~= 'table' or vim.tbl_islist(g_bufferline) then
+      vim.g.bufferline = vim.empty_dict()
+    end
+
+    vim.cmd [[
+      call dictwatcheradd(g:, 'bufferline', 'bufferline#events#dict_changed')
       call dictwatcheradd(g:bufferline, '*', 'bufferline#events#on_option_changed')
     ]]
   end)
@@ -226,10 +234,10 @@ function events.main_click_handler(bufnr, _, btn, _)
 end
 
 --- What to do when the user configuration changes
---- @param user_config table
+--- @param user_config? table
 --- @return nil
 function events.on_option_changed(user_config)
-  options.setup(user_config) -- NOTE: must be first `setup` called here
+  config.setup(user_config) -- NOTE: must be first `setup` called here
   highlight.setup()
   JumpMode.set_letters(options.letters())
 
