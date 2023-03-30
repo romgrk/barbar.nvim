@@ -41,7 +41,7 @@ local set_current_win = vim.api.nvim_set_current_win --- @type function
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 local win_is_valid = vim.api.nvim_win_is_valid --- @type function
 
-local options = require'bufferline.options'
+local config = require'bufferline.config'
 local state = require'bufferline.state'
 local utils = require'bufferline.utils'
 
@@ -76,8 +76,8 @@ local enew = vim.api.nvim_cmd and
 --- @param closing_number integer
 --- @return nil|integer bufnr of the buffer to focus
 local function get_focus_on_close(closing_number)
+  local focus_on_close = config.options.focus_on_close
   local state_bufnrs = state.buffers
-  local focus_on_close = options.focus_on_close()
 
   if #state_bufnrs < 1 then -- all of the buffers are excluded or unlisted
     local open_bufnrs = list_bufs()

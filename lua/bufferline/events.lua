@@ -16,9 +16,9 @@ local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local tabpage_list_wins = vim.api.nvim_tabpage_list_wins --- @type function
 
 local bbye = require'bufferline.bbye'
+local config = require'bufferline.config'
 local highlight = require'bufferline.highlight'
 local JumpMode = require'bufferline.jump_mode'
-local options = require'bufferline.options'
 local render = require'bufferline.render'
 local state = require'bufferline.state'
 local utils = require'bufferline.utils'
@@ -234,12 +234,13 @@ function events.main_click_handler(bufnr, _, btn, _)
 end
 
 --- What to do when the user configuration changes
+--- TODO: remove in v2; it can all go in `setup`
 --- @param user_config? table
 --- @return nil
 function events.on_option_changed(user_config)
   config.setup(user_config) -- NOTE: must be first `setup` called here
   highlight.setup()
-  JumpMode.set_letters(options.letters())
+  JumpMode.set_letters(config.options.letters)
 
   -- Don't jump-start barbar if it is disabled
   if enabled then
