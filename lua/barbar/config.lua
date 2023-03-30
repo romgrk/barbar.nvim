@@ -123,6 +123,7 @@ local DEPRECATED_OPTIONS = {
 --- @field maximum_padding integer
 --- @field minimum_padding integer
 --- @field no_name_title string
+--- @field scroll_lock_pinned boolean
 --- @field semantic_letters boolean
 --- @field tabpages boolean
 
@@ -208,6 +209,7 @@ function config.setup(user_config)
     maximum_padding = 4,
     minimum_padding = 1,
     no_name_title = nil,
+    scroll_lock_pinned = false,
     semantic_letters = true,
     tabpages = true,
   })
