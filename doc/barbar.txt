@@ -87,7 +87,7 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 `<STATUS>`   Meaning
 ---------  --------------------------------------------------
 `Alternate`  The |alternate-file|.
-`Current`    The current buffer.
+`Current`    The |current-file|.
 `Inactive`   |hidden-buffer|s and |inactive-buffer|s.
 `Visible`    |active-buffer|s which are not alternate or current.
 
@@ -162,22 +162,22 @@ exclude_name ~
 focus_on_close ~
   `'left'|'right'`  (default: `'left'`)
   A buffer to this direction will be focused (if it exists) when closing the
-  current buffer.
+  |current-file|.
 
                                                            *barbar-setup.hide*
 hide ~
-  Sets which elements are hidden in the bufferline. Possible options are:
+  Sets which elements are hidden in the 'tabline'. Possible options are:
 
                                                  *barbar-setup.hide.alternate*
   hide.alternate ~
     `boolean`  (default: `false`)
     Controls the visibility of the |alternate-file|.
-    |barbar-setup.highlight_alternate| must be `true`.
+    NOTE: |barbar-setup.highlight_alternate| must be `true`.
 
                                                    *barbar-setup.hide.current*
   hide.current ~
     `boolean`  (default: `false`)
-    Controls the visibility of the current buffer.
+    Controls the visibility of the |current-file|.
 
                                                 *barbar-setup.hide.extensions*
   hide.extensions ~
@@ -193,7 +193,7 @@ hide ~
   hide.visible ~
     `boolean`  (default: `false`)
     Controls visibility of |active-buffer|s.
-    |barbar-setup.highlight_visible| must be `true`.
+    NOTE: |barbar-setup.highlight_visible| must be `true`.
 
                                             *barbar-setup.highlight_alternate*
 highlight_alternate ~
@@ -242,10 +242,10 @@ icons ~
        [vim.diagnostic.severity.INFO] = {enabled = false, icon = 'ⓘ '},
        [vim.diagnostic.severity.WARN] = {enabled = false, icon = '⚠️ '},
     }
-<   Enables or disables showing diagnostics in the bufferline. The options
+<   Enables or disables showing diagnostics in the 'tabline'. The options
     are:
     - `enabled`, whether this diagnostics of this severity are shown in the
-      bufferline.
+      'tabline'.
     - `icon`, which controls what icon accompanies the number of diagnostics.
 
                                    *barbar-setup.icons.filetype.custom_colors*
@@ -311,7 +311,7 @@ icons ~
                                                   *barbar-setup.icons.current*
   icons.current ~
     `table`
-    The icons which should be used for current buffer.
+    The icons which should be used for |current-file|.
     Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc) as well as `modified` and `pinned`.
 
@@ -346,14 +346,14 @@ icons ~
 insert_at_start ~
   `boolean`  (default: `false`)
   If true, new buffers appear at the start of the list. Default is to
-  open after the current buffer.
+  open after the |current-file|.
   Has priority over |barbar-setup.insert_at_end|
 
                                                   *barbar-setup.insert_at_end*
 insert_at_end ~
   `boolean`   (default: `false`)
   If true, new buffers appear at the end of the list. Default is to
-  open after the current buffer.
+  open after the |current-file|.
 
                                                         *barbar-setup.letters*
 letters ~
@@ -382,6 +382,11 @@ no_name_title ~
   `string`  (default: `nil`)
   Sets the name of unnamed buffers. By default format is `'[Buffer X]'`
   where `X` is the buffer number. But only a static string is accepted here.
+
+                                             *barbar-setup.scroll_lock.pinned*
+scroll_lock_pinned ~
+  `boolean`  (default: `false`)
+  If `true`, pinned buffers will always be shown in the 'tabline'.
 
                                                *barbar-setup.semantic_letters*
 semantic_letters ~

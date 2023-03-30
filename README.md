@@ -321,6 +321,9 @@ require'barbar'.setup {
   -- Sets the maximum buffer name length.
   maximum_length = 30,
 
+  -- Ensure pinned buffers stay visible in the tabline
+  scroll_lock_pinned = true,
+
   -- If set, the letters for each buffer in buffer-pick mode will be
   -- assigned based on their name. Otherwise or in case all letters are
   -- already assigned, the behavior is to assign letters in order of
