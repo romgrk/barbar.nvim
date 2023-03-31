@@ -136,15 +136,6 @@ local utils = {
       notify_once_util(name .. ' is deprecated. Use ' .. alternative .. 'instead.', vim.log.levels.WARN)
     end,
 
-  --- Return whether element `n` is in a `list.
-  --- @generic T
-  --- @param list T[]
-  --- @param t T
-  --- @return boolean
-  has = function(list, t)
-    return index_of(list, t) ~= nil
-  end,
-
   --- utilities for working with highlight groups.
   --- @class barbar.utils.hl
   hl = {

@@ -13,6 +13,7 @@ local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local list_bufs = vim.api.nvim_list_bufs --- @type function
 local list_extend = vim.list_extend
 local severity = vim.diagnostic.severity --- @type {[integer]: string, [string]: integer}
+local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 
 local Buffer = require'barbar.buffer'
@@ -116,10 +117,10 @@ function state.get_buffer_list()
 
   for _, bufnr in ipairs(list_bufs()) do
     if buf_get_option(bufnr, 'buflisted') and
-      not utils.has(exclude_ft, buf_get_option(bufnr, 'filetype'))
+      not tbl_contains(exclude_ft, buf_get_option(bufnr, 'filetype'))
     then
       local name = buf_get_name(bufnr)
-      if not utils.has(exclude_name, utils.basename(name, hide_extensions)) then
+      if not tbl_contains(exclude_name, utils.basename(name, hide_extensions)) then
         table_insert(result, bufnr)
       end
     end
