@@ -136,10 +136,10 @@ function state.get_buffer_list()
 
   for _, bufnr in ipairs(list_bufs()) do
     if buf_get_option(bufnr, 'buflisted') and
-      not utils.has(exclude_ft, buf_get_option(bufnr, 'filetype'))
+      not tbl_contains(exclude_ft, buf_get_option(bufnr, 'filetype'))
     then
       local name = buf_get_name(bufnr)
-      if not utils.has(exclude_name, utils.basename(name, hide_extensions)) then
+      if not tbl_contains(exclude_name, utils.basename(name, hide_extensions)) then
         table_insert(result, bufnr)
       end
     end
