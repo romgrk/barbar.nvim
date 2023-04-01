@@ -67,6 +67,9 @@ end)
 function events.enable()
   local augroup_misc, augroup_render = events.augroups()
 
+  create_autocmd({'VimEnter'}, { callback = state.load_recently_closed, group = augroup_misc })
+  create_autocmd({'VimLeave'}, { callback = state.save_recently_closed, group = augroup_misc })
+
   create_autocmd({'BufNewFile', 'BufReadPost'}, {
     callback = function(tbl) JumpMode.assign_next_letter(tbl.buf) end,
     group = augroup_misc,
@@ -75,6 +78,7 @@ function events.enable()
   create_autocmd({'BufDelete', 'BufWipeout'}, {
     callback = vim.schedule_wrap(function(tbl)
       JumpMode.unassign_letter_for(tbl.buf)
+      state.push_recently_closed(tbl.file)
       render.update()
     end),
     group = augroup_render,

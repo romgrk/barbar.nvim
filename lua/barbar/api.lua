@@ -159,6 +159,11 @@ function api.close_buffers_right()
   render.update()
 end
 
+-- Restore last recently closed buffer
+function api.restore_buffer()
+  state.pop_recently_closed()
+end
+
 --- Set the current buffer to the `number`
 --- @param index integer
 --- @return nil

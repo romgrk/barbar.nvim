@@ -149,6 +149,8 @@ nnoremap <silent>    <A-p> <Cmd>BufferPin<CR>
 
 " Close buffer
 nnoremap <silent>    <A-c> <Cmd>BufferClose<CR>
+" Restore buffer
+nnoremap <silent>    <A-s-c> <Cmd>BufferRestore<CR>
 
 " Wipeout buffer
 "                          :BufferWipeout

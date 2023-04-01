@@ -53,6 +53,8 @@ The name of each command should be descriptive enough for you to use it.
 
     " Close buffer
     nnoremap <silent>    <A-c> <Cmd>BufferClose<CR>
+    " Restore buffer
+    nnoremap <silent>    <A-s-c> <Cmd>BufferRestore<CR>
 
     " Wipeout buffer
     "                          :BufferWipeout
