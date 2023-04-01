@@ -127,11 +127,17 @@ local DEPRECATED_OPTIONS = {
 --- @field tabpages boolean
 
 --- @class barbar.config
+--- @field did_initialize boolean
 --- @field options barbar.config.options
-local config = {options = {}}
+local config = {
+  did_initialize = false,
+  options = {},
+}
 
 --- @param user_config? table
 function config.setup(user_config)
+  config.did_initialize = true
+
   if type(user_config) ~= 'table' then
     user_config = {}
   end
