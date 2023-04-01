@@ -85,8 +85,8 @@ local buffer = {
 
   --- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `buffer_number` provided, call `f`.
   --- @param buffer_number integer the buffer number to count diagnostics in
-  --- @param diagnostics barbar.config.options.icons.diagnostics the user configuration for diagnostics
-  --- @param f fun(count: integer, severity_idx: integer, severity_option: barbar.config.options.icons.diagnostics.severity) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
+  --- @param diagnostics barbar.config.options.icons.buffer.diagnostics the user configuration for diagnostics
+  --- @param f fun(count: integer, severity_idx: integer, option: barbar.config.options.icons.diagnostics.severity) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
   --- @return nil
   for_each_counted_enabled_diagnostic = function(buffer_number, diagnostics, f)
     local count

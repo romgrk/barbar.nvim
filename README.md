@@ -245,7 +245,11 @@ map('n', '<Space>bw', '<Cmd>BufferOrderByWindowNumber<CR>', opts)
 
 ```lua
 vim.g.barbar_auto_setup = false -- disable auto-setup
-require'barbar'.setup { -- Set barbar's options
+require'barbar'.setup {
+  -- WARN: do not copy everything below into your config!
+  --       It is just an example of what configuration options there are.
+  --       The defaults are suitable for most people.
+
   -- Enable/disable animations
   animation = true,
 
@@ -305,7 +309,7 @@ require'barbar'.setup { -- Set barbar's options
     -- Configure the icons on the bufferline when modified or pinned.
     -- Supports all the base icon options.
     modified = {button = '●'},
-    pinned = {button = '車'},
+    pinned = {button = '車', filename = true, separator = {right = ''}},
 
     -- Configure the icons on the bufferline based on the visibility of a buffer.
     -- Supports all the base icon options, plus `modified` and `pinned`.

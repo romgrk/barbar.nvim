@@ -73,29 +73,42 @@ function Layout.calculate_buffer_width(bufnr, index)
   local buffer_data = state.get_buffer_data(bufnr)
   local buffer_name = buffer_data.name or '[no name]'
 
-  local icons_option = state.icons(bufnr, Buffer.activities[Buffer.get_activity(bufnr)])
+  local icons_option = state.icons(bufnr, buffer_activity)
 
-  local width = strwidth(icons_option.separator.left) + strwidth(buffer_name) -- separator + name
+  local width = strwidth(icons_option.separator.left)
+
+  local filename_enabled = icons_option.filename
+  if filename_enabled then
+    width = width + strwidth(buffer_name)
+  end
 
   if icons_option.buffer_index then
     width = width + #tostring(index) + SPACE_LEN
-  elseif icons_option.buffer_number then
+  end
+
+  if icons_option.buffer_number then
     width = width + #tostring(bufnr) + SPACE_LEN
   end
 
   if icons_option.filetype.enabled then
-    --- @diagnostic disable-next-line:param-type-mismatch
-    local file_icon = icons.get_icon(bufnr, '')
-    width = width + strwidth(file_icon) + SPACE_LEN
+    local file_icon = icons.get_icon(bufnr, buffer_activity)
+    width = width + strwidth(file_icon)
+
+    if filename_enabled then
+      width = width + SPACE_LEN
+    end
   end
 
   Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, _, option)
     width = width + SPACE_LEN + strwidth(option.icon) + #tostring(count)
   end)
 
-  width = width + strwidth(icons_option.button or '') + SPACE_LEN + strwidth(icons_option.separator.right)
+  local button = icons_option.button
+  if button then
+    width = width + strwidth(button) + SPACE_LEN
+  end
 
-  return width
+  return width + strwidth(icons_option.separator.right)
 end
 
 --- @return {[integer]: integer} position_by_bufnr
