@@ -14,4 +14,6 @@ if user_config then
   )
 end
 
-require'bufferline'.setup(user_config)
+if require'barbar.config'.did_initialize == false then
+  require'bufferline'.setup(user_config)
+end
