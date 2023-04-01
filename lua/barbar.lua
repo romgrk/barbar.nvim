@@ -192,6 +192,12 @@ function barbar.setup(user_config)
     {count = true, desc = 'Scroll the bufferline right'}
   )
 
+  create_user_command(
+    'BufferRestore',
+    api.restore_buffer,
+    {desc = 'Restore the last recently closed buffer'}
+  )
+
   -- Setup barbar
   events.on_option_changed(user_config)
   events.enable()

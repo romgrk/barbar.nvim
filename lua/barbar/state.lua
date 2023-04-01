@@ -8,10 +8,14 @@ local table_remove = table.remove
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local bufadd = vim.fn.bufadd --- @type function
+local stdpath = vim.fn.stdpath --- @type function
+local json_encode = vim.fn.json_encode --- @type function
+local json_decode = vim.fn.json_decode --- @type function
 local deepcopy = vim.deepcopy
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local list_bufs = vim.api.nvim_list_bufs --- @type function
 local list_extend = vim.list_extend
+local list_slice = vim.list_slice
 local severity = vim.diagnostic.severity --- @type {[integer]: string, [string]: integer}
 local tbl_filter = vim.tbl_filter
 
@@ -74,11 +78,13 @@ end
 --- @field buffers integer[] the open buffers, in visual order.
 --- @field data_by_bufnr {[integer]: barbar.state.data} the buffer data indexed on buffer number
 --- @field pins {[integer]: boolean} whether a buffer is pinned
+--- @field recently_closed string[] the list of recently closed paths
 local state = {
   is_picking_buffer = false,
   loading_session = false,
   buffers = {},
   data_by_bufnr = {},
+  recently_closed = {},
 
   --- The offset of the tabline (from the left).
   --- @class barbar.render.offset
@@ -179,6 +185,28 @@ function state.close_buffer(bufnr, do_name_update)
   if do_name_update then
     state.update_names()
   end
+end
+
+--- Store a recently closed buffer
+--- @param filepath string | nil
+--- @return nil
+function state.push_recently_closed(filepath)
+  if filepath ~= nil and filepath ~= '' then
+    table.insert(state.recently_closed, 1, filepath)
+    state.recently_closed = list_slice(state.recently_closed, 1, 20)
+  end
+end
+
+--- Restore a recently closed buffer
+--- @return string | nil
+function state.pop_recently_closed()
+  if #state.recently_closed == 0 then
+    return nil
+  end
+  local filepath = state.recently_closed[1]
+  state.recently_closed = list_slice(state.recently_closed, 2, 20)
+  vim.cmd(string.format('edit %s', filepath))
+  return filepath
 end
 
 -- Read/write state
@@ -294,6 +322,42 @@ function state.icons(bufnr, activity)
   end
 
   return buffer_icons
+end
+
+-- Save/load state
+
+--- Save recently_closed list
+--- @return nil
+function state.save_recently_closed()
+  local filepath = stdpath('cache') .. '/barbar.json'
+  local file = io.open(filepath, 'w+')
+  if file == nil then
+    return
+  end
+
+  local encoded_state = json_encode({
+    recently_closed = state.recently_closed,
+  })
+
+  file:write(encoded_state)
+  file:close()
+end
+
+--- Save recently_closed list
+--- @return nil
+function state.load_recently_closed()
+  local filepath = stdpath('cache') .. '/barbar.json'
+  local file = io.open(filepath, 'r')
+  if (file == nil) then
+    return
+  end
+  local content = file:read('*a')
+  file:close()
+
+  local saved_state = json_decode(content)
+  if saved_state.recently_closed ~= nil then
+    state.recently_closed = saved_state.recently_closed
+  end
 end
 
 -- Exports
