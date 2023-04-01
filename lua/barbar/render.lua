@@ -677,7 +677,7 @@ local function generate_tabline(bufnrs, refocus)
 
     result = result ..
       groups_to_string(slice_groups_right({offset}, offset_available_width)) ..
-      (' '):rep(offset_available_width - #state.offset.text + 1)
+      (' '):rep(offset_available_width - strwidth(state.offset.text) + 1)
   end
 
   --- The highlight of the buffer tabpage fill
