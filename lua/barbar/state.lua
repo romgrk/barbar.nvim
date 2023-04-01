@@ -42,7 +42,7 @@ local function icons_option_prioritize(higher, lower)
           higher.diagnostics = {}
         end
 
-        for i in ipairs(severity) do
+        for i = 1, #severity do
           higher.diagnostics[i] = utils.setfallbacktable(higher.diagnostics[i], lower_diagnostics[i])
         end
       end
