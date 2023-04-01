@@ -89,8 +89,8 @@ function Layout.calculate_buffer_width(bufnr, index)
     width = width + strwidth(file_icon) + SPACE_LEN
   end
 
-  Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(c, d, _)
-    width = width + 1 + strwidth(d.icon) + #tostring(c) -- space before icon + icon + diagnostic count
+  Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, _, option)
+    width = width + SPACE_LEN + strwidth(option.icon) + #tostring(count)
   end)
 
   width = width + strwidth(icons_option.button or '') + SPACE_LEN + strwidth(icons_option.separator.right)
