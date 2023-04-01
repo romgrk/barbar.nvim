@@ -75,10 +75,10 @@ end
 --- @field closing boolean whether the buffer is being closed
 --- @field name? string the name of the buffer
 --- @field position? integer the absolute position of the buffer
---- @field computed_width? integer the width of the buffer + invisible characters
 --- @field computed_position? integer the position of the buffer
+--- @field computed_width? integer the width of the buffer plus invisible characters
 --- @field pinned boolean whether the buffer is pinned
---- @field width? integer the width of the buffer - invisible characters
+--- @field width? integer the width of the buffer minus invisible characters
 
 --- @class barbar.state.offset.side
 --- @field hl? string the highlight group to use
@@ -397,12 +397,10 @@ function state.load_recently_closed()
     return
   end
 
-  pcall(function()
-    local saved_state = json_decode(content, { luanil = { array = true, object = true } })
-    if saved_state.recently_closed ~= nil then
-      state.recently_closed = saved_state.recently_closed
-    end
-  end)
+  local ok, result = pcall(json_decode, content, {luanil = {array = true, object = true}})
+  if ok and result.recently_closed ~= nil then
+    state.recently_closed = result.recently_closed
+  end
 end
 
 -- Exports
