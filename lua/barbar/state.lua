@@ -368,21 +368,26 @@ end
 --- @return nil
 function state.load_recently_closed()
   local file, open_err = io.open(CACHE_PATH, 'r')
+
+  -- Ignore if the file doesn't exist or isn't readable
   if open_err ~= nil then
-    return utils.notify('Recently closed buffer list does not exist; skipping. ' .. CACHE_PATH, vim.log.levels.INFO)
+    return
   elseif file == nil then
-    return utils.notify('Could not open ' .. CACHE_PATH, vim.log.levels.ERROR)
+    return
   end
+
   local content, read_err = file:read('*a')
   if read_err ~= nil then
     return utils.notify(read_err, vim.log.levels.ERROR)
   end
+
   local success, close_err = file:close()
   if close_err ~= nil then
-    return utils.notify(close_err, vim.log.levels.ERROR)
+    return
   elseif success == false then
-    return utils.notify('Could not close ' .. CACHE_PATH, vim.log.levels.ERROR)
+    return
   end
+
   pcall(function()
     local saved_state = json_decode(content, { luanil = { array = true, object = true } })
     if saved_state.recently_closed ~= nil then
