@@ -76,7 +76,8 @@ end
 --- @field closing boolean whether the buffer is being closed
 --- @field name? string the name of the buffer
 --- @field position? integer the absolute position of the buffer
---- @field real_width? integer the width of the buffer + invisible characters
+--- @field computed_width? integer the width of the buffer + invisible characters
+--- @field computed_position? integer the position of the buffer
 --- @field pinned boolean whether the buffer is pinned
 --- @field width? integer the width of the buffer - invisible characters
 
