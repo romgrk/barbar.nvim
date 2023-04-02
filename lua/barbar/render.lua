@@ -568,7 +568,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     local button = {hl = buffer_hl, text = ''}
 
     local button_icon = icons_option.button
-    if button_icon and #button_icon > 1 then
+    if button_icon and #button_icon > 0 then
       button.text = button_icon .. ' '
 
       if click_enabled then

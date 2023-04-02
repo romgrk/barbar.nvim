@@ -106,7 +106,7 @@ function Layout.calculate_buffer_width(bufnr, index)
   end)
 
   local button = icons_option.button
-  if button then
+  if button and #button > 0 then
     width = width + strwidth(button) + SPACE_LEN
   end
 
