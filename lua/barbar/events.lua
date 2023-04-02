@@ -17,8 +17,9 @@ local schedule = vim.schedule --- @type function
 local schedule_wrap = vim.schedule_wrap
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local tabpage_list_wins = vim.api.nvim_tabpage_list_wins --- @type function
-local win_get_width = vim.api.nvim_win_get_width --- @type function
+local tbl_isempty = vim.tbl_isempty
 local win_get_position = vim.api.nvim_win_get_position --- @type function
+local win_get_width = vim.api.nvim_win_get_width --- @type function
 
 local api = require'barbar.api'
 local bbye = require'barbar.bbye'
@@ -128,7 +129,7 @@ function events.enable()
     }
   )
 
-  do
+  if not tbl_isempty(config.options.sidebar_filetypes) then
     --- The `middle` column of the screen
     --- @type integer
     local middle
