@@ -23,7 +23,6 @@ files you can even type the letter ahead from memory.
  - [Usage](#usage)
  - [Options](#options)
  - [Highlighting](#highlighting)
- - [Integration with filetree plugins](#integration-with-filetree-plugins)
  - [Known Issues](#known-issues)
  - [About Barbar](#about)
 
