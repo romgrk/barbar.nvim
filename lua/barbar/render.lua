@@ -152,9 +152,10 @@ local function slice_groups_right(groups, width)
     local text_width = strwidth(group.text)
     accumulated_width = accumulated_width + text_width
 
+    local ellipsis = '…'
     if accumulated_width >= width then
-      local diff = text_width - (accumulated_width - width)
-      local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff)}
+      local diff = text_width - (accumulated_width - width) - strwidth(ellipsis) + 2
+      local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff) .. ellipsis}
       table_insert(new_groups, new_group)
       break
     end
