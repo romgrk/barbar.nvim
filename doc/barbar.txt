@@ -444,4 +444,4 @@ tabpages ~
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
 
- vim:tw=78:ts=8:ft=help:norl:
+ vim:tw=78:ts=2:ft=help:norl:
