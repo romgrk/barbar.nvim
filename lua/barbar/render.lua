@@ -35,6 +35,9 @@ local Layout = require'barbar.layout'
 local state = require'barbar.state'
 local utils = require'barbar.utils'
 
+local ELLIPSIS = '…'
+local ELLIPSIS_LEN = strwidth(ELLIPSIS)
+
 --- Last value for tabline
 --- @type string
 local last_tabline = ''
@@ -138,9 +141,6 @@ end
 local function hl_tabline(group)
   return '%#' .. group .. '#'
 end
-
-local ELLIPSIS = '…'
-local ELLIPSIS_LEN = strwidth(ELLIPSIS)
 
 --- Select from `groups` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
 --- @param groups barbar.render.group[]
@@ -673,14 +673,14 @@ local function generate_tabline(bufnrs, refocus)
   local result = ''
 
   -- Add offset filler & text (for filetree/sidebar plugins)
-  if state.offset.width > 0 then
+  if state.offset.left.width > 0 then
     --- @type barbar.render.group
-    local offset = {hl = hl_tabline(state.offset.hl or 'BufferOffset'), text = ' ' .. state.offset.text}
-    local offset_available_width = state.offset.width - 2
+    local offset = {hl = hl_tabline(state.offset.left.hl or 'BufferOffset'), text = ' ' .. state.offset.left.text}
+    local offset_available_width = state.offset.left.width - 2
 
     result = result ..
       groups_to_string(slice_groups_right({offset}, offset_available_width)) ..
-      (' '):rep(offset_available_width - strwidth(state.offset.text) + 1)
+      (' '):rep(offset_available_width - strwidth(state.offset.left.text) + 1)
   end
 
   --- The highlight of the buffer tabpage fill
@@ -720,6 +720,17 @@ local function generate_tabline(bufnrs, refocus)
 
   if layout.tabpages_width > 0 then
     result = result .. '%=%#BufferTabpages# ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' '
+  end
+
+  -- Add offset filler & text (for filetree/sidebar plugins)
+  if state.offset.right.width > 0 then
+    --- @type barbar.render.group
+    local offset = {hl = hl_tabline(state.offset.right.hl or 'BufferOffset'), text = ' ' .. state.offset.right.text}
+    local offset_available_width = state.offset.right.width - 2
+
+    result = result ..
+      groups_to_string(slice_groups_left({offset}, offset_available_width)) ..
+      (' '):rep(offset_available_width - strwidth(state.offset.right.text) + 1)
   end
 
   return result .. hl_buffer_tabpage_fill

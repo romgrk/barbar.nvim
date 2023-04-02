@@ -12,6 +12,7 @@ local list_slice = vim.list_slice
 local notify = vim.notify
 local notify_once = vim.notify_once
 local set_hl = vim.api.nvim_set_hl --- @type function
+local tbl_isempty = vim.tbl_isempty
 
 --- @type {[string]: table}
 local hl_groups_cache = {}
@@ -175,7 +176,7 @@ local utils = {
     attributes = function(groups)
       for _, group in ipairs(groups) do
         local hl = get_hl_cached(group)
-        if vim.tbl_count(hl) > 0 then
+        if not tbl_isempty(hl) then
           return hl
         end
       end
@@ -339,7 +340,11 @@ local utils = {
     local current = tbl
     for i = 1, #keys - 1 do
       local key = keys[i]
-      current[key] = current[key] or {}
+
+      if current[key] == nil then
+        current[key] = {}
+      end
+
       current = current[key]
     end
 
