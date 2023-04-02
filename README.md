@@ -113,6 +113,10 @@ as `BufferClose` and `bufferline#bbye#delete(buf)`.
 
 ![scroll](./static/scroll.gif)
 
+##### Offset bufferline when showing sidebars
+
+![filetree-with-offset](./static/filetree-with-offset.png)
+
 ## Usage
 
 ### Mappings & commands
