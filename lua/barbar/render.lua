@@ -139,6 +139,9 @@ local function hl_tabline(group)
   return '%#' .. group .. '#'
 end
 
+local ELLIPSIS = '…'
+local ELLIPSIS_LEN = strwidth(ELLIPSIS)
+
 --- Select from `groups` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
 --- @param groups barbar.render.group[]
 --- @param width integer
@@ -153,8 +156,8 @@ local function slice_groups_right(groups, width)
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
-      local diff = text_width - (accumulated_width - width)
-      local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff)}
+      local diff = text_width - (accumulated_width - width) - ELLIPSIS_LEN + 2
+      local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff) .. ELLIPSIS}
       table_insert(new_groups, new_group)
       break
     end
