@@ -26,6 +26,9 @@ local WARN = vim.diagnostic.severity.WARN --- @type integer
 local config = require'barbar.config'
 local utils = require'barbar.utils'
 
+local ELLIPSIS = '…'
+local ELLIPSIS_LEN = strwidth(ELLIPSIS)
+
 --- @alias barbar.buffer.activity 1|2|3|4
 
 --- @alias barbar.buffer.activity.name 'Inactive'|'Alternate'|'Visible'|'Current'
@@ -122,15 +125,14 @@ local buffer = {
       name = '[buffer ' .. buffer_number .. ']'
     end
 
-    local ellipsis = '…'
     if strwidth(name) > maximum_length then
       local ext_index = name:reverse():find('%.')
 
-      if ext_index ~= nil and (ext_index < maximum_length - #ellipsis) then
+      if ext_index ~= nil and (ext_index < maximum_length - ELLIPSIS_LEN) then
         local extension = name:sub(-ext_index)
-        name = strcharpart(name, 0, maximum_length - #ellipsis - #extension) .. ellipsis .. extension
+        name = strcharpart(name, 0, maximum_length - ELLIPSIS_LEN - #extension) .. ELLIPSIS .. extension
       else
-        name = strcharpart(name, 0, maximum_length - #ellipsis) .. ellipsis
+        name = strcharpart(name, 0, maximum_length - ELLIPSIS_LEN) .. ELLIPSIS
       end
 
       -- safety to prevent recursion in any future edge case
