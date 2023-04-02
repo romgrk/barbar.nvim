@@ -156,7 +156,7 @@ local function slice_groups_right(groups, width)
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
-      local diff = text_width - (accumulated_width - width) - ELLIPSIS_LEN + 2
+      local diff = text_width - (accumulated_width - width) - ELLIPSIS_LEN
       local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff) .. ELLIPSIS}
       table_insert(new_groups, new_group)
       break
