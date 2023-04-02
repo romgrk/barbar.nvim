@@ -7,6 +7,7 @@ local max = math.max
 local min = math.min
 local table_insert = table.insert
 
+local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 local tabpagenr = vim.fn.tabpagenr --- @type function
@@ -74,7 +75,7 @@ function Layout.calculate_buffer_width(bufnr, index)
   local buffer_data = state.get_buffer_data(bufnr)
   local buffer_name = buffer_data.name or '[no name]'
 
-  local icons_option = state.icons(bufnr, buffer_activity)
+  local icons_option = Buffer.get_icons(buffer_activity, buf_get_option(bufnr, 'modified'), buffer_data.pinned)
 
   local width = strwidth(icons_option.separator.left)
 

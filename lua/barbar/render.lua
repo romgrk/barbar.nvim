@@ -530,16 +530,15 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   for i, bufnr in ipairs(bufnrs) do
     local activity = Buffer.activities[Buffer.get_activity(bufnr)]
     local buffer_data = state.get_buffer_data(bufnr)
+    local modified = buf_get_option(bufnr, 'modified')
 
     local buffer_name = buffer_data.name or '[no name]'
-    local buffer_hl = hl_tabline('Buffer' .. activity .. (
-      buf_get_option(bufnr, 'modified') and 'Mod' or ''
-    ))
+    local buffer_hl = hl_tabline('Buffer' .. activity .. (modified and 'Mod' or ''))
 
     buffer_data.computed_position = accumulated_width
     buffer_data.computed_width    = Layout.calculate_width(layout.base_widths[i], layout.padding_width)
 
-    local icons_option = state.icons(bufnr, activity)
+    local icons_option = Buffer.get_icons(activity, modified, buffer_data.pinned)
 
     --- Prefix this value to allow an element to be clicked
     local clickable = click_enabled and ('%' .. bufnr .. '@barbar#events#main_click_handler@') or ''
@@ -625,7 +624,8 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     local group_clump = { --- @type barbar.render.group_clump
       groups = {left_separator, pad, buffer_index, buffer_number, icon, jump_letter, name},
       position = buffer_data.position or accumulated_width,
-      width = buffer_data.width or Layout.calculate_width(layout.base_widths[i], layout.padding_width)
+      --- @diagnostic disable-next-line: assign-type-mismatch it is assigned just earlier
+      width = buffer_data.width or buffer_data.computed_width,
     }
 
     Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, idx, option)
@@ -774,8 +774,8 @@ local function generate_tabline(bufnrs, refocus)
 end
 
 --- Update `&tabline`
---- @param update_names? boolean whether to refresh the names of the buffers (default: `false`)
 --- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
+--- @param update_names? boolean whether to refresh the names of the buffers (default: `false`)
 --- @return nil
 function render.update(update_names, refocus)
   if vim.g.SessionLoad then

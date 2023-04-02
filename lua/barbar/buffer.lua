@@ -105,6 +105,21 @@ local buffer = {
 
   get_activity = get_activity,
 
+  --- @param activity barbar.buffer.activity.name
+  --- @param modified boolean
+  --- @param pinned boolean
+  --- @return barbar.config.options.icons.buffer
+  get_icons = function(activity, modified, pinned)
+    local icons_option = config.options.icons[activity:lower()]
+    if pinned then
+      icons_option = icons_option.pinned
+    elseif modified then
+      icons_option = icons_option.modified
+    end
+
+    return icons_option
+  end,
+
   --- @param buffer_number integer
   --- @param hide_extensions boolean? if `true`, exclude the extension of the file
   --- @return string name

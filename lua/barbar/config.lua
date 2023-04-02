@@ -255,6 +255,39 @@ function config.setup(options)
       diagnostic_severity_icons.icon = default_diagnostic_severity_icons.icon
     end
   end
+
+  local icons = config.options.icons
+
+  --- `config.options.icons` without the recursive structure
+  --- @type barbar.config.options.icons.buffer
+  local base_options = {
+    buffer_index = icons.buffer_index,
+    buffer_number = icons.buffer_number,
+    filename = icons.filename,
+    button = icons.button,
+    diagnostics = icons.diagnostics,
+    filetype = icons.filetype,
+    separator = icons.separator,
+  }
+
+  -- resolve all of the icons for the activities
+  for _, activity in ipairs {'alternate', 'current', 'inactive', 'visible'} do
+    local activity_options = tbl_deep_extend('keep', config.options.icons[activity] or {}, base_options)
+    config.options.icons[activity] = activity_options
+    config.options.icons[activity].modified = tbl_deep_extend(
+      'keep',
+      config.options.icons[activity].modified or {},
+      config.options.icons.modified or {},
+      activity_options
+    )
+
+    config.options.icons[activity].pinned = tbl_deep_extend(
+      'keep',
+      config.options.icons[activity].pinned or {},
+      config.options.icons.pinned or {},
+      activity_options
+    )
+  end
 end
 
 return config
