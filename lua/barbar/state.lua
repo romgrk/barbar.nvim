@@ -149,6 +149,7 @@ end
 
 -- Pinned buffers
 
+--- PERF: only call this method if you don't already `state.get_buffer_data`
 --- @param bufnr integer
 --- @return boolean pinned `true` if `bufnr` is pinned
 function state.is_pinned(bufnr)
@@ -337,7 +338,7 @@ function state.icons(bufnr, activity)
     icons_option_prioritize_state'modified'
   end
 
-  if state.get_buffer_data(bufnr).pinned then
+  if state.is_pinned(bufnr) then
     icons_option_prioritize_state'pinned'
   end
 

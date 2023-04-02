@@ -266,7 +266,7 @@ function events.enable()
         end
 
         -- escape quotes
-        table_insert(buffers, {name = name, pinned =  state.get_buffer_data(bufnr).pinned})
+        table_insert(buffers, {name = name, pinned = state.is_pinned(bufnr)})
       end
 
       vim.g.Bufferline__session_restore = "lua require'barbar.state'.restore_buffers " ..

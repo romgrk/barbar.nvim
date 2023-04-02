@@ -140,7 +140,7 @@ function Layout.calculate_buffers_width()
 
   for i, bufnr in ipairs(Layout.buffers) do
     local width = Layout.calculate_buffer_width(bufnr, i)
-    if state.get_buffer_data(bufnr).pinned then
+    if state.is_pinned(bufnr) then
       pinned_count = pinned_count + 1
       pinned_sum = pinned_sum + width
     else
