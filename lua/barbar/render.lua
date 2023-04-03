@@ -35,9 +35,6 @@ local state = require'barbar.state'
 local utils = require'barbar.utils'
 -- local fs = require'barbar.fs' -- For debugging purposes
 
-local ELLIPSIS = '…'
-local ELLIPSIS_LEN = strwidth(ELLIPSIS)
-
 --- Last value for tabline
 --- @type string
 local last_tabline = ''
@@ -170,8 +167,8 @@ local function slice_groups_right(groups, width)
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
-      local diff = text_width - (accumulated_width - width) - ELLIPSIS_LEN
-      local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff) .. ELLIPSIS}
+      local diff = text_width - (accumulated_width - width)
+      local new_group = { hl = group.hl, text = strcharpart(group.text, 0, diff) }
       table_insert(new_groups, new_group)
       break
     end
@@ -198,7 +195,7 @@ local function slice_groups_left(groups, width)
     if accumulated_width >= width then
       local length = text_width - (accumulated_width - width)
       local start = text_width - length
-      local new_group = {hl = group.hl, text = strcharpart(group.text, start, length)}
+      local new_group = { hl = group.hl, text = strcharpart(group.text, start, length) }
       table_insert(new_groups, 1, new_group)
       break
     end
