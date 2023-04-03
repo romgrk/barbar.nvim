@@ -212,7 +212,7 @@ end
 --- @field CLOSE_DURATION integer
 --- @field SCROLL_DURATION integer
 local ANIMATION = {
-  OPEN_DELAY = 50,
+  OPEN_DELAY = 10,
   OPEN_DURATION = 150,
   CLOSE_DURATION = 150,
   SCROLL_DURATION = 200,
