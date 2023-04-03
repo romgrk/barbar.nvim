@@ -74,7 +74,8 @@ end
 --- @field closing boolean whether the buffer is being closed
 --- @field name? string the name of the buffer
 --- @field position? integer the absolute position of the buffer
---- @field real_width? integer the width of the buffer + invisible characters
+--- @field computed_width? integer the width of the buffer + invisible characters
+--- @field computed_position? integer the position of the buffer
 --- @field pinned boolean whether the buffer is pinned
 --- @field width? integer the width of the buffer - invisible characters
 
@@ -100,8 +101,8 @@ local state = {
   is_picking_buffer = false,
   loading_session = false,
   offset = {
-    left = {text = '', width = 0},
-    right = {text = '', width = 0},
+    left = { text = '', width = 0 },
+    right = { text = '', width = 0 },
   },
   recently_closed = {},
 }

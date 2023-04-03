@@ -1,4 +1,3 @@
--- !::exe [luafile %]
 --
 -- render.lua
 --
@@ -34,15 +33,13 @@ local JumpMode = require'barbar.jump_mode'
 local Layout = require'barbar.layout'
 local state = require'barbar.state'
 local utils = require'barbar.utils'
-
-local ELLIPSIS = '…'
-local ELLIPSIS_LEN = strwidth(ELLIPSIS)
+-- local fs = require'barbar.fs' -- For debugging purposes
 
 --- Last value for tabline
 --- @type string
 local last_tabline = ''
 
---- Concatenates some `groups` into a valid string.
+--- Concatenates some `groups` into a valid tabline string.
 --- @param groups barbar.render.group[]
 --- @return string
 local function groups_to_string(groups)
@@ -54,6 +51,20 @@ local function groups_to_string(groups)
     --       To escape '%', we make it '%%'. It just so happens that '%' is also a special character
     --       in Lua, so we have write '%%' to mean '%'.
     result = result .. group.hl .. group.text:gsub('%%', '%%%%')
+  end
+
+  return result
+end
+
+--- Concatenates some `groups` into a raw string.
+--- For debugging purposes.
+--- @param groups barbar.render.group[]
+--- @return string
+local function groups_to_raw_string(groups)
+  local result = ''
+
+  for _, group in ipairs(groups) do
+    result = result .. group.text
   end
 
   return result
@@ -156,8 +167,8 @@ local function slice_groups_right(groups, width)
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
-      local diff = text_width - (accumulated_width - width) - ELLIPSIS_LEN
-      local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff) .. ELLIPSIS}
+      local diff = text_width - (accumulated_width - width)
+      local new_group = { hl = group.hl, text = strcharpart(group.text, 0, diff) }
       table_insert(new_groups, new_group)
       break
     end
@@ -184,7 +195,7 @@ local function slice_groups_left(groups, width)
     if accumulated_width >= width then
       local length = text_width - (accumulated_width - width)
       local start = text_width - length
-      local new_group = {hl = group.hl, text = strcharpart(group.text, start, length)}
+      local new_group = { hl = group.hl, text = strcharpart(group.text, start, length) }
       table_insert(new_groups, 1, new_group)
       break
     end
@@ -196,18 +207,25 @@ local function slice_groups_left(groups, width)
 end
 
 --- @class barbar.render.animation
+--- @field OPEN_DELAY integer
+--- @field OPEN_DURATION integer
 --- @field CLOSE_DURATION integer
---- @field OPEN {DURATION: integer, DELAY: integer}
 --- @field SCROLL_DURATION integer
 local ANIMATION = {
+  OPEN_DELAY = 50,
+  OPEN_DURATION = 150,
   CLOSE_DURATION = 150,
-  OPEN = {DELAY = 50, DURATION = 150},
   SCROLL_DURATION = 200,
 }
 
 --- @class barbar.render.group
 --- @field hl string the highlight group to use
 --- @field text string the content being rendered
+
+--- @class barbar.render.group_clump
+--- @field groups barbar.render.group
+--- @field position integer
+--- @field width integer
 
 --- @class barbar.render.scroll
 --- @field current integer the place where the bufferline is currently scrolled to
@@ -250,7 +268,7 @@ function render.close_buffer_animated(bufnr)
   end
 
   local buffer_data = state.get_buffer_data(bufnr)
-  local current_width = buffer_data.real_width or 0
+  local current_width = buffer_data.computed_width or 0
 
   buffer_data.closing = true
   buffer_data.width = current_width
@@ -282,22 +300,22 @@ local function open_buffer_start_animation(layout, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
   local index = utils.index_of(Layout.buffers, bufnr)
 
-  buffer_data.real_width = Layout.calculate_width(
+  buffer_data.computed_width = Layout.calculate_width(
     layout.base_widths[index] or Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1),
     layout.padding_width
   )
 
-  local target_width = buffer_data.real_width or 0
+  local target_width = buffer_data.computed_width or 0
 
   buffer_data.width = 1
 
   defer_fn(function()
     animate.start(
-      ANIMATION.OPEN.DURATION, 1, target_width, vim.v.t_number,
+      ANIMATION.OPEN_DURATION, 1, target_width, vim.v.t_number,
       function(new_width, animation)
         open_buffer_animated_tick(bufnr, new_width, animation)
       end)
-  end, ANIMATION.OPEN.DELAY)
+  end, ANIMATION.OPEN_DELAY)
 end
 
 --- Open the `new_buffers` in the bufferline.
@@ -383,7 +401,7 @@ function render.get_updated_buffers(update_names)
     if not buffer_data.closing then
       did_change = true
 
-      if buffer_data.real_width == nil then
+      if buffer_data.computed_width == nil then
         render.close_buffer(buffer_number)
       else
         render.close_buffer_animated(buffer_number)
@@ -490,40 +508,14 @@ function render.set_tabline(s)
   end
 end
 
---- Generate the `&tabline` representing the current state of Neovim.
---- @param bufnrs integer[] the bufnrs to render
---- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
---- @return nil|string syntax
-local function generate_tabline(bufnrs, refocus)
-  if config.options.auto_hide then
-    if #bufnrs + #list_tabpages() < 3 then -- 3 because the condition for auto-hiding is 1 visible buffer and 1 tabpage (2).
-      if get_option'showtabline' == 2 then
-        set_option('showtabline', 0)
-      end
-      return
-    end
-
-    if get_option'showtabline' == 0 then
-      set_option('showtabline', 2)
-    end
-  end
-
-  local current = get_current_buf()
-
-  -- Store current buffer to open new ones next to this one
-  if buf_get_option(current, 'buflisted') then
-    if vim.b.empty_buffer then
-      state.last_current_buffer = nil
-    else
-      state.last_current_buffer = current
-    end
-  end
-
-  local layout = Layout.calculate()
-  local max_scroll = max(layout.actual_width - layout.buffers_width, 0)
-
+--- Compute the buffer hl-groups
+--- @param layout barbar.layout.data
+--- @param bufnrs integer[]
+--- @param refocus? boolean
+--- @return barbar.render.group_clump[], integer
+local function get_bufferline_items(layout, bufnrs, refocus)
   local click_enabled = has('tablineat') and config.options.clickable
-  local inactive_separator = config.options.icons.inactive.separator.left
+  local max_scroll = max(layout.actual_width - layout.buffers_width, 0)
 
   local current_buffer_index = nil
   local current_buffer_position = 0
@@ -538,8 +530,8 @@ local function generate_tabline(bufnrs, refocus)
     ))
     local buffer_name = buffer_data.name or '[no name]'
 
-    buffer_data.real_width    = Layout.calculate_width(layout.base_widths[i], layout.padding_width)
-    buffer_data.real_position = current_buffer_position
+    buffer_data.computed_width    = Layout.calculate_width(layout.base_widths[i], layout.padding_width)
+    buffer_data.computed_position = current_buffer_position
 
     local icons_option = state.icons(bufnr, activity)
 
@@ -552,7 +544,7 @@ local function generate_tabline(bufnrs, refocus)
 
     --- The buffer index
     --- @type barbar.render.group
-    local buffer_index = {hl = '', text = ''}
+    local buffer_index = { hl = '', text = '' }
     if icons_option.buffer_index then
       buffer_index.hl = hl_tabline('Buffer' .. activity .. 'Index')
       buffer_index.text = tostring(i) .. ' '
@@ -560,7 +552,7 @@ local function generate_tabline(bufnrs, refocus)
 
     --- The buffer number
     --- @type barbar.render.group
-    local buffer_number = {hl = '', text = ''}
+    local buffer_number = { hl = '', text = '' }
     if icons_option.buffer_number then
       buffer_number.hl = hl_tabline('Buffer' .. activity .. 'Number')
       buffer_number.text = tostring(bufnr) .. ' '
@@ -570,18 +562,18 @@ local function generate_tabline(bufnrs, refocus)
 
     --- The close icon
     --- @type barbar.render.group
-    local close = {hl = buffer_hl, text = button .. ' '}
+    local close = { hl = buffer_hl, text = button .. ' ' }
     if click_enabled and #button > 0 then
       close.hl = '%' .. bufnr .. '@barbar#events#close_click_handler@' .. close.hl
     end
 
     --- The jump letter
     --- @type barbar.render.group
-    local jump_letter = {hl = '', text = ''}
+    local jump_letter = { hl = '', text = '' }
 
     --- The devicon
     --- @type barbar.render.group
-    local icon = {hl = clickable, text = ''}
+    local icon = { hl = clickable, text = '' }
 
     if state.is_picking_buffer then
       local letter = JumpMode.get_letter(bufnr)
@@ -608,7 +600,7 @@ local function generate_tabline(bufnrs, refocus)
 
     --- The padding
     --- @type barbar.render.group
-    local padding = {hl = '', text = (' '):rep(layout.padding_width)}
+    local padding = { hl = '', text = (' '):rep(layout.padding_width) }
 
     --- The separator
     --- @type barbar.render.group
@@ -618,11 +610,9 @@ local function generate_tabline(bufnrs, refocus)
     }
 
     local item = {
-      groups = {left_separator, padding, buffer_index, buffer_number, icon, jump_letter, name},
-      position = buffer_data.position or buffer_data.real_position,
-      width = buffer_data.width
-        -- <padding> <base_widths[i]> <padding>
-        or layout.base_widths[i] + (2 * layout.padding_width),
+      groups = { left_separator, padding, buffer_index, buffer_number, icon, jump_letter, name },
+      position = buffer_data.position or buffer_data.computed_position,
+      width = buffer_data.width or buffer_data.computed_width,
     }
 
     Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(c, d, s)
@@ -633,13 +623,13 @@ local function generate_tabline(bufnrs, refocus)
     end)
 
     --- @type barbar.render.group
-    local right_separator = {hl = left_separator.hl, text = icons_option.separator.right}
+    local right_separator = { hl = left_separator.hl, text = icons_option.separator.right }
 
-    vim.list_extend(item.groups, {padding, close, right_separator})
+    vim.list_extend(item.groups, { padding, close, right_separator })
 
     if activity == 'Current' and refocus ~= false then
       current_buffer_index = i
-      current_buffer_position = buffer_data.real_position
+      current_buffer_position = buffer_data.computed_position
 
       local start = current_buffer_position
       local end_  = current_buffer_position + item.width
@@ -655,7 +645,7 @@ local function generate_tabline(bufnrs, refocus)
 
     local scroll_current = min(scroll.current, max_scroll)
     if current_buffer_position < scroll_current  then
-      goto continue -- HACK: there is no `continue` keyword
+      goto continue
     end
 
     table_insert(items, item)
@@ -668,6 +658,19 @@ local function generate_tabline(bufnrs, refocus)
 
     ::continue::
   end
+
+  return items, current_buffer_position
+end
+
+--- Generate the `&tabline` representing the current state of Neovim.
+--- @param bufnrs integer[] the bufnrs to render
+--- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
+--- @return nil|string syntax
+local function generate_tabline(bufnrs, refocus)
+  local layout = Layout.calculate()
+  local max_scroll = max(layout.actual_width - layout.buffers_width, 0)
+
+  local items, items_width = get_bufferline_items(layout, bufnrs, refocus)
 
   -- Create actual tabline string
   local result = ''
@@ -709,14 +712,16 @@ local function generate_tabline(bufnrs, refocus)
     bufferline_groups = slice_groups_left(bufferline_groups, layout.buffers_width)
   end
 
-  result = result ..
-    groups_to_string(bufferline_groups) .. -- Render bufferline string
-    '%0@barbar#events#main_click_handler@' .. -- prevent the expansion of the last click group
-    hl_buffer_tabpage_fill
+  -- Render bufferline string
+  result = result .. groups_to_string(slice_groups_right(bufferline_groups, items_width))
 
+  local inactive_separator = config.options.icons.inactive.separator.left
   if layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width and #items > 0 then
-    result = result .. inactive_separator
+    result = result .. groups_to_string({{ text = inactive_separator or '', hl = hl_tabline('BufferInactiveSign') }})
   end
+
+  -- prevent the expansion of the last click group
+  result = result .. '%0@barbar#events#main_click_handler@'
 
   if layout.tabpages_width > 0 then
     result = result .. '%=%#BufferTabpages# ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' '
@@ -733,21 +738,58 @@ local function generate_tabline(bufnrs, refocus)
       (' '):rep(offset_available_width - strwidth(state.offset.right.text) + 1)
   end
 
-  return result .. hl_buffer_tabpage_fill
+  result = result .. hl_buffer_tabpage_fill
+
+  -- NOTE: For development or debugging purposes, the following code can be used.
+  -- local text = groups_to_raw_string(bufferline_groups, true)
+  -- if layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width and #items > 0 then
+  --   text = text .. groups_to_raw_string({{ text = inactive_separator or '', hl = hl_tabline('BufferInactiveSign') }}, true)
+  -- end
+  -- local data = vim.json.encode({ metadata = 42 })
+  -- fs.write('barbar.debug.txt', text .. ':' .. data .. '\n', 'a')
+
+  return result
 end
 
 --- Update `&tabline`
---- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
 --- @param update_names? boolean whether to refresh the names of the buffers (default: `false`)
+--- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
 --- @return nil
 function render.update(update_names, refocus)
   if vim.g.SessionLoad then
     return
   end
 
+  local buffers = Buffer.hide(render.get_updated_buffers(update_names))
+
+  -- Auto hide/show if applicable
+  if config.options.auto_hide then
+    if #buffers + #list_tabpages() < 3 then -- 3 because the condition for auto-hiding is 1 visible buffer and 1 tabpage (2).
+      if get_option'showtabline' == 2 then
+        set_option('showtabline', 0)
+      end
+      return
+    end
+
+    if get_option'showtabline' == 0 then
+      set_option('showtabline', 2)
+    end
+  end
+
+  -- Store current buffer to open new ones next to this one
+  local current = get_current_buf()
+  if buf_get_option(current, 'buflisted') then
+    if vim.b.empty_buffer then
+      state.last_current_buffer = nil
+    else
+      state.last_current_buffer = current
+    end
+  end
+
+  -- Render the tabline
   local ok, result = xpcall(
     function()
-      return generate_tabline(Buffer.hide(render.get_updated_buffers(update_names)), refocus)
+      render.set_tabline(generate_tabline(buffers, refocus))
     end,
     debug.traceback
   )
@@ -760,8 +802,6 @@ function render.update(update_names, refocus)
         tostring(result),
       vim.log.levels.ERROR
     )
-  else
-    render.set_tabline(result)
   end
 end
 

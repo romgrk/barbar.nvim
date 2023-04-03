@@ -14,7 +14,6 @@ local schedule_wrap = vim.schedule_wrap
 --- @field initial number
 --- @field running boolean
 --- @field start number
---- @field step number
 --- @field timer userdata
 --- @field type unknown
 
@@ -22,7 +21,7 @@ local schedule_wrap = vim.schedule_wrap
 local animate = {}
 
 --- The amount of time between rendering the next part of the animation.
-local ANIMATION_FREQUENCY = 50
+local FRAME_DURATION = 20
 
 --- @param start? number some time point in the past
 --- @return number milliseconds If `start` is not `nil`, then the time passed since `start`. Else, return the current time
@@ -50,17 +49,6 @@ end
 --- @param state barbar.animate.state
 --- @return nil
 local function animate_tick(state)
-  -- Alternative to finding current value:
-  --
-  --   let state.current += state.step
-  --   call state.Fn(a:timer, current)
-  --
-  -- The reason why I go the long way (below) is because
-  -- the timer callback might not be called exactly on time,
-  -- therefore relying on the current time to find the current
-  -- value is more reliable. It also ensure we end the animation
-  -- on time, because we know if we have run for too long.
-
   local duration = state.duration
   local elapsed = time(state.start)
   local ratio = elapsed / duration
@@ -84,7 +72,6 @@ end
 --- @param type integer
 --- @return barbar.animate.state
 function animate.start(duration, initial, final, type, callback)
-  local ticks = (duration / ANIMATION_FREQUENCY) + 10
   local state = {
     current = initial,
     duration = duration,
@@ -93,12 +80,11 @@ function animate.start(duration, initial, final, type, callback)
     initial = initial,
     running = true,
     start = time(),
-    step = (final - initial) / ticks,
     timer = vim.loop.new_timer(),
     type = type,
   }
 
-  state.timer:start(0, ANIMATION_FREQUENCY, schedule_wrap(function()
+  state.timer:start(0, FRAME_DURATION, schedule_wrap(function()
     animate_tick(state)
   end))
 

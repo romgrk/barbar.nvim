@@ -31,7 +31,7 @@ local SIDES_OF_BUFFER = 2
 
 --- @class barbar.Layout
 --- @field buffers integer[] different from `state.buffers` in that the `hide` option is respected. Only updated when calling `calculate_buffers_width`.
-local Layout = {buffers = {}}
+local Layout = { buffers = {} }
 
 --- The number of characters needed to represent the tabpages.
 --- @return integer width
@@ -52,32 +52,28 @@ function Layout.calculate_buffer_width(bufnr, index)
   local buffer_name = buffer_data.name or '[no name]'
   local width
 
-  if buffer_data.closing then
-    width = buffer_data.real_width
-  else
-    local icons_option = state.icons(bufnr, Buffer.activities[Buffer.get_activity(bufnr)])
+  local icons_option = state.icons(bufnr, Buffer.activities[Buffer.get_activity(bufnr)])
 
-    width = strwidth(icons_option.separator.left) + strwidth(buffer_name) -- separator + name
+  width = strwidth(icons_option.separator.left) + strwidth(buffer_name) -- separator + name
 
-    if icons_option.buffer_index then
-      width = width + #tostring(index) + 1 -- buffer-index + space after buffer-index
-    elseif icons_option.buffer_number then
-      width = width + #tostring(bufnr) + 1 -- buffer-number + space after buffer-index
-    end
-
-    if icons_option.filetype.enabled then
-      --- @diagnostic disable-next-line:param-type-mismatch
-      local file_icon = icons.get_icon(bufnr, '')
-      width = width + strwidth(file_icon) + 1 -- icon + space after icon
-    end
-
-    Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(c, d, _)
-      width = width + 1 + strwidth(d.icon) + #tostring(c) -- space before icon + icon + diagnostic count
-    end)
-
-    -- close-or-pin-or-save-icon + the space after + right separator
-    width = width + strwidth(icons_option.button or '') + 1 + strwidth(icons_option.separator.right)
+  if icons_option.buffer_index then
+    width = width + #tostring(index) + 1 -- buffer-index + space after buffer-index
+  elseif icons_option.buffer_number then
+    width = width + #tostring(bufnr) + 1 -- buffer-number + space after buffer-index
   end
+
+  if icons_option.filetype.enabled then
+    --- @diagnostic disable-next-line:param-type-mismatch
+    local file_icon = icons.get_icon(bufnr, '')
+    width = width + strwidth(file_icon) + 1 -- icon + space after icon
+  end
+
+  Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(c, d, _)
+    width = width + 1 + strwidth(d.icon) + #tostring(c) -- space before icon + icon + diagnostic count
+  end)
+
+  -- close-or-pin-or-save-icon + the space after + right separator
+  width = width + strwidth(icons_option.button or '') + 1 + strwidth(icons_option.separator.right)
 
   return width or 0
 end
