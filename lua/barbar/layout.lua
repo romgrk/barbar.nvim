@@ -99,7 +99,7 @@ end
 --- @return barbar.layout.data
 function Layout.calculate()
   local available_width = get_option'columns'
-  available_width = available_width - state.offset.width
+  available_width = available_width - state.offset.left.width - state.offset.right.width
 
   local used_width, base_widths = Layout.calculate_buffers_width()
   local tabpages_width = Layout.calculate_tabpages_width()

@@ -1,0 +1,16 @@
+root = false
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = tab
+indent_style = space
+insert_final_newline = true
+tab_width = 2
+trim_trailing_whitespace = true
+
+[barbar.txt]
+max_line_length = 78
+
+[*.{lua}]
+max_line_length = 100

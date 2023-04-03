@@ -35,6 +35,9 @@ local state = require'barbar.state'
 local utils = require'barbar.utils'
 -- local fs = require'barbar.fs' -- For debugging purposes
 
+local ELLIPSIS = '…'
+local ELLIPSIS_LEN = strwidth(ELLIPSIS)
+
 --- Last value for tabline
 --- @type string
 local last_tabline = ''
@@ -158,8 +161,8 @@ local function slice_groups_right(groups, width)
     accumulated_width = accumulated_width + text_width
 
     if accumulated_width >= width then
-      local diff = text_width - (accumulated_width - width)
-      local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff)}
+      local diff = text_width - (accumulated_width - width) - ELLIPSIS_LEN
+      local new_group = {hl = group.hl, text = strcharpart(group.text, 0, diff) .. ELLIPSIS}
       table_insert(new_groups, new_group)
       break
     end
@@ -667,14 +670,14 @@ local function generate_tabline(bufnrs, refocus)
   local result = ''
 
   -- Add offset filler & text (for filetree/sidebar plugins)
-  if state.offset.width > 0 then
+  if state.offset.left.width > 0 then
     --- @type barbar.render.group
-    local offset = {hl = hl_tabline(state.offset.hl or 'BufferOffset'), text = ' ' .. state.offset.text}
-    local offset_available_width = state.offset.width - 2
+    local offset = {hl = hl_tabline(state.offset.left.hl or 'BufferOffset'), text = ' ' .. state.offset.left.text}
+    local offset_available_width = state.offset.left.width - 2
 
     result = result ..
       groups_to_string(slice_groups_right({offset}, offset_available_width)) ..
-      (' '):rep(offset_available_width - #state.offset.text + 1)
+      (' '):rep(offset_available_width - strwidth(state.offset.left.text) + 1)
   end
 
   --- The highlight of the buffer tabpage fill
@@ -716,6 +719,17 @@ local function generate_tabline(bufnrs, refocus)
 
   if layout.tabpages_width > 0 then
     result = result .. '%=%#BufferTabpages# ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' '
+  end
+
+  -- Add offset filler & text (for filetree/sidebar plugins)
+  if state.offset.right.width > 0 then
+    --- @type barbar.render.group
+    local offset = {hl = hl_tabline(state.offset.right.hl or 'BufferOffset'), text = ' ' .. state.offset.right.text}
+    local offset_available_width = state.offset.right.width - 2
+
+    result = result ..
+      groups_to_string(slice_groups_left({offset}, offset_available_width)) ..
+      (' '):rep(offset_available_width - strwidth(state.offset.right.text) + 1)
   end
 
   result = result .. hl_buffer_tabpage_fill

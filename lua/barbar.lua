@@ -15,16 +15,16 @@ local state = require'barbar.state'
 local utils = require'barbar.utils'
 
 -------------------------------
--- Section: `bufferline` module
+-- Section: `barbar` module
 -------------------------------
 
 --- @class barbar
 local barbar = {}
 
 --- Setup this plugin.
---- @param user_config? table
+--- @param options? table
 --- @return nil
-function barbar.setup(user_config)
+function barbar.setup(options)
   -- Create all necessary commands
   create_user_command('BarbarEnable', events.enable, {desc = 'Enable barbar.nvim'})
   create_user_command('BarbarDisable', events.disable, {desc = 'Disable barbar.nvim'})
@@ -199,7 +199,7 @@ function barbar.setup(user_config)
   )
 
   -- Setup barbar
-  events.on_option_changed(user_config)
+  events.on_option_changed(options)
   events.enable()
 
   -- Show the tabline

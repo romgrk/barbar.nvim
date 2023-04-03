@@ -448,9 +448,14 @@ end
 --- @param width integer the amount to offset
 --- @param text? string text to put in the offset
 --- @param hl? string
+--- @param side? 'left'|'right'
 --- @return nil
-function api.set_offset(width, text, hl)
-  state.offset = width > 0 and
+function api.set_offset(width, text, hl, side)
+  if side == nil then
+    side = 'left'
+  end
+
+  state.offset[side] = width > 0 and
     {hl = hl, text = text or '', width = width} or
     {hl = nil, text = '', width = 0}
 
