@@ -42,11 +42,10 @@ local ELLIPSIS_LEN = strwidth(ELLIPSIS)
 --- @type string
 local last_tabline = ''
 
---- Concatenates some `groups` into a valid string.
+--- Concatenates some `groups` into a valid tabline string.
 --- @param groups barbar.render.group[]
---- @param text_only? boolean
 --- @return string
-local function groups_to_string(groups, text_only)
+local function groups_to_string(groups)
   local result = ''
 
   for _, group in ipairs(groups) do
@@ -54,11 +53,21 @@ local function groups_to_string(groups, text_only)
     --       tabline.
     --       To escape '%', we make it '%%'. It just so happens that '%' is also a special character
     --       in Lua, so we have write '%%' to mean '%'.
-    if text_only ~= true then
-      result = result .. group.hl .. group.text:gsub('%%', '%%%%')
-    else
-      result = result .. group.text
-    end
+    result = result .. group.hl .. group.text:gsub('%%', '%%%%')
+  end
+
+  return result
+end
+
+--- Concatenates some `groups` into a raw string.
+--- For debugging purposes.
+--- @param groups barbar.render.group[]
+--- @return string
+local function groups_to_raw_string(groups)
+  local result = ''
+
+  for _, group in ipairs(groups) do
+    result = result .. group.text
   end
 
   return result
@@ -735,9 +744,9 @@ local function generate_tabline(bufnrs, refocus)
   result = result .. hl_buffer_tabpage_fill
 
   -- NOTE: For development or debugging purposes, the following code can be used.
-  -- local text = groups_to_string(bufferline_groups, true)
+  -- local text = groups_to_raw_string(bufferline_groups, true)
   -- if layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width and #items > 0 then
-  --   text = text .. groups_to_string({{ text = inactive_separator or '', hl = hl_tabline('BufferInactiveSign') }}, true)
+  --   text = text .. groups_to_raw_string({{ text = inactive_separator or '', hl = hl_tabline('BufferInactiveSign') }}, true)
   -- end
   -- local data = vim.json.encode({ metadata = 42 })
   -- fs.write('barbar.debug.txt', text .. ':' .. data .. '\n', 'a')

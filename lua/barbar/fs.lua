@@ -8,7 +8,7 @@ local fs = {}
 --- @param filepath string
 --- @param content string
 --- @param mode string
---- @return boolean
+--- @return boolean success
 function fs.write(filepath, content, mode)
   mode = mode or 'w'
   local file, open_err = io.open(filepath, mode)
