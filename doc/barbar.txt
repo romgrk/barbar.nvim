@@ -244,7 +244,7 @@ icons ~
        Enable showing diagnostics of this |diagnostic-severity| in the
        'tabline'.
 
-                                      *barbar-setup.icons.diagnostics.enabled*
+                                      *barbar-setup.icons.diagnostics.icon*
      icons.diagnostics.icon ~
        `boolean`  (defaults: `'Ⓧ '`, `'💡'`, `'ⓘ '`, and `'⚠️ '`)
        The icon which accompanies the number of diagnostics.
