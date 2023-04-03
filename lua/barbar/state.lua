@@ -7,6 +7,7 @@ local table_remove = table.remove
 
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
 local bufadd = vim.fn.bufadd --- @type function
 local bufname = vim.fn.bufname --- @type function
 local command = vim.api.nvim_command --- @type function
@@ -317,6 +318,10 @@ function state.icons(bufnr, activity)
 
   --- @type barbar.config.options.icons.buffer
   local buffer_icons = icons_option_prioritize(activity_icons, icons)
+
+  if not buf_is_valid(bufnr) then
+    return buffer_icons
+  end
 
   --- Prioritize the `modified` or `pinned` states
   --- @param option string
