@@ -145,6 +145,12 @@ function barbar.setup(options)
   end
 
   create_user_command(
+    'BufferWipeout',
+    function(tbl) bbye.bwipeout(tbl.bang, tbl.args, tbl.smods or tbl.mods) end,
+    {bang = true, complete = 'buffer', desc = 'Wipe out the buffer', nargs = '?'}
+  )
+
+  create_user_command(
     'BufferCloseAllButCurrent',
     api.close_all_but_current,
     {desc = 'Close every buffer except the current one'}
