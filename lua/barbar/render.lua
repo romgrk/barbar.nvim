@@ -592,7 +592,7 @@ local function get_bufferline_items(layout, bufnrs, refocus)
         and 'BufferInactive'
         or iconHl
 
-      icon.hl = icons_option.filetype.custom_color and
+      icon.hl = icons_option.filetype.custom_colors and
         hl_tabline('Buffer' .. activity .. 'Icon') or
         (hlName and hl_tabline(hlName) or buffer_hl)
       icon.text = iconChar .. ' '
