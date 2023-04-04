@@ -395,6 +395,12 @@ Barbar doesn't show up because lightline changes the tabline setting. Add:
 let g:lightline={ 'enable': {'statusline': 1, 'tabline': 0} }
 ```
 
+#### Netrw
+
+`netrw` has a lot of bugs which make it hard to support. It may work partially, but we will not make changes to barbar.nvim to work-around `netrw`-specific bugs (e.g. #82).
+
+You can use any other [file explorer](https://github.com/rockerBOO/awesome-neovim#file-explorer) instead.
+
 ## About
 
 Barbar is called barbar because it's a bar, but it's also more than a bar:
