@@ -31,7 +31,7 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
 }
 
 --- @class barbar.config.options.icons.filetype
---- @field custom_color? boolean if present, this color will be used for ALL filetype icons
+--- @field custom_colors? boolean if present, this color will be used for ALL filetype icons
 --- @field enabled? boolean iff `true`, show the `devicons` for the associated buffer's `filetype`.
 
 --- @class barbar.config.options.icons.separator
