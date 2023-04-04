@@ -12,5 +12,51 @@ trim_trailing_whitespace = true
 [barbar.txt]
 max_line_length = 78
 
-[*.{lua}]
-max_line_length = 100
+# see https://github.com/CppCXY/EmmyLuaCodeStyle/blob/master/docs/format_config_EN.md
+[*.lua]
+align_array_table = true
+align_call_args = false
+align_continuous_assign_statement = true
+align_continuous_inline_comment = true
+align_continuous_rect_table_field = true
+align_function_params = false
+align_if_branch = false
+auto_collapse_lines = true
+break_all_list_when_line_exceed = true
+call_arg_parentheses = keep
+continuation_indent = 4
+detect_end_of_line = false
+ignore_space_after_colon = false
+ignore_spaces_inside_function_call = false
+line_space_after_comment = max(2)
+line_space_after_do_statement = max(2)
+line_space_after_expression_statement = max(2)
+line_space_after_for_statement = max(2)
+line_space_after_function_statement = fixed(2)
+line_space_after_if_statement = max(2)
+line_space_after_local_or_assign_statement = max(2)
+line_space_after_repeat_statement = max(2)
+line_space_after_while_statement = max(2)
+max_line_length = 120
+never_indent_before_if_condition = false
+never_indent_comment_on_if_branch = false
+# NOTE: may need to be changed      ↑
+quote_style = single
+remove_call_expression_list_finish_comma = false
+space_after_comma = true
+space_after_comma_in_for_statement = true
+space_around_concat_operator = true
+space_around_math_operator = true
+space_around_table_append_operator = false
+space_around_table_field_list = true
+space_before_attribute = true
+space_before_closure_open_parenthesis = false
+space_before_function_call_open_parenthesis = false
+space_before_function_call_single_arg = false
+space_before_function_open_parenthesis = false
+space_before_inline_comment = 1
+space_before_open_square_bracket = false
+space_inside_function_call_parentheses = false
+space_inside_function_param_list_parentheses = false
+space_inside_square_brackets = false
+trailing_table_separator = smart
