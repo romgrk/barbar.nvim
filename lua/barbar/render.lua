@@ -13,7 +13,6 @@ local defer_fn = vim.defer_fn
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
 local has = vim.fn.has --- @type function
-local list_extend = vim.list_extend
 local list_tabpages = vim.api.nvim_list_tabpages --- @type function
 local list_wins = vim.api.nvim_list_wins --- @type function
 local set_current_win = vim.api.nvim_set_current_win --- @type function
@@ -510,14 +509,16 @@ end
 --- @param layout barbar.layout.data
 --- @param bufnrs integer[]
 --- @param refocus? boolean
---- @return barbar.render.group[] pinned_groups, barbar.render.group_clump[] clumps
+--- @return barbar.render.group_clump[] pinned_groups, barbar.render.group_clump[] clumps
 local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   local click_enabled = has('tablineat') and config.options.clickable
 
-  local accumulated_width = 0 --- the amount of width that has been accumulated while iterating
+  local accumulated_pinned_width = 0 --- the width of pinned buffers accumulated while iterating
+  local accumulated_width = 0 --- the width of buffers accumulated while iterating
   local current_buffer_index = nil --- @type nil|integer
+  local done = false --- if all of the visible buffers have been clumped
   local group_clumps = {} --- @type barbar.render.group_clump[]
-  local pinned_groups = {} --- @type barbar.render.group[]
+  local pinned_group_clumps = {} --- @type barbar.render.group_clump[]
 
   --- The padding
   --- @type barbar.render.group
@@ -531,14 +532,51 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     local activity = Buffer.activities[Buffer.get_activity(bufnr)]
     local buffer_data = state.get_buffer_data(bufnr)
     local modified = buf_get_option(bufnr, 'modified')
+    local pinned = buffer_data.pinned
+
+    if pinned then
+      buffer_data.computed_position = accumulated_pinned_width
+      buffer_data.computed_width    = Layout.calculate_width(layout.base_widths[i], config.options.minimum_padding)
+    else
+      buffer_data.computed_position = accumulated_width
+      buffer_data.computed_width    = Layout.calculate_width(layout.base_widths[i], layout.padding_width)
+    end
+
+    local group_clump_width = buffer_data.width or buffer_data.computed_width
+
+    if activity == 'Current' and refocus ~= false then
+      current_buffer_index = i
+
+      local start = accumulated_width
+      local end_  = accumulated_width + group_clump_width
+
+      if scroll.target > start then
+        render.set_scroll(start)
+      elseif scroll.target + layout.buffers_width < end_ then
+        render.set_scroll(scroll.target + (end_ - (scroll.target + layout.buffers_width)))
+      end
+    end
+
+    local scroll_current = min(scroll.current, layout.scroll_max)
+
+    if pinned then
+      accumulated_pinned_width = accumulated_pinned_width + group_clump_width
+    else
+      accumulated_width = accumulated_width + group_clump_width
+
+      if accumulated_width < scroll_current  then
+        goto continue -- HACK: there is no `continue` keyword
+      elseif (refocus == false or (refocus ~= false and current_buffer_index ~= nil)) and
+        accumulated_width - scroll_current > layout.buffers_width
+      then
+        done = true
+      end
+    end
 
     local buffer_name = buffer_data.name or '[no name]'
     local buffer_hl = hl_tabline('Buffer' .. activity .. (modified and 'Mod' or ''))
 
-    buffer_data.computed_position = accumulated_width
-    buffer_data.computed_width    = Layout.calculate_width(layout.base_widths[i], layout.padding_width)
-
-    local icons_option = Buffer.get_icons(activity, modified, buffer_data.pinned)
+    local icons_option = Buffer.get_icons(activity, modified, pinned)
 
     --- Prefix this value to allow an element to be clicked
     local clickable = click_enabled and ('%' .. bufnr .. '@barbar#events#main_click_handler@') or ''
@@ -620,12 +658,13 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
       text = icons_option.separator.left,
     }
 
-    local pad = buffer_data.pinned and pinned_padding or padding
+    local pad = pinned and pinned_padding or padding
     local group_clump = { --- @type barbar.render.group_clump
       groups = {left_separator, pad, buffer_index, buffer_number, icon, jump_letter, name},
-      position = buffer_data.position or accumulated_width,
-      --- @diagnostic disable-next-line: assign-type-mismatch it is assigned just earlier
-      width = buffer_data.width or buffer_data.computed_width,
+      --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
+      position = buffer_data.position or buffer_data.computed_position,
+      --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
+      width = group_clump_width,
     }
 
     Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, idx, option)
@@ -640,44 +679,16 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
 
     vim.list_extend(group_clump.groups, { pad, button, right_separator })
 
-    if activity == 'Current' and refocus ~= false then
-      current_buffer_index = i
-      accumulated_width = buffer_data.computed_position or accumulated_width
+    table_insert(pinned and pinned_group_clumps or group_clumps, group_clump)
 
-      local start = accumulated_width
-      local end_  = accumulated_width + group_clump.width
-
-      if scroll.target > start then
-        render.set_scroll(start)
-      elseif scroll.target + layout.buffers_width < end_ then
-        render.set_scroll(scroll.target + (end_ - (scroll.target + layout.buffers_width)))
-      end
-    end
-
-    if buffer_data.pinned then
-      list_extend(pinned_groups, group_clump.groups)
-      goto continue -- HACK: there is no `continue` keyword
-    end
-
-    accumulated_width = accumulated_width + group_clump.width
-
-    local scroll_current = min(scroll.current, layout.scroll_max)
-    if accumulated_width < scroll_current  then
-      goto continue -- HACK: there is no `continue` keyword
-    end
-
-    table_insert(group_clumps, group_clump)
-
-    if (refocus == false or (refocus ~= false and current_buffer_index ~= nil)) and
-      accumulated_width - scroll_current > layout.buffers_width
-    then
+    if done then
       break
     end
 
     ::continue::
   end
 
-  return pinned_groups, group_clumps
+  return pinned_group_clumps, group_clumps
 end
 
 --- Generate the `&tabline` representing the current state of Neovim.
@@ -686,7 +697,7 @@ end
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   local layout = Layout.calculate()
-  local pinned_groups, group_clumps = get_bufferline_group_clumps(layout, bufnrs, refocus)
+  local pinned_group_clumps, group_clumps = get_bufferline_group_clumps(layout, bufnrs, refocus)
 
   -- Create actual tabline string
   local result = ''
@@ -728,7 +739,12 @@ local function generate_tabline(bufnrs, refocus)
     end
   end
 
-  if #pinned_groups > 0 then
+  if #pinned_group_clumps > 0 then
+    local pinned_groups = {{hl = hl_buffer_tabpage_fill, text = (' '):rep(layout.pinned_width)}}
+    for _, pinned_group_clump in ipairs(pinned_group_clumps) do
+      pinned_groups = groups_insert(pinned_groups, pinned_group_clump.position, pinned_group_clump.groups)
+    end
+
     result = result .. groups_to_string(pinned_groups)
   end
 
@@ -810,9 +826,7 @@ function render.update(update_names, refocus)
 
   -- Render the tabline
   local ok, result = xpcall(
-    function()
-      render.set_tabline(generate_tabline(buffers, refocus))
-    end,
+    function() render.set_tabline(generate_tabline(buffers, refocus)) end,
     debug.traceback
   )
 

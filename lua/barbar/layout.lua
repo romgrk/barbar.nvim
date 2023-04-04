@@ -29,7 +29,8 @@ local SPACE_LEN = #' '
 --- @class barbar.layout.data
 --- @field actual_width integer the sum of the `base_widths` plus the `padding_width` allocated to each buffer
 --- @field base_widths integer[] the minimum amount of space taken up by each buffer
---- @field buffers_width integer the amount of space available to be taken up by buffers
+--- @field buffers_width integer the amount of space available to be taken up by non-pinned buffers
+--- @field pinned_width integer the amount of space used by pinned buffers
 --- @field padding_width integer the amount of padding used on each side of each buffer
 --- @field scroll_max integer the maximum position which can be scrolled to
 --- @field tabpages_width integer the amount of space taken up by the tabpage indicator
@@ -62,6 +63,7 @@ function Layout.calculate()
     base_widths = widths,
     buffers_width = buffers_width,
     padding_width = padding_width,
+    pinned_width = pinned_width,
     scroll_max = max(0, actual_width - buffers_width),
     tabpages_width = tabpages_width,
   }
@@ -115,16 +117,24 @@ end
 
 --- @return {[integer]: integer} position_by_bufnr
 function Layout.calculate_buffers_position_by_buffer_number()
-  local current_position = 0
   local layout = Layout.calculate()
   local positions = {}
 
+  local pinned_position, buffer_position = 0, 0
   for i, buffer_number in ipairs(Layout.buffers) do
-    positions[buffer_number] = current_position
-    current_position = current_position + Layout.calculate_width(
-      layout.base_widths[i],
-      layout.padding_width
-    )
+    if state.is_pinned(buffer_number) then
+      positions[buffer_number] = pinned_position
+      pinned_position = pinned_position + Layout.calculate_width(
+        layout.base_widths[i],
+        config.options.minimum_padding
+      )
+    else
+      positions[buffer_number] = buffer_position
+      buffer_position = buffer_position + Layout.calculate_width(
+        layout.base_widths[i],
+        layout.padding_width
+      )
+    end
   end
 
   return positions
