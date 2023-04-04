@@ -33,11 +33,12 @@ files you can even type the letter ahead from memory.
 require('lazy').setup {
   {'romgrk/barbar.nvim',
     dependencies = 'nvim-tree/nvim-web-devicons',
+    init = function() vim.g.barbar_auto_setup = false end,
     opts = {
-      -- lazy.nvim can automatically call setup for you. just put your options here:
-      -- insert_at_start = true,
+      -- lazy.nvim will automatically call setup for you. put your options here, anything missing will use the default:
       -- animation = true,
-      -- …etc
+      -- insert_at_start = true,
+      -- …etc.
     },
     version = '^1.0.0', -- optional: only update when a new 1.x version is released
   },
@@ -61,7 +62,8 @@ You can skip the dependency on `'nvim-tree/nvim-web-devicons'` if you
 install [nerd fonts](https://www.nerdfonts.com/).
 
 ##### Requirements
- - Neovim `0.7`
+
+- Neovim `0.7`
 
 ## Features
 
@@ -235,14 +237,15 @@ map('n', '<Space>bw', '<Cmd>BufferOrderByWindowNumber<CR>', opts)
 > If you're using Vim Script, just wrap `setup` like this:
 >
 > ```vim
+> let g:barbar_auto_setup = v:false " disable auto-setup
 > lua << EOF
-> require'barbar'.setup {…}
+>   require'barbar'.setup {…}
 > EOF
 > ```
 
 ```lua
--- Set barbar's options
-require'barbar'.setup {
+vim.g.barbar_auto_setup = false -- disable auto-setup
+require'barbar'.setup { -- Set barbar's options
   -- Enable/disable animations
   animation = true,
 
