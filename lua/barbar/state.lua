@@ -17,7 +17,6 @@ local json_decode = vim.json.decode --- @type function
 local deepcopy = vim.deepcopy
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local list_bufs = vim.api.nvim_list_bufs --- @type function
-local list_extend = vim.list_extend
 local list_slice = vim.list_slice
 local severity = vim.diagnostic.severity --- @type {[integer]: string, [string]: integer}
 local tbl_contains = vim.tbl_contains
@@ -159,18 +158,17 @@ end
 --- Sort the pinned tabs to the left of the bufferline.
 --- @return nil
 function state.sort_pins_to_left()
-  local unpinned = {}
+  local pinned = 0
 
-  local i = 1
-  while i <= #state.buffers do
+  local i = #state.buffers
+  while i >= 1 + pinned do
     if state.is_pinned(state.buffers[i]) then
-      i = i + 1
+      table_insert(state.buffers, 1, table_remove(state.buffers, i))
+      pinned = pinned + 1
     else
-      table_insert(unpinned, table_remove(state.buffers, i))
+      i = i - 1
     end
   end
-
-  state.buffers = list_extend(state.buffers, unpinned)
 end
 
 --- Toggle the `bufnr`'s "pin" state.
