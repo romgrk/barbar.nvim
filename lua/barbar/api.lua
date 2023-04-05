@@ -404,16 +404,12 @@ end
 --- @return nil
 function api.pick_buffer()
   pick_buffer_wrap(function()
-    local ok, byte = pcall(getchar)
-    if ok then
-      local letter = char(byte)
-
-      if letter ~= '' then
-        if JumpMode.buffer_by_letter[letter] ~= nil then
-          set_current_buf(JumpMode.buffer_by_letter[letter])
-        else
-          utils.notify("Couldn't find buffer", vim.log.levels.WARN)
-        end
+    local ok, letter = pcall(function() return char(getchar()) end)
+    if ok and letter ~= '' then
+      if JumpMode.buffer_by_letter[letter] ~= nil then
+        set_current_buf(JumpMode.buffer_by_letter[letter])
+      else
+        utils.notify("Couldn't find buffer", vim.log.levels.WARN)
       end
     else
       utils.notify('Invalid input', vim.log.levels.WARN)
