@@ -7,6 +7,15 @@ local utils = require'barbar.utils'
 --- The prefix used for `utils.deprecate`
 local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
 
+--- @param key string
+--- @param expected_type type
+--- @param default any
+local function set_default(options, key, expected_type, default)
+  if type(options[key]) ~= expected_type then
+    options[key] = default
+  end
+end
+
 --- @class barbar.config.options.hide
 --- @field alternate? boolean
 --- @field current? boolean
@@ -188,106 +197,117 @@ function config.setup(options)
     options.closable = nil
   end
 
-  do
+  set_default(options, 'animation', 'boolean', true)
+  set_default(options, 'auto_hide', 'boolean', false)
+  set_default(options, 'clickable', 'boolean', true)
+  set_default(options, 'exclude_ft', 'table', {})
+  set_default(options, 'exclude_name', 'table', {})
+  set_default(options, 'focus_on_close', 'string', 'left')
+  set_default(options, 'hide', 'table', {})
+  set_default(options, 'highlight_alternate', 'boolean', false)
+  set_default(options, 'highlight_inactive_file_icons', 'boolean', false)
+  set_default(options, 'highlight_visible', 'boolean', true)
+  set_default(options, 'insert_at_end', 'boolean', false)
+  set_default(options, 'insert_at_start', 'boolean', false)
+  set_default(options, 'letters', 'string', 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP')
+  set_default(options, 'maximum_length', 'number', 30)
+  set_default(options, 'maximum_padding', 'number', 4)
+  set_default(options, 'minimum_padding', 'number', 1)
+  set_default(options, 'no_name_title', 'string', nil)
+  set_default(options, 'semantic_letters', 'boolean', true)
+  set_default(options, 'tabpages', 'boolean', true)
+
+  do -- normalize `sidebar_filetypes` format
     local sidebar_filetypes = options.sidebar_filetypes
-    if sidebar_filetypes then
+    if type(sidebar_filetypes) == 'table' then
       for k, v in pairs(sidebar_filetypes) do
         if v == true then
           sidebar_filetypes[k] = {}
         end
       end
+    else
+      options.sidebar_filetypes = {}
     end
   end
 
-  local default_options = {
-    animation = true,
-    auto_hide = false,
-    clickable = true,
-    exclude_ft = {},
-    exclude_name = {},
-    focus_on_close = 'left',
-    hide = {},
-    highlight_alternate = false,
-    highlight_inactive_file_icons = false,
-    highlight_visible = true,
-    icons = {
-      buffer_index = false,
-      buffer_number = false,
-      button = '',
-      diagnostics = {},
-      filename = true,
-      filetype = {enabled = true},
-      inactive = {separator = {left = '▎', right = ''}},
-      modified = {button = '●'},
-      pinned = {button = false, filename = false},
-      separator = {left = '▎', right = ''},
-    },
-    insert_at_end = false,
-    insert_at_start = false,
-    letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
-    maximum_length = 30,
-    maximum_padding = 4,
-    minimum_padding = 1,
-    no_name_title = nil,
-    semantic_letters = true,
-    sidebar_filetypes = {},
-    tabpages = true,
-  }
+  do -- resolve the icons
+    local icons = options.icons or {}
 
-  do
-    local pinned_icons = options.icons and options.icons.pinned
-    if pinned_icons == nil or pinned_icons.button == false or #pinned_icons.button < 1 then
-      default_options.icons.pinned.separator = {right = ' '}
-    end
-  end
+    do
+      local default_icons = {
+        buffer_index = false,
+        buffer_number = false,
+        button = '',
+        diagnostics = {},
+        filename = true,
+        filetype = {enabled = true},
+        inactive = {separator = {left = '▎', right = ''}},
+        modified = {button = '●'},
+        pinned = {button = false, filename = false},
+        separator = {left = '▎', right = ''},
+      }
 
-  config.options = tbl_deep_extend('keep', options, default_options)
+      do -- improves the look of minimized pinned tabs
+        local pinned_icons = icons.pinned
+        if pinned_icons == nil or (
+          (pinned_icons.button == false or #pinned_icons.button < 1) and
+          pinned_icons.filename == false
+        ) then
+          default_icons.pinned.separator = {right = ' '}
+        end
+      end
 
-  -- NOTE: we do this because `vim.tbl_deep_extend` doesn't deep copy lists
-  for i, default_diagnostic_severity_icons in ipairs(DEFAULT_DIAGNOSTIC_ICONS) do
-    local diagnostic_severity_icons = config.options.icons.diagnostics[i] or {}
-
-    if diagnostic_severity_icons.enabled == nil then
-      diagnostic_severity_icons.enabled = default_diagnostic_severity_icons.enabled
+      icons = tbl_deep_extend('keep', icons, default_icons)
     end
 
-    if diagnostic_severity_icons.icon == nil then
-      diagnostic_severity_icons.icon = default_diagnostic_severity_icons.icon
+    -- NOTE: we do this because `vim.tbl_deep_extend` doesn't deep copy lists
+    for i, default_diagnostic_severity_icons in ipairs(DEFAULT_DIAGNOSTIC_ICONS) do
+      local diagnostic_severity_icons = icons.diagnostics[i] or {}
+
+      if diagnostic_severity_icons.enabled == nil then
+        diagnostic_severity_icons.enabled = default_diagnostic_severity_icons.enabled
+      end
+
+      if diagnostic_severity_icons.icon == nil then
+        diagnostic_severity_icons.icon = default_diagnostic_severity_icons.icon
+      end
     end
+
+    do
+      --- `options.icons` without the recursive structure
+      --- @type barbar.config.options.icons.buffer
+      local base_icons = {
+        buffer_index = icons.buffer_index,
+        buffer_number = icons.buffer_number,
+        filename = icons.filename,
+        button = icons.button,
+        diagnostics = icons.diagnostics,
+        filetype = icons.filetype,
+        separator = icons.separator,
+      }
+
+      local modified_icons = icons.modified or {}
+      local pinned_icons = icons.pinned or {}
+
+      -- resolve all of the icons for the activities
+      for _, activity in ipairs {'alternate', 'current', 'inactive', 'visible'} do
+        local activity_icons = tbl_deep_extend('keep', icons[activity] or {}, base_icons)
+
+        icons[activity] = activity_icons
+        icons[activity].pinned = tbl_deep_extend('keep', icons[activity].pinned or {}, pinned_icons, activity_icons)
+        icons[activity].modified = tbl_deep_extend(
+          'keep',
+          icons[activity].modified or {},
+          modified_icons,
+          activity_icons
+        )
+      end
+    end
+
+    options.icons = icons
   end
 
-  local icons = config.options.icons
-
-  --- `config.options.icons` without the recursive structure
-  --- @type barbar.config.options.icons.buffer
-  local base_options = {
-    buffer_index = icons.buffer_index,
-    buffer_number = icons.buffer_number,
-    filename = icons.filename,
-    button = icons.button,
-    diagnostics = icons.diagnostics,
-    filetype = icons.filetype,
-    separator = icons.separator,
-  }
-
-  -- resolve all of the icons for the activities
-  for _, activity in ipairs {'alternate', 'current', 'inactive', 'visible'} do
-    local activity_options = tbl_deep_extend('keep', config.options.icons[activity] or {}, base_options)
-    config.options.icons[activity] = activity_options
-    config.options.icons[activity].modified = tbl_deep_extend(
-      'keep',
-      config.options.icons[activity].modified or {},
-      config.options.icons.modified or {},
-      activity_options
-    )
-
-    config.options.icons[activity].pinned = tbl_deep_extend(
-      'keep',
-      config.options.icons[activity].pinned or {},
-      config.options.icons.pinned or {},
-      activity_options
-    )
-  end
+  config.options = options
 end
 
 return config
