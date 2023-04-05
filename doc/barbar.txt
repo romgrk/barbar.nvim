@@ -110,10 +110,20 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 ==============================================================================
 4. Settings                                                     *barbar-setup*
 
+*g:barbar_auto_setup*  `boolean`  (default: `true`)
+  By default, |barbar.nvim| will call the |barbar.setup()| function for you.
+  However, if you want to customize this plugin, there is no need for that
+  since you will have to call |barbar.setup()| yourself.
+
+  To disable the auto-setup, set this variable to `false`: >
+    vim.g.barbar_auto_setup = false -- Lua
+    let g:barbar_auto_setup = v:false " Vim script
+<
+
 `barbar`.setup({options})                                       *barbar.setup()*
 
-  To configure barbar or enable it for the first time, you must call this
-  `setup` function. The valid {options} are listed below.
+  To configure barbar, you must call this `setup` function. The valid
+  {options} are listed below.
 
   Lua example: >
     require'barbar'.setup {

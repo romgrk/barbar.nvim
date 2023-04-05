@@ -132,16 +132,12 @@ local DEPRECATED_OPTIONS = {
 --- @field tabpages boolean
 
 --- @class barbar.config
---- @field did_initialize boolean
 --- @field options barbar.config.options
-local config = {
-  did_initialize = false,
-  options = {},
-}
+local config = { options = {} }
 
 --- @param options? table
 function config.setup(options)
-  config.did_initialize = true
+  vim.g.barbar_auto_setup = false
 
   if type(options) ~= 'table' then
     options = {}
