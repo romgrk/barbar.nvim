@@ -213,22 +213,23 @@ function api.goto_buffer_relative(steps)
   set_current_buf(state.buffers[(idx + steps - 1) % #state.buffers + 1])
 end
 
-local move_animation = nil
-local move_animation_data = nil
+local move_animation = nil --- @type nil|barbar.animate.state
+local move_animation_data = {
+  next_positions = nil, --- @type nil|integer[]
+  previous_positions = nil --- @type nil|integer[]
+}
 
 --- An incremental animation for `move_buffer_animated`.
 --- @return nil
 local function move_buffer_animated_tick(ratio, current_animation)
-  local data = move_animation_data
-
   for _, current_number in ipairs(Layout.buffers) do
     local current_data = state.get_buffer_data(current_number)
 
     if current_animation.running == true then
       current_data.position = animate.lerp(
         ratio,
-        data.previous_positions[current_number],
-        data.next_positions[current_number]
+        (move_animation_data.previous_positions or {})[current_number],
+        (move_animation_data.next_positions or {})[current_number]
       )
     else
       current_data.position = nil
@@ -240,7 +241,8 @@ local function move_buffer_animated_tick(ratio, current_animation)
 
   if current_animation.running == false then
     move_animation = nil
-    move_animation_data = nil
+    move_animation_data.next_positions = nil
+    move_animation_data.previous_positions = nil
   end
 end
 

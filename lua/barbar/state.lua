@@ -7,19 +7,15 @@ local table_remove = table.remove
 
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
-local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
 local bufadd = vim.fn.bufadd --- @type function
 local bufname = vim.fn.bufname --- @type function
 local command = vim.api.nvim_command --- @type function
 local fnamemodify = vim.fn.fnamemodify --- @type function
 local json_encode = vim.json.encode --- @type function
 local json_decode = vim.json.decode --- @type function
-local deepcopy = vim.deepcopy
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local list_bufs = vim.api.nvim_list_bufs --- @type function
-local list_extend = vim.list_extend
 local list_slice = vim.list_slice
-local severity = vim.diagnostic.severity --- @type {[integer]: string, [string]: integer}
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local tbl_map = vim.tbl_map
@@ -30,43 +26,6 @@ local utils = require'barbar.utils'
 
 local CACHE_PATH = vim.fn.stdpath('cache') .. '/barbar.json'
 
---- Set `higher` to have higher priority than `lower` when resolving the `icons` option.
---- @param higher? barbar.config.options.icons.buffer
---- @param lower barbar.config.options.icons.buffer
---- @return table barbar.options.icons.buffer corresponding to the `tbl` parameter
-local function icons_option_prioritize(higher, lower)
-  if higher and lower then -- set the sub-table fallbacks
-    do
-      local lower_diagnostics = utils.tbl_remove_key(lower, 'diagnostics')
-      if lower_diagnostics then
-        if higher.diagnostics == nil then
-          higher.diagnostics = {}
-        end
-
-        for i in ipairs(severity) do
-          higher.diagnostics[i] = utils.setfallbacktable(higher.diagnostics[i], lower_diagnostics[i])
-        end
-      end
-    end
-
-    do
-      local lower_filetype = utils.tbl_remove_key(lower, 'filetype')
-      if lower_filetype then
-        higher.filetype = utils.setfallbacktable(higher.filetype, lower_filetype)
-      end
-    end
-
-    do
-      local lower_separator = utils.tbl_remove_key(lower, 'separator')
-      if lower_separator then
-        higher.separator = utils.setfallbacktable(higher.separator, lower_separator)
-      end
-    end
-  end
-
-  return utils.setfallbacktable(higher, lower)
-end
-
 --------------------------------
 -- Section: Application state --
 --------------------------------
@@ -75,10 +34,10 @@ end
 --- @field closing boolean whether the buffer is being closed
 --- @field name? string the name of the buffer
 --- @field position? integer the absolute position of the buffer
---- @field computed_width? integer the width of the buffer + invisible characters
---- @field computed_position? integer the position of the buffer
+--- @field computed_position? integer the real position of the buffer
+--- @field computed_width? integer the width of the buffer plus invisible characters
 --- @field pinned boolean whether the buffer is pinned
---- @field width? integer the width of the buffer - invisible characters
+--- @field width? integer the width of the buffer minus invisible characters
 
 --- @class barbar.state.offset.side
 --- @field hl? string the highlight group to use
@@ -90,10 +49,10 @@ end
 --- @field right barbar.state.offset.side
 
 --- @class barbar.state
---- @field is_picking_buffer boolean whether the user is currently in jump-mode
---- @field loading_session boolean `true` if a `SessionLoadPost` event is being processed
 --- @field buffers integer[] the open buffers, in visual order.
 --- @field data_by_bufnr {[integer]: barbar.state.data} the buffer data indexed on buffer number
+--- @field is_picking_buffer boolean whether the user is currently in jump-mode
+--- @field loading_session boolean `true` if a `SessionLoadPost` event is being processed
 --- @field offset barbar.state.offset
 --- @field recently_closed string[] the list of recently closed paths
 local state = {
@@ -102,8 +61,8 @@ local state = {
   is_picking_buffer = false,
   loading_session = false,
   offset = {
-    left = { text = '', width = 0 },
-    right = { text = '', width = 0 },
+    left = {text = '', width = 0},
+    right = {text = '', width = 0},
   },
   recently_closed = {},
 }
@@ -136,10 +95,10 @@ function state.get_buffer_list()
 
   for _, bufnr in ipairs(list_bufs()) do
     if buf_get_option(bufnr, 'buflisted') and
-      not utils.has(exclude_ft, buf_get_option(bufnr, 'filetype'))
+      not tbl_contains(exclude_ft, buf_get_option(bufnr, 'filetype'))
     then
       local name = buf_get_name(bufnr)
-      if not utils.has(exclude_name, utils.basename(name, hide_extensions)) then
+      if not tbl_contains(exclude_name, utils.basename(name, hide_extensions)) then
         table_insert(result, bufnr)
       end
     end
@@ -150,6 +109,7 @@ end
 
 -- Pinned buffers
 
+--- PERF: only call this method if you don't already `state.get_buffer_data`
 --- @param bufnr integer
 --- @return boolean pinned `true` if `bufnr` is pinned
 function state.is_pinned(bufnr)
@@ -159,18 +119,17 @@ end
 --- Sort the pinned tabs to the left of the bufferline.
 --- @return nil
 function state.sort_pins_to_left()
-  local unpinned = {}
+  local pinned = 0
 
-  local i = 1
-  while i <= #state.buffers do
+  local i = #state.buffers
+  while i >= 1 + pinned do
     if state.is_pinned(state.buffers[i]) then
-      i = i + 1
+      table_insert(state.buffers, 1, table_remove(state.buffers, i))
+      pinned = pinned + 1
     else
-      table_insert(unpinned, table_remove(state.buffers, i))
+      i = i - 1
     end
   end
-
-  state.buffers = list_extend(state.buffers, unpinned)
 end
 
 --- Toggle the `bufnr`'s "pin" state.
@@ -305,47 +264,6 @@ function state.restore_buffers(buffer_data)
   end
 end
 
---- The `icons` for a particular activity.
---- @param activity barbar.buffer.activity.name
---- @see barbar.options.icons
---- @return barbar.config.options.icons.buffer
-function state.icons(bufnr, activity)
-  local activity_lower = activity:lower()
-  local icons = deepcopy(config.options.icons)
-
-  --- @type barbar.config.options.icons.state
-  local activity_icons = utils.tbl_remove_key(icons, activity_lower) or {}
-
-  --- @type barbar.config.options.icons.buffer
-  local buffer_icons = icons_option_prioritize(activity_icons, icons)
-
-  if not buf_is_valid(bufnr) then
-    return buffer_icons
-  end
-
-  --- Prioritize the `modified` or `pinned` states
-  --- @param option string
-  local function icons_option_prioritize_state(option)
-    buffer_icons = icons_option_prioritize(
-      utils.tbl_remove_key(activity_icons, option),
-      icons_option_prioritize(
-        utils.tbl_remove_key(icons, option),
-        buffer_icons
-      )
-    )
-  end
-
-  if buf_get_option(bufnr, 'modified') then
-    icons_option_prioritize_state'modified'
-  end
-
-  if state.get_buffer_data(bufnr).pinned then
-    icons_option_prioritize_state'pinned'
-  end
-
-  return buffer_icons
-end
-
 -- Save/load state
 
 --- Save recently_closed list
@@ -397,12 +315,10 @@ function state.load_recently_closed()
     return
   end
 
-  pcall(function()
-    local saved_state = json_decode(content, { luanil = { array = true, object = true } })
-    if saved_state.recently_closed ~= nil then
-      state.recently_closed = saved_state.recently_closed
-    end
-  end)
+  local ok, result = pcall(json_decode, content, {luanil = {array = true, object = true}})
+  if ok and result.recently_closed ~= nil then
+    state.recently_closed = result.recently_closed
+  end
 end
 
 -- Exports

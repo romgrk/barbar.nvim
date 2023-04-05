@@ -85,25 +85,40 @@ local buffer = {
 
   --- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `buffer_number` provided, call `f`.
   --- @param buffer_number integer the buffer number to count diagnostics in
-  --- @param diagnostics barbar.config.options.icons.diagnostics the user configuration for diagnostics
-  --- @param f fun(count: integer, diagnostic: barbar.config.options.icons.diagnostics.severity, severity: integer) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
+  --- @param diagnostics barbar.config.options.icons.buffer.diagnostics the user configuration for diagnostics
+  --- @param f fun(count: integer, severity_idx: integer, option: barbar.config.options.icons.diagnostics.severity) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
   --- @return nil
   for_each_counted_enabled_diagnostic = function(buffer_number, diagnostics, f)
     local count
-    for severity, severity_config in ipairs(diagnostics) do
-      if severity_config.enabled then
+    for severity_idx, severity_option in ipairs(diagnostics) do
+      if severity_option.enabled then
         if count == nil then
           count = count_diagnostics(buffer_number)
         end
 
-        if count[severity] > 0 then
-          f(count[severity], severity_config, severity)
+        if count[severity_idx] > 0 then
+          f(count[severity_idx], severity_idx, severity_option)
         end
       end
     end
   end,
 
   get_activity = get_activity,
+
+  --- @param activity barbar.buffer.activity.name
+  --- @param modified boolean
+  --- @param pinned boolean
+  --- @return barbar.config.options.icons.buffer
+  get_icons = function(activity, modified, pinned)
+    local icons_option = config.options.icons[activity:lower()]
+    if pinned then
+      icons_option = icons_option.pinned
+    elseif modified then
+      icons_option = icons_option.modified
+    end
+
+    return icons_option
+  end,
 
   --- @param buffer_number integer
   --- @param hide_extensions boolean? if `true`, exclude the extension of the file

@@ -265,6 +265,11 @@ icons ~
       }}}
 <
 
+                                                 *barbar-setup.icons.filename*
+  icons.filename ~
+    `boolean`  (default: `true`)
+    If `true`, show the name of the file.
+
                                    *barbar-setup.icons.filetype.custom_colors*
   icons.filetype.custom_colors ~
     `boolean`  (default: `false`)
@@ -309,7 +314,13 @@ icons ~
 
                                                    *barbar-setup.icons.pinned*
   icons.pinned ~
-    `table`  (default: `{button = ''}`)
+    `table`  (default: >
+                    {
+                      button = false,
+                      filename = false,
+                      separator = {right = ' '},
+                    }
+<           )
     The icons which should be used for a pinned buffer.
     Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc)
@@ -317,7 +328,7 @@ icons ~
   Example: >
     require'barbar'.setup {icons = {
       modified = {separator = '⋄'},
-      pinned = {button = '車'},
+      pinned = {button = '車', filename = true},
     }}
 <
 

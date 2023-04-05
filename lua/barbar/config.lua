@@ -18,7 +18,7 @@ local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
 --- @field enabled boolean
 --- @field icon string
 
---- @class barbar.config.options.icons.diagnostics
+--- @class barbar.config.options.icons.buffer.diagnostics
 --- @field [1] barbar.config.options.icons.diagnostics.severity
 --- @field [2] barbar.config.options.icons.diagnostics.severity
 --- @field [3] barbar.config.options.icons.diagnostics.severity
@@ -30,21 +30,22 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
   [vim.diagnostic.severity.WARN] = {enabled = false, icon = '⚠️ '},
 }
 
---- @class barbar.config.options.icons.filetype
+--- @class barbar.config.options.icons.buffer.filetype
 --- @field custom_colors? boolean if present, this color will be used for ALL filetype icons
 --- @field enabled? boolean iff `true`, show the `devicons` for the associated buffer's `filetype`.
 
---- @class barbar.config.options.icons.separator
+--- @class barbar.config.options.icons.buffer.separator
 --- @field left? string a buffer's left separator
 --- @field right? string a buffer's right separator
 
 --- @class barbar.config.options.icons.buffer
 --- @field buffer_index? boolean iff `true`, show the index of the associated buffer with respect to the ordering of the buffers in the tabline.
 --- @field buffer_number? boolean iff `true`, show the `bufnr` for the associated buffer.
+--- @field filename? boolean iff `true`, show the filename
 --- @field button? false|string the button which is clicked to close / save a buffer, or indicate that it is pinned.
---- @field diagnostics? barbar.config.options.icons.diagnostics the diagnostic icons
---- @field filetype? barbar.config.options.icons.filetype filetype icon options
---- @field separator? barbar.config.options.icons.separator the left-hand separator between buffers in the tabline
+--- @field diagnostics? barbar.config.options.icons.buffer.diagnostics the diagnostic icons
+--- @field filetype? barbar.config.options.icons.buffer.filetype filetype icon options
+--- @field separator? barbar.config.options.icons.buffer.separator the left-hand separator between buffers in the tabline
 
 --- @class barbar.config.options.icons.state: barbar.config.options.icons.buffer
 --- @field modified? barbar.config.options.icons.buffer the icons used for an modified buffer
@@ -198,7 +199,7 @@ function config.setup(options)
     end
   end
 
-  config.options = tbl_deep_extend('keep', options, {
+  local default_options = {
     animation = true,
     auto_hide = false,
     clickable = true,
@@ -214,10 +215,11 @@ function config.setup(options)
       buffer_number = false,
       button = '',
       diagnostics = {},
+      filename = true,
       filetype = {enabled = true},
       inactive = {separator = {left = '▎', right = ''}},
       modified = {button = '●'},
-      pinned = {button = ''},
+      pinned = {button = false, filename = false},
       separator = {left = '▎', right = ''},
     },
     insert_at_end = false,
@@ -230,7 +232,16 @@ function config.setup(options)
     semantic_letters = true,
     sidebar_filetypes = {},
     tabpages = true,
-  })
+  }
+
+  do
+    local pinned_icons = options.icons and options.icons.pinned
+    if pinned_icons == nil or pinned_icons.button == false or #pinned_icons.button < 1 then
+      default_options.icons.pinned.separator = {right = ' '}
+    end
+  end
+
+  config.options = tbl_deep_extend('keep', options, default_options)
 
   -- NOTE: we do this because `vim.tbl_deep_extend` doesn't deep copy lists
   for i, default_diagnostic_severity_icons in ipairs(DEFAULT_DIAGNOSTIC_ICONS) do
@@ -243,6 +254,39 @@ function config.setup(options)
     if diagnostic_severity_icons.icon == nil then
       diagnostic_severity_icons.icon = default_diagnostic_severity_icons.icon
     end
+  end
+
+  local icons = config.options.icons
+
+  --- `config.options.icons` without the recursive structure
+  --- @type barbar.config.options.icons.buffer
+  local base_options = {
+    buffer_index = icons.buffer_index,
+    buffer_number = icons.buffer_number,
+    filename = icons.filename,
+    button = icons.button,
+    diagnostics = icons.diagnostics,
+    filetype = icons.filetype,
+    separator = icons.separator,
+  }
+
+  -- resolve all of the icons for the activities
+  for _, activity in ipairs {'alternate', 'current', 'inactive', 'visible'} do
+    local activity_options = tbl_deep_extend('keep', config.options.icons[activity] or {}, base_options)
+    config.options.icons[activity] = activity_options
+    config.options.icons[activity].modified = tbl_deep_extend(
+      'keep',
+      config.options.icons[activity].modified or {},
+      config.options.icons.modified or {},
+      activity_options
+    )
+
+    config.options.icons[activity].pinned = tbl_deep_extend(
+      'keep',
+      config.options.icons[activity].pinned or {},
+      config.options.icons.pinned or {},
+      activity_options
+    )
   end
 end
 
