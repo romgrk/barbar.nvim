@@ -580,24 +580,26 @@ local function generate_tabline(bufnrs, refocus)
       }
     }
 
-    local current_buffer_index = nil
-    for i, group_clump in ipairs(group_clumps) do
-      -- We insert the current buffer after the others so it's always on top
-      if group_clump.activity ~= Buffer.activities.Current then
+    do
+      local current_group_clump = nil
+      for _, group_clump in ipairs(group_clumps) do
+        -- We insert the current buffer after the others so it's always on top
+        if group_clump.activity ~= Buffer.activities.Current then
+          content = groups.insert_many(
+            content,
+            group_clump.position - scroll.current,
+            group_clump.groups)
+        else
+          current_group_clump = group_clump
+        end
+      end
+      if current_group_clump ~= nil then
+        local group_clump = current_group_clump
         content = groups.insert_many(
           content,
           group_clump.position - scroll.current,
           group_clump.groups)
-      else
-        current_buffer_index = i
       end
-    end
-    if group_clumps[current_buffer_index] ~= nil then
-      local group_clump = group_clumps[current_buffer_index]
-      content = groups.insert_many(
-        content,
-        group_clump.position - scroll.current,
-        group_clump.groups)
     end
 
     do
@@ -611,8 +613,17 @@ local function generate_tabline(bufnrs, refocus)
     end
 
     if #pinned_group_clumps > 0 then
-      for _, pinned_group_clump in ipairs(pinned_group_clumps) do
-        content = groups.insert_many(content, pinned_group_clump.position, pinned_group_clump.groups)
+      local current_group_clump = nil
+      for _, group_clump in ipairs(pinned_group_clumps) do
+        if group_clump.activity ~= Buffer.activities.Current then
+          content = groups.insert_many(content, group_clump.position, group_clump.groups)
+        else
+          current_group_clump = group_clump
+        end
+      end
+      if current_group_clump ~= nil then
+        local group_clump = current_group_clump
+        content = groups.insert_many(content, group_clump.position, group_clump.groups)
       end
     end
 
