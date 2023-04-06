@@ -53,12 +53,21 @@ function m.to_raw_string(groups)
   return result
 end
 
+--- Insert `other` into `groups` at the `position`.
+--- @param groups barbar.render.group[]
+--- @param position integer
+--- @param group barbar.render.group
+--- @return barbar.render.group[] with_insertions
+function m.insert(groups, position, group)
+  return m.insert_many(groups, position, { group })
+end
+
 --- Insert `others` into `groups` at the `position`.
 --- @param groups barbar.render.group[]
 --- @param position integer
 --- @param others barbar.render.group[]
 --- @return barbar.render.group[] with_insertions
-function m.insert(groups, position, others)
+function m.insert_many(groups, position, others)
 
   if position < 0 then
     local others_width = m.width(others)

@@ -364,14 +364,6 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   local group_clumps = {} --- @type barbar.render.group_clump[]
   local pinned_group_clumps = {} --- @type barbar.render.group_clump[]
 
-  --- The padding
-  --- @type barbar.render.group
-  local padding = { hl = '', text = (' '):rep(layout.buffers.padding) }
-
-  --- The padding of a pinned buffer
-  --- @type barbar.render.group
-  local pinned_padding = { hl = padding.hl, text = (' '):rep(config.options.minimum_padding) }
-
   for i, bufnr in ipairs(bufnrs) do
     local activity = Buffer.activities[Buffer.get_activity(bufnr)]
     local buffer_data = state.get_buffer_data(bufnr)
@@ -495,16 +487,21 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
       icon.text = #name.text > 0 and iconChar .. ' ' or iconChar
     end
 
-    --- The separator
-    --- @type barbar.render.group
+    local hl_sign = wrap_hl('Buffer' .. activity .. 'Sign')
+
     local left_separator = {
-      hl = clickable .. wrap_hl('Buffer' .. activity .. 'Sign'),
+      hl = clickable .. hl_sign,
       text = icons_option.separator.left,
     }
 
-    local pad = pinned and pinned_padding or padding
+    local pad_width = pinned and config.options.minimum_padding or layout.buffers.padding
+    local pad = {
+      hl = hl_sign,
+      text = (' '):rep(pad_width),
+    }
+
     local group_clump = { --- @type barbar.render.group_clump
-      groups = {left_separator, pad, buffer_index, buffer_number, icon, jump_letter, name},
+      groups = { left_separator, pad, buffer_index, buffer_number, icon, jump_letter, name },
       --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
       position = buffer_data.position or buffer_data.computed_position,
       --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
@@ -539,6 +536,7 @@ local HL = {
   FILL = wrap_hl('BufferTabpageFill'),
   TABPAGES = wrap_hl('BufferTabpages'),
   SIGN_INACTIVE = wrap_hl('BufferInactiveSign'),
+  SCROLL_ARROW = wrap_hl('BufferScrollArrow'),
 }
 
 --- Generate the `&tabline` representing the current state of Neovim.
@@ -561,7 +559,7 @@ local function generate_tabline(bufnrs, refocus)
     local content_max_width = state.offset.left.width - 2
 
     offset_groups =
-      groups.insert(
+      groups.insert_many(
         offset_groups,
         1,
         groups.slice_right(content, content_max_width))
@@ -582,7 +580,7 @@ local function generate_tabline(bufnrs, refocus)
     local scroll_current = scroll.current
 
     for _, group_clump in ipairs(group_clumps) do
-      content = groups.insert(
+      content = groups.insert_many(
         content,
         group_clump.position - scroll_current,
         group_clump.groups)
@@ -594,19 +592,31 @@ local function generate_tabline(bufnrs, refocus)
         content = groups.insert(
           content,
           layout.buffers.used_width,
-          { { text = inactive_separator, hl = HL.SIGN_INACTIVE }})
+          { text = inactive_separator, hl = HL.SIGN_INACTIVE })
       end
     end
 
     if #pinned_group_clumps > 0 then
       for _, pinned_group_clump in ipairs(pinned_group_clumps) do
-        content = groups.insert(content, pinned_group_clump.position, pinned_group_clump.groups)
+        content = groups.insert_many(content, pinned_group_clump.position, pinned_group_clump.groups)
       end
     end
 
     local filler = { { hl = HL.FILL, text = (' '):rep(layout.buffers.width) } }
-    content = groups.insert(filler, 0, content)
+    content = groups.insert_many(filler, 0, content)
     content = groups.slice_right(content, layout.buffers.width)
+
+    local has_left_scroll = scroll.current > 0
+    if has_left_scroll then
+      content = groups.insert(content, layout.buffers.pinned_width,
+        { hl = HL.SCROLL_ARROW, text = config.options.icons.scroll.left })
+    end
+
+    local has_right_scroll = layout.buffers.used_width - scroll.current > layout.buffers.width
+    if has_right_scroll then
+      content = groups.insert(content, layout.buffers.width - 1,
+        { hl = HL.SCROLL_ARROW, text = config.options.icons.scroll.right })
+    end
 
     -- Render bufferline string
     result = result .. groups.to_string(content)
@@ -634,7 +644,7 @@ local function generate_tabline(bufnrs, refocus)
     local content_max_width = state.offset.right.width - 2
 
     offset_groups =
-      groups.insert(
+      groups.insert_many(
         offset_groups,
         1,
         groups.slice_right(content, content_max_width))

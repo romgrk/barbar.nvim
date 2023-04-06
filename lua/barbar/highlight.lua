@@ -42,6 +42,7 @@ hl.set_default_link('BufferInactiveTarget', 'BufferDefaultInactiveTarget')
 hl.set_default_link('BufferInactiveWARN', 'BufferDefaultInactiveWARN')
 
 hl.set_default_link('BufferOffset', 'BufferTabpageFill')
+hl.set_default_link('BufferScrollArrow', 'BufferTabpages')
 
 hl.set_default_link('BufferTabpageFill', 'BufferDefaultTabpageFill')
 hl.set_default_link('BufferTabpages', 'BufferDefaultTabpages')

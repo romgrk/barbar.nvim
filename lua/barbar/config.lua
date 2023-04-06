@@ -29,7 +29,7 @@ local DEFAULT_OPTIONS = {
     modified = { button = '●' },
     pinned = { button = false, filename = false },
     separator = { left = '▎', right = '' },
-    scroll = { left = '❰', right = '❱' }
+    scroll = { left = '❮', right = '❯' }
   },
   insert_at_end = false,
   insert_at_start = false,
