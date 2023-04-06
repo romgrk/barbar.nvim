@@ -108,8 +108,6 @@ function Layout.calculate()
 
   }
 
-  -- print(vim.json.encode(result))
-
   return result
 end
 
