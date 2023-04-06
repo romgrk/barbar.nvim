@@ -453,9 +453,17 @@ function api.set_offset(width, text, hl, side)
     side = 'left'
   end
 
+  if text == nil then
+    text = ''
+  end
+
+  if hl == nil then
+    hl = 'BufferOffset'
+  end
+
   state.offset[side] = width > 0 and
-    {hl = hl, text = text or '', width = width} or
-    {hl = nil, text = '', width = 0}
+    { hl = hl,  text = text, width = width } or
+    { hl = nil, text = '',   width = 0 }
 
   render.update()
 end

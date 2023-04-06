@@ -535,6 +535,10 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   return pinned_group_clumps, group_clumps
 end
 
+local HL = {
+  FILL = wrap_hl('BufferTabpageFill'),
+}
+
 --- Generate the `&tabline` representing the current state of Neovim.
 --- @param bufnrs integer[] the bufnrs to render
 --- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
@@ -546,25 +550,34 @@ local function generate_tabline(bufnrs, refocus)
   -- Create actual tabline string
   local result = ''
 
-  -- Add offset filler & text (for filetree/sidebar plugins)
+  -- Left offset
   if state.offset.left.width > 0 then
-    --- @type barbar.render.group
-    local offset = {hl = wrap_hl(state.offset.left.hl or 'BufferOffset'), text = ' ' .. state.offset.left.text}
-    local offset_available_width = state.offset.left.width - 2
+    local hl = wrap_hl(state.offset.left.hl)
+    local offset_groups = {
+      { hl = hl, text = (' '):rep(state.offset.left.width) }
+    }
 
-    result = result ..
-      groups.to_string(groups.slice_right({offset}, offset_available_width)) ..
-      (' '):rep(offset_available_width - strwidth(state.offset.left.text) + 1)
+    local content = {
+      { hl = hl, text = state.offset.left.text }
+    }
+    local content_max_width = state.offset.left.width - 2
+
+    offset_groups =
+      groups.insert(
+        offset_groups,
+        1,
+        groups.slice_right(content, content_max_width))
+
+    result = result .. groups.to_string(offset_groups)
   end
 
-  --- The highlight of the buffer tabpage fill
-  local hl_buffer_tabpage_fill = wrap_hl('BufferTabpageFill')
-
   --- @type barbar.render.group[]
-  local bufferline_groups = {{
-    hl = hl_buffer_tabpage_fill,
-    text = (' '):rep(layout.actual_width),
-  }}
+  local bufferline_groups = {
+    {
+      hl = HL.FILL,
+      text = (' '):rep(layout.actual_width),
+    }
+  }
 
   for _, group_clump in ipairs(group_clumps) do
     bufferline_groups = groups.insert(bufferline_groups, group_clump.position, group_clump.groups)
@@ -584,7 +597,12 @@ local function generate_tabline(bufnrs, refocus)
   end
 
   if #pinned_group_clumps > 0 then
-    local pinned_groups = {{hl = hl_buffer_tabpage_fill, text = (' '):rep(layout.pinned_width)}}
+    local pinned_groups = {
+      {
+        hl = HL.FILL,
+        text = (' '):rep(layout.pinned_width),
+      }
+    }
     for _, pinned_group_clump in ipairs(pinned_group_clumps) do
       pinned_groups = groups.insert(pinned_groups, pinned_group_clump.position, pinned_group_clump.groups)
     end
@@ -609,15 +627,25 @@ local function generate_tabline(bufnrs, refocus)
     result = result .. '%=%#BufferTabpages# ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' '
   end
 
-  -- Add offset filler & text (for filetree/sidebar plugins)
+  -- Right offset
   if state.offset.right.width > 0 then
-    --- @type barbar.render.group
-    local offset = {hl = wrap_hl(state.offset.right.hl or 'BufferOffset'), text = ' ' .. state.offset.right.text}
-    local offset_available_width = state.offset.right.width - 2
+    local hl = wrap_hl(state.offset.right.hl)
+    local offset_groups = {
+      { hl = hl, text = (' '):rep(state.offset.right.width) }
+    }
 
-    result = result ..
-      groups.to_string(groups.slice_left({offset}, offset_available_width)) ..
-      (' '):rep(offset_available_width - strwidth(state.offset.right.text) + 1)
+    local content = {
+      { hl = hl, text = state.offset.right.text }
+    }
+    local content_max_width = state.offset.right.width - 2
+
+    offset_groups =
+      groups.insert(
+        offset_groups,
+        1,
+        groups.slice_right(content, content_max_width))
+
+    result = result .. groups.to_string(offset_groups)
   end
 
   -- NOTE: For development or debugging purposes, the following code can be used:
@@ -630,7 +658,7 @@ local function generate_tabline(bufnrs, refocus)
   -- fs.write('barbar.debug.txt', text .. ':' .. data .. '\n', 'a')
   -- ```
 
-  return result .. hl_buffer_tabpage_fill
+  return result .. HL.FILL
 end
 
 --- Update `&tabline`
