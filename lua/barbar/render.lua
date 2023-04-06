@@ -537,6 +537,7 @@ end
 
 local HL = {
   FILL = wrap_hl('BufferTabpageFill'),
+  TABPAGES = wrap_hl('BufferTabpages'),
   SIGN_INACTIVE = wrap_hl('BufferInactiveSign'),
 }
 
@@ -625,7 +626,10 @@ local function generate_tabline(bufnrs, refocus)
   -- Tabpages
   do
     if layout.tabpages.width > 0 then
-      result = result .. '%=%#BufferTabpages# ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' '
+      local content = {
+        { hl = HL.TABPAGES, text = ' ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' ', },
+      }
+      result = result .. groups.to_string(content)
     end
   end
 
