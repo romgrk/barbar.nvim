@@ -27,13 +27,29 @@ local SLASH_LEN = #'/'
 local SPACE_LEN = #' '
 
 --- @class barbar.layout.data
+--- @field total_width integer the total width of the tabline, equals to &columns
 --- @field actual_width integer the sum of the `base_widths` plus the `padding_width` allocated to each buffer
 --- @field base_widths integer[] the minimum amount of space taken up by each buffer
---- @field buffers_width integer the amount of space available to be taken up by non-pinned buffers
---- @field pinned_width integer the amount of space used by pinned buffers
 --- @field padding_width integer the amount of padding used on each side of each buffer
 --- @field scroll_max integer the maximum position which can be scrolled to
---- @field tabpages_width integer the amount of space taken up by the tabpage indicator
+--- @field left barbar.layout.data.side left offset data
+--- @field right barbar.layout.data.side right offset data
+--- @field buffers barbar.layout.data.buffers buffer data
+--- @field tabpages barbar.layout.data.tabpages tabpage data
+
+--- @class barbar.layout.data.side
+--- @field width integer the amount of space allocated
+
+--- @class barbar.layout.data.buffers
+--- @field width integer the amount of space allocated to the buffers
+--- @field pinned_width integer the amount of space used by pinned buffers
+--- @field unpinned_width integer the amount of space used by pinned buffers
+--- @field unpinned_allocated_width integer the amount of space allocated to unpinned buffers
+--- @field used_width integer the amount of space used by buffers
+
+--- @class barbar.layout.data.tabpages
+--- @field width integer the amount of space allocated to the tabpage indicator
+
 
 --- @class barbar.Layout
 --- @field buffers integer[] different from `state.buffers` in that the `hide` option is respected. Only updated when calling `calculate_buffers_width`.
@@ -42,31 +58,63 @@ local Layout = { buffers = {} }
 --- Calculate the current layout of the bufferline.
 --- @return barbar.layout.data
 function Layout.calculate()
-  local available_width = get_option'columns'
-  available_width = available_width - state.offset.left.width - state.offset.right.width
 
-  local pinned_count, pinned_sum, sum, widths = Layout.calculate_buffers_width()
+  local total_width = get_option('columns')
+
+  local left_width  = state.offset.left.width
+  local right_width = state.offset.right.width
   local tabpages_width = Layout.calculate_tabpages_width()
+  local buffers_width = total_width - state.offset.left.width - state.offset.right.width - tabpages_width
+
+  local pinned_count, pinned_sum, unpinned_sum, widths = Layout.calculate_buffers_width()
 
   local pinned_width = pinned_sum + (pinned_count * config.options.minimum_padding * SIDES_OF_BUFFER)
-  local buffers_width = available_width - pinned_width - tabpages_width
+
+
+  local available_width = total_width - state.offset.left.width - state.offset.right.width - tabpages_width
+  local unpinned_allocated_width = available_width - pinned_width
   local count = #widths - pinned_count
 
-  local remaining_width = max(0, buffers_width - sum)
+  local remaining_width = max(0, unpinned_allocated_width - unpinned_sum)
   local remaining_width_per_buffer = floor(remaining_width / count)
   local remaining_padding_per_buffer = floor(remaining_width_per_buffer / SIDES_OF_BUFFER)
   local padding_width = max(config.options.minimum_padding, min(remaining_padding_per_buffer, config.options.maximum_padding))
-  local actual_width = sum + (count * padding_width * SIDES_OF_BUFFER)
 
-  return {
-    actual_width = actual_width,
+  local unpinned_width = unpinned_sum + (count * padding_width * SIDES_OF_BUFFER)
+
+  local used_width = pinned_sum + unpinned_sum
+
+  local result = {
+    total_width = total_width,
     base_widths = widths,
-    buffers_width = buffers_width,
     padding_width = padding_width,
-    pinned_width = pinned_width,
-    scroll_max = max(0, actual_width - buffers_width),
-    tabpages_width = tabpages_width,
+    scroll_max = max(0, unpinned_width - unpinned_allocated_width),
+
+    left = {
+      width = left_width,
+    },
+
+    buffers = {
+      width = buffers_width,
+      pinned_width = pinned_width,
+      unpinned_width = unpinned_width,
+      unpinned_allocated_width = unpinned_allocated_width,
+      used_width = used_width,
+    },
+
+    tabpages = {
+      width = tabpages_width,
+    },
+
+    right = {
+      width = right_width,
+    },
+
   }
+
+  -- print(vim.json.encode(result))
+
+  return result
 end
 
 --- @param bufnr integer the buffer to calculate the width of
@@ -141,12 +189,13 @@ function Layout.calculate_buffers_position_by_buffer_number()
 end
 
 --- Calculate the width of the buffers
---- @return integer pinned_count, integer pinned_sum, integer sum, integer[] widths
+--- @return integer pinned_count, integer pinned_sum, integer unpinned_sum, integer[] widths
 function Layout.calculate_buffers_width()
   Layout.buffers = Buffer.hide(state.buffers)
 
   local pinned_count = 0
-  local pinned_sum, sum = 0, 0
+  local pinned_sum = 0
+  local unpinned_sum = 0
   local widths = {}
 
   for i, bufnr in ipairs(Layout.buffers) do
@@ -155,13 +204,13 @@ function Layout.calculate_buffers_width()
       pinned_count = pinned_count + 1
       pinned_sum = pinned_sum + width
     else
-      sum = sum + width
+      unpinned_sum = unpinned_sum + width
     end
 
     table_insert(widths, width)
   end
 
-  return pinned_count, pinned_sum, sum, widths
+  return pinned_count, pinned_sum, unpinned_sum, widths
 end
 
 --- The number of characters needed to represent the tabpages.
@@ -172,9 +221,11 @@ function Layout.calculate_tabpages_width()
   end
 
   local total_tabpages = tabpagenr('$')
-  return total_tabpages > 1 and
-    SPACE_LEN + #tostring(tabpagenr()) + SLASH_LEN + #tostring(total_tabpages) + SPACE_LEN or
-    0
+  if total_tabpages == 1 then
+    return 0
+  end
+
+  return SPACE_LEN + #tostring(tabpagenr()) + SLASH_LEN + #tostring(total_tabpages) + SPACE_LEN
 end
 
 --- Determines what the width of a buffer would be with its padding

@@ -396,8 +396,8 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
 
       if scroll.target > start then
         render.set_scroll(start)
-      elseif scroll.target + layout.buffers_width < end_ then
-        render.set_scroll(scroll.target + (end_ - (scroll.target + layout.buffers_width)))
+      elseif scroll.target + layout.buffers.unpinned_allocated_width < end_ then
+        render.set_scroll(scroll.target + (end_ - (scroll.target + layout.buffers.unpinned_allocated_width)))
       end
     end
 
@@ -411,7 +411,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
       if accumulated_width < scroll_current  then
         goto continue -- HACK: there is no `continue` keyword
       elseif (refocus == false or (refocus ~= false and current_buffer_index ~= nil)) and
-        accumulated_width - scroll_current > layout.buffers_width
+        accumulated_width - scroll_current > layout.buffers.unpinned_allocated_width
       then
         done = true
       end
@@ -537,6 +537,7 @@ end
 
 local HL = {
   FILL = wrap_hl('BufferTabpageFill'),
+  SIGN_INACTIVE = wrap_hl('BufferInactiveSign'),
 }
 
 --- Generate the `&tabline` representing the current state of Neovim.
@@ -573,50 +574,48 @@ local function generate_tabline(bufnrs, refocus)
     local content = {
       {
         hl = HL.FILL,
-        text = (' '):rep(layout.actual_width),
+        text = (' '):rep(layout.buffers.width),
       }
     }
 
     for _, group_clump in ipairs(group_clumps) do
-      content = groups.insert(content, group_clump.position, group_clump.groups)
+      content = groups.insert(
+        content,
+        group_clump.position + layout.buffers.pinned_width,
+        group_clump.groups)
+    end
+
+    do
+      local inactive_separator = config.options.icons.inactive.separator.left
+      if #group_clumps > 0 and layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width and inactive_separator ~= nil then
+        content = groups.insert(
+          content,
+          layout.buffers.unpinned_width + layout.buffers.pinned_width,
+          { { text = inactive_separator, hl = HL.SIGN_INACTIVE }})
+      end
     end
 
     do -- Crop to scroll region
       local scroll_current = min(scroll.current, layout.scroll_max)
-      local buffers_end = layout.actual_width - scroll_current
+      local buffers_end = layout.buffers.unpinned_width - scroll_current
 
-      if buffers_end > layout.buffers_width then
-        content = groups.slice_right(content, scroll_current + layout.buffers_width)
+      if buffers_end > layout.buffers.unpinned_allocated_width then
+        content = groups.slice_right(content, scroll_current + layout.buffers.unpinned_allocated_width)
       end
 
       if scroll_current > 0 then
-        content = groups.slice_left(content, layout.buffers_width)
+        content = groups.slice_left(content, layout.buffers.unpinned_allocated_width)
       end
     end
 
     if #pinned_group_clumps > 0 then
-      local pinned_groups = {
-        {
-          hl = HL.FILL,
-          text = (' '):rep(layout.pinned_width),
-        }
-      }
       for _, pinned_group_clump in ipairs(pinned_group_clumps) do
-        pinned_groups = groups.insert(pinned_groups, pinned_group_clump.position, pinned_group_clump.groups)
+        content = groups.insert(content, pinned_group_clump.position, pinned_group_clump.groups)
       end
-
-      result = result .. groups.to_string(pinned_groups)
     end
 
     -- Render bufferline string
     result = result .. groups.to_string(content)
-
-    do
-      local inactive_separator = config.options.icons.inactive.separator.left
-      if #group_clumps > 0 and layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width then
-        result = result .. groups.to_string({{ text = inactive_separator or '', hl = wrap_hl('BufferInactiveSign') }})
-      end
-    end
 
     -- prevent the expansion of the last click group
     result = result .. '%0@barbar#events#main_click_handler@'
@@ -625,7 +624,7 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Tabpages
   do
-    if layout.tabpages_width > 0 then
+    if layout.tabpages.width > 0 then
       result = result .. '%=%#BufferTabpages# ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' '
     end
   end
@@ -650,7 +649,7 @@ local function generate_tabline(bufnrs, refocus)
   -- NOTE: For development or debugging purposes, the following code can be used:
   -- ```lua
   -- local text = groups.to_raw_string(bufferline_groups, true)
-  -- if layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width and #items > 0 then
+  -- if layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width and #items > 0 then
   --   text = text .. groups.to_raw_string({{ text = inactive_separator or '', hl = wrap_hl('BufferInactiveSign') }}, true)
   -- end
   -- local data = vim.json.encode({ metadata = 42 })
