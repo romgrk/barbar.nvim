@@ -142,8 +142,8 @@ local function open_buffer_start_animation(layout, bufnr)
   local index = utils.index_of(Layout.buffers, bufnr)
 
   buffer_data.computed_width = Layout.calculate_width(
-    layout.base_widths[index] or Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1),
-    layout.padding_width
+    layout.buffers.base_widths[index] or Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1),
+    layout.buffers.padding
   )
 
   local target_width = buffer_data.computed_width or 0
@@ -366,11 +366,11 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
 
   --- The padding
   --- @type barbar.render.group
-  local padding = {hl = '', text = (' '):rep(layout.padding_width)}
+  local padding = { hl = '', text = (' '):rep(layout.buffers.padding) }
 
   --- The padding of a pinned buffer
   --- @type barbar.render.group
-  local pinned_padding = {hl = padding.hl, text = (' '):rep(config.options.minimum_padding)}
+  local pinned_padding = { hl = padding.hl, text = (' '):rep(config.options.minimum_padding) }
 
   for i, bufnr in ipairs(bufnrs) do
     local activity = Buffer.activities[Buffer.get_activity(bufnr)]
@@ -380,10 +380,10 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
 
     if pinned then
       buffer_data.computed_position = accumulated_pinned_width
-      buffer_data.computed_width    = Layout.calculate_width(layout.base_widths[i], config.options.minimum_padding)
+      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], config.options.minimum_padding)
     else
       buffer_data.computed_position = accumulated_width
-      buffer_data.computed_width    = Layout.calculate_width(layout.base_widths[i], layout.padding_width)
+      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], layout.buffers.padding)
     end
 
     local group_clump_width = buffer_data.width or buffer_data.computed_width
@@ -401,7 +401,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
       end
     end
 
-    local scroll_current = min(scroll.current, layout.scroll_max)
+    local scroll_current = min(scroll.current, layout.buffers.scroll_max)
 
     if pinned then
       accumulated_pinned_width = accumulated_pinned_width + group_clump_width
@@ -596,7 +596,7 @@ local function generate_tabline(bufnrs, refocus)
     end
 
     do -- Crop to scroll region
-      local scroll_current = min(scroll.current, layout.scroll_max)
+      local scroll_current = min(scroll.current, layout.buffers.scroll_max)
       local buffers_end = layout.buffers.unpinned_width - scroll_current
 
       if buffers_end > layout.buffers.unpinned_allocated_width then
