@@ -567,60 +567,67 @@ local function generate_tabline(bufnrs, refocus)
     result = result .. groups.to_string(offset_groups)
   end
 
-  --- @type barbar.render.group[]
-  local bufferline_groups = {
-    {
-      hl = HL.FILL,
-      text = (' '):rep(layout.actual_width),
-    }
-  }
-
-  for _, group_clump in ipairs(group_clumps) do
-    bufferline_groups = groups.insert(bufferline_groups, group_clump.position, group_clump.groups)
-  end
-
-  do -- Crop to scroll region
-    local scroll_current = min(scroll.current, layout.scroll_max)
-    local buffers_end = layout.actual_width - scroll_current
-
-    if buffers_end > layout.buffers_width then
-      bufferline_groups = groups.slice_right(bufferline_groups, scroll_current + layout.buffers_width)
-    end
-
-    if scroll_current > 0 then
-      bufferline_groups = groups.slice_left(bufferline_groups, layout.buffers_width)
-    end
-  end
-
-  if #pinned_group_clumps > 0 then
-    local pinned_groups = {
+  -- Buffer tabs
+  do
+    --- @type barbar.render.group[]
+    local content = {
       {
         hl = HL.FILL,
-        text = (' '):rep(layout.pinned_width),
+        text = (' '):rep(layout.actual_width),
       }
     }
-    for _, pinned_group_clump in ipairs(pinned_group_clumps) do
-      pinned_groups = groups.insert(pinned_groups, pinned_group_clump.position, pinned_group_clump.groups)
+
+    for _, group_clump in ipairs(group_clumps) do
+      content = groups.insert(content, group_clump.position, group_clump.groups)
     end
 
-    result = result .. groups.to_string(pinned_groups)
+    do -- Crop to scroll region
+      local scroll_current = min(scroll.current, layout.scroll_max)
+      local buffers_end = layout.actual_width - scroll_current
+
+      if buffers_end > layout.buffers_width then
+        content = groups.slice_right(content, scroll_current + layout.buffers_width)
+      end
+
+      if scroll_current > 0 then
+        content = groups.slice_left(content, layout.buffers_width)
+      end
+    end
+
+    if #pinned_group_clumps > 0 then
+      local pinned_groups = {
+        {
+          hl = HL.FILL,
+          text = (' '):rep(layout.pinned_width),
+        }
+      }
+      for _, pinned_group_clump in ipairs(pinned_group_clumps) do
+        pinned_groups = groups.insert(pinned_groups, pinned_group_clump.position, pinned_group_clump.groups)
+      end
+
+      result = result .. groups.to_string(pinned_groups)
+    end
+
+    -- Render bufferline string
+    result = result .. groups.to_string(content)
+
+    do
+      local inactive_separator = config.options.icons.inactive.separator.left
+      if #group_clumps > 0 and layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width then
+        result = result .. groups.to_string({{ text = inactive_separator or '', hl = wrap_hl('BufferInactiveSign') }})
+      end
+    end
+
+    -- prevent the expansion of the last click group
+    result = result .. '%0@barbar#events#main_click_handler@'
+
   end
 
-  -- Render bufferline string
-  result = result .. groups.to_string(bufferline_groups)
-
+  -- Tabpages
   do
-    local inactive_separator = config.options.icons.inactive.separator.left
-    if #group_clumps > 0 and layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width then
-      result = result .. groups.to_string({{ text = inactive_separator or '', hl = wrap_hl('BufferInactiveSign') }})
+    if layout.tabpages_width > 0 then
+      result = result .. '%=%#BufferTabpages# ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' '
     end
-  end
-
-  -- prevent the expansion of the last click group
-  result = result .. '%0@barbar#events#main_click_handler@'
-
-  if layout.tabpages_width > 0 then
-    result = result .. '%=%#BufferTabpages# ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' '
   end
 
   -- Right offset
