@@ -353,7 +353,7 @@ end
 --- @param layout barbar.layout.data
 --- @param bufnrs integer[]
 --- @param refocus? boolean
---- @return barbar.render.group_clump[] pinned_groups, barbar.render.group_clump[] clumps
+--- @return barbar.render.group_clump[] pinned_groups, barbar.render.group_clump[] clumps, nil|integer current_buffer_index
 local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   local click_enabled = has('tablineat') and config.options.clickable
 
@@ -529,7 +529,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     ::continue::
   end
 
-  return pinned_group_clumps, group_clumps
+  return pinned_group_clumps, group_clumps, current_buffer_index
 end
 
 local HL = {
@@ -545,7 +545,7 @@ local HL = {
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   local layout = Layout.calculate()
-  local pinned_group_clumps, group_clumps = get_bufferline_group_clumps(layout, bufnrs, refocus)
+  local pinned_group_clumps, group_clumps, current_buffer_index = get_bufferline_group_clumps(layout, bufnrs, refocus)
 
   -- Create actual tabline string
   local result = ''
@@ -577,12 +577,20 @@ local function generate_tabline(bufnrs, refocus)
       }
     }
 
-    local scroll_current = scroll.current
-
-    for _, group_clump in ipairs(group_clumps) do
+    for i, group_clump in ipairs(group_clumps) do
+      -- We insert the current buffer after the others so it's always on top
+      if i ~= current_buffer_index then
+        content = groups.insert_many(
+          content,
+          group_clump.position - scroll.current,
+          group_clump.groups)
+      end
+    end
+    if group_clumps[current_buffer_index] ~= nil then
+      local group_clump = group_clumps[current_buffer_index]
       content = groups.insert_many(
         content,
-        group_clump.position - scroll_current,
+        group_clump.position - scroll.current,
         group_clump.groups)
     end
 
