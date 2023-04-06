@@ -71,7 +71,7 @@ local ANIMATION = {
 --- @class barbar.render.scroll
 --- @field current integer the place where the bufferline is currently scrolled to
 --- @field target integer the place where the bufferline is scrolled/wants to scroll to.
-local scroll = {current = 0, target = 0}
+local scroll = { current = 0, target = 0 }
 
 --- @class barbar.render
 local render = {}
@@ -358,7 +358,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   local click_enabled = has('tablineat') and config.options.clickable
 
   local accumulated_pinned_width = 0 --- the width of pinned buffers accumulated while iterating
-  local accumulated_width = 0 --- the width of buffers accumulated while iterating
+  local accumulated_unpinned_width = 0 --- the width of buffers accumulated while iterating
   local current_buffer_index = nil --- @type nil|integer
   local done = false --- if all of the visible buffers have been clumped
   local group_clumps = {} --- @type barbar.render.group_clump[]
@@ -382,7 +382,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
       buffer_data.computed_position = accumulated_pinned_width
       buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], config.options.minimum_padding)
     else
-      buffer_data.computed_position = accumulated_width
+      buffer_data.computed_position = accumulated_unpinned_width + layout.buffers.pinned_width
       buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], layout.buffers.padding)
     end
 
@@ -391,8 +391,8 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     if activity == 'Current' and refocus ~= false then
       current_buffer_index = i
 
-      local start = accumulated_width
-      local end_  = accumulated_width + group_clump_width
+      local start = accumulated_unpinned_width
+      local end_  = accumulated_unpinned_width + group_clump_width
 
       if scroll.target > start then
         render.set_scroll(start)
@@ -406,12 +406,12 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     if pinned then
       accumulated_pinned_width = accumulated_pinned_width + group_clump_width
     else
-      accumulated_width = accumulated_width + group_clump_width
+      accumulated_unpinned_width = accumulated_unpinned_width + group_clump_width
 
-      if accumulated_width < scroll_current  then
+      if accumulated_unpinned_width < scroll_current  then
         goto continue -- HACK: there is no `continue` keyword
       elseif (refocus == false or (refocus ~= false and current_buffer_index ~= nil)) and
-        accumulated_width - scroll_current > layout.buffers.unpinned_allocated_width
+        accumulated_unpinned_width - scroll_current > layout.buffers.unpinned_allocated_width
       then
         done = true
       end
@@ -579,10 +579,12 @@ local function generate_tabline(bufnrs, refocus)
       }
     }
 
+    local scroll_current = scroll.current
+
     for _, group_clump in ipairs(group_clumps) do
       content = groups.insert(
         content,
-        group_clump.position + layout.buffers.pinned_width,
+        group_clump.position - scroll_current,
         group_clump.groups)
     end
 
@@ -591,21 +593,8 @@ local function generate_tabline(bufnrs, refocus)
       if #group_clumps > 0 and layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width and inactive_separator ~= nil then
         content = groups.insert(
           content,
-          layout.buffers.unpinned_width + layout.buffers.pinned_width,
+          layout.buffers.used_width,
           { { text = inactive_separator, hl = HL.SIGN_INACTIVE }})
-      end
-    end
-
-    do -- Crop to scroll region
-      local scroll_current = min(scroll.current, layout.buffers.scroll_max)
-      local buffers_end = layout.buffers.unpinned_width - scroll_current
-
-      if buffers_end > layout.buffers.unpinned_allocated_width then
-        content = groups.slice_right(content, scroll_current + layout.buffers.unpinned_allocated_width)
-      end
-
-      if scroll_current > 0 then
-        content = groups.slice_left(content, layout.buffers.unpinned_allocated_width)
       end
     end
 
@@ -615,12 +604,15 @@ local function generate_tabline(bufnrs, refocus)
       end
     end
 
+    local filler = { { hl = HL.FILL, text = (' '):rep(layout.buffers.width) } }
+    content = groups.insert(filler, 0, content)
+    content = groups.slice_right(content, layout.buffers.width)
+
     -- Render bufferline string
     result = result .. groups.to_string(content)
 
-    -- prevent the expansion of the last click group
+    -- Prevent the expansion of the last click group
     result = result .. '%0@barbar#events#main_click_handler@'
-
   end
 
   -- Tabpages

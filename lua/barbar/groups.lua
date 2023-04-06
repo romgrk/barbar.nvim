@@ -10,6 +10,17 @@ local utils = require'barbar.utils'
 
 local m = {}
 
+--- Sums the width of the groups
+--- @param groups barbar.render.group[]
+--- @return integer
+function m.width(groups)
+  local result = 0
+  for _, group in ipairs(groups) do
+    result = result + strwidth(group.text)
+  end
+  return result
+end
+
 --- Concatenates some `groups` into a valid tabline string.
 --- @param groups barbar.render.group[]
 --- @return string
@@ -48,6 +59,22 @@ end
 --- @param others barbar.render.group[]
 --- @return barbar.render.group[] with_insertions
 function m.insert(groups, position, others)
+
+  if position < 0 then
+    local others_width = m.width(others)
+    local others_end = position + others_width
+
+    if others_end < 0 then
+      return groups
+    end
+
+    local available_width = others_end
+
+    position = 0
+    others = m.slice_left(others, available_width)
+  end
+
+
   local current_position = 0
 
   local new_groups = {}
