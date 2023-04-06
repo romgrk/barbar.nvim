@@ -105,7 +105,6 @@ function Layout.calculate()
     right = {
       width = right_width,
     },
-
   }
 
   return result
