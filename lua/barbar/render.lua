@@ -553,13 +553,9 @@ local function generate_tabline(bufnrs, refocus)
   -- Left offset
   if state.offset.left.width > 0 then
     local hl = wrap_hl(state.offset.left.hl)
-    local offset_groups = {
-      { hl = hl, text = (' '):rep(state.offset.left.width) }
-    }
+    local offset_groups = { { hl = hl, text = (' '):rep(state.offset.left.width) } }
 
-    local content = {
-      { hl = hl, text = state.offset.left.text }
-    }
+    local content = { { hl = hl, text = state.offset.left.text } }
     local content_max_width = state.offset.left.width - 2
 
     offset_groups =
@@ -630,13 +626,9 @@ local function generate_tabline(bufnrs, refocus)
   -- Right offset
   if state.offset.right.width > 0 then
     local hl = wrap_hl(state.offset.right.hl)
-    local offset_groups = {
-      { hl = hl, text = (' '):rep(state.offset.right.width) }
-    }
+    local offset_groups = { { hl = hl, text = (' '):rep(state.offset.right.width) } }
 
-    local content = {
-      { hl = hl, text = state.offset.right.text }
-    }
+    local content = { { hl = hl, text = state.offset.right.text } }
     local content_max_width = state.offset.right.width - 2
 
     offset_groups =
