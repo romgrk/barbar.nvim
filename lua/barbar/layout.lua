@@ -161,7 +161,9 @@ function Layout.calculate_buffers_position_by_buffer_number()
   local layout = Layout.calculate()
   local positions = {}
 
-  local pinned_position, buffer_position = 0, 0
+  local pinned_position = 0
+  local unpinned_position = layout.buffers.pinned_width
+
   for i, buffer_number in ipairs(Layout.buffers) do
     if state.is_pinned(buffer_number) then
       positions[buffer_number] = pinned_position
@@ -170,8 +172,8 @@ function Layout.calculate_buffers_position_by_buffer_number()
         config.options.minimum_padding
       )
     else
-      positions[buffer_number] = buffer_position
-      buffer_position = buffer_position + Layout.calculate_width(
+      positions[buffer_number] = unpinned_position
+      unpinned_position = unpinned_position + Layout.calculate_width(
         layout.buffers.base_widths[i],
         layout.buffers.padding
       )

@@ -64,6 +64,7 @@ local ANIMATION = {
 --- @field text string the content being rendered
 
 --- @class barbar.render.group_clump
+--- @field activity barbar.buffer.activity
 --- @field groups barbar.render.group[]
 --- @field position integer
 --- @field width integer
@@ -353,7 +354,7 @@ end
 --- @param layout barbar.layout.data
 --- @param bufnrs integer[]
 --- @param refocus? boolean
---- @return barbar.render.group_clump[] pinned_groups, barbar.render.group_clump[] clumps, nil|integer current_buffer_index
+--- @return barbar.render.group_clump[] pinned_groups, barbar.render.group_clump[] clumps
 local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   local click_enabled = has('tablineat') and config.options.clickable
 
@@ -365,7 +366,8 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   local pinned_group_clumps = {} --- @type barbar.render.group_clump[]
 
   for i, bufnr in ipairs(bufnrs) do
-    local activity = Buffer.activities[Buffer.get_activity(bufnr)]
+    local activity = Buffer.get_activity(bufnr)
+    local activity_name = Buffer.activities[activity]
     local buffer_data = state.get_buffer_data(bufnr)
     local modified = buf_get_option(bufnr, 'modified')
     local pinned = buffer_data.pinned
@@ -380,7 +382,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
 
     local group_clump_width = buffer_data.width or buffer_data.computed_width
 
-    if activity == 'Current' and refocus ~= false then
+    if activity == Buffer.activities.Current and refocus ~= false then
       current_buffer_index = i
 
       local start = accumulated_unpinned_width
@@ -410,9 +412,9 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     end
 
     local buffer_name = buffer_data.name or '[no name]'
-    local buffer_hl = wrap_hl('Buffer' .. activity .. (modified and 'Mod' or ''))
+    local buffer_hl = wrap_hl('Buffer' .. activity_name .. (modified and 'Mod' or ''))
 
-    local icons_option = Buffer.get_icons(activity, modified, pinned)
+    local icons_option = Buffer.get_icons(activity_name, modified, pinned)
 
     --- Prefix this value to allow an element to be clicked
     local clickable = click_enabled and ('%' .. bufnr .. '@barbar#events#main_click_handler@') or ''
@@ -425,7 +427,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     --- @type barbar.render.group
     local buffer_index = { hl = '', text = '' }
     if icons_option.buffer_index then
-      buffer_index.hl = wrap_hl('Buffer' .. activity .. 'Index')
+      buffer_index.hl = wrap_hl('Buffer' .. activity_name .. 'Index')
       buffer_index.text = i .. ' '
     end
 
@@ -433,7 +435,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     --- @type barbar.render.group
     local buffer_number = { hl = '', text = '' }
     if icons_option.buffer_number then
-      buffer_number.hl = wrap_hl('Buffer' .. activity .. 'Number')
+      buffer_number.hl = wrap_hl('Buffer' .. activity_name .. 'Number')
       buffer_number.text = bufnr .. ' '
     end
 
@@ -466,7 +468,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
         name.text = strcharpart(name.text, 1)
       end
 
-      jump_letter.hl = wrap_hl('Buffer' .. activity .. 'Target')
+      jump_letter.hl = wrap_hl('Buffer' .. activity_name .. 'Target')
       if letter then
         jump_letter.text = letter
         if icons_option.filetype.enabled and #name.text > 0 then
@@ -476,18 +478,18 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
         jump_letter.text = '  '
       end
     elseif icons_option.filetype.enabled then
-      local iconChar, iconHl = icons.get_icon(bufnr, activity)
-      local hlName = (activity == 'Inactive' and not config.options.highlight_inactive_file_icons)
+      local iconChar, iconHl = icons.get_icon(bufnr, activity_name)
+      local hlName = (activity_name == 'Inactive' and not config.options.highlight_inactive_file_icons)
         and 'BufferInactive'
         or iconHl
 
       icon.hl = icons_option.filetype.custom_colors and
-        wrap_hl('Buffer' .. activity .. 'Icon') or
+        wrap_hl('Buffer' .. activity_name .. 'Icon') or
         (hlName and wrap_hl(hlName) or buffer_hl)
       icon.text = #name.text > 0 and iconChar .. ' ' or iconChar
     end
 
-    local hl_sign = wrap_hl('Buffer' .. activity .. 'Sign')
+    local hl_sign = wrap_hl('Buffer' .. activity_name .. 'Sign')
 
     local left_separator = {
       hl = clickable .. hl_sign,
@@ -501,6 +503,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     }
 
     local group_clump = { --- @type barbar.render.group_clump
+      activity = activity,
       groups = { left_separator, pad, buffer_index, buffer_number, icon, jump_letter, name },
       --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
       position = buffer_data.position or buffer_data.computed_position,
@@ -510,7 +513,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
 
     Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, idx, option)
       table_insert(group_clump.groups, {
-        hl = wrap_hl('Buffer' .. activity .. severity[idx]),
+        hl = wrap_hl('Buffer' .. activity_name .. severity[idx]),
         text = ' ' .. option.icon .. count,
       })
     end)
@@ -529,7 +532,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     ::continue::
   end
 
-  return pinned_group_clumps, group_clumps, current_buffer_index
+  return pinned_group_clumps, group_clumps
 end
 
 local HL = {
@@ -545,7 +548,7 @@ local HL = {
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   local layout = Layout.calculate()
-  local pinned_group_clumps, group_clumps, current_buffer_index = get_bufferline_group_clumps(layout, bufnrs, refocus)
+  local pinned_group_clumps, group_clumps = get_bufferline_group_clumps(layout, bufnrs, refocus)
 
   -- Create actual tabline string
   local result = ''
@@ -577,13 +580,16 @@ local function generate_tabline(bufnrs, refocus)
       }
     }
 
+    local current_buffer_index = nil
     for i, group_clump in ipairs(group_clumps) do
       -- We insert the current buffer after the others so it's always on top
-      if i ~= current_buffer_index then
+      if group_clump.activity ~= Buffer.activities.Current then
         content = groups.insert_many(
           content,
           group_clump.position - scroll.current,
           group_clump.groups)
+      else
+        current_buffer_index = i
       end
     end
     if group_clumps[current_buffer_index] ~= nil then
