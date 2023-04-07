@@ -149,9 +149,6 @@ local buffer = {
       else
         name = strcharpart(name, 0, maximum_length - ELLIPSIS_LEN) .. ELLIPSIS
       end
-
-      -- safety to prevent recursion in any future edge case
-      name = name:sub(1, maximum_length)
     end
 
     return name
