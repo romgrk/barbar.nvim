@@ -8,6 +8,7 @@ local strwidth = vim.api.nvim_strwidth --- @type function
 
 local utils = require'barbar.utils'
 
+--- @class barbar.groups
 local m = {}
 
 --- Sums the width of the groups
