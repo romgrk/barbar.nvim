@@ -305,7 +305,7 @@ end
 
 --- What to do when clicking a buffer label
 --- NOTE: must be global -_-
---- @param bufnr integer the buffer nummber
+--- @param bufnr integer the buffer number
 --- @param btn string
 --- @return nil
 function events.main_click_handler(bufnr, _, btn, _)

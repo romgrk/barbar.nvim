@@ -352,7 +352,7 @@ require'barbar'.setup {
   },
 
   -- New buffer letters are assigned in this order. This order is
-  -- optimal for the qwerty keyboard layout but might need adjustement
+  -- optimal for the qwerty keyboard layout but might need adjustment
   -- for other layouts.
   letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
 

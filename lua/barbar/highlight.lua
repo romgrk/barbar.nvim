@@ -98,7 +98,7 @@ local highlight = {
     --     Inactive: invisible but not current buffer
     --        -Icon: filetype icon
     --       -Index: buffer index
-    --      -Number: buffer numebr
+    --      -Number: buffer number
     --         -Mod: when modified
     --        -Sign: the separator between buffers
     --      -Target: letter in buffer-picking mode
