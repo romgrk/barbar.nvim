@@ -365,6 +365,9 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   local group_clumps = {} --- @type barbar.render.group_clump[]
   local pinned_group_clumps = {} --- @type barbar.render.group_clump[]
 
+  local pinned_pad_text   = (' '):rep(config.options.minimum_padding)
+  local unpinned_pad_text = (' '):rep(layout.buffers.padding)
+
   for i, bufnr in ipairs(bufnrs) do
     local activity = Buffer.get_activity(bufnr)
     local activity_name = Buffer.activities[activity]
@@ -496,10 +499,9 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
       text = icons_option.separator.left,
     }
 
-    local pad_width = pinned and config.options.minimum_padding or layout.buffers.padding
     local pad = {
       hl = hl_sign,
-      text = (' '):rep(pad_width),
+      text = pinned and pinned_pad_text or unpinned_pad_text,
     }
 
     local group_clump = { --- @type barbar.render.group_clump
