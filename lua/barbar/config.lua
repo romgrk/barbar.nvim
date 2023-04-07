@@ -7,42 +7,6 @@ local utils = require'barbar.utils'
 --- The prefix used for `utils.deprecate`
 local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
 
-local DEFAULT_OPTIONS = {
-  animation = true,
-  auto_hide = false,
-  clickable = true,
-  exclude_ft = {},
-  exclude_name = {},
-  focus_on_close = 'left',
-  hide = {},
-  highlight_alternate = false,
-  highlight_inactive_file_icons = false,
-  highlight_visible = true,
-  icons = {
-    buffer_index = false,
-    buffer_number = false,
-    button = '',
-    diagnostics = {},
-    filename = true,
-    filetype = { enabled = true },
-    inactive = { separator = { left = '▎', right = '' } },
-    modified = { button = '●' },
-    pinned = { button = false, filename = false },
-    separator = { left = '▎', right = '' },
-    scroll = { left = '❮', right = '❯' }
-  },
-  insert_at_end = false,
-  insert_at_start = false,
-  letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
-  maximum_length = 30,
-  maximum_padding = 4,
-  minimum_padding = 1,
-  no_name_title = nil,
-  semantic_letters = true,
-  sidebar_filetypes = {},
-  tabpages = true,
-}
-
 --- @class barbar.config.options.hide
 --- @field alternate? boolean
 --- @field current? boolean
@@ -94,9 +58,22 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
 --- @class barbar.config.options.icons: barbar.config.options.icons.state
 --- @field alternate? barbar.config.options.icons.state the icons used for an alternate buffer
 --- @field current? barbar.config.options.icons.state the icons for the current buffer
---- @field inactive? barbar.config.options.icons.state the icons for inactive buffers
+--- @field inactive barbar.config.options.icons.state the icons for inactive buffers
 --- @field visible? barbar.config.options.icons.state the icons for visible buffers
 --- @field scroll barbar.config.options.icons.scroll the scroll arrows
+local DEFAULT_ICONS = {
+  buffer_index = false,
+  buffer_number = false,
+  button = '',
+  diagnostics = {},
+  filename = true,
+  filetype = { enabled = true },
+  inactive = { separator = { left = '▎', right = '' } },
+  modified = { button = '●' },
+  pinned = { button = false, filename = false },
+  separator = { left = '▎', right = '' },
+  scroll = { left = '❮', right = '❯' }
+}
 
 --- @alias barbar.config.options.icons.preset boolean|"both"|"buffer_number_with_icon"|"buffer_numbers"|"numbers"
 
@@ -168,10 +145,32 @@ local DEPRECATED_OPTIONS = {
 --- @field maximum_length integer
 --- @field maximum_padding integer
 --- @field minimum_padding integer
---- @field no_name_title string
+--- @field no_name_title? string
 --- @field semantic_letters boolean
 --- @field sidebar_filetypes {[string]: nil|barbar.config.options.sidebar_filetype}
 --- @field tabpages boolean
+local DEFAULT_OPTIONS = {
+  animation = true,
+  auto_hide = false,
+  clickable = true,
+  exclude_ft = {},
+  exclude_name = {},
+  focus_on_close = 'left',
+  hide = {},
+  highlight_alternate = false,
+  highlight_inactive_file_icons = false,
+  highlight_visible = true,
+  insert_at_end = false,
+  insert_at_start = false,
+  letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
+  maximum_length = 30,
+  maximum_padding = 4,
+  minimum_padding = 1,
+  no_name_title = nil,
+  semantic_letters = true,
+  sidebar_filetypes = {},
+  tabpages = true,
+}
 
 --- @class barbar.config
 --- @field options barbar.config.options
@@ -240,16 +239,16 @@ function config.setup(options)
     end
   end
 
-  local default_options = deepcopy(DEFAULT_OPTIONS)
+  local default_icons = deepcopy(DEFAULT_ICONS)
 
   do
     local pinned_icons = options.icons and options.icons.pinned
     if pinned_icons == nil or pinned_icons.button == false or #pinned_icons.button < 1 then
-      default_options.icons.pinned.separator = {right = ' '}
+      default_icons.pinned.separator = {right = ' '}
     end
   end
 
-  config.options = tbl_deep_extend('keep', options, default_options)
+  config.options = tbl_deep_extend('keep', options, DEFAULT_OPTIONS, {icons = default_icons})
 
   -- NOTE: we do this because `vim.tbl_deep_extend` doesn't deep copy lists
   for i, default_diagnostic_severity_icons in ipairs(DEFAULT_DIAGNOSTIC_ICONS) do
