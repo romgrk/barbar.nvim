@@ -13,6 +13,7 @@ local defer_fn = vim.defer_fn
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
 local has = vim.fn.has --- @type function
+local list_extend = vim.list_extend
 local list_tabpages = vim.api.nvim_list_tabpages --- @type function
 local list_wins = vim.api.nvim_list_wins --- @type function
 local set_current_win = vim.api.nvim_set_current_win --- @type function
@@ -29,10 +30,10 @@ local animate = require'barbar.animate'
 local Buffer = require'barbar.buffer'
 local config = require'barbar.config'
 -- local fs = require'barbar.fs' -- For debugging purposes
-local groups = require'barbar.groups'
+local Nodes = require('barbar.ui.nodes')
 local icons = require'barbar.icons'
 local JumpMode = require'barbar.jump_mode'
-local Layout = require'barbar.layout'
+local Layout = require'barbar.ui.layout'
 local state = require'barbar.state'
 local utils = require'barbar.utils'
 
@@ -47,7 +48,7 @@ local function wrap_hl(group)
   return '%#' .. group .. '#'
 end
 
---- @class barbar.render.animation
+--- @class barbar.ui.render.animation
 --- @field OPEN_DELAY integer
 --- @field OPEN_DURATION integer
 --- @field CLOSE_DURATION integer
@@ -59,22 +60,12 @@ local ANIMATION = {
   SCROLL_DURATION = 200,
 }
 
---- @class barbar.render.group
---- @field hl string the highlight group to use
---- @field text string the content being rendered
-
---- @class barbar.render.group_clump
---- @field activity barbar.buffer.activity
---- @field groups barbar.render.group[]
---- @field position integer
---- @field width integer
-
---- @class barbar.render.scroll
+--- @class barbar.ui.render.scroll
 --- @field current integer the place where the bufferline is currently scrolled to
 --- @field target integer the place where the bufferline is scrolled/wants to scroll to.
 local scroll = { current = 0, target = 0 }
 
---- @class barbar.render
+--- @class barbar.ui.render
 local render = {}
 
 --- An incremental animation for `close_buffer_animated`.
@@ -136,7 +127,7 @@ end
 
 --- Opens a buffer with animation.
 --- @param bufnr integer
---- @param layout barbar.layout.data
+--- @param layout barbar.ui.layout.data
 --- @return nil
 local function open_buffer_start_animation(layout, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
@@ -268,9 +259,6 @@ function render.get_updated_buffers(update_names)
   return state.buffers
 end
 
---- @deprecated use `state.restore_buffers` instead
-render.restore_buffers = state.restore_buffers
-
 --- Open the window which contained the buffer which was clicked on.
 --- @return integer current_bufnr
 function render.set_current_win_listed_buffer()
@@ -351,19 +339,19 @@ function render.set_tabline(s)
 end
 
 --- Compute the buffer hl-groups
---- @param layout barbar.layout.data
+--- @param layout barbar.ui.layout.data
 --- @param bufnrs integer[]
 --- @param refocus? boolean
---- @return barbar.render.group_clump[] pinned_groups, barbar.render.group_clump[] clumps
-local function get_bufferline_group_clumps(layout, bufnrs, refocus)
+--- @return barbar.ui.container[] pinned_groups, barbar.ui.container[] clumps
+local function get_bufferline_containers(layout, bufnrs, refocus)
   local click_enabled = has('tablineat') and config.options.clickable
 
   local accumulated_pinned_width = 0 --- the width of pinned buffers accumulated while iterating
   local accumulated_unpinned_width = 0 --- the width of buffers accumulated while iterating
   local current_buffer_index = nil --- @type nil|integer
   local done = false --- if all of the visible buffers have been clumped
-  local group_clumps = {} --- @type barbar.render.group_clump[]
-  local pinned_group_clumps = {} --- @type barbar.render.group_clump[]
+  local containers = {} --- @type barbar.ui.container[]
+  local pinned_containers = {} --- @type barbar.ui.container[]
 
   local pinned_pad_text   = (' '):rep(config.options.minimum_padding)
   local unpinned_pad_text = (' '):rep(layout.buffers.padding)
@@ -383,13 +371,13 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
       buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], layout.buffers.padding)
     end
 
-    local group_clump_width = buffer_data.width or buffer_data.computed_width
+    local container_width = buffer_data.width or buffer_data.computed_width
 
     if activity == Buffer.activities.Current and refocus ~= false then
       current_buffer_index = i
 
       local start = accumulated_unpinned_width
-      local end_  = accumulated_unpinned_width + group_clump_width
+      local end_  = accumulated_unpinned_width + container_width
 
       if scroll.target > start then
         render.set_scroll(start)
@@ -401,9 +389,9 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     local scroll_current = min(scroll.current, layout.buffers.scroll_max)
 
     if pinned then
-      accumulated_pinned_width = accumulated_pinned_width + group_clump_width
+      accumulated_pinned_width = accumulated_pinned_width + container_width
     else
-      accumulated_unpinned_width = accumulated_unpinned_width + group_clump_width
+      accumulated_unpinned_width = accumulated_unpinned_width + container_width
 
       if accumulated_unpinned_width < scroll_current  then
         goto continue -- HACK: there is no `continue` keyword
@@ -423,11 +411,11 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     local clickable = click_enabled and ('%' .. bufnr .. '@barbar#events#main_click_handler@') or ''
 
     --- The name of the buffer
-    --- @type barbar.render.group
+    --- @type barbar.ui.node
     local name = {hl = clickable .. buffer_hl, text = icons_option.filename and buffer_name or ''}
 
     --- The buffer index
-    --- @type barbar.render.group
+    --- @type barbar.ui.node
     local buffer_index = { hl = '', text = '' }
     if icons_option.buffer_index then
       buffer_index.hl = wrap_hl('Buffer' .. activity_name .. 'Index')
@@ -435,7 +423,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     end
 
     --- The buffer number
-    --- @type barbar.render.group
+    --- @type barbar.ui.node
     local buffer_number = { hl = '', text = '' }
     if icons_option.buffer_number then
       buffer_number.hl = wrap_hl('Buffer' .. activity_name .. 'Number')
@@ -443,7 +431,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     end
 
     --- The close icon
-    --- @type barbar.render.group
+    --- @type barbar.ui.container
     local button = {hl = buffer_hl, text = ''}
 
     local button_icon = icons_option.button
@@ -456,11 +444,11 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     end
 
     --- The jump letter
-    --- @type barbar.render.group
+    --- @type barbar.ui.node
     local jump_letter = { hl = '', text = '' }
 
     --- The devicon
-    --- @type barbar.render.group
+    --- @type barbar.ui.node
     local icon = { hl = clickable, text = '' }
 
     if state.is_picking_buffer then
@@ -494,34 +482,33 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
 
     local hl_sign = wrap_hl('Buffer' .. activity_name .. 'Sign')
 
-    --- @type barbar.render.group
+    --- @type barbar.ui.node
     local left_separator = { hl = clickable .. hl_sign, text = icons_option.separator.left }
 
-    --- @type barbar.render.group
+    --- @type barbar.ui.node
     local padding = { hl = buffer_hl, text = pinned and pinned_pad_text or unpinned_pad_text }
 
-    local group_clump = { --- @type barbar.render.group_clump
+    local container = { --- @type barbar.ui.container
       activity = activity,
-      groups = { left_separator, padding, buffer_index, buffer_number, icon, jump_letter, name },
+      nodes = { left_separator, padding, buffer_index, buffer_number, icon, jump_letter, name },
       --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
       position = buffer_data.position or buffer_data.computed_position,
       --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
-      width = group_clump_width,
+      width = container_width,
     }
 
     Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, idx, option)
-      table_insert(group_clump.groups, {
+      table_insert(container.nodes, {
         hl = wrap_hl('Buffer' .. activity_name .. severity[idx]),
         text = ' ' .. option.icon .. count,
       })
     end)
 
-    --- @type barbar.render.group
+    --- @type barbar.ui.node
     local right_separator = { hl = left_separator.hl, text = icons_option.separator.right }
 
-    vim.list_extend(group_clump.groups, { padding, button, right_separator })
-
-    table_insert(pinned and pinned_group_clumps or group_clumps, group_clump)
+    list_extend(container.nodes, { padding, button, right_separator })
+    table_insert(pinned and pinned_containers or containers, container)
 
     if done then
       break
@@ -530,7 +517,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     ::continue::
   end
 
-  return pinned_group_clumps, group_clumps
+  return pinned_containers, containers
 end
 
 local HL = {
@@ -546,7 +533,7 @@ local HL = {
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   local layout = Layout.calculate()
-  local pinned_group_clumps, group_clumps = get_bufferline_group_clumps(layout, bufnrs, refocus)
+  local pinned_containers, containers = get_bufferline_containers(layout, bufnrs, refocus)
 
   -- Create actual tabline string
   local result = ''
@@ -554,97 +541,95 @@ local function generate_tabline(bufnrs, refocus)
   -- Left offset
   if state.offset.left.width > 0 then
     local hl = wrap_hl(state.offset.left.hl)
-    local offset_groups = { { hl = hl, text = (' '):rep(state.offset.left.width) } }
+    local offset_nodes = { { hl = hl, text = (' '):rep(state.offset.left.width) } }
 
     local content = { { hl = hl, text = state.offset.left.text } }
     local content_max_width = state.offset.left.width - 2
 
-    offset_groups =
-      groups.insert_many(
-        offset_groups,
+    offset_nodes =
+      Nodes.insert_many(
+        offset_nodes,
         1,
-        groups.slice_right(content, content_max_width))
+        Nodes.slice_right(content, content_max_width))
 
-    result = result .. groups.to_string(offset_groups)
+    result = result .. Nodes.to_string(offset_nodes)
   end
 
   -- Buffer tabs
   do
-    --- @type barbar.render.group[]
-    local content = {
-      {
-        hl = HL.FILL,
-        text = (' '):rep(layout.buffers.width),
-      }
-    }
+    --- @type barbar.ui.container
+    local content = { { hl = HL.FILL, text = (' '):rep(layout.buffers.width) } }
 
     do
-      local current_group_clump = nil
-      for _, group_clump in ipairs(group_clumps) do
+      local current_container = nil
+      for _, container in ipairs(containers) do
         -- We insert the current buffer after the others so it's always on top
-        if group_clump.activity ~= Buffer.activities.Current then
-          content = groups.insert_many(
+        if container.activity ~= Buffer.activities.Current then
+          content = Nodes.insert_many(
             content,
-            group_clump.position - scroll.current,
-            group_clump.groups)
+            container.position - scroll.current,
+            container.nodes)
         else
-          current_group_clump = group_clump
+          current_container = container
         end
       end
-      if current_group_clump ~= nil then
-        local group_clump = current_group_clump
-        content = groups.insert_many(
+
+      if current_container ~= nil then
+        local container = current_container
+        content = Nodes.insert_many(
           content,
-          group_clump.position - scroll.current,
-          group_clump.groups)
+          container.position - scroll.current,
+          container.nodes)
       end
     end
 
     do
       local inactive_separator = config.options.icons.inactive.separator.left
-      if #group_clumps > 0 and layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width and inactive_separator ~= nil then
-        content = groups.insert(
+      if inactive_separator ~= nil and #containers > 0 and
+        layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width
+      then
+        content = Nodes.insert(
           content,
           layout.buffers.used_width,
           { text = inactive_separator, hl = HL.SIGN_INACTIVE })
       end
     end
 
-    if #pinned_group_clumps > 0 then
-      local current_group_clump = nil
-      for _, group_clump in ipairs(pinned_group_clumps) do
-        if group_clump.activity ~= Buffer.activities.Current then
-          content = groups.insert_many(content, group_clump.position, group_clump.groups)
+    if #pinned_containers > 0 then
+      local current_container = nil
+      for _, container in ipairs(pinned_containers) do
+        if container.activity ~= Buffer.activities.Current then
+          content = Nodes.insert_many(content, container.position, container.nodes)
         else
-          current_group_clump = group_clump
+          current_container = container
         end
       end
-      if current_group_clump ~= nil then
-        local group_clump = current_group_clump
-        content = groups.insert_many(content, group_clump.position, group_clump.groups)
+      if current_container ~= nil then
+        local container = current_container
+        content = Nodes.insert_many(content, container.position, container.nodes)
       end
     end
 
     local filler = { { hl = HL.FILL, text = (' '):rep(layout.buffers.width) } }
-    content = groups.insert_many(filler, 0, content)
-    content = groups.slice_right(content, layout.buffers.width)
+    content = Nodes.insert_many(filler, 0, content)
+    content = Nodes.slice_right(content, layout.buffers.width)
 
     local has_left_scroll = scroll.current > 0
     if has_left_scroll then
-      content = groups.insert(content, layout.buffers.pinned_width,
+      content = Nodes.insert(content, layout.buffers.pinned_width,
         { hl = HL.SCROLL_ARROW, text = config.options.icons.scroll.left })
     end
 
     local has_right_scroll = layout.buffers.used_width - scroll.current > layout.buffers.width
     if has_right_scroll then
-      content = groups.insert(content, layout.buffers.width - 1,
+      content = Nodes.insert(content, layout.buffers.width - 1,
         { hl = HL.SCROLL_ARROW, text = config.options.icons.scroll.right })
     end
 
     -- Render bufferline string
-    result = result .. groups.to_string(content)
+    result = result .. Nodes.to_string(content)
 
-    -- Prevent the expansion of the last click group
+    -- Prevent the expansion of the last click node
     if config.options.clickable then
       result = result .. '%0@barbar#events#main_click_handler@'
     end
@@ -653,35 +638,34 @@ local function generate_tabline(bufnrs, refocus)
   -- Tabpages
   do
     if layout.tabpages.width > 0 then
-      local content = {
+      result = result .. Nodes.to_string({
         { hl = HL.TABPAGES, text = ' ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' ', },
-      }
-      result = result .. groups.to_string(content)
+      })
     end
   end
 
   -- Right offset
   if state.offset.right.width > 0 then
     local hl = wrap_hl(state.offset.right.hl)
-    local offset_groups = { { hl = hl, text = (' '):rep(state.offset.right.width) } }
+    local offset_nodes = { { hl = hl, text = (' '):rep(state.offset.right.width) } }
 
     local content = { { hl = hl, text = state.offset.right.text } }
     local content_max_width = state.offset.right.width - 2
 
-    offset_groups =
-      groups.insert_many(
-        offset_groups,
+    offset_nodes =
+      Nodes.insert_many(
+        offset_nodes,
         1,
-        groups.slice_right(content, content_max_width))
+        Nodes.slice_right(content, content_max_width))
 
-    result = result .. groups.to_string(offset_groups)
+    result = result .. Nodes.to_string(offset_nodes)
   end
 
   -- NOTE: For development or debugging purposes, the following code can be used:
   -- ```lua
-  -- local text = groups.to_raw_string(bufferline_groups, true)
+  -- local text = Nodes.to_raw_string(bufferline_nodes, true)
   -- if layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width and #items > 0 then
-  --   text = text .. groups.to_raw_string({{ text = inactive_separator or '', hl = wrap_hl('BufferInactiveSign') }}, true)
+  --   text = text .. Nodes.to_raw_string({{ text = inactive_separator or '', hl = wrap_hl('BufferInactiveSign') }}, true)
   -- end
   -- local data = vim.json.encode({ metadata = 42 })
   -- fs.write('barbar.debug.txt', text .. ':' .. data .. '\n', 'a')

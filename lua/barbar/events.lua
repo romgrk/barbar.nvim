@@ -26,7 +26,7 @@ local bbye = require'barbar.bbye'
 local config = require'barbar.config'
 local highlight = require'barbar.highlight'
 local JumpMode = require'barbar.jump_mode'
-local render = require'barbar.render'
+local render = require'barbar.ui.render'
 local state = require'barbar.state'
 local utils = require'barbar.utils'
 
@@ -48,7 +48,7 @@ function events.augroups(clear)
   end
 
   return create_augroup('barbar_misc', {clear = clear}),
-    create_augroup('barbar_render', {clear = clear})
+    create_augroup('barbar.ui.render', {clear = clear})
 end
 
 --- What to do when clicking a buffer close button
