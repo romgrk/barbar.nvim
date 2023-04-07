@@ -1,11 +1,47 @@
+local deepcopy = vim.deepcopy
 local table_concat = table.concat
-
 local tbl_deep_extend = vim.tbl_deep_extend
 
 local utils = require'barbar.utils'
 
 --- The prefix used for `utils.deprecate`
 local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
+
+local DEFAULT_OPTIONS = {
+  animation = true,
+  auto_hide = false,
+  clickable = true,
+  exclude_ft = {},
+  exclude_name = {},
+  focus_on_close = 'left',
+  hide = {},
+  highlight_alternate = false,
+  highlight_inactive_file_icons = false,
+  highlight_visible = true,
+  icons = {
+    buffer_index = false,
+    buffer_number = false,
+    button = '',
+    diagnostics = {},
+    filename = true,
+    filetype = { enabled = true },
+    inactive = { separator = { left = '▎', right = '' } },
+    modified = { button = '●' },
+    pinned = { button = false, filename = false },
+    separator = { left = '▎', right = '' },
+    scroll = { left = '❮', right = '❯' }
+  },
+  insert_at_end = false,
+  insert_at_start = false,
+  letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
+  maximum_length = 30,
+  maximum_padding = 4,
+  minimum_padding = 1,
+  no_name_title = nil,
+  semantic_letters = true,
+  sidebar_filetypes = {},
+  tabpages = true,
+}
 
 --- @class barbar.config.options.hide
 --- @field alternate? boolean
@@ -38,6 +74,10 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
 --- @field left? string a buffer's left separator
 --- @field right? string a buffer's right separator
 
+--- @class barbar.config.options.icons.scroll
+--- @field left string
+--- @field right string
+
 --- @class barbar.config.options.icons.buffer
 --- @field buffer_index? boolean iff `true`, show the index of the associated buffer with respect to the ordering of the buffers in the tabline.
 --- @field buffer_number? boolean iff `true`, show the `bufnr` for the associated buffer.
@@ -56,6 +96,7 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
 --- @field current? barbar.config.options.icons.state the icons for the current buffer
 --- @field inactive? barbar.config.options.icons.state the icons for inactive buffers
 --- @field visible? barbar.config.options.icons.state the icons for visible buffers
+--- @field scroll barbar.config.options.icons.scroll the scroll arrows
 
 --- @alias barbar.config.options.icons.preset boolean|"both"|"buffer_number_with_icon"|"buffer_numbers"|"numbers"
 
@@ -199,40 +240,7 @@ function config.setup(options)
     end
   end
 
-  local default_options = {
-    animation = true,
-    auto_hide = false,
-    clickable = true,
-    exclude_ft = {},
-    exclude_name = {},
-    focus_on_close = 'left',
-    hide = {},
-    highlight_alternate = false,
-    highlight_inactive_file_icons = false,
-    highlight_visible = true,
-    icons = {
-      buffer_index = false,
-      buffer_number = false,
-      button = '',
-      diagnostics = {},
-      filename = true,
-      filetype = {enabled = true},
-      inactive = {separator = {left = '▎', right = ''}},
-      modified = {button = '●'},
-      pinned = {button = false, filename = false},
-      separator = {left = '▎', right = ''},
-    },
-    insert_at_end = false,
-    insert_at_start = false,
-    letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
-    maximum_length = 30,
-    maximum_padding = 4,
-    minimum_padding = 1,
-    no_name_title = nil,
-    semantic_letters = true,
-    sidebar_filetypes = {},
-    tabpages = true,
-  }
+  local default_options = deepcopy(DEFAULT_OPTIONS)
 
   do
     local pinned_icons = options.icons and options.icons.pinned

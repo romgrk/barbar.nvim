@@ -29,6 +29,7 @@ local animate = require'barbar.animate'
 local Buffer = require'barbar.buffer'
 local config = require'barbar.config'
 -- local fs = require'barbar.fs' -- For debugging purposes
+local groups = require'barbar.groups'
 local icons = require'barbar.icons'
 local JumpMode = require'barbar.jump_mode'
 local Layout = require'barbar.layout'
@@ -39,168 +40,11 @@ local utils = require'barbar.utils'
 --- @type string
 local last_tabline = ''
 
---- Concatenates some `groups` into a valid tabline string.
---- @param groups barbar.render.group[]
---- @return string
-local function groups_to_string(groups)
-  local result = ''
-
-  for _, group in ipairs(groups) do
-    -- NOTE: We have to escape the text in case it contains '%', which is a special character to the
-    --       tabline.
-    --       To escape '%', we make it '%%'. It just so happens that '%' is also a special character
-    --       in Lua, so we have write '%%' to mean '%'.
-    result = result .. group.hl .. group.text:gsub('%%', '%%%%')
-  end
-
-  return result
-end
-
---- Concatenates some `groups` into a raw string.
---- For debugging purposes.
---- @param groups barbar.render.group[]
---- @return string
---- @diagnostic disable-next-line:unused-function,unused-local
-local function groups_to_raw_string(groups)
-  local result = ''
-
-  for _, group in ipairs(groups) do
-    result = result .. group.text
-  end
-
-  return result
-end
-
---- Insert `others` into `groups` at the `position`.
---- @param groups barbar.render.group[]
---- @param position integer
---- @param others barbar.render.group[]
---- @return barbar.render.group[] with_insertions
-local function groups_insert(groups, position, others)
-  local current_position = 0
-
-  local new_groups = {}
-
-  local i = 1
-  while i <= #groups do
-    local group = groups[i]
-    local group_width = strwidth(group.text)
-
-    -- While we haven't found the position...
-    if current_position + group_width <= position then
-      table_insert(new_groups, group)
-      i = i + 1
-      current_position = current_position + group_width
-
-    -- When we found the position...
-    else
-      local available_width = position - current_position
-
-      -- Slice current group if it `position` is inside it
-      if available_width > 0 then
-        table_insert(new_groups, {
-          text = strcharpart(group.text, 0, available_width),
-          hl = group.hl,
-        })
-      end
-
-      -- Add new other groups
-      local others_width = 0
-      for _, other in ipairs(others) do
-        local other_width = strwidth(other.text)
-        others_width = others_width + other_width
-        table_insert(new_groups, other)
-      end
-
-      local end_position = position + others_width
-
-      -- Then, resume adding previous groups
-      -- table.insert(new_groups, 'then')
-      while i <= #groups do
-        local previous_group = groups[i]
-        local previous_group_width = strwidth(previous_group.text)
-        local previous_group_start_position = current_position
-        local previous_group_end_position   = current_position + previous_group_width
-
-        if previous_group_end_position <= end_position and previous_group_width ~= 0 then
-          -- continue
-        elseif previous_group_start_position >= end_position then
-          -- table.insert(new_groups, 'direct')
-          table_insert(new_groups, previous_group)
-        else
-          local remaining_width = previous_group_end_position - end_position
-          local start = previous_group_width - remaining_width
-          local end_  = previous_group_width
-          table_insert(new_groups, { hl = previous_group.hl, text = strcharpart(previous_group.text, start, end_) })
-        end
-
-        i = i + 1
-        current_position = current_position + previous_group_width
-      end
-
-      break
-    end
-  end
-
-  return new_groups
-end
-
 --- Create valid `&tabline` syntax which highlights the next item in the tabline with the highlight `group` specified.
 --- @param group string
 --- @return string syntax
-local function hl_tabline(group)
+local function wrap_hl(group)
   return '%#' .. group .. '#'
-end
-
---- Select from `groups` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
---- @param groups barbar.render.group[]
---- @param width integer
---- @return barbar.render.group[]
-local function slice_groups_right(groups, width)
-  local accumulated_width = 0
-
-  local new_groups = {}
-
-  for _, group in ipairs(groups) do
-    local text_width = strwidth(group.text)
-    accumulated_width = accumulated_width + text_width
-
-    if accumulated_width >= width then
-      local diff = text_width - (accumulated_width - width)
-      table_insert(new_groups, { hl = group.hl, text = strcharpart(group.text, 0, diff) })
-      break
-    end
-
-    table_insert(new_groups, group)
-  end
-
-  return new_groups
-end
-
---- Select from `groups` in reverse while fitting within the provided `width`, discarding all indices less than the last index that fits.
---- @param groups barbar.render.group[]
---- @param width integer
---- @return barbar.render.group[]
-local function slice_groups_left(groups, width)
-  local accumulated_width = 0
-
-  local new_groups = {}
-
-  for _, group in ipairs(utils.list_reverse(groups)) do
-    local text_width = strwidth(group.text)
-    accumulated_width = accumulated_width + text_width
-
-    if accumulated_width >= width then
-      local length = text_width - (accumulated_width - width)
-      local start = text_width - length
-      table_insert(new_groups, 1, { hl = group.hl, text = strcharpart(group.text, start, length) })
-      break
-    end
-
-    table_insert(new_groups, 1, group)
-  end
-
-  return new_groups
 end
 
 --- @class barbar.render.animation
@@ -220,6 +64,7 @@ local ANIMATION = {
 --- @field text string the content being rendered
 
 --- @class barbar.render.group_clump
+--- @field activity barbar.buffer.activity
 --- @field groups barbar.render.group[]
 --- @field position integer
 --- @field width integer
@@ -227,7 +72,7 @@ local ANIMATION = {
 --- @class barbar.render.scroll
 --- @field current integer the place where the bufferline is currently scrolled to
 --- @field target integer the place where the bufferline is scrolled/wants to scroll to.
-local scroll = {current = 0, target = 0}
+local scroll = { current = 0, target = 0 }
 
 --- @class barbar.render
 local render = {}
@@ -298,8 +143,8 @@ local function open_buffer_start_animation(layout, bufnr)
   local index = utils.index_of(Layout.buffers, bufnr)
 
   buffer_data.computed_width = Layout.calculate_width(
-    layout.base_widths[index] or Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1),
-    layout.padding_width
+    layout.buffers.base_widths[index] or Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1),
+    layout.buffers.padding
   )
 
   local target_width = buffer_data.computed_width or 0
@@ -514,69 +359,65 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   local click_enabled = has('tablineat') and config.options.clickable
 
   local accumulated_pinned_width = 0 --- the width of pinned buffers accumulated while iterating
-  local accumulated_width = 0 --- the width of buffers accumulated while iterating
+  local accumulated_unpinned_width = 0 --- the width of buffers accumulated while iterating
   local current_buffer_index = nil --- @type nil|integer
   local done = false --- if all of the visible buffers have been clumped
   local group_clumps = {} --- @type barbar.render.group_clump[]
   local pinned_group_clumps = {} --- @type barbar.render.group_clump[]
 
-  --- The padding
-  --- @type barbar.render.group
-  local padding = {hl = '', text = (' '):rep(layout.padding_width)}
-
-  --- The padding of a pinned buffer
-  --- @type barbar.render.group
-  local pinned_padding = {hl = padding.hl, text = (' '):rep(config.options.minimum_padding)}
+  local pinned_pad_text   = (' '):rep(config.options.minimum_padding)
+  local unpinned_pad_text = (' '):rep(layout.buffers.padding)
 
   for i, bufnr in ipairs(bufnrs) do
-    local activity = Buffer.activities[Buffer.get_activity(bufnr)]
+    local activity = Buffer.get_activity(bufnr)
+    local activity_name = Buffer.activities[activity]
     local buffer_data = state.get_buffer_data(bufnr)
     local modified = buf_get_option(bufnr, 'modified')
     local pinned = buffer_data.pinned
 
     if pinned then
       buffer_data.computed_position = accumulated_pinned_width
-      buffer_data.computed_width    = Layout.calculate_width(layout.base_widths[i], config.options.minimum_padding)
+      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], config.options.minimum_padding)
     else
-      buffer_data.computed_position = accumulated_width
-      buffer_data.computed_width    = Layout.calculate_width(layout.base_widths[i], layout.padding_width)
+      buffer_data.computed_position = accumulated_unpinned_width + layout.buffers.pinned_width
+      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], layout.buffers.padding)
     end
 
     local group_clump_width = buffer_data.width or buffer_data.computed_width
 
-    if activity == 'Current' and refocus ~= false then
+    if activity == Buffer.activities.Current and refocus ~= false then
       current_buffer_index = i
 
-      local start = accumulated_width
-      local end_  = accumulated_width + group_clump_width
+      local start = accumulated_unpinned_width
+      local end_  = accumulated_unpinned_width + group_clump_width
 
       if scroll.target > start then
         render.set_scroll(start)
-      elseif scroll.target + layout.buffers_width < end_ then
-        render.set_scroll(scroll.target + (end_ - (scroll.target + layout.buffers_width)))
+      elseif scroll.target + layout.buffers.unpinned_allocated_width < end_ then
+        render.set_scroll(scroll.target + (end_ - (scroll.target + layout.buffers.unpinned_allocated_width)))
       end
     end
 
-    local scroll_current = min(scroll.current, layout.scroll_max)
+    local scroll_current = min(scroll.current, layout.buffers.scroll_max)
 
     if pinned then
       accumulated_pinned_width = accumulated_pinned_width + group_clump_width
     else
-      accumulated_width = accumulated_width + group_clump_width
+      accumulated_unpinned_width = accumulated_unpinned_width + group_clump_width
 
-      if accumulated_width < scroll_current  then
+      if accumulated_unpinned_width < scroll_current  then
         goto continue -- HACK: there is no `continue` keyword
       elseif (refocus == false or (refocus ~= false and current_buffer_index ~= nil)) and
-        accumulated_width - scroll_current > layout.buffers_width
+        accumulated_unpinned_width - scroll_current > layout.buffers.unpinned_allocated_width
       then
         done = true
       end
     end
 
     local buffer_name = buffer_data.name or '[no name]'
-    local buffer_hl = hl_tabline('Buffer' .. activity .. (modified and 'Mod' or ''))
+    local buffer_hl = wrap_hl('Buffer' .. activity_name .. (modified and 'Mod' or ''))
 
-    local icons_option = Buffer.get_icons(activity, modified, pinned)
+    local icons_option = Buffer.get_icons(activity_name, modified, pinned)
 
     --- Prefix this value to allow an element to be clicked
     local clickable = click_enabled and ('%' .. bufnr .. '@barbar#events#main_click_handler@') or ''
@@ -589,7 +430,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     --- @type barbar.render.group
     local buffer_index = { hl = '', text = '' }
     if icons_option.buffer_index then
-      buffer_index.hl = hl_tabline('Buffer' .. activity .. 'Index')
+      buffer_index.hl = wrap_hl('Buffer' .. activity_name .. 'Index')
       buffer_index.text = i .. ' '
     end
 
@@ -597,7 +438,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     --- @type barbar.render.group
     local buffer_number = { hl = '', text = '' }
     if icons_option.buffer_number then
-      buffer_number.hl = hl_tabline('Buffer' .. activity .. 'Number')
+      buffer_number.hl = wrap_hl('Buffer' .. activity_name .. 'Number')
       buffer_number.text = bufnr .. ' '
     end
 
@@ -630,7 +471,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
         name.text = strcharpart(name.text, 1)
       end
 
-      jump_letter.hl = hl_tabline('Buffer' .. activity .. 'Target')
+      jump_letter.hl = wrap_hl('Buffer' .. activity_name .. 'Target')
       if letter then
         jump_letter.text = letter
         if icons_option.filetype.enabled and #name.text > 0 then
@@ -640,27 +481,32 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
         jump_letter.text = '  '
       end
     elseif icons_option.filetype.enabled then
-      local iconChar, iconHl = icons.get_icon(bufnr, activity)
-      local hlName = (activity == 'Inactive' and not config.options.highlight_inactive_file_icons)
+      local iconChar, iconHl = icons.get_icon(bufnr, activity_name)
+      local hlName = (activity_name == 'Inactive' and not config.options.highlight_inactive_file_icons)
         and 'BufferInactive'
         or iconHl
 
       icon.hl = icons_option.filetype.custom_colors and
-        hl_tabline('Buffer' .. activity .. 'Icon') or
-        (hlName and hl_tabline(hlName) or buffer_hl)
+        wrap_hl('Buffer' .. activity_name .. 'Icon') or
+        (hlName and wrap_hl(hlName) or buffer_hl)
       icon.text = #name.text > 0 and iconChar .. ' ' or iconChar
     end
 
-    --- The separator
-    --- @type barbar.render.group
+    local hl_sign = wrap_hl('Buffer' .. activity_name .. 'Sign')
+
     local left_separator = {
-      hl = clickable .. hl_tabline('Buffer' .. activity .. 'Sign'),
+      hl = clickable .. hl_sign,
       text = icons_option.separator.left,
     }
 
-    local pad = pinned and pinned_padding or padding
+    local pad = {
+      hl = hl_sign,
+      text = pinned and pinned_pad_text or unpinned_pad_text,
+    }
+
     local group_clump = { --- @type barbar.render.group_clump
-      groups = {left_separator, pad, buffer_index, buffer_number, icon, jump_letter, name},
+      activity = activity,
+      groups = { left_separator, pad, buffer_index, buffer_number, icon, jump_letter, name },
       --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
       position = buffer_data.position or buffer_data.computed_position,
       --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
@@ -669,7 +515,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
 
     Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, idx, option)
       table_insert(group_clump.groups, {
-        hl = hl_tabline('Buffer' .. activity .. severity[idx]),
+        hl = wrap_hl('Buffer' .. activity_name .. severity[idx]),
         text = ' ' .. option.icon .. count,
       })
     end)
@@ -691,6 +537,13 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
   return pinned_group_clumps, group_clumps
 end
 
+local HL = {
+  FILL = wrap_hl('BufferTabpageFill'),
+  TABPAGES = wrap_hl('BufferTabpages'),
+  SIGN_INACTIVE = wrap_hl('BufferInactiveSign'),
+  SCROLL_ARROW = wrap_hl('BufferScrollArrow'),
+}
+
 --- Generate the `&tabline` representing the current state of Neovim.
 --- @param bufnrs integer[] the bufnrs to render
 --- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
@@ -702,91 +555,141 @@ local function generate_tabline(bufnrs, refocus)
   -- Create actual tabline string
   local result = ''
 
-  -- Add offset filler & text (for filetree/sidebar plugins)
+  -- Left offset
   if state.offset.left.width > 0 then
-    --- @type barbar.render.group
-    local offset = {hl = hl_tabline(state.offset.left.hl or 'BufferOffset'), text = ' ' .. state.offset.left.text}
-    local offset_available_width = state.offset.left.width - 2
+    local hl = wrap_hl(state.offset.left.hl)
+    local offset_groups = { { hl = hl, text = (' '):rep(state.offset.left.width) } }
 
-    result = result ..
-      groups_to_string(slice_groups_right({offset}, offset_available_width)) ..
-      (' '):rep(offset_available_width - strwidth(state.offset.left.text) + 1)
+    local content = { { hl = hl, text = state.offset.left.text } }
+    local content_max_width = state.offset.left.width - 2
+
+    offset_groups =
+      groups.insert_many(
+        offset_groups,
+        1,
+        groups.slice_right(content, content_max_width))
+
+    result = result .. groups.to_string(offset_groups)
   end
 
-  --- The highlight of the buffer tabpage fill
-  local hl_buffer_tabpage_fill = hl_tabline('BufferTabpageFill')
-
-  --- @type barbar.render.group[]
-  local bufferline_groups = {{
-    hl = hl_buffer_tabpage_fill,
-    text = (' '):rep(layout.actual_width),
-  }}
-
-  for _, group_clump in ipairs(group_clumps) do
-    bufferline_groups = groups_insert(bufferline_groups, group_clump.position, group_clump.groups)
-  end
-
-  do -- Crop to scroll region
-    local scroll_current = min(scroll.current, layout.scroll_max)
-    local buffers_end = layout.actual_width - scroll_current
-
-    if buffers_end > layout.buffers_width then
-      bufferline_groups = slice_groups_right(bufferline_groups, scroll_current + layout.buffers_width)
-    end
-
-    if scroll_current > 0 then
-      bufferline_groups = slice_groups_left(bufferline_groups, layout.buffers_width)
-    end
-  end
-
-  if #pinned_group_clumps > 0 then
-    local pinned_groups = {{hl = hl_buffer_tabpage_fill, text = (' '):rep(layout.pinned_width)}}
-    for _, pinned_group_clump in ipairs(pinned_group_clumps) do
-      pinned_groups = groups_insert(pinned_groups, pinned_group_clump.position, pinned_group_clump.groups)
-    end
-
-    result = result .. groups_to_string(pinned_groups)
-  end
-
-  -- Render bufferline string
-  result = result .. groups_to_string(bufferline_groups)
-
+  -- Buffer tabs
   do
-    local inactive_separator = config.options.icons.inactive.separator.left
-    if #group_clumps > 0 and layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width then
-      result = result .. groups_to_string({{ text = inactive_separator or '', hl = hl_tabline('BufferInactiveSign') }})
+    --- @type barbar.render.group[]
+    local content = {
+      {
+        hl = HL.FILL,
+        text = (' '):rep(layout.buffers.width),
+      }
+    }
+
+    do
+      local current_group_clump = nil
+      for _, group_clump in ipairs(group_clumps) do
+        -- We insert the current buffer after the others so it's always on top
+        if group_clump.activity ~= Buffer.activities.Current then
+          content = groups.insert_many(
+            content,
+            group_clump.position - scroll.current,
+            group_clump.groups)
+        else
+          current_group_clump = group_clump
+        end
+      end
+      if current_group_clump ~= nil then
+        local group_clump = current_group_clump
+        content = groups.insert_many(
+          content,
+          group_clump.position - scroll.current,
+          group_clump.groups)
+      end
+    end
+
+    do
+      local inactive_separator = config.options.icons.inactive.separator.left
+      if #group_clumps > 0 and layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width and inactive_separator ~= nil then
+        content = groups.insert(
+          content,
+          layout.buffers.used_width,
+          { text = inactive_separator, hl = HL.SIGN_INACTIVE })
+      end
+    end
+
+    if #pinned_group_clumps > 0 then
+      local current_group_clump = nil
+      for _, group_clump in ipairs(pinned_group_clumps) do
+        if group_clump.activity ~= Buffer.activities.Current then
+          content = groups.insert_many(content, group_clump.position, group_clump.groups)
+        else
+          current_group_clump = group_clump
+        end
+      end
+      if current_group_clump ~= nil then
+        local group_clump = current_group_clump
+        content = groups.insert_many(content, group_clump.position, group_clump.groups)
+      end
+    end
+
+    local filler = { { hl = HL.FILL, text = (' '):rep(layout.buffers.width) } }
+    content = groups.insert_many(filler, 0, content)
+    content = groups.slice_right(content, layout.buffers.width)
+
+    local has_left_scroll = scroll.current > 0
+    if has_left_scroll then
+      content = groups.insert(content, layout.buffers.pinned_width,
+        { hl = HL.SCROLL_ARROW, text = config.options.icons.scroll.left })
+    end
+
+    local has_right_scroll = layout.buffers.used_width - scroll.current > layout.buffers.width
+    if has_right_scroll then
+      content = groups.insert(content, layout.buffers.width - 1,
+        { hl = HL.SCROLL_ARROW, text = config.options.icons.scroll.right })
+    end
+
+    -- Render bufferline string
+    result = result .. groups.to_string(content)
+
+    -- Prevent the expansion of the last click group
+    result = result .. '%0@barbar#events#main_click_handler@'
+  end
+
+  -- Tabpages
+  do
+    if layout.tabpages.width > 0 then
+      local content = {
+        { hl = HL.TABPAGES, text = ' ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' ', },
+      }
+      result = result .. groups.to_string(content)
     end
   end
 
-  -- prevent the expansion of the last click group
-  result = result .. '%0@barbar#events#main_click_handler@'
-
-  if layout.tabpages_width > 0 then
-    result = result .. '%=%#BufferTabpages# ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' '
-  end
-
-  -- Add offset filler & text (for filetree/sidebar plugins)
+  -- Right offset
   if state.offset.right.width > 0 then
-    --- @type barbar.render.group
-    local offset = {hl = hl_tabline(state.offset.right.hl or 'BufferOffset'), text = ' ' .. state.offset.right.text}
-    local offset_available_width = state.offset.right.width - 2
+    local hl = wrap_hl(state.offset.right.hl)
+    local offset_groups = { { hl = hl, text = (' '):rep(state.offset.right.width) } }
 
-    result = result ..
-      groups_to_string(slice_groups_left({offset}, offset_available_width)) ..
-      (' '):rep(offset_available_width - strwidth(state.offset.right.text) + 1)
+    local content = { { hl = hl, text = state.offset.right.text } }
+    local content_max_width = state.offset.right.width - 2
+
+    offset_groups =
+      groups.insert_many(
+        offset_groups,
+        1,
+        groups.slice_right(content, content_max_width))
+
+    result = result .. groups.to_string(offset_groups)
   end
 
   -- NOTE: For development or debugging purposes, the following code can be used:
   -- ```lua
-  -- local text = groups_to_raw_string(bufferline_groups, true)
-  -- if layout.actual_width + strwidth(inactive_separator) <= layout.buffers_width and #items > 0 then
-  --   text = text .. groups_to_raw_string({{ text = inactive_separator or '', hl = hl_tabline('BufferInactiveSign') }}, true)
+  -- local text = groups.to_raw_string(bufferline_groups, true)
+  -- if layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width and #items > 0 then
+  --   text = text .. groups.to_raw_string({{ text = inactive_separator or '', hl = wrap_hl('BufferInactiveSign') }}, true)
   -- end
   -- local data = vim.json.encode({ metadata = 42 })
   -- fs.write('barbar.debug.txt', text .. ':' .. data .. '\n', 'a')
   -- ```
 
-  return result .. hl_buffer_tabpage_fill
+  return result .. HL.FILL
 end
 
 --- Update `&tabline`
