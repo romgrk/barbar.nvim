@@ -7,6 +7,30 @@ local utils = require'barbar.utils'
 --- The prefix used for `utils.deprecate`
 local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
 
+--- @type barbar.config.options
+local DEFAULT_OPTIONS = {
+  animation = true,
+  auto_hide = false,
+  clickable = true,
+  exclude_ft = {},
+  exclude_name = {},
+  focus_on_close = 'left',
+  hide = {},
+  highlight_alternate = false,
+  highlight_inactive_file_icons = false,
+  highlight_visible = true,
+  insert_at_end = false,
+  insert_at_start = false,
+  letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
+  maximum_length = 30,
+  maximum_padding = 4,
+  minimum_padding = 1,
+  no_name_title = nil,
+  semantic_letters = true,
+  sidebar_filetypes = {},
+  tabpages = true,
+}
+
 --- @class barbar.config.options.hide
 --- @field alternate? boolean
 --- @field current? boolean
@@ -24,10 +48,10 @@ local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
 --- @field [3] barbar.config.options.icons.diagnostics.severity
 --- @field [4] barbar.config.options.icons.diagnostics.severity
 local DEFAULT_DIAGNOSTIC_ICONS = {
-  [vim.diagnostic.severity.ERROR] = {enabled = false, icon = 'Ⓧ '},
-  [vim.diagnostic.severity.HINT] = {enabled = false, icon = '💡'},
-  [vim.diagnostic.severity.INFO] = {enabled = false, icon = 'ⓘ '},
-  [vim.diagnostic.severity.WARN] = {enabled = false, icon = '⚠️ '},
+  [vim.diagnostic.severity.ERROR] = { enabled = false, icon = 'Ⓧ ' },
+  [vim.diagnostic.severity.HINT] = { enabled = false, icon = '💡' },
+  [vim.diagnostic.severity.INFO] = { enabled = false, icon = 'ⓘ ' },
+  [vim.diagnostic.severity.WARN] = { enabled = false, icon = '⚠️ ' },
 }
 
 --- @class barbar.config.options.icons.buffer.filetype
@@ -82,45 +106,45 @@ local PRESETS = {
   [false] = {
     buffer_number = false,
     buffer_index = false,
-    filetype = {enabled = false},
+    filetype = { enabled = false },
   },
   [true] = {
     buffer_number = false,
     buffer_index = false,
-    filetype = {enabled = true},
+    filetype = { enabled = true },
   },
   both = {
     buffer_index = true,
     buffer_number = false,
-    filetype = {enabled = true},
+    filetype = { enabled = true },
   },
   buffer_number_with_icon = {
     buffer_index = false,
     buffer_number = true,
-    filetype = {enabled = true},
+    filetype = { enabled = true },
   },
   buffer_numbers = {
     buffer_index = false,
     buffer_number = true,
-    filetype = {enabled = false},
+    filetype = { enabled = false },
   },
   numbers = {
     buffer_index = true,
     buffer_number = false,
-    filetype = {enabled = false},
+    filetype = { enabled = false },
   },
 }
 
 --- A table of options that used to exist, and where they are located now.
 --- @type {[string]: string[]}
 local DEPRECATED_OPTIONS = {
-  diagnostics = {'icons', 'diagnostics'},
-  icon_close_tab = {'icons', 'button'},
-  icon_close_tab_modified = {'icons', 'modified', 'button'},
-  icon_custom_colors = {'icons', 'filetype', 'custom_colors'},
-  icon_pinned = {'icons', 'pinned', 'button'},
-  icon_separator_active = {'icons', 'separator', 'left'},
-  icon_separator_inactive = {'icons', 'inactive', 'separator', 'left'},
+  diagnostics = { 'icons', 'diagnostics' },
+  icon_close_tab = { 'icons', 'button' },
+  icon_close_tab_modified = { 'icons', 'modified', 'button' },
+  icon_custom_colors = { 'icons', 'filetype', 'custom_colors' },
+  icon_pinned = { 'icons', 'pinned', 'button' },
+  icon_separator_active = { 'icons', 'separator', 'left' },
+  icon_separator_inactive = { 'icons', 'inactive', 'separator', 'left' },
 }
 
 --- @class barbar.config.options.sidebar_filetype
@@ -149,28 +173,6 @@ local DEPRECATED_OPTIONS = {
 --- @field semantic_letters boolean
 --- @field sidebar_filetypes {[string]: nil|barbar.config.options.sidebar_filetype}
 --- @field tabpages boolean
-local DEFAULT_OPTIONS = {
-  animation = true,
-  auto_hide = false,
-  clickable = true,
-  exclude_ft = {},
-  exclude_name = {},
-  focus_on_close = 'left',
-  hide = {},
-  highlight_alternate = false,
-  highlight_inactive_file_icons = false,
-  highlight_visible = true,
-  insert_at_end = false,
-  insert_at_start = false,
-  letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
-  maximum_length = 30,
-  maximum_padding = 4,
-  minimum_padding = 1,
-  no_name_title = nil,
-  semantic_letters = true,
-  sidebar_filetypes = {},
-  tabpages = true,
-}
 
 --- @class barbar.config
 --- @field options barbar.config.options
@@ -192,7 +194,7 @@ function config.setup(options)
         DEPRECATE_PREFIX .. utils.markdown_inline_code('icons = ' .. vim.inspect(options.icons)),
         utils.markdown_inline_code('icons = ' .. vim.inspect(
           vim.tbl_map(function(v) return v or nil end, preset),
-          {newline = ' ', indent = ''}
+          { newline = ' ', indent = '' }
         ))
       )
 
@@ -217,8 +219,8 @@ function config.setup(options)
   -- TODO: remove after v2
   -- Edge case deprecated option
   if options.closable == false then
-    utils.tbl_set(options, {'icons', 'button'}, false)
-    utils.tbl_set(options, {'icons', 'modified', 'button'}, false)
+    utils.tbl_set(options, { 'icons', 'button' }, false)
+    utils.tbl_set(options, { 'icons', 'modified', 'button' }, false)
     utils.deprecate(
       DEPRECATE_PREFIX .. utils.markdown_inline_code'closable',
       utils.markdown_inline_code'icons.button' ..
@@ -244,11 +246,11 @@ function config.setup(options)
   do
     local pinned_icons = options.icons and options.icons.pinned
     if pinned_icons == nil or pinned_icons.button == false or #pinned_icons.button < 1 then
-      default_icons.pinned.separator = {right = ' '}
+      default_icons.pinned.separator = { right = ' ' }
     end
   end
 
-  config.options = tbl_deep_extend('keep', options, DEFAULT_OPTIONS, {icons = default_icons})
+  config.options = tbl_deep_extend('keep', options, DEFAULT_OPTIONS, { icons = default_icons })
 
   -- NOTE: we do this because `vim.tbl_deep_extend` doesn't deep copy lists
   for i, default_diagnostic_severity_icons in ipairs(DEFAULT_DIAGNOSTIC_ICONS) do
@@ -278,7 +280,7 @@ function config.setup(options)
   }
 
   -- resolve all of the icons for the activities
-  for _, activity in ipairs {'alternate', 'current', 'inactive', 'visible'} do
+  for _, activity in ipairs { 'alternate', 'current', 'inactive', 'visible' } do
     local activity_options = tbl_deep_extend('keep', config.options.icons[activity] or {}, base_options)
     config.options.icons[activity] = activity_options
     config.options.icons[activity].modified = tbl_deep_extend(
