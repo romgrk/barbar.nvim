@@ -232,13 +232,13 @@ icons ~
 
                                              *barbar-setup.icons.buffer_index*
   icons.buffer_index ~
-    `boolean`  (default: `false`)
+    `boolean|'superscript'|'subscript'`  (default: `false`)
     if `true`, show the index of the buffer with respect to the ordering of
     the buffers in the tabline.
 
                                             *barbar-setup.icons.buffer_number*
   icons.buffer_number ~
-    `boolean`  (default: `false`)
+    `boolean|'superscript'|'subscript'`  (default: `false`)
     If `true`, show the `bufnr` for the associated buffer.
 
                                                    *barbar-setup.icons.button*

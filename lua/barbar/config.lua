@@ -52,7 +52,11 @@ local function tbl_deep_extend_diagnostic_icons(icons)
   end
 end
 
---- @alias barbar.config.options.icons.git.statuses 'added'|'changed'|'deleted'
+--- @class barbar.config.options.icons.buffer.filetype
+--- @field custom_colors? boolean if present, this color will be used for ALL filetype icons
+--- @field enabled boolean iff `true`, show the `devicons` for the associated buffer's `filetype`.
+
+--- @alias barbar.config.options.icons.buffer.git.statuses 'added'|'changed'|'deleted'
 local GIT_STATUSES = {'added', 'changed', 'deleted'}
 
 --- @class barbar.config.options.icons.buffer.git.status
@@ -60,23 +64,17 @@ local GIT_STATUSES = {'added', 'changed', 'deleted'}
 --- @field icon string
 
 --- @class barbar.config.options.icons.buffer.git
---- @field [barbar.config.options.icons.git.statuses] barbar.config.options.icons.buffer.git.status
+--- @field [barbar.config.options.icons.buffer.git.statuses] barbar.config.options.icons.buffer.git.status
 
---- @class barbar.config.options.icons.buffer.filetype
---- @field custom_colors? boolean if present, this color will be used for ALL filetype icons
---- @field enabled boolean iff `true`, show the `devicons` for the associated buffer's `filetype`.
+--- @alias barbar.config.options.icons.buffer.number boolean|'superscript'|'subscript'
 
 --- @class barbar.config.options.icons.buffer.separator
 --- @field left string a buffer's left separator
 --- @field right string a buffer's right separator
 
---- @class barbar.config.options.icons.scroll
---- @field left string
---- @field right string
-
 --- @class barbar.config.options.icons.buffer
---- @field buffer_index boolean iff `true`, show the index of the associated buffer with respect to the ordering of the buffers in the tabline.
---- @field buffer_number boolean iff `true`, show the `bufnr` for the associated buffer.
+--- @field buffer_index barbar.config.options.icons.buffer.number iff `true`|`'superscript'`|`'subscript'`, show the index of the associated buffer with respect to the ordering of the buffers in the tabline.
+--- @field buffer_number barbar.config.options.icons.buffer.number iff `true`|`'superscript'`|`'subscript'`, show the `bufnr` for the associated buffer.
 --- @field button false|string the button which is clicked to close / save a buffer, or indicate that it is pinned.
 --- @field diagnostics barbar.config.options.icons.buffer.diagnostics the diagnostic icons
 --- @field filename boolean iff `true`, show the filename
@@ -87,6 +85,10 @@ local GIT_STATUSES = {'added', 'changed', 'deleted'}
 --- @class barbar.config.options.icons.state: barbar.config.options.icons.buffer
 --- @field modified barbar.config.options.icons.buffer the icons used for an modified buffer
 --- @field pinned barbar.config.options.icons.buffer the icons used for a pinned buffer
+
+--- @class barbar.config.options.icons.scroll
+--- @field left string
+--- @field right string
 
 --- @class barbar.config.options.icons: barbar.config.options.icons.state
 --- @field alternate barbar.config.options.icons.state the icons used for an alternate buffer
