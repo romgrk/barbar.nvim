@@ -31,7 +31,7 @@ function! bufferline#order_by_buffer_number()
 endfunc
 
 function! bufferline#order_by_directory()
-  BuferOrderByDirectory
+  BufferOrderByDirectory
 endfunc
 
 function! bufferline#order_by_language()

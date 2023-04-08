@@ -395,7 +395,7 @@ letters ~
   New buffer letters are assigned in this order.
 
   This order is optimal for the QWERTY keyboard layout but might need
-  adjustement for other layouts.
+  adjustment for other layouts.
 
                                                 *barbar-setup.maximum_padding*
 maximum_padding ~
