@@ -2,7 +2,8 @@ local deepcopy = vim.deepcopy
 local table_concat = table.concat
 local tbl_deep_extend = vim.tbl_deep_extend
 
-local utils = require'barbar.utils'
+local table_set = require('barbar.utils.table').set
+local utils = require('barbar.utils')
 
 --- The prefix used for `utils.deprecate`
 local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
@@ -189,7 +190,7 @@ local DEPRECATED_OPTIONS = {
 --- @field sidebar_filetypes {[string]: nil|barbar.config.options.sidebar_filetype}
 --- @field tabpages boolean
 
---- @class barbar.config
+--- @class barbar.Config
 --- @field options barbar.config.options
 local config = { options = {} }
 
@@ -221,7 +222,7 @@ function config.setup(options)
   for deprecated_option, new_option in pairs(DEPRECATED_OPTIONS) do
     local user_setting = options[deprecated_option]
     if user_setting then
-      utils.tbl_set(options, new_option, user_setting)
+      table_set(options, new_option, user_setting)
       utils.deprecate(
         DEPRECATE_PREFIX .. utils.markdown_inline_code(deprecated_option),
         utils.markdown_inline_code(table_concat(new_option, '.'))
@@ -234,8 +235,8 @@ function config.setup(options)
   -- TODO: remove after v2
   -- Edge case deprecated option
   if options.closable == false then
-    utils.tbl_set(options, { 'icons', 'button' }, false)
-    utils.tbl_set(options, { 'icons', 'modified', 'button' }, false)
+    table_set(options, { 'icons', 'button' }, false)
+    table_set(options, { 'icons', 'modified', 'button' }, false)
     utils.deprecate(
       DEPRECATE_PREFIX .. utils.markdown_inline_code'closable',
       utils.markdown_inline_code'icons.button' ..

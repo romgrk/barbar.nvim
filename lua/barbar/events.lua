@@ -21,14 +21,15 @@ local tbl_isempty = vim.tbl_isempty
 local win_get_position = vim.api.nvim_win_get_position --- @type function
 local win_get_width = vim.api.nvim_win_get_width --- @type function
 
-local api = require'barbar.api'
-local bbye = require'barbar.bbye'
-local config = require'barbar.config'
-local highlight = require'barbar.highlight'
-local JumpMode = require'barbar.jump_mode'
-local render = require'barbar.ui.render'
-local state = require'barbar.state'
-local utils = require'barbar.utils'
+local bdelete = require('barbar.bbye').bdelete
+local config = require('barbar.config')
+local highlight_reset_cache = require('barbar.utils.highlight').reset_cache
+local highlight_setup = require('barbar.highlight').setup
+local jump_mode = require('barbar.jump_mode')
+local relative = require('barbar.fs').relative
+local render = require('barbar.ui.render')
+local set_offset = require('barbar.api').set_offset
+local state = require('barbar.state')
 
 --- The `<mods>` used for the close click handler
 local CLOSE_CLICK_MODS = vim.api.nvim_cmd and { confirm = true } or 'confirm'
@@ -36,7 +37,7 @@ local CLOSE_CLICK_MODS = vim.api.nvim_cmd and { confirm = true } or 'confirm'
 --- Whether barbar is currently set up to render.
 local enabled = false
 
---- @class barbar.events
+--- @class barbar.Events
 local events = {}
 
 --- Create and reset autocommand groups associated with this plugin.
@@ -60,7 +61,7 @@ function events.close_click_handler(buffer)
     buf_call(buffer, function() command('w') end)
     exec_autocmds('BufModifiedSet', {buffer = buffer})
   else
-    bbye.bdelete(false, buffer, CLOSE_CLICK_MODS)
+    bdelete(false, buffer, CLOSE_CLICK_MODS)
   end
 end
 
@@ -81,13 +82,13 @@ function events.enable()
   create_autocmd({'VimLeave'}, { callback = state.save_recently_closed, group = augroup_misc })
 
   create_autocmd({'BufNewFile', 'BufReadPost'}, {
-    callback = function(tbl) JumpMode.assign_next_letter(tbl.buf) end,
+    callback = function(tbl) jump_mode.assign_next_letter(tbl.buf) end,
     group = augroup_misc,
   })
 
   create_autocmd({'BufDelete', 'BufWipeout'}, {
-    callback = vim.schedule_wrap(function(tbl)
-      JumpMode.unassign_letter_for(tbl.buf)
+    callback = schedule_wrap(function(tbl)
+      jump_mode.unassign_letter_for(tbl.buf)
       state.push_recently_closed(tbl.file)
       render.update()
     end),
@@ -96,8 +97,8 @@ function events.enable()
 
   create_autocmd('ColorScheme', {
     callback = function()
-      utils.hl.reset_cache()
-      highlight.setup()
+      highlight_reset_cache()
+      highlight_setup()
     end,
     group = augroup_misc,
   })
@@ -133,9 +134,9 @@ function events.enable()
   )
 
   create_autocmd('User', {
-    pattern = 'GitSignsUpdate',
     callback = vim.schedule_wrap(function() render.update() end),
     group = augroup_render,
+    pattern = 'GitSignsUpdate',
   })
 
   if not tbl_isempty(config.options.sidebar_filetypes) then
@@ -193,7 +194,7 @@ function events.enable()
               if width ~= widths[ft] then
                 widths[side][ft] = width
                 widths[other_side][ft] = nil
-                api.set_offset(total_widths(side), option.text, nil, side)
+                set_offset(total_widths(side), option.text, nil, side)
               end
             end,
             group = augroup_render,
@@ -203,7 +204,7 @@ function events.enable()
             buffer = tbl.buf,
             callback = function()
               widths[side][ft] = nil
-              api.set_offset(total_widths(side), nil, nil, side)
+              set_offset(total_widths(side), nil, nil, side)
               del_autocmd(autocmd)
             end,
             group = augroup_render,
@@ -271,14 +272,14 @@ function events.enable()
       for _, bufnr in ipairs(state.buffers) do
         local name = buf_get_name(bufnr)
         if use_relative_file_paths then
-          name = utils.relative(name)
+          name = relative(name)
         end
 
         -- escape quotes
         table_insert(buffers, {name = name, pinned = state.is_pinned(bufnr)})
       end
 
-      vim.g.Bufferline__session_restore = "lua require'barbar.state'.restore_buffers " ..
+      vim.g.Bufferline__session_restore = "lua require('barbar.state').restore_buffers " ..
         vim.inspect(buffers, {newline = ' ', indent = ''})
     end,
     group = augroup_misc,
@@ -324,7 +325,7 @@ function events.main_click_handler(bufnr, _, btn, _)
 
   -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
   if btn == 'm' then
-    bbye.bdelete(false, bufnr)
+    bdelete(false, bufnr)
   else
     render.set_current_win_listed_buffer()
     set_current_buf(bufnr)
@@ -337,8 +338,8 @@ end
 --- @return nil
 function events.on_option_changed(user_config)
   config.setup(user_config) -- NOTE: must be first `setup` called here
-  highlight.setup()
-  JumpMode.set_letters(config.options.letters)
+  highlight_setup()
+  jump_mode.set_letters(config.options.letters)
 
   -- Don't jump-start barbar if it is disabled
   if enabled then

@@ -26,16 +26,17 @@ local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 
-local animate = require'barbar.animate'
-local Buffer = require'barbar.buffer'
-local config = require'barbar.config'
--- local fs = require'barbar.fs' -- For debugging purposes
-local Nodes = require'barbar.ui.nodes'
-local icons = require'barbar.icons'
-local JumpMode = require'barbar.jump_mode'
-local Layout = require'barbar.ui.layout'
-local state = require'barbar.state'
-local utils = require'barbar.utils'
+local animate = require('barbar.animate')
+local buffer = require('barbar.buffer')
+local config = require('barbar.config')
+-- local fs = require('barbar.fs') -- For debugging purposes
+local get_icon = require('barbar.icons').get_icon
+local get_letter = require('barbar.jump_mode').get_letter
+local index_of = require('barbar.utils.list').index_of
+local layout = require('barbar.ui.layout')
+local nodes = require('barbar.ui.nodes')
+local notify = require('barbar.utils').notify
+local state = require('barbar.state')
 
 --- Last value for tabline
 --- @type string
@@ -65,7 +66,7 @@ local ANIMATION = {
 --- @field target integer the place where the bufferline is scrolled/wants to scroll to.
 local scroll = { current = 0, target = 0 }
 
---- @class barbar.ui.render
+--- @class barbar.ui.Render
 local render = {}
 
 --- An incremental animation for `close_buffer_animated`.
@@ -127,15 +128,15 @@ end
 
 --- Opens a buffer with animation.
 --- @param bufnr integer
---- @param layout barbar.ui.layout.data
+--- @param data barbar.ui.layout.data
 --- @return nil
-local function open_buffer_start_animation(layout, bufnr)
+local function open_buffer_start_animation(data, bufnr)
   local buffer_data = state.get_buffer_data(bufnr)
-  local index = utils.index_of(Layout.buffers, bufnr)
+  local index = index_of(layout.buffers, bufnr)
 
-  buffer_data.computed_width = Layout.calculate_width(
-    layout.buffers.base_widths[index] or Layout.calculate_buffer_width(bufnr, #Layout.buffers + 1),
-    layout.buffers.padding
+  buffer_data.computed_width = layout.calculate_width(
+    data.buffers.base_widths[index] or layout.calculate_buffer_width(bufnr, #layout.buffers + 1),
+    data.buffers.padding
   )
 
   local target_width = buffer_data.computed_width or 0
@@ -158,7 +159,7 @@ local function open_buffers(new_buffers)
 
   -- Open next to the currently opened tab
   -- Find the new index where the tab will be inserted
-  local new_index = utils.index_of(state.buffers, state.last_current_buffer)
+  local new_index = index_of(state.buffers, state.last_current_buffer)
   if new_index ~= nil then
     new_index = new_index + 1
   else
@@ -169,7 +170,7 @@ local function open_buffers(new_buffers)
 
   -- Insert the buffers where they go
   for _, new_buffer in ipairs(new_buffers) do
-    if utils.index_of(state.buffers, new_buffer) == nil then
+    if index_of(state.buffers, new_buffer) == nil then
       local actual_index = new_index
 
       local should_insert_at_end = config.options.insert_at_end or
@@ -208,10 +209,10 @@ local function open_buffers(new_buffers)
   -- Update names because they affect the layout
   state.update_names()
 
-  local layout = Layout.calculate()
+  local data = layout.calculate()
 
   for _, buffer_number in ipairs(new_buffers) do
-    open_buffer_start_animation(layout, buffer_number)
+    open_buffer_start_animation(data, buffer_number)
   end
 end
 
@@ -303,6 +304,7 @@ local function set_scroll_tick(new_scroll, animation)
   if animation.running == false then
     scroll_animation = nil
   end
+
   render.update(nil, false)
 end
 
@@ -330,7 +332,10 @@ end
 --- @param s? string
 --- @return nil
 function render.set_tabline(s)
-  s = s or ''
+  if s == nil then
+    s = ''
+  end
+
   if last_tabline ~= s then
     last_tabline = s
     set_option('tabline', s)
@@ -339,11 +344,11 @@ function render.set_tabline(s)
 end
 
 --- Compute the buffer hl-groups
---- @param layout barbar.ui.layout.data
+--- @param data barbar.ui.layout.data
 --- @param bufnrs integer[]
 --- @param refocus? boolean
 --- @return barbar.ui.container[] pinned_groups, barbar.ui.container[] clumps
-local function get_bufferline_containers(layout, bufnrs, refocus)
+local function get_bufferline_containers(data, bufnrs, refocus)
   local click_enabled = has('tablineat') and config.options.clickable
 
   local accumulated_pinned_width = 0 --- the width of pinned buffers accumulated while iterating
@@ -354,26 +359,26 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
   local pinned_containers = {} --- @type barbar.ui.container[]
 
   local pinned_pad_text   = (' '):rep(config.options.minimum_padding)
-  local unpinned_pad_text = (' '):rep(layout.buffers.padding)
+  local unpinned_pad_text = (' '):rep(data.buffers.padding)
 
   for i, bufnr in ipairs(bufnrs) do
-    local activity = Buffer.get_activity(bufnr)
-    local activity_name = Buffer.activities[activity]
+    local activity = buffer.get_activity(bufnr)
+    local activity_name = buffer.activities[activity]
     local buffer_data = state.get_buffer_data(bufnr)
     local modified = buf_get_option(bufnr, 'modified')
     local pinned = buffer_data.pinned
 
     if pinned then
       buffer_data.computed_position = accumulated_pinned_width
-      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], config.options.minimum_padding)
+      buffer_data.computed_width    = layout.calculate_width(data.buffers.base_widths[i], config.options.minimum_padding)
     else
-      buffer_data.computed_position = accumulated_unpinned_width + layout.buffers.pinned_width
-      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], layout.buffers.padding)
+      buffer_data.computed_position = accumulated_unpinned_width + data.buffers.pinned_width
+      buffer_data.computed_width    = layout.calculate_width(data.buffers.base_widths[i], data.buffers.padding)
     end
 
     local container_width = buffer_data.width or buffer_data.computed_width
 
-    if activity == Buffer.activities.Current and refocus ~= false then
+    if activity == buffer.activities.Current and refocus ~= false then
       current_buffer_index = i
 
       local start = accumulated_unpinned_width
@@ -381,12 +386,12 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
 
       if scroll.target > start then
         render.set_scroll(start)
-      elseif scroll.target + layout.buffers.unpinned_allocated_width < end_ then
-        render.set_scroll(scroll.target + (end_ - (scroll.target + layout.buffers.unpinned_allocated_width)))
+      elseif scroll.target + data.buffers.unpinned_allocated_width < end_ then
+        render.set_scroll(scroll.target + (end_ - (scroll.target + data.buffers.unpinned_allocated_width)))
       end
     end
 
-    local scroll_current = min(scroll.current, layout.buffers.scroll_max)
+    local scroll_current = min(scroll.current, data.buffers.scroll_max)
 
     if pinned then
       accumulated_pinned_width = accumulated_pinned_width + container_width
@@ -396,7 +401,7 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
       if accumulated_unpinned_width < scroll_current  then
         goto continue -- HACK: there is no `continue` keyword
       elseif (refocus == false or (refocus ~= false and current_buffer_index ~= nil)) and
-        accumulated_unpinned_width - scroll_current > layout.buffers.unpinned_allocated_width
+        accumulated_unpinned_width - scroll_current > data.buffers.unpinned_allocated_width
       then
         done = true
       end
@@ -405,7 +410,7 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
     local buffer_name = buffer_data.name or '[no name]'
     local buffer_hl = wrap_hl('Buffer' .. activity_name .. (modified and 'Mod' or ''))
 
-    local icons_option = Buffer.get_icons(activity_name, modified, pinned)
+    local icons_option = buffer.get_icons(activity_name, modified, pinned)
 
     --- Prefix this value to allow an element to be clicked
     local clickable = click_enabled and ('%' .. bufnr .. '@barbar#events#main_click_handler@') or ''
@@ -452,7 +457,7 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
     local icon = { hl = clickable, text = '' }
 
     if state.is_picking_buffer then
-      local letter = JumpMode.get_letter(bufnr)
+      local letter = get_letter(bufnr)
 
       -- Replace first character of buf name with jump letter
       if letter and not icons_option.filetype.enabled then
@@ -469,7 +474,7 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
         jump_letter.text = '  '
       end
     elseif icons_option.filetype.enabled then
-      local iconChar, iconHl = icons.get_icon(bufnr, activity_name)
+      local iconChar, iconHl = get_icon(bufnr, activity_name)
       local hlName = (activity_name == 'Inactive' and not config.options.highlight_inactive_file_icons)
         and 'BufferInactive'
         or iconHl
@@ -497,14 +502,14 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
       width = container_width,
     }
 
-    Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, idx, option)
+    buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, idx, option)
       table_insert(container.nodes, {
         hl = wrap_hl('Buffer' .. activity_name .. severity[idx]),
         text = ' ' .. option.icon .. count,
       })
     end)
 
-    Buffer.for_each_enabled_git_status(bufnr, icons_option.gitsigns, function(count, idx, option)
+    buffer.for_each_enabled_git_status(bufnr, icons_option.gitsigns, function(count, idx, option)
       table_insert(container.nodes, {
         hl = wrap_hl('Buffer' .. activity_name .. idx:upper()),
         text = ' ' .. option.icon .. count,
@@ -539,8 +544,8 @@ local HL = {
 --- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
-  local layout = Layout.calculate()
-  local pinned_containers, containers = get_bufferline_containers(layout, bufnrs, refocus)
+  local data = layout.calculate()
+  local pinned_containers, containers = get_bufferline_containers(data, bufnrs, refocus)
 
   -- Create actual tabline string
   local result = ''
@@ -554,25 +559,25 @@ local function generate_tabline(bufnrs, refocus)
     local content_max_width = state.offset.left.width - 2
 
     offset_nodes =
-      Nodes.insert_many(
+      nodes.insert_many(
         offset_nodes,
         1,
-        Nodes.slice_right(content, content_max_width))
+        nodes.slice_right(content, content_max_width))
 
-    result = result .. Nodes.to_string(offset_nodes)
+    result = result .. nodes.to_string(offset_nodes)
   end
 
   -- Buffer tabs
   do
     --- @type barbar.ui.container
-    local content = { { hl = HL.FILL, text = (' '):rep(layout.buffers.width) } }
+    local content = { { hl = HL.FILL, text = (' '):rep(data.buffers.width) } }
 
     do
       local current_container = nil
       for _, container in ipairs(containers) do
         -- We insert the current buffer after the others so it's always on top
-        if container.activity ~= Buffer.activities.Current then
-          content = Nodes.insert_many(
+        if container.activity ~= buffer.activities.Current then
+          content = nodes.insert_many(
             content,
             container.position - scroll.current,
             container.nodes)
@@ -583,7 +588,7 @@ local function generate_tabline(bufnrs, refocus)
 
       if current_container ~= nil then
         local container = current_container
-        content = Nodes.insert_many(
+        content = nodes.insert_many(
           content,
           container.position - scroll.current,
           container.nodes)
@@ -593,11 +598,11 @@ local function generate_tabline(bufnrs, refocus)
     do
       local inactive_separator = config.options.icons.inactive.separator.left
       if inactive_separator ~= nil and #containers > 0 and
-        layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width
+        data.buffers.unpinned_width + strwidth(inactive_separator) <= data.buffers.unpinned_allocated_width
       then
-        content = Nodes.insert(
+        content = nodes.insert(
           content,
-          layout.buffers.used_width,
+          data.buffers.used_width,
           { text = inactive_separator, hl = HL.SIGN_INACTIVE })
       end
     end
@@ -605,50 +610,48 @@ local function generate_tabline(bufnrs, refocus)
     if #pinned_containers > 0 then
       local current_container = nil
       for _, container in ipairs(pinned_containers) do
-        if container.activity ~= Buffer.activities.Current then
-          content = Nodes.insert_many(content, container.position, container.nodes)
+        if container.activity ~= buffer.activities.Current then
+          content = nodes.insert_many(content, container.position, container.nodes)
         else
           current_container = container
         end
       end
       if current_container ~= nil then
         local container = current_container
-        content = Nodes.insert_many(content, container.position, container.nodes)
+        content = nodes.insert_many(content, container.position, container.nodes)
       end
     end
 
-    local filler = { { hl = HL.FILL, text = (' '):rep(layout.buffers.width) } }
-    content = Nodes.insert_many(filler, 0, content)
-    content = Nodes.slice_right(content, layout.buffers.width)
+    local filler = { { hl = HL.FILL, text = (' '):rep(data.buffers.width) } }
+    content = nodes.insert_many(filler, 0, content)
+    content = nodes.slice_right(content, data.buffers.width)
 
     local has_left_scroll = scroll.current > 0
     if has_left_scroll then
-      content = Nodes.insert(content, layout.buffers.pinned_width,
+      content = nodes.insert(content, data.buffers.pinned_width,
         { hl = HL.SCROLL_ARROW, text = config.options.icons.scroll.left })
     end
 
-    local has_right_scroll = layout.buffers.used_width - scroll.current > layout.buffers.width
+    local has_right_scroll = data.buffers.used_width - scroll.current > data.buffers.width
     if has_right_scroll then
-      content = Nodes.insert(content, layout.buffers.width - 1,
+      content = nodes.insert(content, data.buffers.width - 1,
         { hl = HL.SCROLL_ARROW, text = config.options.icons.scroll.right })
     end
 
     -- Render bufferline string
-    result = result .. Nodes.to_string(content)
+    result = result .. nodes.to_string(content)
 
-    -- Prevent the expansion of the last click node
+    -- Prevent the expansion of the last click group
     if config.options.clickable then
       result = result .. '%0@barbar#events#main_click_handler@'
     end
   end
 
   -- Tabpages
-  do
-    if layout.tabpages.width > 0 then
-      result = result .. Nodes.to_string({
-        { hl = HL.TABPAGES, text = ' ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' ', },
-      })
-    end
+  if data.tabpages.width > 0 then
+    result = result .. nodes.to_string({
+      { hl = HL.TABPAGES, text = ' ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' ' },
+    })
   end
 
   -- Right offset
@@ -660,12 +663,12 @@ local function generate_tabline(bufnrs, refocus)
     local content_max_width = state.offset.right.width - 2
 
     offset_nodes =
-      Nodes.insert_many(
+      nodes.insert_many(
         offset_nodes,
         1,
-        Nodes.slice_right(content, content_max_width))
+        nodes.slice_right(content, content_max_width))
 
-    result = result .. Nodes.to_string(offset_nodes)
+    result = result .. nodes.to_string(offset_nodes)
   end
 
   -- NOTE: For development or debugging purposes, the following code can be used:
@@ -690,7 +693,7 @@ function render.update(update_names, refocus)
     return
   end
 
-  local buffers = Buffer.hide(render.get_updated_buffers(update_names))
+  local buffers = buffer.hide(render.get_updated_buffers(update_names))
 
   -- Auto hide/show if applicable
   if config.options.auto_hide then
@@ -724,7 +727,7 @@ function render.update(update_names, refocus)
 
   if not ok then
     command('BarbarDisable')
-    utils.notify(
+    notify(
       "Barbar detected an error while running. Barbar disabled itself :/ " ..
         "Include this in your report: " ..
         tostring(result),

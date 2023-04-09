@@ -41,9 +41,10 @@ local set_current_win = vim.api.nvim_set_current_win --- @type function
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 local win_is_valid = vim.api.nvim_win_is_valid --- @type function
 
-local config = require'barbar.config'
-local state = require'barbar.state'
-local utils = require'barbar.utils'
+local config = require('barbar.config')
+local list = require('barbar.utils.list')
+local markdown_inline_code = require('barbar.utils').markdown_inline_code
+local state = require('barbar.state')
 
 -------------------
 -- Section: helpers
@@ -100,10 +101,10 @@ local function get_focus_on_close(closing_number)
   end
 
   if focus_on_close == 'right' then
-    state_bufnrs = utils.list_reverse(state.buffers)
+    state_bufnrs = list.reverse(state.buffers)
   end
 
-  local index = utils.index_of(state_bufnrs, closing_number)
+  local index = list.index_of(state_bufnrs, closing_number)
   if index then
     index = index - 1
 
@@ -158,7 +159,7 @@ end
 -- Section: module
 ------------------
 
---- @class bbye
+--- @class barbar.Bbye
 local bbye = {}
 
 --- Delete a buffer
@@ -249,7 +250,7 @@ function bbye.delete(action, force, buffer, mods)
           return err(msg)
         end
       else
-          return err('Could not delete buffer ' .. buffer_number .. ' with ' .. utils.markdown_inline_code(action))
+          return err('Could not delete buffer ' .. buffer_number .. ' with ' .. markdown_inline_code(action))
       end
     end
   end

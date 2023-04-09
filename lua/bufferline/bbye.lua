@@ -1,1 +1,1 @@
-return require'barbar.bbye'
+return require('barbar.bbye')
