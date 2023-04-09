@@ -169,24 +169,27 @@ local bbye = {}
 --- @return nil
 function bbye.delete(action, force, buffer, mods)
   local buffer_number = type(buffer) == 'string' and bufnr(buffer) or tonumber(buffer) or get_current_buf()
-
   if buffer_number < 0 then
-    err("E516: No buffers were deleted. No match for " .. buffer)
-    return
+    return err("E516: No buffers were deleted. No match for " .. buffer)
+  end
+
+  local has_confirm --- @type boolean
+
+  -- try arguments first
+  if type(mods) == 'table' then
+    has_confirm = mods.confirm
+  elseif mods then
+    has_confirm = mods:match('conf') ~= nil
+  end
+
+  -- get the option if no arguments were passed in
+  if has_confirm == nil then
+    has_confirm = get_option('confirm')
   end
 
   local is_modified = buf_get_option(buffer_number, 'modified')
-
-  local has_confirm = get_option'confirm'
-  if type(mods) == 'table' then
-    has_confirm = has_confirm or mods.confirm
-  elseif mods then
-    has_confirm = has_confirm or mods:match('conf') ~= nil
-  end
-
   if is_modified and not (force or has_confirm) then
-    err("E89: No write since last change for buffer " .. buffer_number .. " (add ! to override)")
-    return
+    return err("E89: No write since last change for buffer " .. buffer_number .. " (add ! to override)")
   end
 
   local current_window = get_current_win()
@@ -237,13 +240,16 @@ function bbye.delete(action, force, buffer, mods)
   -- Using buflisted() over bufexists() because bufhidden=delete causes the
   -- buffer to still _exist_ even though it won't be :bdelete-able.
   if buflisted(buffer_number) == 1 and buffer_number ~= get_current_buf() then
-    local no_errors = pcall(cmd, action, buffer_number, force, mods)
-    if not no_errors then
-      if vim.v.errmsg:match('E516') then
-        set_current_buf(buffer_number)
+    local ok, msg = pcall(cmd, action, buffer_number, force, mods)
+    if not ok then
+      if msg then
+        if msg:match('E516') then
+          set_current_buf(buffer_number)
+        else
+          return err(msg)
+        end
       else
-        err(vim.v.errmsg)
-        return
+          return err('Could not delete buffer ' .. buffer_number .. ' with ' .. utils.markdown_inline_code(action))
       end
     end
   end

@@ -30,6 +30,9 @@ local render = require'barbar.render'
 local state = require'barbar.state'
 local utils = require'barbar.utils'
 
+--- The `<mods>` used for the close click handler
+local CLOSE_CLICK_MODS = vim.api.nvim_cmd and {confirm = true} or 'confirm'
+
 --- Whether barbar is currently set up to render.
 local enabled = false
 
@@ -57,7 +60,7 @@ function events.close_click_handler(buffer)
     buf_call(buffer, function() command('w') end)
     exec_autocmds('BufModifiedSet', {buffer = buffer})
   else
-    bbye.bdelete(false, buffer)
+    bbye.bdelete(false, buffer, CLOSE_CLICK_MODS)
   end
 end
 
