@@ -31,7 +31,7 @@ local state = require'barbar.state'
 local utils = require'barbar.utils'
 
 --- The `<mods>` used for the close click handler
-local CLOSE_CLICK_MODS = vim.api.nvim_cmd and {confirm = true} or 'confirm'
+local CLOSE_CLICK_MODS = vim.api.nvim_cmd and { confirm = true } or 'confirm'
 
 --- Whether barbar is currently set up to render.
 local enabled = false
