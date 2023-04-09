@@ -1,1 +1,1 @@
-return require'barbar.highlight'
+return require('barbar.highlight')

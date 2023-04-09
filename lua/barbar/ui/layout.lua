@@ -12,10 +12,10 @@ local get_option = vim.api.nvim_get_option --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 local tabpagenr = vim.fn.tabpagenr --- @type function
 
-local Buffer = require'barbar.buffer'
-local config = require'barbar.config'
-local icons = require'barbar.icons'
-local state = require'barbar.state'
+local buffer = require('barbar.buffer')
+local config = require('barbar.config')
+local get_icon = require('barbar.icons').get_icon
+local state = require('barbar.state')
 
 --- The number of sides of each buffer in the tabline.
 local SIDES_OF_BUFFER = 2
@@ -49,23 +49,21 @@ local SPACE_LEN = #' '
 --- @class barbar.ui.layout.data.tabpages
 --- @field width integer the amount of space allocated to the tabpage indicator
 
-
---- @class barbar.ui.layout
+--- @class barbar.ui.Layout
 --- @field buffers integer[] different from `state.buffers` in that the `hide` option is respected. Only updated when calling `calculate_buffers_width`.
-local Layout = { buffers = {} }
+local layout = { buffers = {} }
 
 --- Calculate the current layout of the bufferline.
 --- @return barbar.ui.layout.data
-function Layout.calculate()
-
+function layout.calculate()
   local total_width = get_option('columns')
 
   local left_width  = state.offset.left.width
   local right_width = state.offset.right.width
-  local tabpages_width = Layout.calculate_tabpages_width()
+  local tabpages_width = layout.calculate_tabpages_width()
   local buffers_width = total_width - state.offset.left.width - state.offset.right.width - tabpages_width
 
-  local pinned_count, pinned_sum, unpinned_sum, widths = Layout.calculate_buffers_width()
+  local pinned_count, pinned_sum, unpinned_sum, widths = layout.calculate_buffers_width()
   local pinned_width = pinned_sum + (pinned_count * config.options.minimum_padding * SIDES_OF_BUFFER)
 
   local unpinned_allocated_width = buffers_width - pinned_width
@@ -113,22 +111,20 @@ end
 --- @param bufnr integer the buffer to calculate the width of
 --- @param index integer the buffer's numerical index
 --- @return integer width
-function Layout.calculate_buffer_width(bufnr, index)
+function layout.calculate_buffer_width(bufnr, index)
   local buffer_data = state.get_buffer_data(bufnr)
   if buffer_data.closing then
     return buffer_data.width or buffer_data.computed_width or 0
   end
 
-  local buffer_activity = Buffer.activities[Buffer.get_activity(bufnr)]
-  local buffer_name = buffer_data.name or '[no name]'
-
-  local icons_option = Buffer.get_icons(buffer_activity, buf_get_option(bufnr, 'modified'), buffer_data.pinned)
+  local buffer_activity = buffer.activities[buffer.get_activity(bufnr)]
+  local icons_option = buffer.get_icons(buffer_activity, buf_get_option(bufnr, 'modified'), buffer_data.pinned)
 
   local width = strwidth(icons_option.separator.left)
 
   local filename_enabled = icons_option.filename
   if filename_enabled then
-    width = width + strwidth(buffer_name)
+    width = width + strwidth(buffer_data.name or '[no name]')
   end
 
   if icons_option.buffer_index then
@@ -140,7 +136,7 @@ function Layout.calculate_buffer_width(bufnr, index)
   end
 
   if icons_option.filetype.enabled then
-    local file_icon = icons.get_icon(bufnr, buffer_activity)
+    local file_icon = get_icon(bufnr, buffer_activity)
     width = width + strwidth(file_icon)
 
     if filename_enabled then
@@ -148,7 +144,7 @@ function Layout.calculate_buffer_width(bufnr, index)
     end
   end
 
-  Buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, _, option)
+  buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, _, option)
     width = width + SPACE_LEN + strwidth(option.icon) + #tostring(count)
   end)
 
@@ -161,25 +157,25 @@ function Layout.calculate_buffer_width(bufnr, index)
 end
 
 --- @return {[integer]: integer} position_by_bufnr
-function Layout.calculate_buffers_position_by_buffer_number()
-  local layout = Layout.calculate()
+function layout.calculate_buffers_position_by_buffer_number()
+  local data = layout.calculate()
   local positions = {}
 
   local pinned_position = 0
-  local unpinned_position = layout.buffers.pinned_width
+  local unpinned_position = data.buffers.pinned_width
 
-  for i, buffer_number in ipairs(Layout.buffers) do
+  for i, buffer_number in ipairs(layout.buffers) do
     if state.is_pinned(buffer_number) then
       positions[buffer_number] = pinned_position
-      pinned_position = pinned_position + Layout.calculate_width(
-        layout.buffers.base_widths[i],
+      pinned_position = pinned_position + layout.calculate_width(
+        data.buffers.base_widths[i],
         config.options.minimum_padding
       )
     else
       positions[buffer_number] = unpinned_position
-      unpinned_position = unpinned_position + Layout.calculate_width(
-        layout.buffers.base_widths[i],
-        layout.buffers.padding
+      unpinned_position = unpinned_position + layout.calculate_width(
+        data.buffers.base_widths[i],
+        data.buffers.padding
       )
     end
   end
@@ -189,16 +185,16 @@ end
 
 --- Calculate the width of the buffers
 --- @return integer pinned_count, integer pinned_sum, integer unpinned_sum, integer[] widths
-function Layout.calculate_buffers_width()
-  Layout.buffers = Buffer.hide(state.buffers)
+function layout.calculate_buffers_width()
+  layout.buffers = buffer.hide(state.buffers)
 
   local pinned_count = 0
   local pinned_sum = 0
   local unpinned_sum = 0
   local widths = {}
 
-  for i, bufnr in ipairs(Layout.buffers) do
-    local width = Layout.calculate_buffer_width(bufnr, i)
+  for i, bufnr in ipairs(layout.buffers) do
+    local width = layout.calculate_buffer_width(bufnr, i)
     if state.is_pinned(bufnr) then
       pinned_count = pinned_count + 1
       pinned_sum = pinned_sum + width
@@ -214,7 +210,7 @@ end
 
 --- The number of characters needed to represent the tabpages.
 --- @return integer width
-function Layout.calculate_tabpages_width()
+function layout.calculate_tabpages_width()
   if not config.options.tabpages then
     return 0
   end
@@ -231,8 +227,8 @@ end
 --- @param base_width integer
 --- @param padding_width integer
 --- @return integer width
-function Layout.calculate_width(base_width, padding_width)
+function layout.calculate_width(base_width, padding_width)
   return base_width + (padding_width * SIDES_OF_BUFFER)
 end
 
-return Layout
+return layout

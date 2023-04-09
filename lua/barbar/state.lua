@@ -20,9 +20,10 @@ local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local tbl_map = vim.tbl_map
 
-local Buffer = require'barbar.buffer'
-local config = require'barbar.config'
-local utils = require'barbar.utils'
+local buffer = require('barbar.buffer')
+local config = require('barbar.config')
+local fs = require('barbar.fs')
+local utils = require('barbar.utils')
 
 local CACHE_PATH = vim.fn.stdpath('cache') .. '/barbar.json'
 
@@ -48,7 +49,7 @@ local CACHE_PATH = vim.fn.stdpath('cache') .. '/barbar.json'
 --- @field left barbar.state.offset.side
 --- @field right barbar.state.offset.side
 
---- @class barbar.state
+--- @class barbar.State
 --- @field buffers integer[] the open buffers, in visual order.
 --- @field data_by_bufnr {[integer]: barbar.state.data} the buffer data indexed on buffer number
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
@@ -98,7 +99,7 @@ function state.get_buffer_list()
       not tbl_contains(exclude_ft, buf_get_option(bufnr, 'filetype'))
     then
       local name = buf_get_name(bufnr)
-      if not tbl_contains(exclude_name, utils.basename(name, hide_extensions)) then
+      if not tbl_contains(exclude_name, fs.basename(name, hide_extensions)) then
         table_insert(result, bufnr)
       end
     end
@@ -196,7 +197,7 @@ function state.update_names()
 
   -- Compute names
   for i, buffer_n in ipairs(state.buffers) do
-    local name = Buffer.get_name(buffer_n, hide_extensions)
+    local name = buffer.get_name(buffer_n, hide_extensions)
 
     if buffer_index_by_name[name] == nil then
       buffer_index_by_name[name] = i
@@ -205,7 +206,7 @@ function state.update_names()
       local other_i = buffer_index_by_name[name]
       local other_n = state.buffers[other_i]
       local new_name, new_other_name =
-        Buffer.get_unique_name(
+        buffer.get_unique_name(
           buf_get_name(buffer_n),
           buf_get_name(state.buffers[other_i]))
 
@@ -230,7 +231,7 @@ function state.set_offset(width, text, hl)
     utils.markdown_inline_code'barbar.api.set_offset'
   )
 
-  require'barbar.api'.set_offset(width, text, hl)
+  require('barbar.api').set_offset(width, text, hl)
 end
 
 --- Restore the buffers
@@ -269,50 +270,18 @@ end
 --- Save recently_closed list
 --- @return nil
 function state.save_recently_closed()
-  local file, open_err = io.open(CACHE_PATH, 'w')
-  if open_err ~= nil then
-    return utils.notify(open_err, vim.log.levels.ERROR)
-  elseif file == nil then
-    return utils.notify('Could not open ' .. CACHE_PATH, vim.log.levels.ERROR)
-  end
-  do
-    local _, write_err = file:write(json_encode({
-      recently_closed = state.recently_closed,
-    }))
-    if write_err ~= nil then
-      return utils.notify(write_err, vim.log.levels.ERROR)
-    end
-  end
-  local success, close_err = file:close()
-  if close_err ~= nil then
-    return utils.notify(close_err, vim.log.levels.ERROR)
-  elseif success == false then
-    return utils.notify('Could not close ' .. CACHE_PATH, vim.log.levels.ERROR)
+  local err_msg = fs.write(CACHE_PATH, json_encode({ recently_closed = state.recently_closed }))
+  if err_msg then
+    utils.notify(err_msg, vim.log.levels.WARN)
   end
 end
 
 --- Save recently_closed list
 --- @return nil
 function state.load_recently_closed()
-  local file, open_err = io.open(CACHE_PATH, 'r')
-
-  -- Ignore if the file doesn't exist or isn't readable
-  if open_err ~= nil then
-    return
-  elseif file == nil then
-    return
-  end
-
-  local content, read_err = file:read('*a')
-  if read_err ~= nil then
-    return utils.notify(read_err, vim.log.levels.ERROR)
-  end
-
-  local success, close_err = file:close()
-  if close_err ~= nil then
-    return
-  elseif success == false then
-    return
+  local err_msg, content = fs.read(CACHE_PATH)
+  if err_msg then
+    utils.notify(err_msg, vim.log.levels.WARN)
   end
 
   local ok, result = pcall(json_decode, content, {luanil = {array = true, object = true}})

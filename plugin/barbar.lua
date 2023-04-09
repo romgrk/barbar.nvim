@@ -8,12 +8,12 @@ if vim.g.barbar_auto_setup ~= false then
   local options = vim.g.bufferline
 
   if options then
-    require'barbar.utils'.notify_once(
-      "`g:bufferline` is deprecated, use `require'barbar'.setup` instead. " ..
+    require('barbar.utils').notify_once(
+      "`g:bufferline` is deprecated, use `require('barbar').setup` instead. " ..
         'See `:h barbar-setup` for more information.',
       vim.log.levels.WARN
     )
   end
 
-  require'barbar'.setup(options)
+  require('barbar').setup(options)
 end

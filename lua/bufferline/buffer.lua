@@ -1,1 +1,1 @@
-return require'barbar.buffer'
+return require('barbar.buffer')

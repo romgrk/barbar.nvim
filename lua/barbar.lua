@@ -6,19 +6,19 @@ local command = vim.api.nvim_command --- @type function
 local create_user_command = vim.api.nvim_create_user_command --- @type function
 local set_option = vim.api.nvim_set_option --- @type function
 
-local api = require'barbar.api'
-local bbye = require'barbar.bbye'
-local events = require'barbar.events'
-local notify = require'barbar.utils'.notify
-local render = require'barbar.ui.render'
-local state = require'barbar.state'
-local utils = require'barbar.utils'
+local api = require('barbar.api')
+local bbye = require('barbar.bbye')
+local events = require('barbar.events')
+local markdown_inline_code = require('barbar.utils').markdown_inline_code
+local notify = require('barbar.utils').notify
+local scroll = require('barbar.ui.render').scroll
+local state = require('barbar.state')
 
 -------------------------------
 -- Section: `barbar` module
 -------------------------------
 
---- @class barbar
+--- @class Barbar
 local barbar = {}
 
 --- Setup this plugin.
@@ -47,7 +47,7 @@ function barbar.setup(options)
       local index = tonumber(tbl.args)
       if not index then
         return notify(
-          'Invalid argument to ' .. utils.markdown_inline_code':BufferGoto',
+          'Invalid argument to ' .. markdown_inline_code':BufferGoto',
           vim.log.levels.ERROR
         )
       end
@@ -82,7 +82,7 @@ function barbar.setup(options)
     vim.api.nvim_cmd and
       function(tbl) vim.cmd.BufferMovePrevious {count = tbl.count} end or
       function(tbl) command('BufferMovePrevious ' .. tbl.count) end,
-    {count = true, desc = 'Synonym for ' .. utils.markdown_inline_code':BufferMovePrevious'}
+    {count = true, desc = 'Synonym for ' .. markdown_inline_code':BufferMovePrevious'}
   )
 
   create_user_command(
@@ -188,13 +188,13 @@ function barbar.setup(options)
 
   create_user_command(
     'BufferScrollLeft',
-    function(tbl) render.scroll(-max(1, tbl.count)) end,
+    function(tbl) scroll(-max(1, tbl.count)) end,
     {count = true, desc = 'Scroll the bufferline left'}
   )
 
   create_user_command(
     'BufferScrollRight',
-    function(tbl) render.scroll(max(1, tbl.count)) end,
+    function(tbl) scroll(max(1, tbl.count)) end,
     {count = true, desc = 'Scroll the bufferline right'}
   )
 

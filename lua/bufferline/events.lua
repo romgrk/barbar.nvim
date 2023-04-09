@@ -1,1 +1,1 @@
-return require'barbar.events'
+return require('barbar.events')

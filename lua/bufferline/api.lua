@@ -1,1 +1,1 @@
-return require'barbar.api'
+return require('barbar.api')

@@ -1,1 +1,1 @@
-return require'barbar.state'
+return require('barbar.state')

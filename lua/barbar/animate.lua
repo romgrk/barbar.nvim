@@ -17,7 +17,7 @@ local schedule_wrap = vim.schedule_wrap
 --- @field timer userdata
 --- @field type unknown
 
---- @class barbar.animate
+--- @class barbar.Animate
 local animate = {}
 
 --- The amount of time between rendering the next part of the animation.
