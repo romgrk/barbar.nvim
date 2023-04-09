@@ -649,7 +649,9 @@ local function generate_tabline(bufnrs, refocus)
     result = result .. groups.to_string(content)
 
     -- Prevent the expansion of the last click group
-    result = result .. '%0@barbar#events#main_click_handler@'
+    if config.options.clickable then
+      result = result .. '%0@barbar#events#main_click_handler@'
+    end
   end
 
   -- Tabpages
