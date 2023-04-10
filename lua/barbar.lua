@@ -10,7 +10,7 @@ local api = require'barbar.api'
 local bbye = require'barbar.bbye'
 local events = require'barbar.events'
 local notify = require'barbar.utils'.notify
-local render = require'barbar.render'
+local render = require'barbar.ui.render'
 local state = require'barbar.state'
 local utils = require'barbar.utils'
 

@@ -26,7 +26,7 @@ local bbye = require'barbar.bbye'
 local config = require'barbar.config'
 local highlight = require'barbar.highlight'
 local JumpMode = require'barbar.jump_mode'
-local render = require'barbar.render'
+local render = require'barbar.ui.render'
 local state = require'barbar.state'
 local utils = require'barbar.utils'
 

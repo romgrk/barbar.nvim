@@ -26,17 +26,17 @@ local SLASH_LEN = #'/'
 --- The length of one space (`#' '`)
 local SPACE_LEN = #' '
 
---- @class barbar.layout.data
+--- @class barbar.ui.layout.data
 --- @field total_width integer the total width of the tabline, equals to &columns
---- @field left barbar.layout.data.side left offset data
---- @field right barbar.layout.data.side right offset data
---- @field buffers barbar.layout.data.buffers buffer data
---- @field tabpages barbar.layout.data.tabpages tabpage data
+--- @field left barbar.ui.layout.data.side left offset data
+--- @field right barbar.ui.layout.data.side right offset data
+--- @field buffers barbar.ui.layout.data.buffers buffer data
+--- @field tabpages barbar.ui.layout.data.tabpages tabpage data
 
---- @class barbar.layout.data.side
+--- @class barbar.ui.layout.data.side
 --- @field width integer the amount of space allocated
 
---- @class barbar.layout.data.buffers
+--- @class barbar.ui.layout.data.buffers
 --- @field width integer the amount of space allocated to the buffers
 --- @field pinned_width integer the amount of space used by pinned buffers
 --- @field unpinned_width integer the amount of space used by pinned buffers
@@ -46,16 +46,16 @@ local SPACE_LEN = #' '
 --- @field base_widths integer[] the minimum amount of space taken up by each buffer
 --- @field scroll_max integer the maximum position which can be scrolled to
 
---- @class barbar.layout.data.tabpages
+--- @class barbar.ui.layout.data.tabpages
 --- @field width integer the amount of space allocated to the tabpage indicator
 
 
---- @class barbar.Layout
+--- @class barbar.ui.layout
 --- @field buffers integer[] different from `state.buffers` in that the `hide` option is respected. Only updated when calling `calculate_buffers_width`.
 local Layout = { buffers = {} }
 
 --- Calculate the current layout of the bufferline.
---- @return barbar.layout.data
+--- @return barbar.ui.layout.data
 function Layout.calculate()
 
   local total_width = get_option('columns')
