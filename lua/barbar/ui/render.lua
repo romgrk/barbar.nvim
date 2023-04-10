@@ -248,7 +248,7 @@ end
 --- @param to_idx integer the buffer's new index.
 --- @return nil
 function render.move_buffer(from_idx, to_idx)
-  to_idx = math.max(1, math.min(#state.buffers, to_idx))
+  to_idx = max(1, min(#state.buffers, to_idx))
   if to_idx == from_idx then
     return
   end
