@@ -48,6 +48,7 @@ local OPEN_DURATION = 150
 local MOVE_DURATION = 150
 local CLOSE_DURATION = 150
 local SCROLL_DURATION = 200
+local PIN_DURATION = 150
 
 
 --- Last value for tabline
@@ -305,8 +306,38 @@ end
 --- @param buffer_number integer
 --- @return nil
 function render.toggle_pin(buffer_number)
+  local previous_data_by_bufnr = vim.deepcopy(state.data_by_bufnr)
+
   state.toggle_pin(buffer_number)
-  render.update()
+
+  current_animation = animate.stop(current_animation)
+  current_animation = animate.start(PIN_DURATION, 0, 1, vim.v.t_float,
+    function (ratio, current_state)
+      for _, current_number in ipairs(Layout.buffers) do
+        local previous_data = state.get_buffer_data(current_number, previous_data_by_bufnr)
+        local current_data  = state.get_buffer_data(current_number)
+
+        local previous_width    = previous_data.width    or previous_data.computed_width
+        local previous_position = previous_data.position or previous_data.computed_position
+
+        local next_width    = current_data.computed_width
+        local next_position = current_data.computed_position
+
+        if current_state.running == true then
+          if previous_width and next_width then
+            current_data.width = animate.lerp(ratio, previous_width,    next_width)
+          end
+          if previous_position and next_position then
+            current_data.position = animate.lerp(ratio, previous_position, next_position)
+          end
+        else
+          current_data.width = nil
+          current_data.position = nil
+        end
+      end
+
+      render.update()
+    end)
 end
 
 

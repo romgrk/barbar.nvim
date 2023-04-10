@@ -69,16 +69,20 @@ local state = {
 
 --- Get the state of the `id`
 --- @param bufnr integer the `bufnr`
+--- @param data_by_bufnr? {[integer]: barbar.state.data}
 --- @return barbar.state.data
-function state.get_buffer_data(bufnr)
+function state.get_buffer_data(bufnr, data_by_bufnr)
   if bufnr == 0 then
     bufnr = get_current_buf()
   end
+  if data_by_bufnr == nil then
+    data_by_bufnr = state.data_by_bufnr
+  end
 
-  local data = state.data_by_bufnr[bufnr]
+  local data = data_by_bufnr[bufnr]
   if data == nil then
-    data = {closing = false, pinned = false}
-    state.data_by_bufnr[bufnr] = data
+    data = { closing = false, pinned = false }
+    data_by_bufnr[bufnr] = data
   end
 
   return data
