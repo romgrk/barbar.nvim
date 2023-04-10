@@ -494,19 +494,15 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
 
     local hl_sign = wrap_hl('Buffer' .. activity_name .. 'Sign')
 
-    local left_separator = {
-      hl = clickable .. hl_sign,
-      text = icons_option.separator.left,
-    }
+    --- @type barbar.render.group
+    local left_separator = { hl = clickable .. hl_sign, text = icons_option.separator.left }
 
-    local pad = {
-      hl = hl_sign,
-      text = pinned and pinned_pad_text or unpinned_pad_text,
-    }
+    --- @type barbar.render.group
+    local padding = { hl = buffer_hl, text = pinned and pinned_pad_text or unpinned_pad_text }
 
     local group_clump = { --- @type barbar.render.group_clump
       activity = activity,
-      groups = { left_separator, pad, buffer_index, buffer_number, icon, jump_letter, name },
+      groups = { left_separator, padding, buffer_index, buffer_number, icon, jump_letter, name },
       --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
       position = buffer_data.position or buffer_data.computed_position,
       --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
@@ -523,7 +519,7 @@ local function get_bufferline_group_clumps(layout, bufnrs, refocus)
     --- @type barbar.render.group
     local right_separator = { hl = left_separator.hl, text = icons_option.separator.right }
 
-    vim.list_extend(group_clump.groups, { pad, button, right_separator })
+    vim.list_extend(group_clump.groups, { padding, button, right_separator })
 
     table_insert(pinned and pinned_group_clumps or group_clumps, group_clump)
 
