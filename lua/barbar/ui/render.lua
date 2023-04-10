@@ -310,6 +310,10 @@ function render.toggle_pin(buffer_number)
 
   state.toggle_pin(buffer_number)
 
+  if config.options.animation == false then
+    return
+  end
+
   current_animation = animate.stop(current_animation)
   current_animation = animate.start(PIN_DURATION, 0, 1, vim.v.t_float,
     function (ratio, current_state)
