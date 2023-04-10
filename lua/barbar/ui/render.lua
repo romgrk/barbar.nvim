@@ -63,11 +63,6 @@ local scroll = { current = 0, target = 0 }
 --- @type nil|barbar.animate.state
 local current_animation = nil
 
-local move_animation_data = {
-  next_positions = nil, --- @type nil|integer[]
-  previous_positions = nil --- @type nil|integer[]
-}
-
 
 --- An incremental animation for `close_buffer_animated`.
 --- @param bufnr integer
@@ -218,31 +213,6 @@ local function open_buffers(new_buffers)
   end
 end
 
---- An incremental animation for `move_buffer_animated`.
---- @return nil
-local function move_buffer_animated_tick(ratio, current_state)
-  for _, current_number in ipairs(Layout.buffers) do
-    local current_data = state.get_buffer_data(current_number)
-
-    if current_state.running == true then
-      current_data.position = animate.lerp(
-        ratio,
-        (move_animation_data.previous_positions or {})[current_number],
-        (move_animation_data.next_positions or {})[current_number]
-      )
-    else
-      current_data.position = nil
-    end
-  end
-
-  render.update()
-
-  if current_state.running == false then
-    move_animation_data.next_positions = nil
-    move_animation_data.previous_positions = nil
-  end
-end
-
 --- Move a buffer (with animation, if configured).
 --- @param from_idx integer the buffer's original index.
 --- @param to_idx integer the buffer's new index.
@@ -265,40 +235,60 @@ function render.move_buffer(from_idx, to_idx)
   table_insert(state.buffers, to_idx, buffer_number)
   state.sort_pins_to_left()
 
-  if animation == true then
-    local current_index = utils.index_of(Layout.buffers, buffer_number)
-    local start_index = min(from_idx, current_index)
-    local end_index   = max(from_idx, current_index)
-
-    if start_index == end_index then
-      return
-    end
-
-    local next_positions = Layout.calculate_buffers_position_by_buffer_number()
-
-    for _, layout_bufnr  in ipairs(Layout.buffers) do
-      local current_data = state.get_buffer_data(layout_bufnr)
-
-      local previous_position = previous_positions[layout_bufnr]
-      local next_position     = next_positions[layout_bufnr]
-
-      if next_position ~= previous_position then
-        current_data.position = previous_positions[layout_bufnr]
-      end
-    end
-
-    move_animation_data = {
-      previous_positions = previous_positions,
-      next_positions = next_positions,
-    }
-
-    current_animation = animate.stop(current_animation)
-    current_animation =
-      animate.start(MOVE_DURATION, 0, 1, vim.v.t_float,
-        move_buffer_animated_tick)
+  if animation == false then
+    return render.update()
   end
 
-  render.update()
+  local current_index = utils.index_of(Layout.buffers, buffer_number)
+  local start_index = min(from_idx, current_index)
+  local end_index   = max(from_idx, current_index)
+
+  if start_index == end_index then
+    return
+  end
+
+  local next_positions = Layout.calculate_buffers_position_by_buffer_number()
+
+  for _, layout_bufnr  in ipairs(Layout.buffers) do
+    local current_data = state.get_buffer_data(layout_bufnr)
+
+    local previous_position = previous_positions[layout_bufnr]
+    local next_position     = next_positions[layout_bufnr]
+
+    if next_position ~= previous_position then
+      current_data.position = previous_positions[layout_bufnr]
+    end
+  end
+
+  local move_animation_data = {
+    previous_positions = previous_positions,
+    next_positions = next_positions,
+  }
+
+  current_animation = animate.stop(current_animation)
+  current_animation = animate.start(MOVE_DURATION, 0, 1, vim.v.t_float,
+    function(ratio, current_state)
+      for _, current_number in ipairs(Layout.buffers) do
+        local current_data = state.get_buffer_data(current_number)
+
+        if current_state.running == true then
+          current_data.position = animate.lerp(
+            ratio,
+            (move_animation_data.previous_positions or {})[current_number],
+            (move_animation_data.next_positions or {})[current_number]
+          )
+        else
+          current_data.position = nil
+        end
+      end
+
+      render.update()
+
+      if current_state.running == false then
+        move_animation_data.next_positions = nil
+        move_animation_data.previous_positions = nil
+      end
+    end)
 end
 
 
@@ -311,7 +301,7 @@ function render.toggle_pin(buffer_number)
   state.toggle_pin(buffer_number)
 
   if config.options.animation == false then
-    return
+    return render.update()
   end
 
   current_animation = animate.stop(current_animation)
