@@ -465,4 +465,61 @@ tabpages ~
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
 
+------------------------------------------------------------------------------
+SESSIONS                                        *barbar-integrations-sessions*
+
+|barbar.nvim| can restore the order that your buffers were in, as well as
+whether a buffer was pinned. To do this, 'sessionoptions' must contain
+`globals`, and the |User| `SessionSavePre` event must be executed before
+|:mksession| executes.
+
+                                      *barbar-integrations-sessions-mini.nvim*
+mini.nvim ~
+
+Here is a |mini.sessions| config which can be used: >
+  vim.opt.sessionoptions:append 'globals'
+  require'mini.sessions'.setup {
+    hooks = {
+      pre = {
+        write = function() vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'}) end,
+      },
+    },
+  }
+<
+
+                               *barbar-integrations-sessions-persistence.nvim*
+persistence.nvim ~
+
+Here is a |persistence.nvim| config which can be used: >
+  require'persistence'.setup {
+    options = {--[[<other options>,]] 'globals'},
+    pre_save = function()
+      vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'})
+    end,
+  }
+<
+
+                                         *barbar-integrations-sessions-custom*
+Custom ~
+
+You can add this snippet to your config to take advantage of our session
+integration: >
+  vim.opt.sessionoptions:append 'globals'
+  vim.api.nvim_create_user_command(
+    'Mksession',
+    function(attr)
+      vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'})
+
+      -- Neovim 0.8<=
+      vim.cmd.mksession {bang = attr.bang, args = attr.fargs}
+
+      -- Neovim 0.7>=
+      vim.api.nvim_command(
+        'mksession ' .. (attr.bang and '!' or '') .. attr.args
+      )
+    end,
+    {bang = true, complete = 'file', nargs = '?'}
+  )
+<
+
  vim:tw=78:ts=2:ft=help:norl:

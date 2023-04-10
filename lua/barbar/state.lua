@@ -237,9 +237,9 @@ end
 --- @param buffer_data string[]|{name: string, pinned: boolean}[]
 --- @return nil
 function state.restore_buffers(buffer_data)
-  local buf_delete = vim.api.nvim_buf_delete
-  local buf_get_lines = vim.api.nvim_buf_get_lines
-  local buf_line_count = vim.api.nvim_buf_line_count
+  local buf_delete = vim.api.nvim_buf_delete --- @type function
+  local buf_get_lines = vim.api.nvim_buf_get_lines --- @type function
+  local buf_line_count = vim.api.nvim_buf_line_count --- @type function
 
   -- Close all empty buffers. Loading a session may call :tabnew several times
   -- and create useless empty buffers.

@@ -23,6 +23,7 @@ files you can even type the letter ahead from memory.
  - [Usage](#usage)
  - [Options](#options)
  - [Highlighting](#highlighting)
+ - [Integrations](#integrations)
  - [Known Issues](#known-issues)
  - [About Barbar](#about)
 
@@ -391,6 +392,59 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see
 in the demos above.
+
+## Integrations
+
+#### Sessions
+
+`barbar.nvim` can restore the order that your buffers were in, as well as whether a buffer was pinned. To do this, `sessionoptions` must contain `globals`, and the `User SessionSavePre` event must be executed before `:mksession`.
+
+##### mini.nvim
+
+Here is a `persistence.nvim` config which can be used:
+
+```lua
+vim.opt.sessionoptions:append 'globals'
+require'mini.sessions'.setup {
+  hooks = {
+    pre = {
+      write = function() vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'}) end,
+    },
+  },
+}
+```
+
+##### persistence.nvim
+
+Here is a `persistence.nvim` config which can be used:
+
+```lua
+require'persistence'.setup {
+  options = {--[[<other options>,]] 'globals'},
+  pre_save = function() vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'}) end,
+}
+```
+
+##### Custom
+
+You can add this snippet to your config to take advantage of our session integration:
+
+```lua
+vim.opt.sessionoptions:append 'globals'
+vim.api.nvim_create_user_command(
+  'Mksession',
+  function(attr)
+    vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'})
+
+    -- Neovim 0.8+
+    vim.cmd.mksession {bang = attr.bang, args = attr.fargs}
+
+    -- Neovim 0.7
+    vim.api.nvim_command('mksession ' .. (attr.bang and '!' or '') .. attr.args)
+  end,
+  {bang = true, complete = 'file', desc = 'Save barbar with :mksession', nargs = '?'}
+)
+```
 
 ## Known Issues
 
