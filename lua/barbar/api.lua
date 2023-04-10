@@ -372,8 +372,7 @@ end
 --- @param buffer_number? integer
 --- @return nil
 function api.toggle_pin(buffer_number)
-  state.toggle_pin(buffer_number or 0)
-  render.update()
+  render.toggle_pin(buffer_number or 0)
 end
 
 return api

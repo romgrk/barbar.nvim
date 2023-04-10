@@ -300,6 +300,56 @@ function render.move_buffer(from_idx, to_idx)
   render.update()
 end
 
+
+--- Toggle the `bufnr`'s "pin" state, visually.
+--- @param buffer_number integer
+--- @return nil
+function render.toggle_pin(buffer_number)
+  state.toggle_pin(buffer_number)
+  render.update()
+end
+
+
+--- Scroll the bufferline relative to its current position.
+--- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
+--- @return nil
+function render.scroll(n)
+  render.set_scroll(max(0, scroll.target + n))
+end
+
+local scroll_animation = nil
+
+--- An incremental animation for `set_scroll`.
+--- @return nil
+local function set_scroll_tick(new_scroll, animation)
+  scroll.current = new_scroll
+  if animation.running == false then
+    scroll_animation = nil
+  end
+  render.update(nil, false)
+end
+
+--- Scrolls the bufferline to the `target`.
+--- @param target integer where to scroll to
+--- @return nil
+function render.set_scroll(target)
+  scroll.target = target
+
+  if not config.options.animation then
+    scroll.current = target
+    return render.update(nil, false)
+  end
+
+  if scroll_animation ~= nil then
+    animate.stop(scroll_animation)
+  end
+
+  scroll_animation = animate.start(
+    SCROLL_DURATION, scroll.current, target, vim.v.t_number,
+    set_scroll_tick)
+end
+
+
 --- Refresh the buffer list.
 --- @return integer[] state.buffers
 function render.get_updated_buffers(update_names)
@@ -370,45 +420,6 @@ function render.set_current_win_listed_buffer()
   end
 
   return current
-end
-
---- Scroll the bufferline relative to its current position.
---- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
---- @return nil
-function render.scroll(n)
-  render.set_scroll(max(0, scroll.target + n))
-end
-
-local scroll_animation = nil
-
---- An incremental animation for `set_scroll`.
---- @return nil
-local function set_scroll_tick(new_scroll, animation)
-  scroll.current = new_scroll
-  if animation.running == false then
-    scroll_animation = nil
-  end
-  render.update(nil, false)
-end
-
---- Scrolls the bufferline to the `target`.
---- @param target integer where to scroll to
---- @return nil
-function render.set_scroll(target)
-  scroll.target = target
-
-  if not config.options.animation then
-    scroll.current = target
-    return render.update(nil, false)
-  end
-
-  if scroll_animation ~= nil then
-    animate.stop(scroll_animation)
-  end
-
-  scroll_animation = animate.start(
-    SCROLL_DURATION, scroll.current, target, vim.v.t_number,
-    set_scroll_tick)
 end
 
 --- Sets and redraws `'tabline'` if `s` does not match the cached value.
