@@ -5,6 +5,7 @@
 local max = math.max
 local min = math.min
 local table_insert = table.insert
+local table_remove = table.remove
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
@@ -37,36 +38,35 @@ local Layout = require'barbar.ui.layout'
 local state = require'barbar.state'
 local utils = require'barbar.utils'
 
+--- @class barbar.ui.render
+local render = {}
+
+
+-- Animation durations & delays
+local OPEN_DELAY = 10
+local OPEN_DURATION = 150
+local MOVE_DURATION = 150
+local CLOSE_DURATION = 150
+local SCROLL_DURATION = 200
+
+
 --- Last value for tabline
 --- @type string
 local last_tabline = ''
-
---- Create valid `&tabline` syntax which highlights the next item in the tabline with the highlight `group` specified.
---- @param group string
---- @return string syntax
-local function wrap_hl(group)
-  return '%#' .. group .. '#'
-end
-
---- @class barbar.ui.render.animation
---- @field OPEN_DELAY integer
---- @field OPEN_DURATION integer
---- @field CLOSE_DURATION integer
---- @field SCROLL_DURATION integer
-local ANIMATION = {
-  OPEN_DELAY = 10,
-  OPEN_DURATION = 150,
-  CLOSE_DURATION = 150,
-  SCROLL_DURATION = 200,
-}
 
 --- @class barbar.ui.render.scroll
 --- @field current integer the place where the bufferline is currently scrolled to
 --- @field target integer the place where the bufferline is scrolled/wants to scroll to.
 local scroll = { current = 0, target = 0 }
 
---- @class barbar.ui.render
-local render = {}
+--- @type nil|barbar.animate.state
+local current_animation = nil
+
+local move_animation_data = {
+  next_positions = nil, --- @type nil|integer[]
+  previous_positions = nil --- @type nil|integer[]
+}
+
 
 --- An incremental animation for `close_buffer_animated`.
 --- @param bufnr integer
@@ -107,7 +107,7 @@ function render.close_buffer_animated(bufnr)
   buffer_data.width = current_width
 
   animate.start(
-    ANIMATION.CLOSE_DURATION, current_width, 0, vim.v.t_number,
+    CLOSE_DURATION, current_width, 0, vim.v.t_number,
     function(new_width, m)
       close_buffer_animated_tick(bufnr, new_width, m)
     end)
@@ -144,11 +144,11 @@ local function open_buffer_start_animation(layout, bufnr)
 
   defer_fn(function()
     animate.start(
-      ANIMATION.OPEN_DURATION, 1, target_width, vim.v.t_number,
+      OPEN_DURATION, 1, target_width, vim.v.t_number,
       function(new_width, animation)
         open_buffer_animated_tick(bufnr, new_width, animation)
       end)
-  end, ANIMATION.OPEN_DELAY)
+  end, OPEN_DELAY)
 end
 
 --- Open the `new_buffers` in the bufferline.
@@ -213,6 +213,91 @@ local function open_buffers(new_buffers)
   for _, buffer_number in ipairs(new_buffers) do
     open_buffer_start_animation(layout, buffer_number)
   end
+end
+
+--- An incremental animation for `move_buffer_animated`.
+--- @return nil
+local function move_buffer_animated_tick(ratio, current_state)
+  for _, current_number in ipairs(Layout.buffers) do
+    local current_data = state.get_buffer_data(current_number)
+
+    if current_state.running == true then
+      current_data.position = animate.lerp(
+        ratio,
+        (move_animation_data.previous_positions or {})[current_number],
+        (move_animation_data.next_positions or {})[current_number]
+      )
+    else
+      current_data.position = nil
+    end
+  end
+
+  render.update()
+
+  if current_state.running == false then
+    current_animation = nil
+    move_animation_data.next_positions = nil
+    move_animation_data.previous_positions = nil
+  end
+end
+
+--- Move a buffer (with animation, if configured).
+--- @param from_idx integer the buffer's original index.
+--- @param to_idx integer the buffer's new index.
+--- @return nil
+function render.move_buffer(from_idx, to_idx)
+  to_idx = math.max(1, math.min(#state.buffers, to_idx))
+  if to_idx == from_idx then
+    return
+  end
+
+  local animation = config.options.animation
+  local buffer_number = state.buffers[from_idx]
+
+  local previous_positions
+  if animation == true then
+    previous_positions = Layout.calculate_buffers_position_by_buffer_number()
+  end
+
+  table_remove(state.buffers, from_idx)
+  table_insert(state.buffers, to_idx, buffer_number)
+  state.sort_pins_to_left()
+
+  if animation == true then
+    local current_index = utils.index_of(Layout.buffers, buffer_number)
+    local start_index = min(from_idx, current_index)
+    local end_index   = max(from_idx, current_index)
+
+    if start_index == end_index then
+      return
+    elseif current_animation ~= nil then
+      animate.stop(current_animation)
+    end
+
+    local next_positions = Layout.calculate_buffers_position_by_buffer_number()
+
+    for _, layout_bufnr  in ipairs(Layout.buffers) do
+      local current_data = state.get_buffer_data(layout_bufnr)
+
+      local previous_position = previous_positions[layout_bufnr]
+      local next_position     = next_positions[layout_bufnr]
+
+      if next_position ~= previous_position then
+        current_data.position = previous_positions[layout_bufnr]
+      end
+    end
+
+    move_animation_data = {
+      previous_positions = previous_positions,
+      next_positions = next_positions,
+    }
+
+    current_animation =
+      animate.start(MOVE_DURATION, 0, 1, vim.v.t_float,
+        move_buffer_animated_tick)
+  end
+
+  render.update()
 end
 
 --- Refresh the buffer list.
@@ -322,7 +407,7 @@ function render.set_scroll(target)
   end
 
   scroll_animation = animate.start(
-    ANIMATION.SCROLL_DURATION, scroll.current, target, vim.v.t_number,
+    SCROLL_DURATION, scroll.current, target, vim.v.t_number,
     set_scroll_tick)
 end
 
@@ -336,6 +421,13 @@ function render.set_tabline(s)
     set_option('tabline', s)
     command('redrawtabline')
   end
+end
+
+--- Create valid `&tabline` syntax which highlights the next item in the tabline with the highlight `group` specified.
+--- @param group string
+--- @return string syntax
+local function wrap_hl(group)
+  return '%#' .. group .. '#'
 end
 
 --- Compute the buffer hl-groups
