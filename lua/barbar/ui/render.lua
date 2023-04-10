@@ -106,7 +106,8 @@ function render.close_buffer_animated(bufnr)
   buffer_data.closing = true
   buffer_data.width = current_width
 
-  animate.start(
+  current_animation = animate.stop(current_animation)
+  current_animation = animate.start(
     CLOSE_DURATION, current_width, 0, vim.v.t_number,
     function(new_width, m)
       close_buffer_animated_tick(bufnr, new_width, m)
@@ -143,7 +144,8 @@ local function open_buffer_start_animation(layout, bufnr)
   buffer_data.width = 1
 
   defer_fn(function()
-    animate.start(
+    current_animation = animate.stop(current_animation)
+    current_animation = animate.start(
       OPEN_DURATION, 1, target_width, vim.v.t_number,
       function(new_width, animation)
         open_buffer_animated_tick(bufnr, new_width, animation)
@@ -235,7 +237,6 @@ local function move_buffer_animated_tick(ratio, current_state)
   render.update()
 
   if current_state.running == false then
-    current_animation = nil
     move_animation_data.next_positions = nil
     move_animation_data.previous_positions = nil
   end
@@ -270,8 +271,6 @@ function render.move_buffer(from_idx, to_idx)
 
     if start_index == end_index then
       return
-    elseif current_animation ~= nil then
-      animate.stop(current_animation)
     end
 
     local next_positions = Layout.calculate_buffers_position_by_buffer_number()
@@ -292,6 +291,7 @@ function render.move_buffer(from_idx, to_idx)
       next_positions = next_positions,
     }
 
+    current_animation = animate.stop(current_animation)
     current_animation =
       animate.start(MOVE_DURATION, 0, 1, vim.v.t_float,
         move_buffer_animated_tick)

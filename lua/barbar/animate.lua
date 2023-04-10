@@ -92,9 +92,12 @@ function animate.start(duration, initial, final, type, callback)
   return state
 end
 
---- @param state barbar.animate.state
+--- @param state barbar.animate.state|nil
 --- @return nil
 function animate.stop(state)
+  if state == nil then
+    return
+  end
   if state.timer then
     state.timer:stop()
     state.timer:close()
