@@ -48,7 +48,7 @@ function events.augroups(clear)
   end
 
   return create_augroup('barbar_misc', {clear = clear}),
-    create_augroup('barbar.ui.render', {clear = clear})
+    create_augroup('barbar_render', {clear = clear})
 end
 
 --- What to do when clicking a buffer close button
