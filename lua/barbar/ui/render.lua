@@ -43,12 +43,14 @@ local render = {}
 
 
 -- Animation durations & delays
-local OPEN_DELAY = 10
-local OPEN_DURATION = 150
-local MOVE_DURATION = 150
-local CLOSE_DURATION = 150
+local BUFFER_OP_DURATION = 150
+
+local OPEN_DELAY      = 10 -- Let autocmds & other plugins run, avoids jank
+local OPEN_DURATION   = BUFFER_OP_DURATION
+local MOVE_DURATION   = BUFFER_OP_DURATION
+local CLOSE_DURATION  = BUFFER_OP_DURATION
+local PIN_DURATION    = BUFFER_OP_DURATION
 local SCROLL_DURATION = 200
-local PIN_DURATION = 150
 
 
 --- Last value for tabline
@@ -687,6 +689,7 @@ local function generate_tabline(bufnrs, refocus)
   do
     --- @type barbar.ui.container
     local content = { { hl = HL.FILL, text = (' '):rep(layout.buffers.width) } }
+    local max_used_position = 0
 
     do
       local current_container = nil
@@ -697,6 +700,7 @@ local function generate_tabline(bufnrs, refocus)
             content,
             container.position - scroll.current,
             container.nodes)
+          max_used_position = max(max_used_position, container.position + container.width)
         else
           current_container = container
         end
@@ -708,17 +712,19 @@ local function generate_tabline(bufnrs, refocus)
           content,
           container.position - scroll.current,
           container.nodes)
+        max_used_position = max(max_used_position, container.position + container.width)
       end
     end
 
     do
       local inactive_separator = config.options.icons.inactive.separator.left
+      local max_actual_position = max_used_position - scroll.current
       if inactive_separator ~= nil and #containers > 0 and
-        layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width
+        max_actual_position + strwidth(inactive_separator) <= layout.buffers.width
       then
         content = Nodes.insert(
           content,
-          layout.buffers.used_width,
+          max_actual_position,
           { text = inactive_separator, hl = HL.SIGN_INACTIVE })
       end
     end
