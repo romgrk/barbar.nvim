@@ -448,7 +448,7 @@ end
 --- @param width integer the amount to offset
 --- @param text? string text to put in the offset
 --- @param hl? string
---- @param side? 'left'|'right'
+--- @param side? side
 --- @return nil
 function api.set_offset(width, text, hl, side)
   if side == nil then

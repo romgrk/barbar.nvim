@@ -157,7 +157,7 @@ function events.enable()
       right = {}, --- @type {[string]: nil|integer}
     }
 
-    --- @param side 'left'|'right'
+    --- @param side side
     --- @return integer total_width
     local function total_widths(side)
       local offset = 0
@@ -175,7 +175,7 @@ function events.enable()
       create_autocmd('FileType', {
         callback = function(tbl)
           local bufwinid --- @type nil|integer
-          local side --- @type 'left'|'right'
+          local side --- @type side
           local autocmd = create_autocmd({'BufWinEnter', 'WinScrolled'}, {
             callback = function()
               if bufwinid == nil then

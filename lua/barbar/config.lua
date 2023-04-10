@@ -106,7 +106,7 @@ end
 --- @field diagnostics barbar.config.options.icons.buffer.diagnostics the diagnostic icons
 --- @field gitsigns barbar.config.options.icons.buffer.git the git status icons
 --- @field filetype barbar.config.options.icons.buffer.filetype filetype icon options
---- @field separator barbar.config.options.icons.buffer.separator the left-hand separator between buffers in the tabline
+--- @field separator barbar.config.options.icons.buffer.separator the separators between buffers in the tabline
 
 --- @class barbar.config.options.icons.state: barbar.config.options.icons.buffer
 --- @field modified barbar.config.options.icons.buffer the icons used for an modified buffer
@@ -195,7 +195,7 @@ local DEPRECATED_OPTIONS = {
 --- @field clickable boolean
 --- @field exclude_ft string[]
 --- @field exclude_name string[]
---- @field focus_on_close 'left'|'right'
+--- @field focus_on_close side
 --- @field hide barbar.config.options.hide
 --- @field highlight_alternate boolean
 --- @field highlight_inactive_file_icons boolean
