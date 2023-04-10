@@ -59,7 +59,7 @@ function barbar.setup(options)
         local buffers = state.buffers
         local buffer_indices = {}
 
-        for i = 1, #buffers do
+        for i in ipairs(buffers) do
           table_insert(buffer_indices, tostring(i))
         end
 

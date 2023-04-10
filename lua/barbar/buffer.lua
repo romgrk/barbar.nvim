@@ -7,21 +7,18 @@ local min = math.min
 local table_concat = table.concat
 local table_insert = table.insert
 
-local bufnr = vim.fn.bufnr --- @type function
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
+local bufnr = vim.fn.bufnr --- @type function
 local bufwinnr = vim.fn.bufwinnr --- @type function
-local ERROR = vim.diagnostic.severity.ERROR --- @type integer
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local get_diagnostics = vim.diagnostic.get --- @type fun(bufnr: integer): {severity: integer}[]
-local HINT = vim.diagnostic.severity.HINT --- @type integer
-local INFO = vim.diagnostic.severity.INFO --- @type integer
 local matchlist = vim.fn.matchlist --- @type function
+local severity = vim.diagnostic.severity
 local split = vim.split
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
-local WARN = vim.diagnostic.severity.WARN --- @type integer
 
 local basename = require('barbar.fs').basename
 local config = require('barbar.config')
@@ -29,6 +26,10 @@ local slice_from_end = require('barbar.utils.list').slice_from_end
 
 local ELLIPSIS = '…'
 local ELLIPSIS_LEN = strwidth(ELLIPSIS)
+local ERROR = severity.ERROR
+local HINT = severity.HINT
+local INFO = severity.INFO
+local WARN = severity.WARN
 
 --- @alias barbar.buffer.activity 1|2|3|4
 
@@ -74,14 +75,15 @@ end
 --- @return nil
 function buffer.for_each_counted_enabled_diagnostic(buffer_number, diagnostics, f)
   local count
-  for severity_idx, severity_option in ipairs(diagnostics) do
-    if severity_option.enabled then
+  for i in ipairs(severity) do
+    local option = diagnostics[i]
+    if option.enabled then
       if count == nil then
         count = buffer.count_diagnostics(buffer_number)
       end
 
-      if count[severity_idx] > 0 then
-        f(count[severity_idx], severity_idx, severity_option)
+      if count[i] > 0 then
+        f(count[i], i, option)
       end
     end
   end
