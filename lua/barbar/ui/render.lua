@@ -321,10 +321,10 @@ function render.toggle_pin(buffer_number)
 
         if current_state.running == true then
           if previous_width and next_width then
-            current_data.width = animate.lerp(ratio, previous_width,    next_width)
+            current_data.width = math.floor(animate.lerp(ratio, previous_width, next_width, vim.v.t_float))
           end
           if previous_position and next_position then
-            current_data.position = animate.lerp(ratio, previous_position, next_position)
+            current_data.position = math.ceil(animate.lerp(ratio, previous_position, next_position, vim.v.t_float))
           end
         else
           current_data.width = nil
@@ -638,6 +638,10 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
     local right_separator = { hl = left_separator.hl, text = icons_option.separator.right }
 
     list_extend(container.nodes, { padding, button, right_separator })
+    if container_width then
+      container.nodes = Nodes.slice_right(container.nodes, container_width)
+    end
+
     table_insert(pinned and pinned_containers or containers, container)
 
     if done then
@@ -663,7 +667,7 @@ local HL = {
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   local layout = Layout.calculate()
-  local pinned_containers, containers = get_bufferline_containers(layout, bufnrs, refocus)
+  local pinned_containers, unpinned_containers = get_bufferline_containers(layout, bufnrs, refocus)
 
   -- Create actual tabline string
   local result = ''
@@ -689,11 +693,22 @@ local function generate_tabline(bufnrs, refocus)
   do
     --- @type barbar.ui.container
     local content = { { hl = HL.FILL, text = (' '):rep(layout.buffers.width) } }
+
+    local current_container = nil
     local max_used_position = 0
 
+    if #pinned_containers > 0 then
+      for _, container in ipairs(pinned_containers) do
+        if container.activity ~= Buffer.activities.Current then
+          content = Nodes.insert_many(content, container.position, container.nodes)
+        else
+          current_container = container
+        end
+      end
+    end
+
     do
-      local current_container = nil
-      for _, container in ipairs(containers) do
+      for _, container in ipairs(unpinned_containers) do
         -- We insert the current buffer after the others so it's always on top
         if container.activity ~= Buffer.activities.Current then
           content = Nodes.insert_many(
@@ -705,42 +720,24 @@ local function generate_tabline(bufnrs, refocus)
           current_container = container
         end
       end
+    end
 
-      if current_container ~= nil then
-        local container = current_container
-        content = Nodes.insert_many(
-          content,
-          container.position - scroll.current,
-          container.nodes)
-        max_used_position = max(max_used_position, container.position + container.width)
-      end
+    if current_container ~= nil then
+      local container = current_container
+      content = Nodes.insert_many(content, container.position, container.nodes)
+      max_used_position = max(max_used_position, container.position + container.width)
     end
 
     do
       local inactive_separator = config.options.icons.inactive.separator.left
       local max_actual_position = max_used_position - scroll.current
-      if inactive_separator ~= nil and #containers > 0 and
+      if inactive_separator ~= nil and #unpinned_containers > 0 and
         max_actual_position + strwidth(inactive_separator) <= layout.buffers.width
       then
         content = Nodes.insert(
           content,
           max_actual_position,
           { text = inactive_separator, hl = HL.SIGN_INACTIVE })
-      end
-    end
-
-    if #pinned_containers > 0 then
-      local current_container = nil
-      for _, container in ipairs(pinned_containers) do
-        if container.activity ~= Buffer.activities.Current then
-          content = Nodes.insert_many(content, container.position, container.nodes)
-        else
-          current_container = container
-        end
-      end
-      if current_container ~= nil then
-        local container = current_container
-        content = Nodes.insert_many(content, container.position, container.nodes)
       end
     end
 
