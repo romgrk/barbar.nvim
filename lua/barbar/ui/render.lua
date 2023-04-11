@@ -314,20 +314,26 @@ function render.toggle_pin(buffer_number)
         local current_data  = state.get_buffer_data(current_number)
 
         local previous_width    = previous_data.width    or previous_data.computed_width
+        local previous_padding  = previous_data.padding  or previous_data.computed_padding
         local previous_position = previous_data.position or previous_data.computed_position
 
         local next_width    = current_data.computed_width
+        local next_padding  = current_data.computed_padding
         local next_position = current_data.computed_position
 
         if current_state.running == true then
           if previous_width and next_width then
             current_data.width = math.floor(animate.lerp(ratio, previous_width, next_width, vim.v.t_float))
           end
+          if previous_padding and next_padding then
+            current_data.padding = math.floor(animate.lerp(ratio, previous_padding, next_padding, vim.v.t_float))
+          end
           if previous_position and next_position then
             current_data.position = math.ceil(animate.lerp(ratio, previous_position, next_position, vim.v.t_float))
           end
         else
           current_data.width = nil
+          current_data.padding = nil
           current_data.position = nil
         end
       end
@@ -495,10 +501,12 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
 
     if pinned then
       buffer_data.computed_position = accumulated_pinned_width
-      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], config.options.minimum_padding)
+      buffer_data.computed_padding  = config.options.minimum_padding
+      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], buffer_data.computed_padding)
     else
       buffer_data.computed_position = accumulated_unpinned_width + layout.buffers.pinned_width
-      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], layout.buffers.padding)
+      buffer_data.computed_padding  = layout.buffers.padding
+      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], buffer_data.computed_padding)
     end
 
     local container_width = buffer_data.width or buffer_data.computed_width
@@ -616,7 +624,10 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
     local left_separator = { hl = clickable .. hl_sign, text = icons_option.separator.left }
 
     --- @type barbar.ui.node
-    local padding = { hl = buffer_hl, text = pinned and pinned_pad_text or unpinned_pad_text }
+    local padding = { hl = buffer_hl, text =
+      buffer_data.padding and (' '):rep(buffer_data.padding) or
+                   pinned and pinned_pad_text or
+                              unpinned_pad_text }
 
     local container = { --- @type barbar.ui.container
       activity = activity,
@@ -793,14 +804,9 @@ local function generate_tabline(bufnrs, refocus)
   end
 
   -- NOTE: For development or debugging purposes, the following code can be used:
-  -- ```lua
-  -- local text = Nodes.to_raw_string(bufferline_nodes, true)
-  -- if layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width and #items > 0 then
-  --   text = text .. Nodes.to_raw_string({{ text = inactive_separator or '', hl = wrap_hl('BufferInactiveSign') }}, true)
-  -- end
-  -- local data = vim.json.encode({ metadata = 42 })
-  -- fs.write('barbar.debug.txt', text .. ':' .. data .. '\n', 'a')
-  -- ```
+  -- local containers = { unpack(pinned_containers), unpack(unpinned_containers) }
+  -- local data = vim.json.encode(containers)
+  -- fs.write('barbar.debug.txt', result .. ':' .. data .. '\n', 'a')
 
   return result .. HL.FILL
 end

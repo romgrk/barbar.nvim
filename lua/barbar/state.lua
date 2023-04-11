@@ -31,13 +31,15 @@ local CACHE_PATH = vim.fn.stdpath('cache') .. '/barbar.json'
 --------------------------------
 
 --- @class barbar.state.data
---- @field closing boolean whether the buffer is being closed
 --- @field name? string the name of the buffer
---- @field position? integer the absolute position of the buffer
---- @field computed_position? integer the real position of the buffer
---- @field computed_width? integer the width of the buffer plus invisible characters
 --- @field pinned boolean whether the buffer is pinned
+--- @field closing boolean whether the buffer is being closed
 --- @field width? integer the width of the buffer minus invisible characters
+--- @field padding? integer the padding width for one side
+--- @field position? integer the absolute position of the buffer
+--- @field computed_width? integer the logical width of the buffer plus invisible characters
+--- @field computed_padding? integer the logical padding of the buffer
+--- @field computed_position? integer the logical position of the buffer
 
 --- @class barbar.state.offset.side
 --- @field hl? string the highlight group to use
