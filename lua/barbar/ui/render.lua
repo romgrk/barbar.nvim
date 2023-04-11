@@ -5,6 +5,7 @@
 local max = math.max
 local min = math.min
 local table_insert = table.insert
+local table_remove = table.remove
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
@@ -347,13 +348,13 @@ end
 --- @param data barbar.ui.layout.data
 --- @param bufnrs integer[]
 --- @param refocus? boolean
---- @return barbar.ui.container[] pinned_groups, barbar.ui.container[] clumps
+--- @return barbar.ui.container[] pinend, barbar.ui.container[] unpinned, nil|{[1]: integer, pinned: boolean} current_buffer_index
 local function get_bufferline_containers(data, bufnrs, refocus)
   local click_enabled = has('tablineat') and config.options.clickable
 
   local accumulated_pinned_width = 0 --- the width of pinned buffers accumulated while iterating
   local accumulated_unpinned_width = 0 --- the width of buffers accumulated while iterating
-  local current_buffer_index = nil --- @type nil|integer
+  local current_buffer_index = nil --- @type nil|{[1]: integer, pinned: boolean}
   local done = false --- if all of the visible buffers have been clumped
   local containers = {} --- @type barbar.ui.container[]
   local pinned_containers = {} --- @type barbar.ui.container[]
@@ -379,7 +380,7 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     local container_width = buffer_data.width or buffer_data.computed_width
 
     if activity == buffer.activities.Current and refocus ~= false then
-      current_buffer_index = i
+      current_buffer_index = {i, pinned = pinned}
 
       local start = accumulated_unpinned_width
       local end_  = accumulated_unpinned_width + container_width
@@ -494,7 +495,6 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     local padding = { hl = buffer_hl, text = pinned and pinned_pad_text or unpinned_pad_text }
 
     local container = { --- @type barbar.ui.container
-      activity = activity,
       nodes = { left_separator, padding, buffer_index, buffer_number, icon, jump_letter, name },
       --- @diagnostic disable-next-line:assign-type-mismatch it is assigned just earlier
       position = buffer_data.position or buffer_data.computed_position,
@@ -522,7 +522,7 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     ::continue::
   end
 
-  return pinned_containers, containers
+  return pinned_containers, containers, current_buffer_index
 end
 
 local HL = {
@@ -538,7 +538,7 @@ local HL = {
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   local data = layout.calculate()
-  local pinned_containers, containers = get_bufferline_containers(data, bufnrs, refocus)
+  local pinned, unpinned, current_buffer_index = get_bufferline_containers(data, bufnrs, refocus)
 
   -- Create actual tabline string
   local result = ''
@@ -551,12 +551,7 @@ local function generate_tabline(bufnrs, refocus)
     local content = { { hl = hl, text = state.offset.left.text } }
     local content_max_width = state.offset.left.width - 2
 
-    offset_nodes =
-      nodes.insert_many(
-        offset_nodes,
-        1,
-        nodes.slice_right(content, content_max_width))
-
+    offset_nodes = nodes.insert_many(offset_nodes, 1, nodes.slice_right(content, content_max_width))
     result = result .. nodes.to_string(offset_nodes)
   end
 
@@ -566,52 +561,41 @@ local function generate_tabline(bufnrs, refocus)
     local content = { { hl = HL.FILL, text = (' '):rep(data.buffers.width) } }
 
     do
-      local current_container = nil
-      for _, container in ipairs(containers) do
-        -- We insert the current buffer after the others so it's always on top
-        if container.activity ~= buffer.activities.Current then
-          content = nodes.insert_many(
-            content,
-            container.position - scroll.current,
-            container.nodes)
-        else
-          current_container = container
-        end
+      local current_container
+      if current_buffer_index ~= nil and current_buffer_index.pinned == false then
+        current_container = table_remove(unpinned, current_buffer_index[1])
+      end
+
+      for _, container in ipairs(unpinned) do
+        content = nodes.insert_many(content, container.position - scroll.current, container.nodes)
       end
 
       if current_container ~= nil then
-        local container = current_container
-        content = nodes.insert_many(
-          content,
-          container.position - scroll.current,
-          container.nodes)
+        content = nodes.insert_many(content, current_container.position - scroll.current, current_container.nodes)
       end
     end
 
     do
       local inactive_separator = config.options.icons.inactive.separator.left
-      if inactive_separator ~= nil and #containers > 0 and
+      if inactive_separator ~= nil and #unpinned > 0 and
         data.buffers.unpinned_width + strwidth(inactive_separator) <= data.buffers.unpinned_allocated_width
       then
-        content = nodes.insert(
-          content,
-          data.buffers.used_width,
-          { text = inactive_separator, hl = HL.SIGN_INACTIVE })
+        content = nodes.insert(content, data.buffers.used_width, { text = inactive_separator, hl = HL.SIGN_INACTIVE })
       end
     end
 
-    if #pinned_containers > 0 then
-      local current_container = nil
-      for _, container in ipairs(pinned_containers) do
-        if container.activity ~= buffer.activities.Current then
-          content = nodes.insert_many(content, container.position, container.nodes)
-        else
-          current_container = container
-        end
+    if #pinned > 0 then
+      local current_container
+      if current_buffer_index ~= nil and current_buffer_index.pinned == true then
+        current_container = table_remove(pinned, current_buffer_index[1])
       end
+
+      for _, container in ipairs(pinned) do
+        content = nodes.insert_many(content, container.position - scroll.current, container.nodes)
+      end
+
       if current_container ~= nil then
-        local container = current_container
-        content = nodes.insert_many(content, container.position, container.nodes)
+        content = nodes.insert_many(content, current_container.position - scroll.current, current_container.nodes)
       end
     end
 
@@ -621,14 +605,18 @@ local function generate_tabline(bufnrs, refocus)
 
     local has_left_scroll = scroll.current > 0
     if has_left_scroll then
-      content = nodes.insert(content, data.buffers.pinned_width,
-        { hl = HL.SCROLL_ARROW, text = config.options.icons.scroll.left })
+      content = nodes.insert(content, data.buffers.pinned_width, {
+        hl = HL.SCROLL_ARROW,
+        text = config.options.icons.scroll.left,
+      })
     end
 
     local has_right_scroll = data.buffers.used_width - scroll.current > data.buffers.width
     if has_right_scroll then
-      content = nodes.insert(content, data.buffers.width - 1,
-        { hl = HL.SCROLL_ARROW, text = config.options.icons.scroll.right })
+      content = nodes.insert(content, data.buffers.width - 1, {
+        hl = HL.SCROLL_ARROW,
+        text = config.options.icons.scroll.right,
+      })
     end
 
     -- Render bufferline string
@@ -642,9 +630,10 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Tabpages
   if data.tabpages.width > 0 then
-    result = result .. nodes.to_string({
-      { hl = HL.TABPAGES, text = ' ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' ' },
-    })
+    result = result .. nodes.to_string({{
+      hl = HL.TABPAGES,
+      text = ' ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' ',
+    }})
   end
 
   -- Right offset
@@ -655,11 +644,7 @@ local function generate_tabline(bufnrs, refocus)
     local content = { { hl = hl, text = state.offset.right.text } }
     local content_max_width = state.offset.right.width - 2
 
-    offset_nodes =
-      nodes.insert_many(
-        offset_nodes,
-        1,
-        nodes.slice_right(content, content_max_width))
+    offset_nodes = nodes.insert_many(offset_nodes, 1, nodes.slice_right(content, content_max_width))
 
     result = result .. nodes.to_string(offset_nodes)
   end
