@@ -742,7 +742,10 @@ local function generate_tabline(bufnrs, refocus)
     do
       local inactive_separator = config.options.icons.inactive.separator.left
       local max_actual_position = max_used_position - scroll.current
-      if inactive_separator ~= nil and #unpinned_containers > 0 and
+      local total_containers = #pinned_containers + #unpinned_containers
+      if
+        inactive_separator ~= nil and
+        total_containers > 0 and
         max_actual_position + strwidth(inactive_separator) <= layout.buffers.width
       then
         content = Nodes.insert(
