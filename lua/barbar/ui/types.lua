@@ -5,7 +5,6 @@
 --- @field text string the content being rendered
 
 --- @class barbar.ui.container
---- @field activity barbar.buffer.activity
 --- @field nodes barbar.ui.node[]
 --- @field position integer
 --- @field width integer
