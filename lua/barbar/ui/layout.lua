@@ -114,8 +114,12 @@ end
 --- @param index integer the buffer's numerical index
 --- @return integer width
 function Layout.calculate_buffer_width(bufnr, index)
-  local buffer_activity = Buffer.activities[Buffer.get_activity(bufnr)]
   local buffer_data = state.get_buffer_data(bufnr)
+  if buffer_data.closing then
+    return buffer_data.width or buffer_data.computed_width or 0
+  end
+
+  local buffer_activity = Buffer.activities[Buffer.get_activity(bufnr)]
   local buffer_name = buffer_data.name or '[no name]'
 
   local icons_option = Buffer.get_icons(buffer_activity, buf_get_option(bufnr, 'modified'), buffer_data.pinned)
