@@ -1,4 +1,6 @@
 local deepcopy = vim.deepcopy
+local get_sign = vim.fn.sign_getdefined --- @type function
+local severity = vim.diagnostic.severity
 local table_concat = table.concat
 local tbl_deep_extend = vim.tbl_deep_extend
 
@@ -32,6 +34,10 @@ local DEFAULT_OPTIONS = {
   tabpages = true,
 }
 
+--- A cache for `sign_getdefined`
+--- @type string[]
+local diagnostic_sign_cache = {}
+
 --- @class barbar.config.options.hide
 --- @field alternate? boolean
 --- @field current? boolean
@@ -48,19 +54,13 @@ local DEFAULT_OPTIONS = {
 --- @field [2] barbar.config.options.icons.diagnostics.severity
 --- @field [3] barbar.config.options.icons.diagnostics.severity
 --- @field [4] barbar.config.options.icons.diagnostics.severity
-local DEFAULT_DIAGNOSTIC_ICONS = {
-  [vim.diagnostic.severity.ERROR] = { enabled = false, icon = 'Ⓧ ' },
-  [vim.diagnostic.severity.HINT] = { enabled = false, icon = '💡' },
-  [vim.diagnostic.severity.INFO] = { enabled = false, icon = 'ⓘ ' },
-  [vim.diagnostic.severity.WARN] = { enabled = false, icon = '⚠️ ' },
-}
 
 --- Deeply extend `icons` to include the `DEFAULT_DIAGNOSTIC_ICONS`
 --- HACK: required because `vim.tbl_deep_extend` does not deep extend lists.
 --- @param icons table
 --- @see vim.tbl_deep_extend
 local function tbl_deep_extend_diagnostic_icons(icons)
-  for i, default_diagnostic_severity_icons in ipairs(DEFAULT_DIAGNOSTIC_ICONS) do
+  for i, name in ipairs(severity) do
     local diagnostic_severity_icons = icons.diagnostics[i]
     if diagnostic_severity_icons == nil then
       diagnostic_severity_icons = {}
@@ -68,11 +68,18 @@ local function tbl_deep_extend_diagnostic_icons(icons)
     end
 
     if diagnostic_severity_icons.enabled == nil then
-      diagnostic_severity_icons.enabled = default_diagnostic_severity_icons.enabled
+      diagnostic_severity_icons.enabled = false
     end
 
     if diagnostic_severity_icons.icon == nil then
-      diagnostic_severity_icons.icon = default_diagnostic_severity_icons.icon
+      local cached = diagnostic_sign_cache[i]
+      if cached then
+        diagnostic_severity_icons.icon = cached
+      else
+        local sign = get_sign('DiagnosticSign' .. name:sub(1, 1) .. name:sub(2):lower())
+        diagnostic_severity_icons.icon = sign
+        diagnostic_sign_cache[i] = sign
+      end
     end
   end
 end
@@ -292,6 +299,8 @@ function config.setup(options)
 
     local modified_icons = icons.modified or {}
     local pinned_icons = icons.pinned or {}
+
+    diagnostic_sign_cache = {}
 
     -- resolve all of the icons for the activities
     for _, activity in ipairs { 'alternate', 'current', 'inactive', 'visible' } do
