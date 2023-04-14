@@ -5,6 +5,7 @@
 local max = math.max
 local min = math.min
 local table_insert = table.insert
+local table_remove = table.remove
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
@@ -37,36 +38,33 @@ local Layout = require'barbar.ui.layout'
 local state = require'barbar.state'
 local utils = require'barbar.utils'
 
+--- @class barbar.ui.render
+local render = {}
+
+
+-- Animation durations & delays
+local BUFFER_OP_DURATION = 150
+
+local OPEN_DELAY      = 10 -- Let autocmds & other plugins run, avoids jank
+local OPEN_DURATION   = BUFFER_OP_DURATION
+local MOVE_DURATION   = BUFFER_OP_DURATION
+local CLOSE_DURATION  = BUFFER_OP_DURATION
+local PIN_DURATION    = BUFFER_OP_DURATION
+local SCROLL_DURATION = 200
+
+
 --- Last value for tabline
 --- @type string
 local last_tabline = ''
-
---- Create valid `&tabline` syntax which highlights the next item in the tabline with the highlight `group` specified.
---- @param group string
---- @return string syntax
-local function wrap_hl(group)
-  return '%#' .. group .. '#'
-end
-
---- @class barbar.ui.render.animation
---- @field OPEN_DELAY integer
---- @field OPEN_DURATION integer
---- @field CLOSE_DURATION integer
---- @field SCROLL_DURATION integer
-local ANIMATION = {
-  OPEN_DELAY = 10,
-  OPEN_DURATION = 150,
-  CLOSE_DURATION = 150,
-  SCROLL_DURATION = 200,
-}
 
 --- @class barbar.ui.render.scroll
 --- @field current integer the place where the bufferline is currently scrolled to
 --- @field target integer the place where the bufferline is scrolled/wants to scroll to.
 local scroll = { current = 0, target = 0 }
 
---- @class barbar.ui.render
-local render = {}
+--- @type nil|barbar.animate.state
+local current_animation = nil
+
 
 --- An incremental animation for `close_buffer_animated`.
 --- @param bufnr integer
@@ -106,8 +104,9 @@ function render.close_buffer_animated(bufnr)
   buffer_data.closing = true
   buffer_data.width = current_width
 
-  animate.start(
-    ANIMATION.CLOSE_DURATION, current_width, 0, vim.v.t_number,
+  current_animation = animate.stop(current_animation)
+  current_animation = animate.start(
+    CLOSE_DURATION, current_width, 0, vim.v.t_number,
     function(new_width, m)
       close_buffer_animated_tick(bufnr, new_width, m)
     end)
@@ -143,12 +142,13 @@ local function open_buffer_start_animation(layout, bufnr)
   buffer_data.width = 1
 
   defer_fn(function()
-    animate.start(
-      ANIMATION.OPEN_DURATION, 1, target_width, vim.v.t_number,
+    current_animation = animate.stop(current_animation)
+    current_animation = animate.start(
+      OPEN_DURATION, 1, target_width, vim.v.t_number,
       function(new_width, animation)
         open_buffer_animated_tick(bufnr, new_width, animation)
       end)
-  end, ANIMATION.OPEN_DELAY)
+  end, OPEN_DELAY)
 end
 
 --- Open the `new_buffers` in the bufferline.
@@ -214,6 +214,174 @@ local function open_buffers(new_buffers)
     open_buffer_start_animation(layout, buffer_number)
   end
 end
+
+--- Move a buffer (with animation, if configured).
+--- @param from_idx integer the buffer's original index.
+--- @param to_idx integer the buffer's new index.
+--- @return nil
+function render.move_buffer(from_idx, to_idx)
+  to_idx = max(1, min(#state.buffers, to_idx))
+  if to_idx == from_idx then
+    return
+  end
+
+  local animation = config.options.animation
+  local buffer_number = state.buffers[from_idx]
+
+  local previous_positions
+  if animation == true then
+    previous_positions = Layout.calculate_buffers_position_by_buffer_number()
+  end
+
+  table_remove(state.buffers, from_idx)
+  table_insert(state.buffers, to_idx, buffer_number)
+  state.sort_pins_to_left()
+
+  if animation == false then
+    return render.update()
+  end
+
+  local current_index = utils.index_of(Layout.buffers, buffer_number)
+  local start_index = min(from_idx, current_index)
+  local end_index   = max(from_idx, current_index)
+
+  if start_index == end_index then
+    return
+  end
+
+  local next_positions = Layout.calculate_buffers_position_by_buffer_number()
+
+  for _, layout_bufnr  in ipairs(Layout.buffers) do
+    local current_data = state.get_buffer_data(layout_bufnr)
+
+    local previous_position = previous_positions[layout_bufnr]
+    local next_position     = next_positions[layout_bufnr]
+
+    if next_position ~= previous_position then
+      current_data.position = previous_positions[layout_bufnr]
+    end
+  end
+
+  local move_animation_data = {
+    previous_positions = previous_positions,
+    next_positions = next_positions,
+  }
+
+  current_animation = animate.stop(current_animation)
+  current_animation = animate.start(MOVE_DURATION, 0, 1, vim.v.t_float,
+    function(ratio, current_state)
+      for _, current_number in ipairs(Layout.buffers) do
+        local current_data = state.get_buffer_data(current_number)
+
+        if current_state.running == true then
+          current_data.position = animate.lerp(
+            ratio,
+            (move_animation_data.previous_positions or {})[current_number],
+            (move_animation_data.next_positions or {})[current_number]
+          )
+        else
+          current_data.position = nil
+        end
+      end
+
+      render.update()
+
+      if current_state.running == false then
+        move_animation_data.next_positions = nil
+        move_animation_data.previous_positions = nil
+      end
+    end)
+end
+
+
+--- Toggle the `bufnr`'s "pin" state, visually.
+--- @param buffer_number integer
+--- @return nil
+function render.toggle_pin(buffer_number)
+  local previous_data_by_bufnr = vim.deepcopy(state.data_by_bufnr)
+
+  state.toggle_pin(buffer_number)
+
+  if config.options.animation == false then
+    return render.update()
+  end
+
+  current_animation = animate.stop(current_animation)
+  current_animation = animate.start(PIN_DURATION, 0, 1, vim.v.t_float,
+    function (ratio, current_state)
+      for _, current_number in ipairs(Layout.buffers) do
+        local previous_data = state.get_buffer_data(current_number, previous_data_by_bufnr)
+        local current_data  = state.get_buffer_data(current_number)
+
+        local previous_width    = previous_data.width    or previous_data.computed_width
+        local previous_padding  = previous_data.padding  or previous_data.computed_padding
+        local previous_position = previous_data.position or previous_data.computed_position
+
+        local next_width    = current_data.computed_width
+        local next_padding  = current_data.computed_padding
+        local next_position = current_data.computed_position
+
+        if current_state.running == true then
+          if previous_width and next_width then
+            current_data.width = math.floor(animate.lerp(ratio, previous_width, next_width, vim.v.t_float))
+          end
+          if previous_padding and next_padding then
+            current_data.padding = math.floor(animate.lerp(ratio, previous_padding, next_padding, vim.v.t_float))
+          end
+          if previous_position and next_position then
+            current_data.position = math.ceil(animate.lerp(ratio, previous_position, next_position, vim.v.t_float))
+          end
+        else
+          current_data.width = nil
+          current_data.padding = nil
+          current_data.position = nil
+        end
+      end
+
+      render.update()
+    end)
+end
+
+
+--- Scroll the bufferline relative to its current position.
+--- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
+--- @return nil
+function render.scroll(n)
+  render.set_scroll(max(0, scroll.target + n))
+end
+
+local scroll_animation = nil
+
+--- An incremental animation for `set_scroll`.
+--- @return nil
+local function set_scroll_tick(new_scroll, animation)
+  scroll.current = new_scroll
+  if animation.running == false then
+    scroll_animation = nil
+  end
+  render.update(nil, false)
+end
+
+--- Scrolls the bufferline to the `target`.
+--- @param target integer where to scroll to
+--- @return nil
+function render.set_scroll(target)
+  scroll.target = target
+
+  if not config.options.animation then
+    scroll.current = target
+    return render.update(nil, false)
+  end
+
+  if scroll_animation ~= nil then
+    animate.stop(scroll_animation)
+  end
+
+  scroll_animation = animate.start(
+    SCROLL_DURATION, scroll.current, target, vim.v.t_number,
+    set_scroll_tick)
+end
+
 
 --- Refresh the buffer list.
 --- @return integer[] state.buffers
@@ -287,45 +455,6 @@ function render.set_current_win_listed_buffer()
   return current
 end
 
---- Scroll the bufferline relative to its current position.
---- @param n integer the amount to scroll by. Use negative numbers to scroll left, and positive to scroll right.
---- @return nil
-function render.scroll(n)
-  render.set_scroll(max(0, scroll.target + n))
-end
-
-local scroll_animation = nil
-
---- An incremental animation for `set_scroll`.
---- @return nil
-local function set_scroll_tick(new_scroll, animation)
-  scroll.current = new_scroll
-  if animation.running == false then
-    scroll_animation = nil
-  end
-  render.update(nil, false)
-end
-
---- Scrolls the bufferline to the `target`.
---- @param target integer where to scroll to
---- @return nil
-function render.set_scroll(target)
-  scroll.target = target
-
-  if not config.options.animation then
-    scroll.current = target
-    return render.update(nil, false)
-  end
-
-  if scroll_animation ~= nil then
-    animate.stop(scroll_animation)
-  end
-
-  scroll_animation = animate.start(
-    ANIMATION.SCROLL_DURATION, scroll.current, target, vim.v.t_number,
-    set_scroll_tick)
-end
-
 --- Sets and redraws `'tabline'` if `s` does not match the cached value.
 --- @param s? string
 --- @return nil
@@ -336,6 +465,13 @@ function render.set_tabline(s)
     set_option('tabline', s)
     command('redrawtabline')
   end
+end
+
+--- Create valid `&tabline` syntax which highlights the next item in the tabline with the highlight `group` specified.
+--- @param group string
+--- @return string syntax
+local function wrap_hl(group)
+  return '%#' .. group .. '#'
 end
 
 --- Compute the buffer hl-groups
@@ -365,10 +501,12 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
 
     if pinned then
       buffer_data.computed_position = accumulated_pinned_width
-      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], config.options.minimum_padding)
+      buffer_data.computed_padding  = config.options.minimum_padding
+      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], buffer_data.computed_padding)
     else
       buffer_data.computed_position = accumulated_unpinned_width + layout.buffers.pinned_width
-      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], layout.buffers.padding)
+      buffer_data.computed_padding  = layout.buffers.padding
+      buffer_data.computed_width    = Layout.calculate_width(layout.buffers.base_widths[i], buffer_data.computed_padding)
     end
 
     local container_width = buffer_data.width or buffer_data.computed_width
@@ -486,7 +624,10 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
     local left_separator = { hl = clickable .. hl_sign, text = icons_option.separator.left }
 
     --- @type barbar.ui.node
-    local padding = { hl = buffer_hl, text = pinned and pinned_pad_text or unpinned_pad_text }
+    local padding = { hl = buffer_hl, text =
+      buffer_data.padding and (' '):rep(buffer_data.padding) or
+                   pinned and pinned_pad_text or
+                              unpinned_pad_text }
 
     local container = { --- @type barbar.ui.container
       activity = activity,
@@ -508,6 +649,10 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
     local right_separator = { hl = left_separator.hl, text = icons_option.separator.right }
 
     list_extend(container.nodes, { padding, button, right_separator })
+    if container_width then
+      container.nodes = Nodes.slice_right(container.nodes, container_width)
+    end
+
     table_insert(pinned and pinned_containers or containers, container)
 
     if done then
@@ -533,7 +678,7 @@ local HL = {
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   local layout = Layout.calculate()
-  local pinned_containers, containers = get_bufferline_containers(layout, bufnrs, refocus)
+  local pinned_containers, unpinned_containers = get_bufferline_containers(layout, bufnrs, refocus)
 
   -- Create actual tabline string
   local result = ''
@@ -560,43 +705,10 @@ local function generate_tabline(bufnrs, refocus)
     --- @type barbar.ui.container
     local content = { { hl = HL.FILL, text = (' '):rep(layout.buffers.width) } }
 
-    do
-      local current_container = nil
-      for _, container in ipairs(containers) do
-        -- We insert the current buffer after the others so it's always on top
-        if container.activity ~= Buffer.activities.Current then
-          content = Nodes.insert_many(
-            content,
-            container.position - scroll.current,
-            container.nodes)
-        else
-          current_container = container
-        end
-      end
-
-      if current_container ~= nil then
-        local container = current_container
-        content = Nodes.insert_many(
-          content,
-          container.position - scroll.current,
-          container.nodes)
-      end
-    end
-
-    do
-      local inactive_separator = config.options.icons.inactive.separator.left
-      if inactive_separator ~= nil and #containers > 0 and
-        layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width
-      then
-        content = Nodes.insert(
-          content,
-          layout.buffers.used_width,
-          { text = inactive_separator, hl = HL.SIGN_INACTIVE })
-      end
-    end
+    local current_container = nil
+    local max_used_position = 0
 
     if #pinned_containers > 0 then
-      local current_container = nil
       for _, container in ipairs(pinned_containers) do
         if container.activity ~= Buffer.activities.Current then
           content = Nodes.insert_many(content, container.position, container.nodes)
@@ -604,9 +716,42 @@ local function generate_tabline(bufnrs, refocus)
           current_container = container
         end
       end
-      if current_container ~= nil then
-        local container = current_container
-        content = Nodes.insert_many(content, container.position, container.nodes)
+    end
+
+    do
+      for _, container in ipairs(unpinned_containers) do
+        -- We insert the current buffer after the others so it's always on top
+        if container.activity ~= Buffer.activities.Current then
+          content = Nodes.insert_many(
+            content,
+            container.position - scroll.current,
+            container.nodes)
+          max_used_position = max(max_used_position, container.position + container.width)
+        else
+          current_container = container
+        end
+      end
+    end
+
+    if current_container ~= nil then
+      local container = current_container
+      content = Nodes.insert_many(content, container.position, container.nodes)
+      max_used_position = max(max_used_position, container.position + container.width)
+    end
+
+    do
+      local inactive_separator = config.options.icons.inactive.separator.left
+      local max_actual_position = max_used_position - scroll.current
+      local total_containers = #pinned_containers + #unpinned_containers
+      if
+        inactive_separator ~= nil and
+        total_containers > 0 and
+        max_actual_position + strwidth(inactive_separator) <= layout.buffers.width
+      then
+        content = Nodes.insert(
+          content,
+          max_actual_position,
+          { text = inactive_separator, hl = HL.SIGN_INACTIVE })
       end
     end
 
@@ -662,14 +807,9 @@ local function generate_tabline(bufnrs, refocus)
   end
 
   -- NOTE: For development or debugging purposes, the following code can be used:
-  -- ```lua
-  -- local text = Nodes.to_raw_string(bufferline_nodes, true)
-  -- if layout.buffers.unpinned_width + strwidth(inactive_separator) <= layout.buffers.unpinned_allocated_width and #items > 0 then
-  --   text = text .. Nodes.to_raw_string({{ text = inactive_separator or '', hl = wrap_hl('BufferInactiveSign') }}, true)
-  -- end
-  -- local data = vim.json.encode({ metadata = 42 })
-  -- fs.write('barbar.debug.txt', text .. ':' .. data .. '\n', 'a')
-  -- ```
+  -- local containers = { unpack(pinned_containers), unpack(unpinned_containers) }
+  -- local data = vim.json.encode(containers)
+  -- fs.write('barbar.debug.txt', result .. ':' .. data .. '\n', 'a')
 
   return result .. HL.FILL
 end

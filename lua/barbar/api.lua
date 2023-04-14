@@ -1,8 +1,6 @@
 local char = string.char
 local max = math.max
 local min = math.min
-local table_insert = table.insert
-local table_remove = table.remove
 local table_sort = table.sort
 
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
@@ -16,12 +14,9 @@ local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
 
-local animate = require'barbar.animate'
 local bbye = require'barbar.bbye'
 local Buffer = require'barbar.buffer'
-local config = require'barbar.config'
 local JumpMode = require'barbar.jump_mode'
-local Layout = require'barbar.ui.layout'
 local render = require'barbar.ui.render'
 local state = require'barbar.state'
 local utils = require'barbar.utils'
@@ -213,101 +208,6 @@ function api.goto_buffer_relative(steps)
   set_current_buf(state.buffers[(idx + steps - 1) % #state.buffers + 1])
 end
 
-local move_animation = nil --- @type nil|barbar.animate.state
-local move_animation_data = {
-  next_positions = nil, --- @type nil|integer[]
-  previous_positions = nil --- @type nil|integer[]
-}
-
---- An incremental animation for `move_buffer_animated`.
---- @return nil
-local function move_buffer_animated_tick(ratio, current_animation)
-  for _, current_number in ipairs(Layout.buffers) do
-    local current_data = state.get_buffer_data(current_number)
-
-    if current_animation.running == true then
-      current_data.position = animate.lerp(
-        ratio,
-        (move_animation_data.previous_positions or {})[current_number],
-        (move_animation_data.next_positions or {})[current_number]
-      )
-    else
-      current_data.position = nil
-      current_data.moving = false
-    end
-  end
-
-  render.update()
-
-  if current_animation.running == false then
-    move_animation = nil
-    move_animation_data.next_positions = nil
-    move_animation_data.previous_positions = nil
-  end
-end
-
-local MOVE_DURATION = 150
-
---- Move a buffer (with animation, if configured).
---- @param from_idx integer the buffer's original index.
---- @param to_idx integer the buffer's new index.
---- @return nil
-local function move_buffer(from_idx, to_idx)
-  to_idx = max(1, min(#state.buffers, to_idx))
-  if to_idx == from_idx then
-    return
-  end
-
-  local animation = config.options.animation
-  local buffer_number = state.buffers[from_idx]
-
-  local previous_positions
-  if animation == true then
-    previous_positions = Layout.calculate_buffers_position_by_buffer_number()
-  end
-
-  table_remove(state.buffers, from_idx)
-  table_insert(state.buffers, to_idx, buffer_number)
-  state.sort_pins_to_left()
-
-  if animation == true then
-    local current_index = utils.index_of(Layout.buffers, buffer_number)
-    local start_index = min(from_idx, current_index)
-    local end_index   = max(from_idx, current_index)
-
-    if start_index == end_index then
-      return
-    elseif move_animation ~= nil then
-      animate.stop(move_animation)
-    end
-
-    local next_positions = Layout.calculate_buffers_position_by_buffer_number()
-
-    for _, layout_bufnr  in ipairs(Layout.buffers) do
-      local current_data = state.get_buffer_data(layout_bufnr)
-
-      local previous_position = previous_positions[layout_bufnr]
-      local next_position     = next_positions[layout_bufnr]
-
-      if next_position ~= previous_position then
-        current_data.position = previous_positions[layout_bufnr]
-        current_data.moving = true
-      end
-    end
-
-    move_animation_data = {
-      previous_positions = previous_positions,
-      next_positions = next_positions,
-    }
-
-    move_animation =
-      animate.start(MOVE_DURATION, 0, 1, vim.v.t_float,
-        function(ratio, current_animation) move_buffer_animated_tick(ratio, current_animation) end)
-  end
-
-  render.update()
-end
-
 --- Move the current buffer to the index specified.
 --- @param idx integer
 --- @return nil
@@ -325,7 +225,7 @@ function api.move_current_buffer_to(idx)
     return notify_buffer_not_found(current_bufnr)
   end
 
-  move_buffer(from_idx, idx)
+  render.move_buffer(from_idx, idx)
 end
 
 --- Move the current buffer a certain number of times over.
@@ -341,7 +241,7 @@ function api.move_current_buffer(steps)
     return notify_buffer_not_found(current_bufnr)
   end
 
-  move_buffer(idx, idx + steps)
+  render.move_buffer(idx, idx + steps)
 end
 
 --- Order the buffers by their buffer number.
@@ -472,8 +372,7 @@ end
 --- @param buffer_number? integer
 --- @return nil
 function api.toggle_pin(buffer_number)
-  state.toggle_pin(buffer_number or 0)
-  render.update()
+  render.toggle_pin(buffer_number or 0)
 end
 
 return api
