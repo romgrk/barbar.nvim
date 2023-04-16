@@ -7,10 +7,10 @@ local min = math.min
 local table_concat = table.concat
 local table_insert = table.insert
 
-local bufnr = vim.fn.bufnr --- @type function
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
+local bufnr = vim.fn.bufnr --- @type function
 local bufwinnr = vim.fn.bufwinnr --- @type function
 local ERROR = vim.diagnostic.severity.ERROR --- @type integer
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
@@ -77,6 +77,24 @@ local function count_diagnostics(buffer_number)
   return count
 end
 
+--- @param buffer_number integer
+--- @return integer[] # based on `gitsigns_status_dict`
+local function get_git_status(buffer_number)
+  local git_status = { added = 0, changed = 0, deleted = 0 }
+
+  local ok, gitsigns_status_dict = pcall(vim.api.nvim_buf_get_var, buffer_number, "gitsigns_status_dict")
+
+  if ok and gitsigns_status_dict ~= nil then
+    git_status = {
+      added = gitsigns_status_dict.added,
+      deleted = gitsigns_status_dict.removed,
+      changed = gitsigns_status_dict.changed,
+    }
+  end
+
+  return git_status
+end
+
 --- @class barbar.buffer
 local buffer = {
   activities = activities,
@@ -90,6 +108,7 @@ local buffer = {
   --- @return nil
   for_each_counted_enabled_diagnostic = function(buffer_number, diagnostics, f)
     local count
+
     for severity_idx, severity_option in ipairs(diagnostics) do
       if severity_option.enabled then
         if count == nil then
@@ -98,6 +117,29 @@ local buffer = {
 
         if count[severity_idx] > 0 then
           f(count[severity_idx], severity_idx, severity_option)
+        end
+      end
+    end
+  end,
+
+  get_git_status = get_git_status,
+
+  --- For each status in `git`: if it is enabled, and there is a git status associated with the buffer (`buffer_number`), call `f`.
+  --- @param buffer_number integer the buffer number to get git status
+  --- @param git barbar.config.options.icons.buffer.git the user configuration for git status
+  --- @param f fun(count: integer, git_status: string, option: barbar.config.options.icons.git.status) the function to run when a specific git status is enabled and present in the `buffer_number`
+  --- @return nil
+  for_each_enabled_git_status = function(buffer_number, git, f)
+    local count
+
+    for git_status, git_status_option in pairs(git) do
+      if git_status_option.enabled then
+        if count == nil then
+          count = get_git_status(buffer_number)
+        end
+
+        if count[git_status] ~= nil and count[git_status] > 0 then
+          f(count[git_status], git_status, git_status_option)
         end
       end
     end

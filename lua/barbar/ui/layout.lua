@@ -152,6 +152,10 @@ function Layout.calculate_buffer_width(bufnr, index)
     width = width + SPACE_LEN + strwidth(option.icon) + #tostring(count)
   end)
 
+  Buffer.for_each_enabled_git_status(bufnr, icons_option.git, function(count, _, option)
+    width = width + SPACE_LEN + strwidth(option.icon) + #tostring(count)
+  end)
+
   local button = icons_option.button
   if button and #button > 0 then
     width = width + strwidth(button) + SPACE_LEN

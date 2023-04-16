@@ -132,6 +132,12 @@ function events.enable()
     }
   )
 
+  create_autocmd('User', {
+    pattern = 'GitSignsUpdate',
+    callback = function() render.update() end,
+    group = augroup_render,
+  })
+
   if not tbl_isempty(config.options.sidebar_filetypes) then
     --- The `middle` column of the screen
     --- @type integer

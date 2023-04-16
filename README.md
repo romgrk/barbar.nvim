@@ -297,6 +297,11 @@ require'barbar'.setup {
       [vim.diagnostic.severity.INFO] = {enabled = false},
       [vim.diagnostic.severity.HINT] = {enabled = true},
     },
+    git = {
+      added = {enabled = true, icon = '+'},
+      changed = {enabled = true, icon = '~'},
+      deleted = {enabled = true, icon = '-'},
+    },
     filetype = {
       -- Sets the icon's highlight group.
       -- If false, will use nvim-web-devicons colors
@@ -374,18 +379,21 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 | `Inactive`  | `:h hidden-buffer`s and `:h inactive-buffer`s.          |
 | `Visible`   | `:h active-buffer`s which are not alternate or current. |
 
-| `<PART>` | Meaning                                                                              |
-|:---------|:-------------------------------------------------------------------------------------|
-| `ERROR`  | Diagnostic errors.                                                                   |
-| `HINT`   | Diagnostic hints.                                                                    |
-| `Icon`   | The filetype icon (when `icons.filetype == {custom_colors = true, enabled = true}`). |
-| `Index`  | The buffer's position in the tabline.                                                |
-| `Number` | The `:h bufnr()`.                                                                    |
-| `INFO`   | Diagnostic info.                                                                     |
-| `Mod`    | When the buffer is modified.                                                         |
-| `Sign`   | The separator between buffers.                                                       |
-| `Target` | The letter in buffer-pick mode.                                                      |
-| `WARN`   | Diagnostic warnings.                                                                 |
+| `<PART>`  | Meaning                                                                              |
+|:----------|:-------------------------------------------------------------------------------------|
+| `Icon`    | The filetype icon (when `icons.filetype == {custom_colors = true, enabled = true}`). |
+| `Index`   | The buffer's position in the tabline.                                                |
+| `Mod`     | When the buffer is modified.                                                         |
+| `Number`  | The `:h bufnr()`.                                                                    |
+| `Sign`    | The separator between buffers.                                                       |
+| `Target`  | The letter in buffer-pick mode.                                                      |
+| `ERROR`   | Diagnostic errors.                                                                   |
+| `HINT`    | Diagnostic hints.                                                                    |
+| `INFO`    | Diagnostic info.                                                                     |
+| `WARN`    | Diagnostic warnings.                                                                 |
+| `ADDED`   | Git status added.                                                                    |
+| `CHANGED` | Git status changed.                                                                  |
+| `DELETED` | Git status deleted.                                                                  |
 
 * e.g. the current buffer's highlight when modified is `BufferCurrentMod`
 

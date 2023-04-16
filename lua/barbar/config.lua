@@ -54,6 +54,20 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
   [vim.diagnostic.severity.WARN] = { enabled = false, icon = '⚠️ ' },
 }
 
+--- @class barbar.config.options.icons.git.status
+--- @field enabled boolean
+--- @field icon string
+
+--- @class barbar.config.options.icons.buffer.git
+--- @field [1] barbar.config.options.icons.git.status
+--- @field [2] barbar.config.options.icons.git.status
+--- @field [3] barbar.config.options.icons.git.status
+local DEFAULT_GIT_ICONS = {
+  added = { enabled = false, icon = "+" },
+  changed = { enabled = false, icon = "~" },
+  deleted = { enabled = false, icon = "-" },
+}
+
 --- @class barbar.config.options.icons.buffer.filetype
 --- @field custom_colors? boolean if present, this color will be used for ALL filetype icons
 --- @field enabled? boolean iff `true`, show the `devicons` for the associated buffer's `filetype`.
@@ -72,6 +86,7 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
 --- @field filename? boolean iff `true`, show the filename
 --- @field button? false|string the button which is clicked to close / save a buffer, or indicate that it is pinned.
 --- @field diagnostics? barbar.config.options.icons.buffer.diagnostics the diagnostic icons
+--- @field git? barbar.config.options.icons.buffer.git the git status icons
 --- @field filetype? barbar.config.options.icons.buffer.filetype filetype icon options
 --- @field separator? barbar.config.options.icons.buffer.separator the left-hand separator between buffers in the tabline
 
@@ -90,6 +105,7 @@ local DEFAULT_ICONS = {
   buffer_number = false,
   button = '',
   diagnostics = {},
+  git = {},
   filename = true,
   filetype = { enabled = true },
   inactive = { separator = { left = '▎', right = '' } },
@@ -265,6 +281,27 @@ function config.setup(options)
     end
   end
 
+  for i, default_git_status_icons in pairs(DEFAULT_GIT_ICONS) do
+    local git_status_icons = config.options.icons.git[i] or {}
+
+    -- When one of the git status is enabled but 'gitsigns.nvim' is not installed, inform the user.
+    if git_status_icons.enabled == true then
+      local gitsigns_installed, _ = pcall(require, 'gitsigns')
+
+      if not gitsigns_installed then
+        utils.notify_once('Can not display Git status indicators, please install the dependency \'gitsigns.nvim\'.', vim.log.levels.WARN)
+      end
+    end
+
+    if git_status_icons.enabled == nil then
+      git_status_icons.enabled = default_git_status_icons.enabled
+    end
+
+    if git_status_icons.icon == nil then
+      git_status_icons.icon = default_git_status_icons.icon
+    end
+  end
+
   local icons = config.options.icons
 
   --- `config.options.icons` without the recursive structure
@@ -275,6 +312,7 @@ function config.setup(options)
     filename = icons.filename,
     button = icons.button,
     diagnostics = icons.diagnostics,
+    git = icons.git,
     filetype = icons.filetype,
     separator = icons.separator,
   }
