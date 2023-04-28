@@ -381,19 +381,19 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 
 | `<PART>`  | Meaning                                                                              |
 |:----------|:-------------------------------------------------------------------------------------|
+| `ADDED`   | Git status added.                                                                    |
+| `CHANGED` | Git status changed.                                                                  |
+| `DELETED` | Git status deleted.                                                                  |
+| `ERROR`   | Diagnostic errors.                                                                   |
+| `HINT`    | Diagnostic hints.                                                                    |
 | `Icon`    | The filetype icon (when `icons.filetype == {custom_colors = true, enabled = true}`). |
 | `Index`   | The buffer's position in the tabline.                                                |
+| `INFO`    | Diagnostic info.                                                                     |
 | `Mod`     | When the buffer is modified.                                                         |
 | `Number`  | The `:h bufnr()`.                                                                    |
 | `Sign`    | The separator between buffers.                                                       |
 | `Target`  | The letter in buffer-pick mode.                                                      |
-| `ERROR`   | Diagnostic errors.                                                                   |
-| `HINT`    | Diagnostic hints.                                                                    |
-| `INFO`    | Diagnostic info.                                                                     |
 | `WARN`    | Diagnostic warnings.                                                                 |
-| `ADDED`   | Git status added.                                                                    |
-| `CHANGED` | Git status changed.                                                                  |
-| `DELETED` | Git status deleted.                                                                  |
 
 * e.g. the current buffer's highlight when modified is `BufferCurrentMod`
 
