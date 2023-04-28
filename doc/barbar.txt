@@ -277,12 +277,17 @@ icons ~
                     }
 <           )
 
+                                              *barbar-setup.icons.git.enabled*
+    icons.git.enabled ~
+      `boolean`  (default: `true`)
+      Enables showing git changes of this type.
+
                                                  *barbar-setup.icons.git.icon*
-     icons.git.icon ~
-       `boolean`  (defaults: `'+'`, `'-'`, `'~'`)
+    icons.git.icon ~
+      `boolean`  (default: `'+'`, `'-'`, `'~'`)
        The icon which accompanies the number of git status.
 
-     Example that disables the 'added' icon, but still shows the count: >
+    Example that disables the "added" icon, but still shows the count: >
       require'barbar'.setup {icons = {git = {
         added = {enabled = true, icon = ''},
       }}}
