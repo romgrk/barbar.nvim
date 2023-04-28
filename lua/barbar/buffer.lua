@@ -29,6 +29,8 @@ local utils = require'barbar.utils'
 local ELLIPSIS = '…'
 local ELLIPSIS_LEN = strwidth(ELLIPSIS)
 
+local GIT_STATUSES = {'added', 'changed', 'deleted'}
+
 --- @alias barbar.buffer.activity 1|2|3|4
 
 --- @alias barbar.buffer.activity.name 'Inactive'|'Alternate'|'Visible'|'Current'
@@ -132,7 +134,8 @@ local buffer = {
   for_each_enabled_git_status = function(buffer_number, git, f)
     local count
 
-    for git_status, git_status_option in pairs(git) do
+    for _, git_status in ipairs(GIT_STATUSES) do
+      local git_status_option = git[git_status]
       if git_status_option.enabled then
         if count == nil then
           count = get_git_status(buffer_number)
