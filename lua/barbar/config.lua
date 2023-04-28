@@ -1,4 +1,3 @@
-local deepcopy = vim.deepcopy
 local table_concat = table.concat
 local tbl_deep_extend = vim.tbl_deep_extend
 
@@ -7,30 +6,6 @@ local utils = require('barbar.utils')
 
 --- The prefix used for `utils.deprecate`
 local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
-
---- @type barbar.config.options
-local DEFAULT_OPTIONS = {
-  animation = true,
-  auto_hide = false,
-  clickable = true,
-  exclude_ft = {},
-  exclude_name = {},
-  focus_on_close = 'left',
-  hide = {},
-  highlight_alternate = false,
-  highlight_inactive_file_icons = false,
-  highlight_visible = true,
-  insert_at_end = false,
-  insert_at_start = false,
-  letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
-  maximum_length = 30,
-  maximum_padding = 4,
-  minimum_padding = 1,
-  no_name_title = nil,
-  semantic_letters = true,
-  sidebar_filetypes = {},
-  tabpages = true,
-}
 
 --- @class barbar.config.options.hide
 --- @field alternate? boolean
@@ -118,24 +93,6 @@ end
 --- @field inactive barbar.config.options.icons.state the icons for inactive buffers
 --- @field visible barbar.config.options.icons.state the icons for visible buffers
 --- @field scroll barbar.config.options.icons.scroll the scroll arrows
-local DEFAULT_ICONS = {
-  buffer_index = false,
-  buffer_number = false,
-  button = '',
-  diagnostics = {},
-  gitsigns = {
-    added = { enabled = false, icon = '+' },
-    changed = { enabled = false, icon = '~' },
-    deleted = { enabled = false, icon = '-' },
-  },
-  filename = true,
-  filetype = { enabled = true },
-  inactive = { separator = { left = '▎', right = '' } },
-  modified = { button = '●' },
-  pinned = { button = false, filename = false },
-  separator = { left = '▎', right = '' },
-  scroll = { left = '❮', right = '❯' }
-}
 
 --- @alias barbar.config.options.icons.preset boolean|"both"|"buffer_number_with_icon"|"buffer_numbers"|"numbers"
 
@@ -279,7 +236,24 @@ function config.setup(options)
     end
   end
 
-  local default_icons = deepcopy(DEFAULT_ICONS)
+  local default_icons = {
+    buffer_index = false,
+    buffer_number = false,
+    button = '',
+    diagnostics = {},
+    gitsigns = {
+      added = { enabled = false, icon = '+' },
+      changed = { enabled = false, icon = '~' },
+      deleted = { enabled = false, icon = '-' },
+    },
+    filename = true,
+    filetype = { enabled = true },
+    inactive = { separator = { left = '▎', right = '' } },
+    modified = { button = '●' },
+    pinned = { button = false, filename = false },
+    separator = { left = '▎', right = '' },
+    scroll = { left = '❮', right = '❯' }
+  }
 
   do
     local pinned_icons = options.icons and options.icons.pinned
@@ -288,7 +262,29 @@ function config.setup(options)
     end
   end
 
-  config.options = tbl_deep_extend('keep', options, DEFAULT_OPTIONS, { icons = default_icons })
+  config.options = tbl_deep_extend('keep', options, {
+    animation = true,
+    auto_hide = false,
+    clickable = true,
+    exclude_ft = {},
+    exclude_name = {},
+    focus_on_close = 'left',
+    hide = {},
+    icons = default_icons,
+    highlight_alternate = false,
+    highlight_inactive_file_icons = false,
+    highlight_visible = true,
+    insert_at_end = false,
+    insert_at_start = false,
+    letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
+    maximum_length = 30,
+    maximum_padding = 4,
+    minimum_padding = 1,
+    no_name_title = nil,
+    semantic_letters = true,
+    sidebar_filetypes = {},
+    tabpages = true,
+  })
 
   do
     local icons = config.options.icons
