@@ -297,7 +297,7 @@ require'barbar'.setup {
       [vim.diagnostic.severity.INFO] = {enabled = false},
       [vim.diagnostic.severity.HINT] = {enabled = true},
     },
-    git = {
+    gitsigns = {
       added = {enabled = true, icon = '+'},
       changed = {enabled = true, icon = '~'},
       deleted = {enabled = true, icon = '-'},

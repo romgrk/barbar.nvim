@@ -504,7 +504,7 @@ local function get_bufferline_containers(layout, bufnrs, refocus)
       })
     end)
 
-    Buffer.for_each_enabled_git_status(bufnr, icons_option.git, function(count, idx, option)
+    Buffer.for_each_enabled_git_status(bufnr, icons_option.gitsigns, function(count, idx, option)
       table_insert(container.nodes, {
         hl = wrap_hl('Buffer' .. activity_name .. idx:upper()),
         text = ' ' .. option.icon .. count,

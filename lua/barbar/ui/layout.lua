@@ -152,7 +152,7 @@ function Layout.calculate_buffer_width(bufnr, index)
     width = width + SPACE_LEN + strwidth(option.icon) + #tostring(count)
   end)
 
-  Buffer.for_each_enabled_git_status(bufnr, icons_option.git, function(count, _, option)
+  Buffer.for_each_enabled_git_status(bufnr, icons_option.gitsigns, function(count, _, option)
     width = width + SPACE_LEN + strwidth(option.icon) + #tostring(count)
   end)
 
