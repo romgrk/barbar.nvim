@@ -134,7 +134,7 @@ function events.enable()
 
   create_autocmd('User', {
     pattern = 'GitSignsUpdate',
-    callback = function() render.update() end,
+    callback = vim.schedule_wrap(function() render.update() end),
     group = augroup_render,
   })
 
