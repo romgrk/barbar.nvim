@@ -1,35 +1,11 @@
-local deepcopy = vim.deepcopy
 local table_concat = table.concat
 local tbl_deep_extend = vim.tbl_deep_extend
 
-local utils = require'barbar.utils'
+local table_set = require('barbar.utils.table').set
+local utils = require('barbar.utils')
 
 --- The prefix used for `utils.deprecate`
 local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
-
---- @type barbar.config.options
-local DEFAULT_OPTIONS = {
-  animation = true,
-  auto_hide = false,
-  clickable = true,
-  exclude_ft = {},
-  exclude_name = {},
-  focus_on_close = 'left',
-  hide = {},
-  highlight_alternate = false,
-  highlight_inactive_file_icons = false,
-  highlight_visible = true,
-  insert_at_end = false,
-  insert_at_start = false,
-  letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
-  maximum_length = 30,
-  maximum_padding = 4,
-  minimum_padding = 1,
-  no_name_title = nil,
-  semantic_letters = true,
-  sidebar_filetypes = {},
-  tabpages = true,
-}
 
 --- @class barbar.config.options.hide
 --- @field alternate? boolean
@@ -54,6 +30,28 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
   [vim.diagnostic.severity.WARN] = { enabled = false, icon = '⚠️ ' },
 }
 
+--- Deeply extend `icons` to include the `DEFAULT_DIAGNOSTIC_ICONS`
+--- HACK: required because `vim.tbl_deep_extend` does not deep extend lists.
+--- @param icons table
+--- @see vim.tbl_deep_extend
+local function tbl_deep_extend_diagnostic_icons(icons)
+  for i, default_diagnostic_severity_icons in ipairs(DEFAULT_DIAGNOSTIC_ICONS) do
+    local diagnostic_severity_icons = icons.diagnostics[i]
+    if diagnostic_severity_icons == nil then
+      diagnostic_severity_icons = {}
+      icons.diagnostics[i] = diagnostic_severity_icons
+    else
+      if diagnostic_severity_icons.enabled == nil then
+        diagnostic_severity_icons.enabled = default_diagnostic_severity_icons.enabled
+      end
+
+      if diagnostic_severity_icons.icon == nil then
+        diagnostic_severity_icons.icon = default_diagnostic_severity_icons.icon
+      end
+    end
+  end
+end
+
 --- @class barbar.config.options.icons.git.status
 --- @field enabled boolean
 --- @field icon string
@@ -65,54 +63,36 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
 
 --- @class barbar.config.options.icons.buffer.filetype
 --- @field custom_colors? boolean if present, this color will be used for ALL filetype icons
---- @field enabled? boolean iff `true`, show the `devicons` for the associated buffer's `filetype`.
+--- @field enabled boolean iff `true`, show the `devicons` for the associated buffer's `filetype`.
 
 --- @class barbar.config.options.icons.buffer.separator
---- @field left? string a buffer's left separator
---- @field right? string a buffer's right separator
+--- @field left string a buffer's left separator
+--- @field right string a buffer's right separator
 
 --- @class barbar.config.options.icons.scroll
 --- @field left string
 --- @field right string
 
 --- @class barbar.config.options.icons.buffer
---- @field buffer_index? boolean iff `true`, show the index of the associated buffer with respect to the ordering of the buffers in the tabline.
---- @field buffer_number? boolean iff `true`, show the `bufnr` for the associated buffer.
---- @field filename? boolean iff `true`, show the filename
---- @field button? false|string the button which is clicked to close / save a buffer, or indicate that it is pinned.
---- @field diagnostics? barbar.config.options.icons.buffer.diagnostics the diagnostic icons
---- @field gitsigns? barbar.config.options.icons.buffer.git the git status icons
---- @field filetype? barbar.config.options.icons.buffer.filetype filetype icon options
---- @field separator? barbar.config.options.icons.buffer.separator the left-hand separator between buffers in the tabline
+--- @field buffer_index boolean iff `true`, show the index of the associated buffer with respect to the ordering of the buffers in the tabline.
+--- @field buffer_number boolean iff `true`, show the `bufnr` for the associated buffer.
+--- @field filename boolean iff `true`, show the filename
+--- @field button false|string the button which is clicked to close / save a buffer, or indicate that it is pinned.
+--- @field diagnostics barbar.config.options.icons.buffer.diagnostics the diagnostic icons
+--- @field gitsigns barbar.config.options.icons.buffer.git the git status icons
+--- @field filetype barbar.config.options.icons.buffer.filetype filetype icon options
+--- @field separator barbar.config.options.icons.buffer.separator the separators between buffers in the tabline
 
 --- @class barbar.config.options.icons.state: barbar.config.options.icons.buffer
---- @field modified? barbar.config.options.icons.buffer the icons used for an modified buffer
---- @field pinned? barbar.config.options.icons.buffer the icons used for a pinned buffer
+--- @field modified barbar.config.options.icons.buffer the icons used for an modified buffer
+--- @field pinned barbar.config.options.icons.buffer the icons used for a pinned buffer
 
 --- @class barbar.config.options.icons: barbar.config.options.icons.state
---- @field alternate? barbar.config.options.icons.state the icons used for an alternate buffer
---- @field current? barbar.config.options.icons.state the icons for the current buffer
+--- @field alternate barbar.config.options.icons.state the icons used for an alternate buffer
+--- @field current barbar.config.options.icons.state the icons for the current buffer
 --- @field inactive barbar.config.options.icons.state the icons for inactive buffers
---- @field visible? barbar.config.options.icons.state the icons for visible buffers
+--- @field visible barbar.config.options.icons.state the icons for visible buffers
 --- @field scroll barbar.config.options.icons.scroll the scroll arrows
-local DEFAULT_ICONS = {
-  buffer_index = false,
-  buffer_number = false,
-  button = '',
-  diagnostics = {},
-  gitsigns = {
-    added = { enabled = false, icon = '+' },
-    changed = { enabled = false, icon = '~' },
-    deleted = { enabled = false, icon = '-' },
-  },
-  filename = true,
-  filetype = { enabled = true },
-  inactive = { separator = { left = '▎', right = '' } },
-  modified = { button = '●' },
-  pinned = { button = false, filename = false },
-  separator = { left = '▎', right = '' },
-  scroll = { left = '❮', right = '❯' }
-}
 
 --- @alias barbar.config.options.icons.preset boolean|"both"|"buffer_number_with_icon"|"buffer_numbers"|"numbers"
 
@@ -172,7 +152,7 @@ local DEPRECATED_OPTIONS = {
 --- @field clickable boolean
 --- @field exclude_ft string[]
 --- @field exclude_name string[]
---- @field focus_on_close 'left'|'right'
+--- @field focus_on_close side
 --- @field hide barbar.config.options.hide
 --- @field highlight_alternate boolean
 --- @field highlight_inactive_file_icons boolean
@@ -189,7 +169,7 @@ local DEPRECATED_OPTIONS = {
 --- @field sidebar_filetypes {[string]: nil|barbar.config.options.sidebar_filetype}
 --- @field tabpages boolean
 
---- @class barbar.config
+--- @class barbar.Config
 --- @field options barbar.config.options
 local config = { options = {} }
 
@@ -221,7 +201,7 @@ function config.setup(options)
   for deprecated_option, new_option in pairs(DEPRECATED_OPTIONS) do
     local user_setting = options[deprecated_option]
     if user_setting then
-      utils.tbl_set(options, new_option, user_setting)
+      table_set(options, new_option, user_setting)
       utils.deprecate(
         DEPRECATE_PREFIX .. utils.markdown_inline_code(deprecated_option),
         utils.markdown_inline_code(table_concat(new_option, '.'))
@@ -234,8 +214,8 @@ function config.setup(options)
   -- TODO: remove after v2
   -- Edge case deprecated option
   if options.closable == false then
-    utils.tbl_set(options, { 'icons', 'button' }, false)
-    utils.tbl_set(options, { 'icons', 'modified', 'button' }, false)
+    table_set(options, { 'icons', 'button' }, false)
+    table_set(options, { 'icons', 'modified', 'button' }, false)
     utils.deprecate(
       DEPRECATE_PREFIX .. utils.markdown_inline_code'closable',
       utils.markdown_inline_code'icons.button' ..
@@ -256,7 +236,24 @@ function config.setup(options)
     end
   end
 
-  local default_icons = deepcopy(DEFAULT_ICONS)
+  local default_icons = {
+    buffer_index = false,
+    buffer_number = false,
+    button = '',
+    diagnostics = {},
+    gitsigns = {
+      added = { enabled = false, icon = '+' },
+      changed = { enabled = false, icon = '~' },
+      deleted = { enabled = false, icon = '-' },
+    },
+    filename = true,
+    filetype = { enabled = true },
+    inactive = { separator = { left = '▎', right = '' } },
+    modified = { button = '●' },
+    pinned = { button = false, filename = false },
+    separator = { left = '▎', right = '' },
+    scroll = { left = '❮', right = '❯' }
+  }
 
   do
     local pinned_icons = options.icons and options.icons.pinned
@@ -265,56 +262,62 @@ function config.setup(options)
     end
   end
 
-  config.options = tbl_deep_extend('keep', options, DEFAULT_OPTIONS, { icons = default_icons })
+  config.options = tbl_deep_extend('keep', options, {
+    animation = true,
+    auto_hide = false,
+    clickable = true,
+    exclude_ft = {},
+    exclude_name = {},
+    focus_on_close = 'left',
+    hide = {},
+    icons = default_icons,
+    highlight_alternate = false,
+    highlight_inactive_file_icons = false,
+    highlight_visible = true,
+    insert_at_end = false,
+    insert_at_start = false,
+    letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
+    maximum_length = 30,
+    maximum_padding = 4,
+    minimum_padding = 1,
+    no_name_title = nil,
+    semantic_letters = true,
+    sidebar_filetypes = {},
+    tabpages = true,
+  })
 
-  -- NOTE: we do this because `vim.tbl_deep_extend` doesn't deep copy lists
-  for i, default_diagnostic_severity_icons in ipairs(DEFAULT_DIAGNOSTIC_ICONS) do
-    local diagnostic_severity_icons = config.options.icons.diagnostics[i] or {}
+  do
+    local icons = config.options.icons
 
-    if diagnostic_severity_icons.enabled == nil then
-      diagnostic_severity_icons.enabled = default_diagnostic_severity_icons.enabled
+    --- `config.options.icons` without the recursive structure
+    --- @type barbar.config.options.icons.buffer
+    local base_options = {
+      buffer_index = icons.buffer_index,
+      buffer_number = icons.buffer_number,
+      button = icons.button,
+      diagnostics = icons.diagnostics,
+      filename = icons.filename,
+      filetype = icons.filetype,
+      gitsigns = icons.gitsigns,
+      separator = icons.separator,
+    }
+
+    local modified_icons = icons.modified or {}
+    local pinned_icons = icons.pinned or {}
+
+    -- resolve all of the icons for the activities
+    for _, activity in ipairs { 'alternate', 'current', 'inactive', 'visible' } do
+      local activity_icons = tbl_deep_extend('keep', config.options.icons[activity] or {}, base_options)
+      tbl_deep_extend_diagnostic_icons(activity_icons)
+
+      activity_icons.pinned = tbl_deep_extend('keep', activity_icons.pinned or {}, pinned_icons, activity_icons)
+      tbl_deep_extend_diagnostic_icons(activity_icons.pinned)
+
+      activity_icons.modified = tbl_deep_extend('keep', activity_icons.modified or {}, modified_icons, activity_icons)
+      tbl_deep_extend_diagnostic_icons(activity_icons.modified)
+
+      icons[activity] = activity_icons
     end
-
-    if diagnostic_severity_icons.icon == nil then
-      diagnostic_severity_icons.icon = default_diagnostic_severity_icons.icon
-    end
-  end
-
-  local icons = config.options.icons
-
-  --- `config.options.icons` without the recursive structure
-  --- @type barbar.config.options.icons.buffer
-  local base_options = {
-    buffer_index = icons.buffer_index,
-    buffer_number = icons.buffer_number,
-    filename = icons.filename,
-    button = icons.button,
-    diagnostics = icons.diagnostics,
-    gitsigns = icons.gitsigns,
-    filetype = icons.filetype,
-    separator = icons.separator,
-  }
-
-  local modified_icons = icons.modified or {}
-  local pinned_icons = icons.pinned or {}
-
-  -- resolve all of the icons for the activities
-  for _, activity in ipairs { 'alternate', 'current', 'inactive', 'visible' } do
-    local activity_options = tbl_deep_extend('keep', config.options.icons[activity] or {}, base_options)
-    config.options.icons[activity] = activity_options
-    config.options.icons[activity].modified = tbl_deep_extend(
-      'keep',
-      config.options.icons[activity].modified or {},
-      modified_icons,
-      activity_options
-    )
-
-    config.options.icons[activity].pinned = tbl_deep_extend(
-      'keep',
-      config.options.icons[activity].pinned or {},
-      pinned_icons,
-      activity_options
-    )
   end
 end
 

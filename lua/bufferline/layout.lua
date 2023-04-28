@@ -1,1 +1,1 @@
-return require'barbar.ui.layout'
+return require('barbar.ui.layout')

@@ -1,1 +1,1 @@
-return require'barbar.config'
+return require('barbar.config')

@@ -1,1 +1,1 @@
-return require'barbar'
+return require('barbar')

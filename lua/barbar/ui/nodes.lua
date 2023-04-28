@@ -1,34 +1,34 @@
 --
--- nodes.lua
+-- node_list.lua
 --
 
 local table_insert = table.insert
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 
---- @class barbar.ui.Nodes
---- @see barbar.ui.node
 --- Operations on `node`s.
-local Nodes = {}
+--- @see barbar.ui.node
+--- @class barbar.ui.Nodes
+local nodes = {}
 
---- Sums the width of the nodes
---- @param nodes barbar.ui.node[]
+--- Sums the width of the node_list
+--- @param node_list barbar.ui.node[]
 --- @return integer
-function Nodes.width(nodes)
+function nodes.width(node_list)
   local result = 0
-  for _, node in ipairs(nodes) do
+  for _, node in ipairs(node_list) do
     result = result + strwidth(node.text)
   end
   return result
 end
 
---- Concatenates some `nodes` into a valid tabline string.
---- @param nodes barbar.ui.node[]
+--- Concatenates some `node_list` into a valid tabline string.
+--- @param node_list barbar.ui.node[]
 --- @return string
-function Nodes.to_string(nodes)
+function nodes.to_string(node_list)
   local result = ''
 
-  for _, node in ipairs(nodes) do
+  for _, node in ipairs(node_list) do
     -- NOTE: We have to escape the text in case it contains '%', which is a special character to the
     --       tabline.
     --       To escape '%', we make it '%%'. It just so happens that '%' is also a special character
@@ -39,46 +39,46 @@ function Nodes.to_string(nodes)
   return result
 end
 
---- Concatenates some `nodes` into a raw string.
---- @param nodes barbar.ui.node[]
+--- Concatenates some `node_list` into a raw string.
+--- @param node_list barbar.ui.node[]
 --- For debugging purposes.
 --- @return string
-function Nodes.to_raw_string(nodes)
+function nodes.to_raw_string(node_list)
   local result = ''
 
-  for _, node in ipairs(nodes) do
+  for _, node in ipairs(node_list) do
     result = result .. node.text
   end
 
   return result
 end
 
---- Insert `other` into `nodes` at the `position`.
---- @param nodes barbar.ui.node[]
+--- Insert `other` into `node_list` at the `position`.
+--- @param node_list barbar.ui.node[]
 --- @param position integer
 --- @return barbar.ui.node[] with_insertions
-function Nodes.insert(nodes, position, node)
-  return Nodes.insert_many(nodes, position, { node })
+function nodes.insert(node_list, position, node)
+  return nodes.insert_many(node_list, position, { node })
 end
 
---- Insert `others` into `nodes` at the `position`.
---- @param nodes barbar.ui.node[]
+--- Insert `others` into `node_list` at the `position`.
+--- @param node_list barbar.ui.node[]
 --- @param position integer
 --- @param others barbar.ui.node[]
 --- @return barbar.ui.node[] with_insertions
-function Nodes.insert_many(nodes, position, others)
+function nodes.insert_many(node_list, position, others)
   if position < 0 then
-    local others_width = Nodes.width(others)
+    local others_width = nodes.width(others)
     local others_end = position + others_width
 
     if others_end < 0 then
-      return nodes
+      return node_list
     end
 
     local available_width = others_end
 
     position = 0
-    others = Nodes.slice_left(others, available_width)
+    others = nodes.slice_left(others, available_width)
   end
 
 
@@ -87,8 +87,8 @@ function Nodes.insert_many(nodes, position, others)
   local new_nodes = {}
 
   local i = 1
-  while i <= #nodes do
-    local node = nodes[i]
+  while i <= #node_list do
+    local node = node_list[i]
     local node_width = strwidth(node.text)
 
     -- While we haven't found the position...
@@ -109,7 +109,7 @@ function Nodes.insert_many(nodes, position, others)
         })
       end
 
-      -- Add new other nodes
+      -- Add new other node_list
       local others_width = 0
       for _, other in ipairs(others) do
         local other_width = strwidth(other.text)
@@ -119,10 +119,10 @@ function Nodes.insert_many(nodes, position, others)
 
       local end_position = position + others_width
 
-      -- Then, resume adding previous nodes
+      -- Then, resume adding previous node_list
       -- table.insert(new_nodes, 'then')
-      while i <= #nodes do
-        local previous_node = nodes[i]
+      while i <= #node_list do
+        local previous_node = node_list[i]
         local previous_node_width = strwidth(previous_node.text)
         local previous_node_start_position = current_position
         local previous_node_end_position   = current_position + previous_node_width
@@ -150,15 +150,15 @@ function Nodes.insert_many(nodes, position, others)
   return new_nodes
 end
 
---- Select from `nodes` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
+--- Select from `node_list` while fitting within the provided `width`, discarding all indices larger than the last index that fits.
 --- @param width integer
 --- @return barbar.ui.node[] sliced
-function Nodes.slice_right(nodes, width)
+function nodes.slice_right(node_list, width)
   local accumulated_width = 0
 
   local new_nodes = {}
 
-  for _, node in ipairs(nodes) do
+  for _, node in ipairs(node_list) do
     local text_width = strwidth(node.text)
     accumulated_width = accumulated_width + text_width
 
@@ -174,17 +174,17 @@ function Nodes.slice_right(nodes, width)
   return new_nodes
 end
 
---- Select from `nodes` in reverse while fitting within the provided `width`, discarding all indices less than the last index that fits.
---- @param nodes barbar.ui.node[]
+--- Select from `node_list` in reverse while fitting within the provided `width`, discarding all indices less than the last index that fits.
+--- @param node_list barbar.ui.node[]
 --- @param width integer
 --- @return barbar.ui.node[] sliced
-function Nodes.slice_left(nodes, width)
+function nodes.slice_left(node_list, width)
   local accumulated_width = 0
 
   local new_nodes = {}
 
-  for i = #nodes, 1, -1 do
-    local node = nodes[i] --- @type barbar.ui.node (it cannot be `nil`)
+  for i = #node_list, 1, -1 do
+    local node = node_list[i] --- @type barbar.ui.node (it cannot be `nil`)
     local text_width = strwidth(node.text)
     accumulated_width = accumulated_width + text_width
 
@@ -201,4 +201,4 @@ function Nodes.slice_left(nodes, width)
   return new_nodes
 end
 
-return Nodes
+return nodes

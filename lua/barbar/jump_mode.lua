@@ -8,7 +8,7 @@ local split = vim.fn.split --- @type function
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 
-local config = require'barbar.config'
+local config = require('barbar.config')
 
 ----------------------------------------
 -- Section: Buffer-picking mode state --
@@ -24,36 +24,36 @@ local letters = {}
 --- @field private letter_by_buffer {[integer]: string} a bi-directional map of buffer integers and their letters.
 --- @field private letter_status {[integer]: boolean}
 --- @field reinitialize boolean whether an `initialize_indexes` operation has been queued.
-local JumpMode = {}
+local jump_mode = {}
 
 --- Reset the module to a valid default state
 --- @return nil
-function JumpMode.initialize_indexes()
-  JumpMode.buffer_by_letter = {}
-  JumpMode.index_by_letter = {}
-  JumpMode.letter_by_buffer = {}
-  JumpMode.letter_status = {}
+function jump_mode.initialize_indexes()
+  jump_mode.buffer_by_letter = {}
+  jump_mode.index_by_letter = {}
+  jump_mode.letter_by_buffer = {}
+  jump_mode.letter_status = {}
 
   for index, letter in ipairs(letters) do
-    JumpMode.index_by_letter[letter] = index
-    JumpMode.letter_status[index] = false
+    jump_mode.index_by_letter[letter] = index
+    jump_mode.letter_status[index] = false
   end
 
-  JumpMode.reinitialize = false
+  jump_mode.reinitialize = false
 end
 
 --- Set the letters which can be used by jump mode.
 --- @param chars string
 --- @return nil
-function JumpMode.set_letters(chars)
+function jump_mode.set_letters(chars)
   letters = split(chars, [[\zs]])
-  JumpMode.initialize_indexes()
+  jump_mode.initialize_indexes()
 end
 
 --- @param bufnr integer
 --- @return nil|string assigned
-function JumpMode.assign_next_letter(bufnr)
-  if JumpMode.letter_by_buffer[bufnr] ~= nil then
+function jump_mode.assign_next_letter(bufnr)
+  if jump_mode.letter_by_buffer[bufnr] ~= nil then
     return
   end
 
@@ -64,14 +64,14 @@ function JumpMode.assign_next_letter(bufnr)
     for i = 1, strwidth(name) do
       local letter = strcharpart(name, i - 1, 1):lower()
 
-      if JumpMode.index_by_letter[letter] ~= nil then
-        local index = JumpMode.index_by_letter[letter]
-        local status = JumpMode.letter_status[index]
+      if jump_mode.index_by_letter[letter] ~= nil then
+        local index = jump_mode.index_by_letter[letter]
+        local status = jump_mode.letter_status[index]
         if status == false then
-          JumpMode.letter_status[index] = true
+          jump_mode.letter_status[index] = true
           -- letter = m.letters[index]
-          JumpMode.buffer_by_letter[letter] = bufnr
-          JumpMode.letter_by_buffer[bufnr] = letter
+          jump_mode.buffer_by_letter[letter] = bufnr
+          jump_mode.letter_by_buffer[bufnr] = letter
           return letter
         end
       end
@@ -79,12 +79,12 @@ function JumpMode.assign_next_letter(bufnr)
   end
 
   -- Otherwise, assign a letter by usable order
-  for i, status in ipairs(JumpMode.letter_status) do
+  for i, status in ipairs(jump_mode.letter_status) do
     if status == false then
       local letter = letters[i]
-      JumpMode.letter_status[i] = true
-      JumpMode.buffer_by_letter[letter] = bufnr
-      JumpMode.letter_by_buffer[bufnr] = letter
+      jump_mode.letter_status[i] = true
+      jump_mode.buffer_by_letter[letter] = bufnr
+      jump_mode.letter_by_buffer[bufnr] = letter
       return letter
     end
   end
@@ -92,35 +92,35 @@ end
 
 --- @param bufnr integer
 --- @return string letter assiegned to `bufnr`
-function JumpMode.get_letter(bufnr)
-  return JumpMode.letter_by_buffer[bufnr] or JumpMode.assign_next_letter(bufnr)
+function jump_mode.get_letter(bufnr)
+  return jump_mode.letter_by_buffer[bufnr] or jump_mode.assign_next_letter(bufnr)
 end
 
 --- @param letter string
 --- @return nil
-function JumpMode.unassign_letter(letter)
+function jump_mode.unassign_letter(letter)
   if letter == '' or letter == nil then
     return
   end
 
-  local index = JumpMode.index_by_letter[letter]
+  local index = jump_mode.index_by_letter[letter]
 
-  JumpMode.letter_status[index] = false
+  jump_mode.letter_status[index] = false
 
-  if JumpMode.buffer_by_letter[letter] ~= nil then
-    local bufnr = JumpMode.buffer_by_letter[letter]
-    JumpMode.buffer_by_letter[letter] = nil
-    JumpMode.letter_by_buffer[bufnr] = nil
+  if jump_mode.buffer_by_letter[letter] ~= nil then
+    local bufnr = jump_mode.buffer_by_letter[letter]
+    jump_mode.buffer_by_letter[letter] = nil
+    jump_mode.letter_by_buffer[bufnr] = nil
   end
 
-  JumpMode.reinitialize = true
+  jump_mode.reinitialize = true
 end
 
 --- Unassign the letter which is assigned to `bufnr.`
 --- @param bufnr integer
 --- @return nil
-function JumpMode.unassign_letter_for(bufnr)
-  JumpMode.unassign_letter(JumpMode.letter_by_buffer[bufnr])
+function jump_mode.unassign_letter_for(bufnr)
+  jump_mode.unassign_letter(jump_mode.letter_by_buffer[bufnr])
 end
 
-return JumpMode
+return jump_mode
