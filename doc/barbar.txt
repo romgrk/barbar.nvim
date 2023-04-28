@@ -95,14 +95,17 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 
 `<PART>`  Meaning
 ------  -----------------------
+`ADDED`   Git status added.
+`CHANGED` Git status changed.
+`DELETED` Git status deleted.
 `ERROR`   Diagnostic errors.
 `HINT`    Diagnostic hints.
 `Icon`    The filetype icon
         (when `icons.filetype == {custom_colors = true, enabled = true}`).
 `Index`   The buffer's position in the tabline.
-`Number`  The |bufnr()|.
 `INFO`    Diagnostic info.
 `Mod`     When the buffer is modified.
+`Number`  The |bufnr()|.
 `Sign`    The separator between buffers.
 `Target`  The letter in buffer-pick mode.
 `WARN`    Diagnostic warnings.
@@ -264,7 +267,31 @@ icons ~
           [vim.diagnostic.severity.ERROR] = {enabled = true, icon = ''},
       }}}
 <
+                                                      *barbar-setup.icons.git*
+  icons.git ~
+    `table`  (default: >
+                    {
+                      added = {enabled = false, icon = '+'},
+                      changed = {enabled = false, icon = '~'},
+                      deleted = {enabled = false, icon = '-'},
+                    }
+<           )
 
+                                              *barbar-setup.icons.git.enabled*
+    icons.git.enabled ~
+      `boolean`  (default: `true`)
+      Enables showing git changes of this type.
+
+                                                 *barbar-setup.icons.git.icon*
+    icons.git.icon ~
+      `boolean`  (default: `'+'`, `'-'`, `'~'`)
+       The icon which accompanies the number of git status.
+
+    Example that disables the "added" icon, but still shows the count: >
+      require'barbar'.setup {icons = {git = {
+        added = {enabled = true, icon = ''},
+      }}}
+<
                                                  *barbar-setup.icons.filename*
   icons.filename ~
     `boolean`  (default: `true`)

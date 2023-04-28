@@ -54,6 +54,15 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
   [vim.diagnostic.severity.WARN] = { enabled = false, icon = '⚠️ ' },
 }
 
+--- @class barbar.config.options.icons.git.status
+--- @field enabled boolean
+--- @field icon string
+
+--- @class barbar.config.options.icons.buffer.git
+--- @field added barbar.config.options.icons.git.status
+--- @field changed barbar.config.options.icons.git.status
+--- @field deleted barbar.config.options.icons.git.status
+
 --- @class barbar.config.options.icons.buffer.filetype
 --- @field custom_colors? boolean if present, this color will be used for ALL filetype icons
 --- @field enabled? boolean iff `true`, show the `devicons` for the associated buffer's `filetype`.
@@ -72,6 +81,7 @@ local DEFAULT_DIAGNOSTIC_ICONS = {
 --- @field filename? boolean iff `true`, show the filename
 --- @field button? false|string the button which is clicked to close / save a buffer, or indicate that it is pinned.
 --- @field diagnostics? barbar.config.options.icons.buffer.diagnostics the diagnostic icons
+--- @field gitsigns? barbar.config.options.icons.buffer.git the git status icons
 --- @field filetype? barbar.config.options.icons.buffer.filetype filetype icon options
 --- @field separator? barbar.config.options.icons.buffer.separator the left-hand separator between buffers in the tabline
 
@@ -90,6 +100,11 @@ local DEFAULT_ICONS = {
   buffer_number = false,
   button = '',
   diagnostics = {},
+  gitsigns = {
+    added = { enabled = false, icon = '+' },
+    changed = { enabled = false, icon = '~' },
+    deleted = { enabled = false, icon = '-' },
+  },
   filename = true,
   filetype = { enabled = true },
   inactive = { separator = { left = '▎', right = '' } },
@@ -275,9 +290,13 @@ function config.setup(options)
     filename = icons.filename,
     button = icons.button,
     diagnostics = icons.diagnostics,
+    gitsigns = icons.gitsigns,
     filetype = icons.filetype,
     separator = icons.separator,
   }
+
+  local modified_icons = icons.modified or {}
+  local pinned_icons = icons.pinned or {}
 
   -- resolve all of the icons for the activities
   for _, activity in ipairs { 'alternate', 'current', 'inactive', 'visible' } do
@@ -286,14 +305,14 @@ function config.setup(options)
     config.options.icons[activity].modified = tbl_deep_extend(
       'keep',
       config.options.icons[activity].modified or {},
-      config.options.icons.modified or {},
+      modified_icons,
       activity_options
     )
 
     config.options.icons[activity].pinned = tbl_deep_extend(
       'keep',
       config.options.icons[activity].pinned or {},
-      config.options.icons.pinned or {},
+      pinned_icons,
       activity_options
     )
   end
