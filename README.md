@@ -18,22 +18,27 @@ stays constant for the lifetime of the buffer, so if you're working with a set o
 files you can even type the letter ahead from memory.
 
 ##### Table of content
- - [Install](#install)
- - [Features](#features)
- - [Usage](#usage)
- - [Options](#options)
- - [Highlighting](#highlighting)
- - [Integrations](#integrations)
- - [Known Issues](#known-issues)
- - [About Barbar](#about)
+
+- [Install](#install)
+- [Features](#features)
+- [Usage](#usage)
+- [Options](#options)
+- [Highlighting](#highlighting)
+- [Integrations](#integrations)
+- [Known Issues](#known-issues)
+- [About Barbar](#about)
 
 ## Install
 
 #### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
+
 ```lua
 require('lazy').setup {
   {'romgrk/barbar.nvim',
-    dependencies = 'nvim-tree/nvim-web-devicons',
+    dependencies = {
+      'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
+      'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
+    },
     init = function() vim.g.barbar_auto_setup = false end,
     opts = {
       -- lazy.nvim will automatically call setup for you. put your options here, anything missing will use the default:
@@ -47,20 +52,23 @@ require('lazy').setup {
 ```
 
 #### Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+
 ```lua
-use 'nvim-tree/nvim-web-devicons'
-use {'romgrk/barbar.nvim', requires = 'nvim-web-devicons'}
+use {'romgrk/barbar.nvim', requires = {
+  'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
+  'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
+}}
 ```
 
 #### Using [vim-plug](https://github.com/junegunn/vim-plug)
+
 ```vim
-Plug 'nvim-tree/nvim-web-devicons'
+Plug 'lewis6991/gitsigns.nvim' " OPTIONAL: for git status
+Plug 'nvim-tree/nvim-web-devicons' " OPTIONAL: for file icons
 Plug 'romgrk/barbar.nvim'
 ```
 
-You can skip the dependency on `'nvim-tree/nvim-web-devicons'` if you
-[disable icons](#options).  If you want the icons, don't forget to
-install [nerd fonts](https://www.nerdfonts.com/).
+If you want the icons, don't forget to install [nerd fonts](https://www.nerdfonts.com/).
 
 ##### Requirements
 
@@ -469,6 +477,10 @@ let g:lightline={ 'enable': {'statusline': 1, 'tabline': 0} }
 `netrw` has a lot of bugs which make it hard to support. It may work partially, but we will not make changes to barbar.nvim to work-around `netrw`-specific bugs (e.g. #82).
 
 You can use any other [file explorer](https://github.com/rockerBOO/awesome-neovim#file-explorer) instead.
+
+#### Sidebars On Startup
+
+The `sidebar_filetypes` option may not work as expected if your sidebar opens on startup. See nvim-tree/nvim-tree.lua#2130 for details, and romgrk/barbar.nvim#421 for a workaround.
 
 ## About
 
