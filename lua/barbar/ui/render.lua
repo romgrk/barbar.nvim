@@ -39,9 +39,25 @@ local nodes = require('barbar.ui.nodes')
 local notify = require('barbar.utils').notify
 local state = require('barbar.state')
 
+-- Digits for optional styling of buffer_number and buffer_index.
+local SUPERSCRIPT_DIGITS = { '⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹' }
+local SUBSCRIPT_DIGITS = { '₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉' }
+
 --- Last value for tabline
 --- @type string
 local last_tabline = ''
+
+--- @param num number
+--- @param style barbar.config.options.icons.buffer.number
+--- @return integer|string styled, integer substituted
+local function style_number(num, style)
+  if style == true then
+    return num, 0
+  end
+
+  local digits = style == 'subscript' and SUBSCRIPT_DIGITS or SUPERSCRIPT_DIGITS
+  return tostring(num):gsub('%d', function(match) return digits[match + 1] end)
+end
 
 --- Create valid `&tabline` syntax which highlights the next item in the tabline with the highlight `group` specified.
 --- @param group string
@@ -425,7 +441,7 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     local buffer_index = { hl = '', text = '' }
     if icons_option.buffer_index then
       buffer_index.hl = wrap_hl('Buffer' .. activity_name .. 'Index')
-      buffer_index.text = i .. ' '
+      buffer_index.text = style_number(i, icons_option.buffer_index) .. ' '
     end
 
     --- The buffer number
@@ -433,7 +449,7 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     local buffer_number = { hl = '', text = '' }
     if icons_option.buffer_number then
       buffer_number.hl = wrap_hl('Buffer' .. activity_name .. 'Number')
-      buffer_number.text = bufnr .. ' '
+      buffer_number.text = style_number(bufnr, icons_option.buffer_number) .. ' '
     end
 
     --- The close icon
