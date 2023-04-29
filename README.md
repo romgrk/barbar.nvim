@@ -30,6 +30,16 @@ files you can even type the letter ahead from memory.
 
 ## Install
 
+**Requirements:**
+
+- Neovim v0.7+
+
+**Optional Requirements:**
+
+- File icons: [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons)
+  - NOTE: Requires a [nerd font](https://www.nerdfonts.com/) by default. Can be [configured](https://github.com/nvim-tree/nvim-web-devicons#setup) to remove this requirement.
+- Git integration: [gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim)
+
 #### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
@@ -67,12 +77,6 @@ Plug 'lewis6991/gitsigns.nvim' " OPTIONAL: for git status
 Plug 'nvim-tree/nvim-web-devicons' " OPTIONAL: for file icons
 Plug 'romgrk/barbar.nvim'
 ```
-
-If you want the icons, don't forget to install [nerd fonts](https://www.nerdfonts.com/).
-
-##### Requirements
-
-- Neovim `0.7`
 
 ## Features
 
@@ -493,5 +497,5 @@ No, barbar has nothing to do with barbarians.
 
 ## License
 
-barbar.nvim: Distributed under the terms of the JSON license.  
-bbye.vim: Distributed under the terms of the GNU Affero license.
+* **barbar.nvim:** Distributed under the terms of the JSON license.
+* **bbye.vim:** Distributed under the terms of the GNU Affero license.
