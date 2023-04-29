@@ -82,7 +82,11 @@ function events.enable()
   create_autocmd({'VimLeave'}, { callback = state.save_recently_closed, group = augroup_misc })
 
   create_autocmd({'BufNewFile', 'BufReadPost'}, {
-    callback = function(tbl) jump_mode.assign_next_letter(tbl.buf) end,
+    callback = vim.schedule_wrap(function(event)
+      jump_mode.assign_next_letter(event.buf)
+      state.update_diagnostics(event.buf)
+      state.update_gitsigns(event.buf)
+    end),
     group = augroup_misc,
   })
 
