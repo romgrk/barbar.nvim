@@ -122,7 +122,6 @@ function events.enable()
   create_autocmd(
     {
       'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost',
-      'DiagnosticChanged',
       'TabEnter',
       'VimResized',
       'WinEnter', 'WinLeave',
@@ -133,8 +132,19 @@ function events.enable()
     }
   )
 
+  create_autocmd('DiagnosticChanged', {
+    callback = function(event)
+      state.update_diagnostics(event.buf)
+      render.update()
+    end,
+    group = augroup_render,
+  })
+
   create_autocmd('User', {
-    callback = vim.schedule_wrap(function() render.update() end),
+    callback = vim.schedule_wrap(function(event)
+      state.update_gitsigns(event.buf)
+      render.update()
+    end),
     group = augroup_render,
     pattern = 'GitSignsUpdate',
   })

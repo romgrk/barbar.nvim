@@ -13,9 +13,7 @@ local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
 local bufnr = vim.fn.bufnr --- @type function
 local bufwinnr = vim.fn.bufwinnr --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
-local get_diagnostics = vim.diagnostic.get --- @type fun(bufnr: integer): {severity: integer}[]
 local matchlist = vim.fn.matchlist --- @type function
-local severity = vim.diagnostic.severity
 local split = vim.split
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
@@ -26,11 +24,6 @@ local slice_from_end = require('barbar.utils.list').slice_from_end
 
 local ELLIPSIS = '…'
 local ELLIPSIS_LEN = strwidth(ELLIPSIS)
-local ERROR = severity.ERROR
-local GIT_STATUSES = {'added', 'changed', 'deleted'}
-local HINT = severity.HINT
-local INFO = severity.INFO
-local WARN = severity.WARN
 
 --- @alias barbar.buffer.activity 1|2|3|4
 
@@ -46,7 +39,7 @@ local separator = package.config:sub(1, 1)
 --- @param name string
 --- @return string
 local function terminalname(name)
-  local result = matchlist(name, [===[term://.\{-}//\d\+:\(.*\)]===])
+  local result = matchlist(name, [[term://.\{-}//\d\+:\(.*\)]])
   if next(result) == nil then
     return name
   else
@@ -56,61 +49,6 @@ end
 
 --- @class barbar.Buffer
 local buffer = { activities = activities }
-
---- @param buffer_number integer
---- @return integer[] # indexed on `vim.diagnostic.severity`
-function buffer.count_diagnostics(buffer_number)
-  local count = {[ERROR] = 0, [HINT] = 0, [INFO] = 0, [WARN] = 0}
-
-  for _, diagnostic in ipairs(get_diagnostics(buffer_number)) do
-    count[diagnostic.severity] = count[diagnostic.severity] + 1
-  end
-
-  return count
-end
-
---- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `buffer_number` provided, call `f`.
---- @param buffer_number integer the buffer number to count diagnostics in
---- @param diagnostics barbar.config.options.icons.buffer.diagnostics the user configuration for diagnostics
---- @param f fun(count: integer, severity_idx: integer, option: barbar.config.options.icons.diagnostics.severity) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
---- @return nil
-function buffer.for_each_counted_enabled_diagnostic(buffer_number, diagnostics, f)
-  local count
-  for i in ipairs(severity) do
-    local option = diagnostics[i]
-    if option.enabled then
-      if count == nil then
-        count = buffer.count_diagnostics(buffer_number)
-      end
-
-      if count[i] > 0 then
-        f(count[i], i, option)
-      end
-    end
-  end
-end
-
---- For each status in `git`: if it is enabled, and there is a git status associated with the buffer (`buffer_number`), call `f`.
---- @param buffer_number integer the buffer number to get git status
---- @param git barbar.config.options.icons.buffer.git the user configuration for git status
---- @param f fun(count: integer, git_status: string, option: barbar.config.options.icons.git.status) the function to run when a specific git status is enabled and present in the `buffer_number`
---- @return nil
-function buffer.for_each_enabled_git_status(buffer_number, git, f)
-  local count
-
-  for _, git_status in ipairs(GIT_STATUSES) do
-    local git_status_option = git[git_status]
-    if git_status_option.enabled then
-      if count == nil then
-        count = buffer.get_git_status(buffer_number)
-      end
-
-      if count[git_status] ~= nil and count[git_status] > 0 then
-        f(count[git_status], git_status, git_status_option)
-      end
-    end
-  end
-end
 
 --- @param buffer_number integer
 --- @return barbar.buffer.activity # whether `bufnr` is inactive, the alternate file, visible, or currently selected (in that order).
@@ -124,24 +62,6 @@ function buffer.get_activity(buffer_number)
   end
 
   return activities.Inactive
-end
-
---- @param buffer_number integer
---- @return integer[] # based on `gitsigns_status_dict`
-function buffer.get_git_status(buffer_number)
-  local git_status = { added = 0, changed = 0, deleted = 0 }
-
-  local ok, gitsigns_status_dict = pcall(vim.api.nvim_buf_get_var, buffer_number, "gitsigns_status_dict")
-
-  if ok and gitsigns_status_dict ~= nil then
-    git_status = {
-      added = gitsigns_status_dict.added,
-      deleted = gitsigns_status_dict.removed,
-      changed = gitsigns_status_dict.changed,
-    }
-  end
-
-  return git_status
 end
 
 --- @param activity barbar.buffer.activity.name

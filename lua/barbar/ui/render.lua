@@ -502,14 +502,14 @@ local function get_bufferline_containers(data, bufnrs, refocus)
       width = container_width,
     }
 
-    buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, idx, option)
+    state.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, idx, option)
       table_insert(container.nodes, {
         hl = wrap_hl('Buffer' .. activity_name .. severity[idx]),
         text = ' ' .. option.icon .. count,
       })
     end)
 
-    buffer.for_each_enabled_git_status(bufnr, icons_option.gitsigns, function(count, idx, option)
+    state.for_each_counted_enabled_git_status(bufnr, icons_option.gitsigns, function(count, idx, option)
       table_insert(container.nodes, {
         hl = wrap_hl('Buffer' .. activity_name .. idx:upper()),
         text = ' ' .. option.icon .. count,
