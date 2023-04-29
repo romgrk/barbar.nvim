@@ -52,14 +52,15 @@ local function tbl_deep_extend_diagnostic_icons(icons)
   end
 end
 
---- @class barbar.config.options.icons.git.status
+--- @alias barbar.config.options.icons.git.statuses 'added'|'changed'|'deleted'
+local GIT_STATUSES = {'added', 'changed', 'deleted'}
+
+--- @class barbar.config.options.icons.buffer.git.status
 --- @field enabled boolean
 --- @field icon string
 
 --- @class barbar.config.options.icons.buffer.git
---- @field added barbar.config.options.icons.git.status
---- @field changed barbar.config.options.icons.git.status
---- @field deleted barbar.config.options.icons.git.status
+--- @field [barbar.config.options.icons.git.statuses] barbar.config.options.icons.buffer.git.status
 
 --- @class barbar.config.options.icons.buffer.filetype
 --- @field custom_colors? boolean if present, this color will be used for ALL filetype icons
@@ -76,11 +77,11 @@ end
 --- @class barbar.config.options.icons.buffer
 --- @field buffer_index boolean iff `true`, show the index of the associated buffer with respect to the ordering of the buffers in the tabline.
 --- @field buffer_number boolean iff `true`, show the `bufnr` for the associated buffer.
---- @field filename boolean iff `true`, show the filename
 --- @field button false|string the button which is clicked to close / save a buffer, or indicate that it is pinned.
 --- @field diagnostics barbar.config.options.icons.buffer.diagnostics the diagnostic icons
---- @field gitsigns barbar.config.options.icons.buffer.git the git status icons
+--- @field filename boolean iff `true`, show the filename
 --- @field filetype barbar.config.options.icons.buffer.filetype filetype icon options
+--- @field gitsigns barbar.config.options.icons.buffer.git the git status icons
 --- @field separator barbar.config.options.icons.buffer.separator the separators between buffers in the tabline
 
 --- @class barbar.config.options.icons.state: barbar.config.options.icons.buffer
@@ -171,7 +172,7 @@ local DEPRECATED_OPTIONS = {
 
 --- @class barbar.Config
 --- @field options barbar.config.options
-local config = { options = {} }
+local config = { git_statuses = GIT_STATUSES, options = {} }
 
 --- @param options? table
 function config.setup(options)

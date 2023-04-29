@@ -144,11 +144,11 @@ function layout.calculate_buffer_width(bufnr, index)
     end
   end
 
-  buffer.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, _, option)
+  state.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, _, option)
     width = width + SPACE_LEN + strwidth(option.icon) + #tostring(count)
   end)
 
-  buffer.for_each_enabled_git_status(bufnr, icons_option.gitsigns, function(count, _, option)
+  state.for_each_counted_enabled_git_status(bufnr, icons_option.gitsigns, function(count, _, option)
     width = width + SPACE_LEN + strwidth(option.icon) + #tostring(count)
   end)
 

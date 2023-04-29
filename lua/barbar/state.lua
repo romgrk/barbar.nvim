@@ -11,11 +11,13 @@ local bufadd = vim.fn.bufadd --- @type function
 local bufname = vim.fn.bufname --- @type function
 local command = vim.api.nvim_command --- @type function
 local fnamemodify = vim.fn.fnamemodify --- @type function
-local json_encode = vim.json.encode --- @type function
-local json_decode = vim.json.decode --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
+local get_diagnostics = vim.diagnostic.get --- @type fun(bufnr: integer): {severity: integer}[]
+local json_decode = vim.json.decode --- @type function
+local json_encode = vim.json.encode --- @type function
 local list_bufs = vim.api.nvim_list_bufs --- @type function
 local list_slice = vim.list_slice
+local severity = vim.diagnostic.severity
 local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local tbl_map = vim.tbl_map
@@ -26,6 +28,10 @@ local fs = require('barbar.fs')
 local utils = require('barbar.utils')
 
 local CACHE_PATH = vim.fn.stdpath('cache') .. '/barbar.json'
+local ERROR = severity.ERROR
+local HINT = severity.HINT
+local INFO = severity.INFO
+local WARN = severity.WARN
 
 --------------------------------
 -- Section: Application state --
@@ -33,11 +39,13 @@ local CACHE_PATH = vim.fn.stdpath('cache') .. '/barbar.json'
 
 --- @class barbar.state.data
 --- @field closing boolean whether the buffer is being closed
---- @field name? string the name of the buffer
---- @field position? integer the absolute position of the buffer
 --- @field computed_position? integer the real position of the buffer
 --- @field computed_width? integer the width of the buffer plus invisible characters
+--- @field diagnostics? {[DiagnosticSeverity]: integer}
+--- @field gitsigns? {[barbar.config.options.icons.git.statuses]: integer} the real position of the buffer
+--- @field name? string the name of the buffer
 --- @field pinned boolean whether the buffer is pinned
+--- @field position? integer the absolute position of the buffer
 --- @field width? integer the width of the buffer minus invisible characters
 
 --- @class barbar.state.offset.side
@@ -188,6 +196,80 @@ function state.pop_recently_closed()
 end
 
 -- Read/write state
+
+--- For each severity in `diagnostics`: if it is enabled, and there are diagnostics associated with it in the `buffer_number` provided, call `f`.
+--- @param bufnr integer the buffer number to count diagnostics in
+--- @param diagnostics barbar.config.options.icons.buffer.diagnostics the user configuration for diagnostics
+--- @param f fun(count: integer, severity_idx: integer, option: barbar.config.options.icons.diagnostics.severity) the function to run when diagnostics of a specific severity are enabled and present in the `buffer_number`
+--- @return nil
+function state.for_each_counted_enabled_diagnostic(bufnr, diagnostics, f)
+  local count = state.get_buffer_data(bufnr).diagnostics
+  if count == nil then
+    return
+  end
+
+  for i in ipairs(severity) do
+    local option = diagnostics[i]
+    if option.enabled and count[i] > 0 then
+      f(count[i], i, option)
+    end
+  end
+end
+
+--- For each status in `git`: if it is enabled, and there is a git status associated with the buffer (`buffer_number`), call `f`.
+--- @param bufnr integer the buffer number to get git status
+--- @param git barbar.config.options.icons.buffer.git the user configuration for git status
+--- @param f fun(count: integer, git_status: string, option: barbar.config.options.icons.buffer.git.status) the function to run when a specific git status is enabled and present in the `buffer_number`
+--- @return nil
+function state.for_each_counted_enabled_git_status(bufnr, git, f)
+  -- NOTE: can be extended to check for other git implementations by using e.g. `or buffer_data.gitgutter`
+  local count = state.get_buffer_data(bufnr).gitsigns
+  if count == nil then
+    return
+  end
+
+  for _, git_status in ipairs(config.git_statuses) do
+    local git_status_option = git[git_status]
+    if git_status_option.enabled and count[git_status] > 0 then
+      f(count[git_status], git_status, git_status_option)
+    end
+  end
+end
+
+--- Update the `vim.diagnostics` count for the `bufnr`
+--- @param bufnr integer
+function state.update_diagnostics(bufnr)
+  local count = { [ERROR] = 0, [HINT] = 0, [INFO] = 0, [WARN] = 0 }
+
+  for _, diagnostic in ipairs(get_diagnostics(bufnr)) do
+    count[diagnostic.severity] = count[diagnostic.severity] + 1
+  end
+
+  state.get_buffer_data(bufnr).diagnostics = count
+end
+
+--- Update the `gitsigns.nvim` count for the `bufnr`
+--- @param bufnr integer
+function state.update_gitsigns(bufnr)
+  local count = { added = 0, changed = 0, deleted = 0 }
+
+  local ok, gitsigns_status_dict = pcall(vim.api.nvim_buf_get_var, bufnr, 'gitsigns_status_dict')
+  if ok and gitsigns_status_dict ~= nil then
+    if gitsigns_status_dict.added ~= nil then
+      count.added = gitsigns_status_dict.added
+    end
+
+    if gitsigns_status_dict.changed ~= nil then
+      count.changed = gitsigns_status_dict.changed
+    end
+
+    if gitsigns_status_dict.removed ~= nil then
+      count.deleted = gitsigns_status_dict.removed
+    end
+  end
+
+  state.get_buffer_data(bufnr).gitsigns = count
+end
 
 --- Update the names of all buffers in the bufferline.
 --- @return nil
