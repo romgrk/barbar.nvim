@@ -364,13 +364,13 @@ end
 --- @param data barbar.ui.layout.data
 --- @param bufnrs integer[]
 --- @param refocus? boolean
---- @return barbar.ui.container[] pinend, barbar.ui.container[] unpinned, nil|{[1]: integer, pinned: boolean} current_buffer_index
+--- @return barbar.ui.container[] pinned, barbar.ui.container[] unpinned, nil|{idx: integer, pinned: boolean} current_buffer
 local function get_bufferline_containers(data, bufnrs, refocus)
   local click_enabled = has('tablineat') and config.options.clickable
 
   local accumulated_pinned_width = 0 --- the width of pinned buffers accumulated while iterating
   local accumulated_unpinned_width = 0 --- the width of buffers accumulated while iterating
-  local current_buffer_index = nil --- @type nil|{[1]: integer, pinned: boolean}
+  local current_buffer = nil --- @type nil|{idx: integer, pinned: boolean}
   local done = false --- if all of the visible buffers have been clumped
   local containers = {} --- @type barbar.ui.container[]
   local pinned_containers = {} --- @type barbar.ui.container[]
@@ -396,7 +396,7 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     local container_width = buffer_data.width or buffer_data.computed_width
 
     if activity == buffer.activities.Current and refocus ~= false then
-      current_buffer_index = {i, pinned = pinned}
+      current_buffer = {idx = #(pinned and pinned_containers or containers) + 1, pinned = pinned}
 
       local start = accumulated_unpinned_width
       local end_  = accumulated_unpinned_width + container_width
@@ -417,7 +417,7 @@ local function get_bufferline_containers(data, bufnrs, refocus)
 
       if accumulated_unpinned_width < scroll_current  then
         goto continue -- HACK: there is no `continue` keyword
-      elseif (refocus == false or (refocus ~= false and current_buffer_index ~= nil)) and
+      elseif (refocus == false or (refocus ~= false and current_buffer ~= nil)) and
         accumulated_unpinned_width - scroll_current > data.buffers.unpinned_allocated_width
       then
         done = true
@@ -545,7 +545,7 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     ::continue::
   end
 
-  return pinned_containers, containers, current_buffer_index
+  return pinned_containers, containers, current_buffer
 end
 
 local HL = {
@@ -561,7 +561,7 @@ local HL = {
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   local data = layout.calculate()
-  local pinned, unpinned, current_buffer_index = get_bufferline_containers(data, bufnrs, refocus)
+  local pinned, unpinned, current_buffer = get_bufferline_containers(data, bufnrs, refocus)
 
   -- Create actual tabline string
   local result = ''
@@ -584,13 +584,17 @@ local function generate_tabline(bufnrs, refocus)
     local content = { { hl = HL.FILL, text = (' '):rep(data.buffers.width) } }
 
     do
-      local current_container
-      if current_buffer_index ~= nil and current_buffer_index.pinned == false then
-        current_container = table_remove(unpinned, current_buffer_index[1])
-      end
+      local current_container = nil
+      local current_not_unpinned = current_buffer == nil or current_buffer.pinned == true
 
-      for _, container in ipairs(unpinned) do
-        content = nodes.insert_many(content, container.position - scroll.current, container.nodes)
+      for i, container in ipairs(unpinned) do
+        -- We insert the current buffer after the others so it's always on top
+        --- @diagnostic disable-next-line:need-check-nil
+        if current_not_unpinned or (current_buffer.pinned == false and current_buffer.idx ~= i) then
+          content = nodes.insert_many(content, container.position - scroll.current, container.nodes)
+        else
+          current_container = container
+        end
       end
 
       if current_container ~= nil then
@@ -608,17 +612,21 @@ local function generate_tabline(bufnrs, refocus)
     end
 
     if #pinned > 0 then
-      local current_container
-      if current_buffer_index ~= nil and current_buffer_index.pinned == true then
-        current_container = table_remove(pinned, current_buffer_index[1])
-      end
+      local current_container = nil
+      local current_not_pinned = current_buffer == nil or current_buffer.pinned == true
 
-      for _, container in ipairs(pinned) do
-        content = nodes.insert_many(content, container.position - scroll.current, container.nodes)
+      for i, container in ipairs(pinned) do
+        -- We insert the current buffer after the others so it's always on top
+        --- @diagnostic disable-next-line:need-check-nil
+        if current_not_pinned or (current_buffer.pinned == true and current_buffer.idx ~= i) then
+          content = nodes.insert_many(content, container.position, container.nodes)
+        else
+          current_container = container
+        end
       end
 
       if current_container ~= nil then
-        content = nodes.insert_many(content, current_container.position - scroll.current, current_container.nodes)
+        content = nodes.insert_many(content, current_container.position, current_container.nodes)
       end
     end
 
