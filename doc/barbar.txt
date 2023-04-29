@@ -267,8 +267,8 @@ icons ~
           [vim.diagnostic.severity.ERROR] = {enabled = true, icon = ''},
       }}}
 <
-                                                      *barbar-setup.icons.git*
-  icons.git ~
+                                                 *barbar-setup.icons.gitsigns*
+  icons.gitsigns ~
     `table`  (default: >
                     {
                       added = {enabled = false, icon = '+'},
@@ -277,13 +277,14 @@ icons ~
                     }
 <           )
 
-                                              *barbar-setup.icons.git.enabled*
-    icons.git.enabled ~
+                                         *barbar-setup.icons.gitsigns.enabled*
+    icons.gitsigns.enabled ~
       `boolean`  (default: `true`)
       Enables showing git changes of this type.
+      Requires |gitsigns.nvim|.
 
-                                                 *barbar-setup.icons.git.icon*
-    icons.git.icon ~
+                                            *barbar-setup.icons.gitsigns.icon*
+    icons.gitsigns.icon ~
       `boolean`  (default: `'+'`, `'-'`, `'~'`)
        The icon which accompanies the number of git status.
 
