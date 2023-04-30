@@ -7,7 +7,6 @@ local table_remove = table.remove
 
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
-local bufadd = vim.fn.bufadd --- @type function
 local bufname = vim.fn.bufname --- @type function
 local command = vim.api.nvim_command --- @type function
 local fnamemodify = vim.fn.fnamemodify --- @type function
@@ -61,14 +60,12 @@ local WARN = severity.WARN
 --- @field buffers integer[] the open buffers, in visual order.
 --- @field data_by_bufnr {[integer]: barbar.state.data} the buffer data indexed on buffer number
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
---- @field loading_session boolean `true` if a `SessionLoadPost` event is being processed
 --- @field offset barbar.state.offset
 --- @field recently_closed string[] the list of recently closed paths
 local state = {
   buffers = {},
   data_by_bufnr = {},
   is_picking_buffer = false,
-  loading_session = false,
   offset = {
     left = {text = '', width = 0},
     right = {text = '', width = 0},
@@ -323,27 +320,35 @@ function state.restore_buffers(buffer_data)
   local buf_delete = vim.api.nvim_buf_delete --- @type function
   local buf_get_lines = vim.api.nvim_buf_get_lines --- @type function
   local buf_line_count = vim.api.nvim_buf_line_count --- @type function
+  local bufnr = vim.fn.bufnr --- @type function
 
   -- Close all empty buffers. Loading a session may call :tabnew several times
   -- and create useless empty buffers.
-  for _, bufnr in ipairs(list_bufs()) do
-    if buf_get_name(bufnr) == ''
-      and buf_get_option(bufnr, 'buftype') == ''
-      and buf_line_count(bufnr) == 1
-      and buf_get_lines(bufnr, 0, 1, true)[1] == ''
+  for _, buffer_number in ipairs(list_bufs()) do
+    if buf_get_name(buffer_number) == ''
+      and buf_get_option(buffer_number, 'buftype') == ''
+      and buf_line_count(buffer_number) == 1
+      and buf_get_lines(buffer_number, 0, 1, true)[1] == ''
     then
-      buf_delete(bufnr, {})
+      buf_delete(buffer_number, {})
     end
   end
 
+  local any_pins = false
   state.buffers = {}
-  for _, data in ipairs(buffer_data) do
-    local bufnr = bufadd(data.name or data)
 
-    table_insert(state.buffers, bufnr)
+  for _, data in ipairs(buffer_data) do
+    local buffer_number = bufnr(data.name or data)
+
+    table_insert(state.buffers, buffer_number)
     if data.pinned then
-      state.toggle_pin(bufnr)
+      any_pins = true
+      state.get_buffer_data(buffer_number).pinned = data.pinned
     end
+  end
+
+  if any_pins then
+    state.sort_pins_to_left()
   end
 end
 

@@ -12,11 +12,8 @@ local defer_fn = vim.defer_fn
 local del_autocmd = vim.api.nvim_del_autocmd --- @type function
 local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
-local list_tabpages = vim.api.nvim_list_tabpages --- @type function
-local schedule = vim.schedule --- @type function
 local schedule_wrap = vim.schedule_wrap
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
-local tabpage_list_wins = vim.api.nvim_tabpage_list_wins --- @type function
 local tbl_isempty = vim.tbl_isempty
 local win_get_position = vim.api.nvim_win_get_position --- @type function
 local win_get_width = vim.api.nvim_win_get_width --- @type function
@@ -26,7 +23,6 @@ local config = require('barbar.config')
 local highlight_reset_cache = require('barbar.utils.highlight').reset_cache
 local highlight_setup = require('barbar.highlight').setup
 local jump_mode = require('barbar.jump_mode')
-local relative = require('barbar.fs').relative
 local render = require('barbar.ui.render')
 local set_offset = require('barbar.api').set_offset
 local state = require('barbar.state')
@@ -238,19 +234,12 @@ function events.enable()
   })
 
   create_autocmd('SessionLoadPost', {
-    -- TODO: I'm not sure if this whole thing can just be thrown in a `schedule_wrap`
-    --       in order to remove the inner `defer_fn` and `schedule` calls
-    callback = function()
-      if state.loading_session then
-        return
-      end
-
+    callback = vim.schedule_wrap(function()
       local restore_cmd = vim.g.Bufferline__session_restore
       if restore_cmd then command(restore_cmd) end
 
-      vim.defer_fn(function() state.loading_session = false end, 100)
-      schedule(function() render.update(true) end)
-    end,
+      render.update(true)
+    end),
     group = augroup_render,
   })
 
@@ -261,36 +250,16 @@ function events.enable()
 
   create_autocmd('User', {
     callback = function()
-      -- We're allowed to use relative paths for buffers iff there are no tabpages
-      -- or windows with a local directory (:tcd and :lcd)
-      local use_relative_file_paths = true
+      local relative = require('barbar.fs').relative
 
-      -- PERF: I didn't import `haslocaldir` since it is only used here (just before calling `:mksession` and exiting vim)
-      local haslocaldir = vim.fn.haslocaldir --- @type function
-
-      for tabnr, tabpage in ipairs(list_tabpages()) do
-        if not use_relative_file_paths or haslocaldir(-1, tabnr) == 1 then
-          use_relative_file_paths = false
-          break
-        end
-
-        for _, win in ipairs(tabpage_list_wins(tabpage)) do
-          if haslocaldir(win, tabnr) == 1 then
-            use_relative_file_paths = false
-            break
-          end
-        end
-      end
-
+      --- List of open buffers, along with relevant data
       local buffers = {}
-      for _, bufnr in ipairs(state.buffers) do
-        local name = buf_get_name(bufnr)
-        if use_relative_file_paths then
-          name = relative(name)
-        end
 
-        -- escape quotes
-        table_insert(buffers, {name = name, pinned = state.is_pinned(bufnr)})
+      for _, bufnr in ipairs(state.buffers) do
+        table_insert(buffers, {
+          name = relative(buf_get_name(bufnr)),
+          pinned = state.is_pinned(bufnr) or nil,
+        })
       end
 
       vim.g.Bufferline__session_restore = "lua require('barbar.state').restore_buffers " ..
