@@ -613,7 +613,7 @@ local function generate_tabline(bufnrs, refocus)
 
     if #pinned > 0 then
       local current_container = nil
-      local current_not_pinned = current_buffer == nil or current_buffer.pinned == true
+      local current_not_pinned = current_buffer == nil or current_buffer.pinned == false
 
       for i, container in ipairs(pinned) do
         -- We insert the current buffer after the others so it's always on top
