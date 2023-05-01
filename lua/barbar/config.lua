@@ -288,7 +288,10 @@ function config.setup(options)
     sidebar_filetypes = {},
     tabpages = true,
     integrations = {
-      persistence = false,
+      session_managers = {
+        persistence = false,
+        neovim_session_manager = false,
+      },
     },
   })
 

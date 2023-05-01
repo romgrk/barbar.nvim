@@ -2,4 +2,4 @@
 -- persistence.lua
 --
 
-return { persistence = require('barbar.integrations.persistence').setup, }
+return { session_auto_save = require('barbar.integrations.session_auto_save').setup, }

@@ -213,7 +213,7 @@ function barbar.setup(options)
   set_option('showtabline', 2)
 
   -- Setup Integrations
-  integrations.persistence(options)
+  integrations.session_auto_save(options)
 end
 
 return barbar
