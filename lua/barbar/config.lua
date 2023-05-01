@@ -287,6 +287,9 @@ function config.setup(options)
     semantic_letters = true,
     sidebar_filetypes = {},
     tabpages = true,
+    integrations = {
+      persistence = false,
+    },
   })
 
   do

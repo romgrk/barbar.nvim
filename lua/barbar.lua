@@ -13,6 +13,7 @@ local markdown_inline_code = require('barbar.utils').markdown_inline_code
 local notify = require('barbar.utils').notify
 local scroll = require('barbar.ui.render').scroll
 local state = require('barbar.state')
+local integrations = require('barbar.integrations')
 
 -------------------------------
 -- Section: `barbar` module
@@ -210,6 +211,9 @@ function barbar.setup(options)
 
   -- Show the tabline
   set_option('showtabline', 2)
+
+  -- Setup Integrations
+  integrations.persistence(options)
 end
 
 return barbar
