@@ -242,7 +242,7 @@ function config.setup(options)
   local default_icons = {
     buffer_index = false,
     buffer_number = false,
-    button = '',
+    button = '𝝬',
     diagnostics = {},
     gitsigns = {
       added = { enabled = false, icon = '+' },
