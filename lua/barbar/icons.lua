@@ -47,7 +47,7 @@ icons.get_icon = ok and
   function(bufnr, buffer_activity)
     local basename, extension = '', ''
     local filetype = buf_get_option(bufnr, 'filetype')
-    local icon_char, icon_hl = '', ''
+    local icon_char, icon_hl = '', 'Buffer'
 
     -- nvim-web-devicon only handles filetype icons, not other types (eg directory)
     -- thus we need to do some work here
@@ -61,7 +61,10 @@ icons.get_icon = ok and
         extension = fnamemodify(basename, ':e')
       end
 
-      icon_char, icon_hl = web.get_icon(basename, extension, { default = true })
+      local char, group = web.get_icon(basename, extension, { default = true })
+
+      if char ~= nil then icon_char = char end
+      if group ~= nil then icon_hl = group end
     end
 
     if icon_hl and hlexists(icon_hl .. buffer_activity) < 1 then
