@@ -282,7 +282,7 @@ require'barbar'.setup {
   exclude_name = {'package.json'},
 
   -- A buffer to this direction will be focused (if it exists) when closing the current buffer.
-  -- Valid options are 'left' (the default) and 'right'
+  -- Valid options are 'left' (the default), 'previous', and 'right'
   focus_on_close = 'left',
 
   -- Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
