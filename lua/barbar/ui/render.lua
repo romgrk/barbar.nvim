@@ -5,7 +5,6 @@
 local max = math.max
 local min = math.min
 local table_insert = table.insert
-local table_remove = table.remove
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
@@ -502,10 +501,11 @@ local function get_bufferline_containers(data, bufnrs, refocus)
       icon.text = #name.text > 0 and iconChar .. ' ' or iconChar
     end
 
-    local hl_sign = wrap_hl('Buffer' .. activity_name .. 'Sign')
-
     --- @type barbar.ui.node
-    local left_separator = { hl = clickable .. hl_sign, text = icons_option.separator.left }
+    local left_separator = {
+      hl = clickable .. wrap_hl('Buffer' .. activity_name .. 'Sign'),
+      text = icons_option.separator.left,
+    }
 
     --- @type barbar.ui.node
     local padding = { hl = buffer_hl, text = pinned and pinned_pad_text or unpinned_pad_text }
@@ -533,7 +533,10 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     end)
 
     --- @type barbar.ui.node
-    local right_separator = { hl = left_separator.hl, text = icons_option.separator.right }
+    local right_separator = {
+      hl = clickable .. wrap_hl('Buffer' .. activity_name .. 'SignRight'),
+      text = icons_option.separator.right,
+    }
 
     list_extend(container.nodes, { padding, button, right_separator })
     table_insert(pinned and pinned_containers or containers, container)

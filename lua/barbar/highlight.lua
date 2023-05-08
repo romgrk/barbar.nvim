@@ -17,6 +17,7 @@ hl.set_default_link('BufferAlternateINFO', 'BufferDefaultAlternateINFO')
 hl.set_default_link('BufferAlternateMod', 'BufferDefaultAlternateMod')
 hl.set_default_link('BufferAlternateNumber', 'BufferDefaultAlternateNumber')
 hl.set_default_link('BufferAlternateSign', 'BufferDefaultAlternateSign')
+hl.set_default_link('BufferAlternateSignRight', 'BufferAlternateSign')
 hl.set_default_link('BufferAlternateTarget', 'BufferDefaultAlternateTarget')
 hl.set_default_link('BufferAlternateWARN', 'BufferDefaultAlternateWARN')
 
@@ -32,6 +33,7 @@ hl.set_default_link('BufferCurrentINFO', 'BufferDefaultCurrentINFO')
 hl.set_default_link('BufferCurrentMod', 'BufferDefaultCurrentMod')
 hl.set_default_link('BufferCurrentNumber', 'BufferDefaultCurrentNumber')
 hl.set_default_link('BufferCurrentSign', 'BufferDefaultCurrentSign')
+hl.set_default_link('BufferCurrentSignRight', 'BufferCurrentSign')
 hl.set_default_link('BufferCurrentTarget', 'BufferDefaultCurrentTarget')
 hl.set_default_link('BufferCurrentWARN', 'BufferDefaultCurrentWARN')
 
@@ -47,6 +49,7 @@ hl.set_default_link('BufferInactiveINFO', 'BufferDefaultInactiveINFO')
 hl.set_default_link('BufferInactiveMod', 'BufferDefaultInactiveMod')
 hl.set_default_link('BufferInactiveNumber', 'BufferDefaultInactiveNumber')
 hl.set_default_link('BufferInactiveSign', 'BufferDefaultInactiveSign')
+hl.set_default_link('BufferInactiveSignRight', 'BufferInactiveSign')
 hl.set_default_link('BufferInactiveTarget', 'BufferDefaultInactiveTarget')
 hl.set_default_link('BufferInactiveWARN', 'BufferDefaultInactiveWARN')
 
@@ -68,6 +71,7 @@ hl.set_default_link('BufferVisibleINFO', 'BufferDefaultVisibleINFO')
 hl.set_default_link('BufferVisibleMod', 'BufferDefaultVisibleMod')
 hl.set_default_link('BufferVisibleNumber', 'BufferDefaultVisibleNumber')
 hl.set_default_link('BufferVisibleSign', 'BufferDefaultVisibleSign')
+hl.set_default_link('BufferVisibleSignRight', 'BufferVisibleSign')
 hl.set_default_link('BufferVisibleTarget', 'BufferDefaultVisibleTarget')
 hl.set_default_link('BufferVisibleWARN', 'BufferDefaultVisibleWARN')
 
@@ -93,14 +97,14 @@ function highlight.setup()
   local fg_target = {gui = 'red'} --- @type barbar.utils.hl.color
   fg_target.cterm = fg_target.gui
 
-  local fg_error = hl.fg_or_default({'ErrorMsg'}, '#A80000', 124)
-  local fg_hint = hl.fg_or_default({'HintMsg'}, '#D5508F', 168)
-  local fg_info = hl.fg_or_default({'InfoMsg'}, '#FFB7B7', 217)
-  local fg_warn = hl.fg_or_default({'WarningMsg'}, '#FF8900', 208)
-
   local fg_added = hl.fg_or_default({'GitSignsAdd'}, '#59ff5a', 82)
   local fg_changed = hl.fg_or_default({'GitSignsChange'}, '#599eff', 75)
   local fg_deleted = hl.fg_or_default({'GitSignsDelete'}, '#A80000', 124)
+
+  local fg_error = hl.fg_or_default({'DiagnosticSignError'}, '#A80000', 124)
+  local fg_hint = hl.fg_or_default({'DiagnosticSignHint'}, '#D5508F', 168)
+  local fg_info = hl.fg_or_default({'DiagnosticSignInfo'}, '#FFB7B7', 217)
+  local fg_warn = hl.fg_or_default({'DiagnosticSignWarn'}, '#FF8900', 208)
 
   local fg_modified = hl.fg_or_default({'WarningMsg'}, '#E5AB0E', 178)
   local fg_special = hl.fg_or_default({'Special'}, '#599eff', 75)
