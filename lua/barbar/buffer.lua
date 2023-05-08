@@ -4,6 +4,7 @@
 
 local max = math.max
 local min = math.min
+local rshift = bit.rshift
 local table_concat = table.concat
 local table_insert = table.insert
 
@@ -86,8 +87,9 @@ function buffer.get_name(buffer_number, hide_extensions)
   --- @type string
   local name = buf_is_valid(buffer_number) and buf_get_name(buffer_number) or ''
 
-  local no_name_title = config.options.no_name_title
   local maximum_length = config.options.maximum_length
+  local minimum_length = config.options.minimum_length
+  local no_name_title = config.options.no_name_title
 
   if name ~= '' then
     name = buf_get_option(buffer_number, 'buftype') == 'terminal' and terminalname(name) or basename(name, hide_extensions)
@@ -99,7 +101,18 @@ function buffer.get_name(buffer_number, hide_extensions)
     name = '[buffer ' .. buffer_number .. ']'
   end
 
-  if strwidth(name) > maximum_length then
+  local name_width = strwidth(name)
+  if name_width < minimum_length then
+    local remaining_length = minimum_length - name_width
+
+    --- PERF: faster than `math.floor(difference / 2)`
+    local half = rshift(remaining_length, 1)
+
+    --- accounts for if `remaining_length` is not evenly divisible
+    local other_half = remaining_length - half
+
+    name = (' '):rep(other_half) .. name .. (' '):rep(half)
+  elseif name_width > maximum_length then
     local ext_index = name:reverse():find('%.')
 
     if ext_index ~= nil and (ext_index < maximum_length - ELLIPSIS_LEN) then

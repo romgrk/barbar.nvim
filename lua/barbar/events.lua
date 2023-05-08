@@ -326,7 +326,7 @@ function events.on_option_changed(user_config)
 
   -- Don't jump-start barbar if it is disabled
   if enabled then
-    render.update()
+    render.update(true)
   end
 end
 

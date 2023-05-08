@@ -165,6 +165,7 @@ local DEPRECATED_OPTIONS = {
 --- @field insert_at_start boolean
 --- @field letters string
 --- @field maximum_length integer
+--- @field minimum_length integer
 --- @field maximum_padding integer
 --- @field minimum_padding integer
 --- @field no_name_title? string
@@ -273,15 +274,16 @@ function config.setup(options)
     exclude_name = {},
     focus_on_close = 'left',
     hide = {},
-    icons = default_icons,
     highlight_alternate = false,
     highlight_inactive_file_icons = false,
     highlight_visible = true,
+    icons = default_icons,
     insert_at_end = false,
     insert_at_start = false,
     letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
     maximum_length = 30,
     maximum_padding = 4,
+    minimum_length = 0,
     minimum_padding = 1,
     no_name_title = nil,
     semantic_letters = true,
