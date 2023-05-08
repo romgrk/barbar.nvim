@@ -1,3 +1,4 @@
+local strwidth = vim.api.nvim_strwidth --- @type function
 local table_concat = table.concat
 local tbl_deep_extend = vim.tbl_deep_extend
 
@@ -90,48 +91,87 @@ local GIT_STATUSES = {'added', 'changed', 'deleted'}
 --- @field left string
 --- @field right string
 
+--- @alias barbar.config.options.icons.preset 'default'|'powerline'|'slanted'
+
 --- @class barbar.config.options.icons: barbar.config.options.icons.state
 --- @field alternate barbar.config.options.icons.state the icons used for an alternate buffer
 --- @field current barbar.config.options.icons.state the icons for the current buffer
 --- @field inactive barbar.config.options.icons.state the icons for inactive buffers
---- @field visible barbar.config.options.icons.state the icons for visible buffers
+--- @field preset barbar.config.options.icons.preset
 --- @field scroll barbar.config.options.icons.scroll the scroll arrows
+--- @field visible barbar.config.options.icons.state the icons for visible buffers
 
---- @alias barbar.config.options.icons.preset boolean|"both"|"buffer_number_with_icon"|"buffer_numbers"|"numbers"
+--- @type {[barbar.config.options.icons.preset]: fun(default_icons: barbar.config.options.icons, user_icons?: table)}
+local ICON_PRESETS = {
+  default = function(default_icons, user_icons)
+    default_icons.inactive = { separator = { left = '▎', right = '' } }
+    default_icons.separator = { left = '▎', right = '' }
 
---- @type {[barbar.config.options.icons.preset]: barbar.config.options.icons}
-local PRESETS = {
-  [false] = {
-    buffer_number = false,
-    buffer_index = false,
-    filetype = { enabled = false },
-  },
-  [true] = {
-    buffer_number = false,
-    buffer_index = false,
-    filetype = { enabled = true },
-  },
-  both = {
-    buffer_index = true,
-    buffer_number = false,
-    filetype = { enabled = true },
-  },
-  buffer_number_with_icon = {
-    buffer_index = false,
-    buffer_number = true,
-    filetype = { enabled = true },
-  },
-  buffer_numbers = {
-    buffer_index = false,
-    buffer_number = true,
-    filetype = { enabled = false },
-  },
-  numbers = {
-    buffer_index = true,
-    buffer_number = false,
-    filetype = { enabled = false },
-  },
+    local pinned_icons = user_icons and user_icons.pinned
+    if pinned_icons == nil or
+      pinned_icons.button == false or
+      (pinned_icons.button and strwidth(pinned_icons.button) < 1)
+    then
+      default_icons.pinned.separator = { right = ' ' }
+    end
+  end,
+
+  powerline = function(default_icons)
+    default_icons.inactive = { separator = { left = '', right = '' } }
+    default_icons.separator = { left = '', right = '' }
+  end,
+
+  slanted = function(default_icons)
+    default_icons.inactive = { separator = { left = '', right = '' } }
+    default_icons.separator = { left = '', right = '' }
+  end,
 }
+
+--- @alias barbar.config.options.icons.preset.deprecated boolean|'both'|'buffer_number_with_icon'|'buffer_numbers'|'numbers'
+
+--- @type {[barbar.config.options.icons.preset.deprecated]: barbar.config.options.icons}
+local DEPRECATED_ICON_PRESETS = setmetatable({}, {__index = function(_, key)
+  local icons
+  if key == false then
+    icons = {
+      buffer_number = false,
+      buffer_index = false,
+      filetype = { enabled = false },
+    }
+  elseif key == true then
+    icons = {
+      buffer_number = false,
+      buffer_index = false,
+      filetype = { enabled = true },
+    }
+  elseif key == 'both' then
+    icons = {
+      buffer_index = true,
+      buffer_number = false,
+      filetype = { enabled = true },
+    }
+  elseif key == 'buffer_number_with_icon' then
+    icons = {
+      buffer_index = false,
+      buffer_number = true,
+      filetype = { enabled = true },
+    }
+  elseif key == 'buffer_numbers' then
+    icons = {
+      buffer_index = false,
+      buffer_number = true,
+      filetype = { enabled = false },
+    }
+  elseif key == 'numbers' then
+    icons = {
+      buffer_index = true,
+      buffer_number = false,
+      filetype = { enabled = false },
+    }
+  end
+
+  return icons
+end})
 
 --- A table of options that used to exist, and where they are located now.
 --- @type {[string]: string[]}
@@ -165,8 +205,8 @@ local DEPRECATED_OPTIONS = {
 --- @field insert_at_start boolean
 --- @field letters string
 --- @field maximum_length integer
---- @field minimum_length integer
 --- @field maximum_padding integer
+--- @field minimum_length integer
 --- @field minimum_padding integer
 --- @field no_name_title? string
 --- @field semantic_letters boolean
@@ -188,7 +228,7 @@ function config.setup(options)
   do -- TODO: remove after v2
     local icons_type = type(options.icons)
     if icons_type == 'string' or icons_type == 'boolean' then
-      local preset = PRESETS[options.icons]
+      local preset = DEPRECATED_ICON_PRESETS[options.icons]
       utils.deprecate(
         DEPRECATE_PREFIX .. utils.markdown_inline_code('icons = ' .. vim.inspect(options.icons)),
         utils.markdown_inline_code('icons = ' .. vim.inspect(
@@ -252,18 +292,15 @@ function config.setup(options)
     },
     filename = true,
     filetype = { enabled = true },
-    inactive = { separator = { left = '▎', right = '' } },
     modified = { button = '●' },
     pinned = { button = false, filename = false },
-    separator = { left = '▎', right = '' },
-    scroll = { left = '❮', right = '❯' }
+    preset = 'default',
+    scroll = { left = '❮', right = '❯' },
   }
 
   do
-    local pinned_icons = options.icons and options.icons.pinned
-    if pinned_icons == nil or pinned_icons.button == false or #pinned_icons.button < 1 then
-      default_icons.pinned.separator = { right = ' ' }
-    end
+    local icons = options.icons
+    ICON_PRESETS[icons and icons.preset or default_icons.preset](default_icons, icons)
   end
 
   config.options = tbl_deep_extend('keep', options, {
@@ -286,6 +323,7 @@ function config.setup(options)
     minimum_length = 0,
     minimum_padding = 1,
     no_name_title = nil,
+    preset = 'default',
     semantic_letters = true,
     sidebar_filetypes = {},
     tabpages = true,
