@@ -435,6 +435,11 @@ maximum_length ~
   `int`  (default: 30)
   Sets the maximum buffer name length.
 
+                                                 *barbar-setup.minimum_length*
+minimum_length ~
+  `int`  (default: 0)
+  Sets the minimum buffer name length.
+
                                                 *barbar-setup.minimum_padding*
 minimum_padding ~
   `int`  (default: `1`)
