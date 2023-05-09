@@ -395,21 +395,22 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 | `Inactive`  | `:h hidden-buffer`s and `:h inactive-buffer`s.          |
 | `Visible`   | `:h active-buffer`s which are not alternate or current. |
 
-| `<PART>`  | Meaning                                                                              |
-|:----------|:-------------------------------------------------------------------------------------|
-| `ADDED`   | Git status added.                                                                    |
-| `CHANGED` | Git status changed.                                                                  |
-| `DELETED` | Git status deleted.                                                                  |
-| `ERROR`   | Diagnostic errors.                                                                   |
-| `HINT`    | Diagnostic hints.                                                                    |
-| `Icon`    | The filetype icon (when `icons.filetype == {custom_colors = true, enabled = true}`). |
-| `Index`   | The buffer's position in the tabline.                                                |
-| `INFO`    | Diagnostic info.                                                                     |
-| `Mod`     | When the buffer is modified.                                                         |
-| `Number`  | The `:h bufnr()`.                                                                    |
-| `Sign`    | The separator between buffers.                                                       |
-| `Target`  | The letter in buffer-pick mode.                                                      |
-| `WARN`    | Diagnostic warnings.                                                                 |
+| `<PART>`       | Meaning                                                                              |
+|:---------------|:-------------------------------------------------------------------------------------|
+| `ADDED`        | Git status added.                                                                    |
+| `CHANGED`      | Git status changed.                                                                  |
+| `DELETED`      | Git status deleted.                                                                  |
+| `ERROR`        | Diagnostic errors.                                                                   |
+| `HINT`         | Diagnostic hints.                                                                    |
+| `Icon`         | The filetype icon (when `icons.filetype == {custom_colors = true, enabled = true}`). |
+| `Index`        | The buffer's position in the tabline.                                                |
+| `INFO`         | Diagnostic info.                                                                     |
+| `Mod`          | When the buffer is modified.                                                         |
+| `Number`       | The `:h bufnr()`.                                                                    |
+| `Sign`         | The separator between buffers.                                                       |
+| `SignRight`    | The separator between buffers.                                                       |
+| `Target`       | The letter in buffer-pick mode.                                                      |
+| `WARN`         | Diagnostic warnings.                                                                 |
 
 * e.g. the current buffer's highlight when modified is `BufferCurrentMod`
 
