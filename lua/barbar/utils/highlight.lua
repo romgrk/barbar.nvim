@@ -96,7 +96,7 @@ function hl.attributes(groups)
   for _, group in ipairs(groups) do
     local cached = get_hl_cached(group)
     if not tbl_isempty(cached) then
-      return cached
+      return vim.deepcopy(cached)
     end
   end
 end
@@ -129,6 +129,7 @@ end
 function hl.reset_cache() hl_groups_cache = {} end
 
 --- Set some highlight `group`'s default definition with respect to `&termguicolors`
+--- WARN: this mutates `attributes`!
 --- @param group string the name of the highlight group to set
 --- @param bg barbar.utils.hl.color
 --- @param fg barbar.utils.hl.color
@@ -160,7 +161,7 @@ end
 
 --- Generate a foreground color.
 --- @param groups string[] the groups to source the foreground color from.
---- @param default string the foreground color to use if no `groups` have a valid foreground color.
+--- @param default barbar.utils.hl.color.value the foreground color to use if no `groups` have a valid foreground color.
 --- @return barbar.utils.hl.color.value color
 function hl.sp_or_default(groups, default)
   return get_hl_color_or_default(groups, 'sp', default)
