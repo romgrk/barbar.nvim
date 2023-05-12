@@ -155,7 +155,7 @@ local DEPRECATED_OPTIONS = {
 --- @field clickable boolean
 --- @field exclude_ft string[]
 --- @field exclude_name string[]
---- @field focus_on_close side
+--- @field focus_on_close side|'previous'
 --- @field hide barbar.config.options.hide
 --- @field highlight_alternate boolean
 --- @field highlight_inactive_file_icons boolean
@@ -272,7 +272,7 @@ function config.setup(options)
     clickable = true,
     exclude_ft = {},
     exclude_name = {},
-    focus_on_close = 'left',
+    focus_on_close = 'previous',
     hide = {},
     highlight_alternate = false,
     highlight_inactive_file_icons = false,

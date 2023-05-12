@@ -74,13 +74,22 @@ local enew = vim.api.nvim_cmd and
   --- @param force boolean
   function(force) command("enew" .. (force and '!' or '')) end
 
+--- Get the bufnr that will be focused when the buffer with `closing_number` closes.
 --- @param closing_number integer
 --- @return nil|integer bufnr of the buffer to focus
 local function get_focus_on_close(closing_number)
   local focus_on_close = config.options.focus_on_close
   local state_bufnrs = state.buffers
 
-  if #state_bufnrs < 1 then -- all of the buffers are excluded or unlisted
+  if focus_on_close == 'previous' then
+    local previous = bufnr('#')
+    if previous > -1 then
+      return previous
+    end
+  end
+
+  -- Edge case: all of the buffers are excluded or unlisted
+  if #state_bufnrs < 1 then
     local open_bufnrs = list_bufs()
 
     local start, end_, step
@@ -104,6 +113,7 @@ local function get_focus_on_close(closing_number)
     state_bufnrs = list.reverse(state.buffers)
   end
 
+  -- Next, try to get the buffer to focus by "looking" left or right of the current buffer
   local index = list.index_of(state_bufnrs, closing_number)
   if index then
     index = index - 1
@@ -114,6 +124,7 @@ local function get_focus_on_close(closing_number)
     end
   end
 
+  -- If all else fails, choose the first available listed buffer
   for _, buffer_number in ipairs(state_bufnrs) do
     if buffer_number ~= closing_number then
       return buffer_number

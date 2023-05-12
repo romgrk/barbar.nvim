@@ -176,9 +176,13 @@ exclude_name ~
 
                                                  *barbar-setup.focus_on_close*
 focus_on_close ~
-  `'left'|'right'`  (default: `'left'`)
-  A buffer to this direction will be focused (if it exists) when closing the
-  current buffer.
+  `'left'|'previous'|'right'`  (default: `'left'`)
+  The algorithm to use for getting the next buffer after closing the current
+  one:
+
+  - `'left'`: focus the buffer to the left of the current buffer.
+  - `'previous'`: focus the previous buffer.
+  - `'right'`: focus the buffer to the right of the current buffer.
 
                                                            *barbar-setup.hide*
 hide ~
