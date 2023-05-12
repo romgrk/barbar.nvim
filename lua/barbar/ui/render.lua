@@ -3,7 +3,6 @@
 --
 
 local max = math.max
-local min = math.min
 local table_insert = table.insert
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
@@ -407,17 +406,15 @@ local function get_bufferline_containers(data, bufnrs, refocus)
       end
     end
 
-    local scroll_current = min(scroll.current, data.buffers.scroll_max)
-
     if pinned then
       accumulated_pinned_width = accumulated_pinned_width + container_width
     else
       accumulated_unpinned_width = accumulated_unpinned_width + container_width
 
-      if accumulated_unpinned_width < scroll_current  then
+      if accumulated_unpinned_width < scroll.current  then
         goto continue -- HACK: there is no `continue` keyword
       elseif (refocus == false or (refocus ~= false and current_buffer ~= nil)) and
-        accumulated_unpinned_width - scroll_current > data.buffers.unpinned_allocated_width
+        accumulated_unpinned_width - scroll.current > data.buffers.unpinned_allocated_width
       then
         done = true
       end
@@ -564,6 +561,10 @@ local HL = {
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
   local data = layout.calculate()
+  if refocus ~= false and scroll.current > data.buffers.scroll_max then
+    render.set_scroll(data.buffers.scroll_max)
+  end
+
   local pinned, unpinned, current_buffer = get_bufferline_containers(data, bufnrs, refocus)
 
   -- Create actual tabline string
