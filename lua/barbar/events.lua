@@ -4,6 +4,7 @@ local table_insert = table.insert
 local buf_call = vim.api.nvim_buf_call --- @type function
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
 local buf_set_var = vim.api.nvim_buf_set_var --- @type function
 local command = vim.api.nvim_command --- @type function
 local create_augroup = vim.api.nvim_create_augroup --- @type function
@@ -79,9 +80,11 @@ function events.enable()
 
   create_autocmd({'BufNewFile', 'BufReadPost'}, {
     callback = vim.schedule_wrap(function(event)
-      jump_mode.assign_next_letter(event.buf)
-      state.update_diagnostics(event.buf)
-      state.update_gitsigns(event.buf)
+      if buf_is_valid(event.buf) then
+        jump_mode.assign_next_letter(event.buf)
+        state.update_diagnostics(event.buf)
+        state.update_gitsigns(event.buf)
+      end
     end),
     group = augroup_misc,
   })
