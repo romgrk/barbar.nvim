@@ -17,7 +17,7 @@ hl.set_default_link('BufferAlternateINFO', 'BufferDefaultAlternateINFO')
 hl.set_default_link('BufferAlternateMod', 'BufferDefaultAlternateMod')
 hl.set_default_link('BufferAlternateNumber', 'BufferDefaultAlternateNumber')
 hl.set_default_link('BufferAlternateSign', 'BufferDefaultAlternateSign')
-hl.set_default_link('BufferAlternateSignRight', 'BufferAlternateSign')
+hl.set_default_link('BufferAlternateSignRight', 'BufferDefaultAlternateSignRight')
 hl.set_default_link('BufferAlternateTarget', 'BufferDefaultAlternateTarget')
 hl.set_default_link('BufferAlternateWARN', 'BufferDefaultAlternateWARN')
 
@@ -33,7 +33,7 @@ hl.set_default_link('BufferCurrentINFO', 'BufferDefaultCurrentINFO')
 hl.set_default_link('BufferCurrentMod', 'BufferDefaultCurrentMod')
 hl.set_default_link('BufferCurrentNumber', 'BufferDefaultCurrentNumber')
 hl.set_default_link('BufferCurrentSign', 'BufferDefaultCurrentSign')
-hl.set_default_link('BufferCurrentSignRight', 'BufferCurrentSign')
+hl.set_default_link('BufferCurrentSignRight', 'BufferDefaultCurrentSignRight')
 hl.set_default_link('BufferCurrentTarget', 'BufferDefaultCurrentTarget')
 hl.set_default_link('BufferCurrentWARN', 'BufferDefaultCurrentWARN')
 
@@ -49,7 +49,7 @@ hl.set_default_link('BufferInactiveINFO', 'BufferDefaultInactiveINFO')
 hl.set_default_link('BufferInactiveMod', 'BufferDefaultInactiveMod')
 hl.set_default_link('BufferInactiveNumber', 'BufferDefaultInactiveNumber')
 hl.set_default_link('BufferInactiveSign', 'BufferDefaultInactiveSign')
-hl.set_default_link('BufferInactiveSignRight', 'BufferInactiveSign')
+hl.set_default_link('BufferInactiveSignRight', 'BufferDefaultInactiveSignRight')
 hl.set_default_link('BufferInactiveTarget', 'BufferDefaultInactiveTarget')
 hl.set_default_link('BufferInactiveWARN', 'BufferDefaultInactiveWARN')
 
@@ -71,20 +71,24 @@ hl.set_default_link('BufferVisibleINFO', 'BufferDefaultVisibleINFO')
 hl.set_default_link('BufferVisibleMod', 'BufferDefaultVisibleMod')
 hl.set_default_link('BufferVisibleNumber', 'BufferDefaultVisibleNumber')
 hl.set_default_link('BufferVisibleSign', 'BufferDefaultVisibleSign')
-hl.set_default_link('BufferVisibleSignRight', 'BufferVisibleSign')
+hl.set_default_link('BufferVisibleSignRight', 'BufferDefaultVisibleSignRight')
 hl.set_default_link('BufferVisibleTarget', 'BufferDefaultVisibleTarget')
 hl.set_default_link('BufferVisibleWARN', 'BufferDefaultVisibleWARN')
 
 -- NOTE: these should move to `setup_defaults` if the definition stops being a link
 hl.set_default_link('BufferDefaultAlternateIcon', 'BufferAlternate')
 hl.set_default_link('BufferDefaultAlternateNumber', 'BufferAlternateIndex')
+hl.set_default_link('BufferDefaultAlternateSignRight', 'BufferAlternateSign')
 hl.set_default_link('BufferDefaultCurrentIcon', 'BufferCurrent')
 hl.set_default_link('BufferDefaultCurrentNumber', 'BufferCurrentIndex')
+hl.set_default_link('BufferDefaultCurrentSignRight', 'BufferCurrentSign')
 hl.set_default_link('BufferDefaultInactiveIcon', 'BufferInactive')
 hl.set_default_link('BufferDefaultInactiveNumber', 'BufferInactiveIndex')
+hl.set_default_link('BufferDefaultInactiveSignRight', 'BufferInactiveSign')
 hl.set_default_link('BufferDefaultOffset', 'BufferTabpageFill')
 hl.set_default_link('BufferDefaultVisibleIcon', 'BufferVisible')
 hl.set_default_link('BufferDefaultVisibleNumber', 'BufferVisibleIndex')
+hl.set_default_link('BufferDefaultVisibleSignRight', 'BufferVisibleSign')
 
 --- @class barbar.Highlight
 local highlight = {}
@@ -92,8 +96,8 @@ local highlight = {}
 --- Setup the highlight groups for this plugin.
 --- @return nil
 function highlight.setup()
-  local fg_current = hl.fg_or_default({'Normal'}, '#efefef', 255)
-  local fg_inactive = hl.fg_or_default({'TabLineFill'}, '#888888', 102)
+  local preset = config.options.icons.preset
+
   local fg_target = {gui = 'red'} --- @type barbar.utils.hl.color
   fg_target.cterm = fg_target.gui
 
@@ -110,8 +114,16 @@ function highlight.setup()
   local fg_special = hl.fg_or_default({'Special'}, '#599eff', 75)
   local fg_subtle = hl.fg_or_default({'NonText', 'Comment'}, '#555555', 240)
 
-  local bg_current = hl.bg_or_default({'Normal'}, 'none')
-  local bg_inactive = hl.bg_or_default({'TabLineFill', 'StatusLine'}, 'none')
+  local bg_tabline
+  do
+    local tabpage_hl = {'TabLineFill'}
+
+    bg_tabline = hl.bg_or_default(tabpage_hl, '#888888', 102)
+    local fg = hl.fg_or_default(tabpage_hl, 'none')
+
+    hl.set('BufferDefaultTabpageFill', bg_tabline, fg)
+    hl.set('BufferDefaultTabpages', bg_tabline, fg_special, nil, {bold = true})
+  end
 
   --    Alternate: alternate buffer
   --      Current: current buffer
@@ -124,68 +136,164 @@ function highlight.setup()
   --        -Sign: the separator between buffers
   --      -Target: letter in buffer-picking mode
   if config.options.highlight_alternate then
-    local fg_alternate = hl.fg_or_default({'TabLineFill'}, '#ead0a0', 223)
-    local bg_alternate = hl.bg_or_default({'TabLineSel', 'Normal'}, 'none')
+    local alternate_hl = {'TabLine', 'StatusLine'}
 
-    hl.set('BufferDefaultAlternate',        bg_alternate, fg_alternate)
-    hl.set('BufferDefaultAlternateADDED',   bg_alternate, fg_added)
-    hl.set('BufferDefaultAlternateCHANGED', bg_alternate, fg_changed)
-    hl.set('BufferDefaultAlternateDELETED', bg_alternate, fg_deleted)
-    hl.set('BufferDefaultAlternateERROR',   bg_alternate, fg_error)
-    hl.set('BufferDefaultAlternateHINT',    bg_alternate, fg_hint)
-    hl.set('BufferDefaultAlternateIndex',   bg_alternate, fg_special)
-    hl.set('BufferDefaultAlternateINFO',    bg_alternate, fg_info)
-    hl.set('BufferDefaultAlternateMod',     bg_alternate, fg_modified)
-    hl.set('BufferDefaultAlternateSign',    bg_alternate, fg_special)
-    hl.set('BufferDefaultAlternateTarget',  bg_alternate, fg_target, nil, {bold = true})
-    hl.set('BufferDefaultAlternateWARN',    bg_alternate, fg_warn)
+    local attributes = hl.attributes(alternate_hl) or {}
+
+    local bg = hl.bg_or_default(alternate_hl, 'none')
+    local fg = hl.fg_or_default(alternate_hl, 0xEAD0A0, 223)
+    local sp --- @type barbar.utils.hl.color.value
+
+    if preset == 'default' then
+      attributes.undercurl = false
+      attributes.underdashed = false
+      attributes.underdotted = false
+      attributes.underdouble = false
+      attributes.underline = false
+
+      hl.set('BufferDefaultAlternateSign', bg, fg_special, sp, attributes)
+    else
+      sp = hl.fg_or_default({'DiagnosticSignHint'}, 0xD5508F).gui
+      attributes.underline = true
+
+      hl.set('BufferDefaultAlternateSign', bg, bg_tabline, sp, attributes)
+      if preset == 'powerline' then
+        hl.set('BufferDefaultAlternateSignRight', bg_tabline, bg, sp)
+      end
+    end
+
+    hl.set('BufferDefaultAlternate',        bg, fg, sp, attributes)
+    hl.set('BufferDefaultAlternateADDED',   bg, fg_added, sp, attributes)
+    hl.set('BufferDefaultAlternateCHANGED', bg, fg_changed, sp, attributes)
+    hl.set('BufferDefaultAlternateDELETED', bg, fg_deleted, sp, attributes)
+    hl.set('BufferDefaultAlternateERROR',   bg, fg_error, sp, attributes)
+    hl.set('BufferDefaultAlternateHINT',    bg, fg_hint, sp, attributes)
+    hl.set('BufferDefaultAlternateIndex',   bg, fg_special, sp, attributes)
+    hl.set('BufferDefaultAlternateINFO',    bg, fg_info, sp, attributes)
+    hl.set('BufferDefaultAlternateMod',     bg, fg_modified, sp, attributes)
+    hl.set('BufferDefaultAlternateWARN',    bg, fg_warn, sp, attributes)
+
+    attributes.bold = true
+    hl.set('BufferDefaultAlternateTarget',  bg, fg_target, sp, attributes)
   end
 
-  hl.set('BufferDefaultCurrent',        bg_current, fg_current)
-  hl.set('BufferDefaultCurrentADDED',   bg_current, fg_added)
-  hl.set('BufferDefaultCurrentCHANGED', bg_current, fg_changed)
-  hl.set('BufferDefaultCurrentDELETED', bg_current, fg_deleted)
-  hl.set('BufferDefaultCurrentERROR',   bg_current, fg_error)
-  hl.set('BufferDefaultCurrentHINT',    bg_current, fg_hint)
-  hl.set('BufferDefaultCurrentIndex',   bg_current, fg_special)
-  hl.set('BufferDefaultCurrentINFO',    bg_current, fg_info)
-  hl.set('BufferDefaultCurrentMod',     bg_current, fg_modified)
-  hl.set('BufferDefaultCurrentSign',    bg_current, fg_special)
-  hl.set('BufferDefaultCurrentTarget',  bg_current, fg_target, nil, {bold = true})
-  hl.set('BufferDefaultCurrentWARN',    bg_current, fg_warn)
+  do
+    local current_hl = {'TabLineSel'}
 
-  hl.set('BufferDefaultInactive',       bg_inactive, fg_inactive)
-  hl.set('BufferDefaultInactiveADDED',  bg_inactive, fg_added)
-  hl.set('BufferDefaultInactiveCHANGED',bg_inactive, fg_changed)
-  hl.set('BufferDefaultInactiveDELETED',bg_inactive, fg_deleted)
-  hl.set('BufferDefaultInactiveERROR',  bg_inactive, fg_error)
-  hl.set('BufferDefaultInactiveHINT',   bg_inactive, fg_hint)
-  hl.set('BufferDefaultInactiveIndex',  bg_inactive, fg_subtle)
-  hl.set('BufferDefaultInactiveINFO',   bg_inactive, fg_info)
-  hl.set('BufferDefaultInactiveMod',    bg_inactive, fg_modified)
-  hl.set('BufferDefaultInactiveSign',   bg_inactive, fg_subtle)
-  hl.set('BufferDefaultInactiveTarget', bg_inactive, fg_target, nil, {bold = true})
-  hl.set('BufferDefaultInactiveWARN',   bg_inactive, fg_warn)
+    local attributes = hl.attributes(current_hl) or {}
+    local bg = hl.bg_or_default(current_hl, 'none')
+    local fg = hl.fg_or_default(current_hl, '#efefef', 255)
+    local sp --- @type barbar.utils.hl.color.value
 
-  hl.set('BufferDefaultTabpageFill',    bg_inactive, fg_inactive)
-  hl.set('BufferDefaultTabpages',       bg_inactive, fg_special, nil, {bold = true})
+    if preset == 'default' then
+      attributes.undercurl = false
+      attributes.underdashed = false
+      attributes.underdotted = false
+      attributes.underdouble = false
+      attributes.underline = false
+
+      hl.set('BufferDefaultCurrentSign', bg, fg_special, sp, attributes)
+    else
+      sp = hl.sp_or_default(current_hl, 0x60AFFF)
+      attributes.underline = true
+
+      hl.set('BufferDefaultCurrentSign', bg, bg_tabline, sp, attributes)
+      if preset == 'powerline' then
+        hl.set('BufferDefaultCurrentSignRight', bg_tabline, bg, sp)
+      end
+    end
+
+    hl.set('BufferDefaultCurrent',        bg, fg, sp, attributes)
+    hl.set('BufferDefaultCurrentADDED',   bg, fg_added, sp, attributes)
+    hl.set('BufferDefaultCurrentCHANGED', bg, fg_changed, sp, attributes)
+    hl.set('BufferDefaultCurrentDELETED', bg, fg_deleted, sp, attributes)
+    hl.set('BufferDefaultCurrentERROR',   bg, fg_error, sp, attributes)
+    hl.set('BufferDefaultCurrentHINT',    bg, fg_hint, sp, attributes)
+    hl.set('BufferDefaultCurrentIndex',   bg, fg_special, sp, attributes)
+    hl.set('BufferDefaultCurrentINFO',    bg, fg_info, sp, attributes)
+    hl.set('BufferDefaultCurrentMod',     bg, fg_modified, sp, attributes)
+    hl.set('BufferDefaultCurrentWARN',    bg, fg_warn, sp, attributes)
+
+    attributes.bold = true
+    hl.set('BufferDefaultCurrentTarget',  bg, fg_target, sp, attributes)
+  end
+
+  do
+    local inactive_hl = {'TabLine', 'StatusLine'}
+
+    local attributes = hl.attributes(inactive_hl) or {}
+    attributes.undercurl = false
+    attributes.underdashed = false
+    attributes.underdotted = false
+    attributes.underdouble = false
+    attributes.underline = false
+
+    local bg = hl.bg_or_default(inactive_hl, 'none')
+    local fg = hl.fg_or_default(inactive_hl, '#efefef', 255)
+
+    hl.set('BufferDefaultInactive',       bg, fg, nil, attributes)
+    hl.set('BufferDefaultInactiveADDED',  bg, fg_added, nil, attributes)
+    hl.set('BufferDefaultInactiveCHANGED',bg, fg_changed, nil, attributes)
+    hl.set('BufferDefaultInactiveDELETED',bg, fg_deleted, nil, attributes)
+    hl.set('BufferDefaultInactiveERROR',  bg, fg_error, nil, attributes)
+    hl.set('BufferDefaultInactiveHINT',   bg, fg_hint, nil, attributes)
+    hl.set('BufferDefaultInactiveIndex',  bg, fg_subtle, nil, attributes)
+    hl.set('BufferDefaultInactiveINFO',   bg, fg_info, nil, attributes)
+    hl.set('BufferDefaultInactiveMod',    bg, fg_modified, nil, attributes)
+    hl.set('BufferDefaultInactiveWARN',   bg, fg_warn, nil, attributes)
+
+    if preset == 'default' then
+      hl.set('BufferDefaultInactiveSign', bg, fg_subtle, nil, attributes)
+    else
+      hl.set('BufferDefaultInactiveSign', bg, bg_tabline, nil, attributes)
+      if preset == 'powerline' then
+        hl.set('BufferDefaultInactiveSignRight', bg_tabline, bg)
+      end
+    end
+
+    attributes.bold = true
+    hl.set('BufferDefaultInactiveTarget', bg, fg_target, nil, attributes)
+  end
 
   if config.options.highlight_visible then
-    local fg_visible = hl.fg_or_default({'TabLineSel'}, '#efefef', 255)
-    local bg_visible = hl.bg_or_default({'TabLineSel', 'Normal'}, 'none')
+    local visible_hl = {'TabLine', 'StatusLine'}
 
-    hl.set('BufferDefaultVisible',        bg_visible, fg_visible)
-    hl.set('BufferDefaultVisibleADDED',   bg_visible, fg_warn)
-    hl.set('BufferDefaultVisibleCHANGED', bg_visible, fg_warn)
-    hl.set('BufferDefaultVisibleDELETED', bg_visible, fg_warn)
-    hl.set('BufferDefaultVisibleERROR',   bg_visible, fg_error)
-    hl.set('BufferDefaultVisibleHINT',    bg_visible, fg_hint)
-    hl.set('BufferDefaultVisibleIndex',   bg_visible, fg_visible)
-    hl.set('BufferDefaultVisibleINFO',    bg_visible, fg_info)
-    hl.set('BufferDefaultVisibleMod',     bg_visible, fg_modified)
-    hl.set('BufferDefaultVisibleSign',    bg_visible, fg_visible)
-    hl.set('BufferDefaultVisibleTarget',  bg_visible, fg_target, nil, {bold = true})
-    hl.set('BufferDefaultVisibleWARN',    bg_visible, fg_warn)
+    local attributes = hl.attributes(visible_hl) or {}
+    local bg = hl.bg_or_default(visible_hl, 'none')
+    local fg = hl.fg_or_default(visible_hl, '#efefef', 255)
+    local sp --- @type barbar.utils.hl.color.value
+
+    if preset == 'default' then
+      attributes.undercurl = false
+      attributes.underdashed = false
+      attributes.underdotted = false
+      attributes.underdouble = false
+      attributes.underline = false
+
+      hl.set('BufferDefaultVisibleSign', bg, fg, sp, attributes)
+    else
+      sp = hl.fg_or_default({'Delimiter'}, 0xFFFFFF).gui
+      attributes.underline = true
+
+      hl.set('BufferDefaultVisibleSign', bg, bg_tabline, sp, attributes)
+      if preset == 'powerline' then
+        hl.set('BufferDefaultVisibleSignRight', bg_tabline, bg, sp)
+      end
+    end
+
+    hl.set('BufferDefaultVisible',        bg, fg, sp, attributes)
+    hl.set('BufferDefaultVisibleADDED',   bg, fg_warn, sp, attributes)
+    hl.set('BufferDefaultVisibleCHANGED', bg, fg_warn, sp, attributes)
+    hl.set('BufferDefaultVisibleDELETED', bg, fg_warn, sp, attributes)
+    hl.set('BufferDefaultVisibleERROR',   bg, fg_error, sp, attributes)
+    hl.set('BufferDefaultVisibleHINT',    bg, fg_hint, sp, attributes)
+    hl.set('BufferDefaultVisibleIndex',   bg, fg, sp, attributes)
+    hl.set('BufferDefaultVisibleINFO',    bg, fg_info, sp, attributes)
+    hl.set('BufferDefaultVisibleMod',     bg, fg_modified, sp, attributes)
+    hl.set('BufferDefaultVisibleWARN',    bg, fg_warn, sp, attributes)
+
+    attributes.bold = true
+    hl.set('BufferDefaultVisibleTarget',  bg, fg_target, sp, attributes)
   end
 
   icons.set_highlights()

@@ -75,8 +75,8 @@ end)
 function events.enable()
   local augroup_misc, augroup_render = events.augroups()
 
-  create_autocmd({'VimEnter'}, { callback = state.load_recently_closed, group = augroup_misc })
-  create_autocmd({'VimLeave'}, { callback = state.save_recently_closed, group = augroup_misc })
+  create_autocmd('VimEnter', { callback = state.load_recently_closed, group = augroup_misc })
+  create_autocmd('VimLeave', { callback = state.save_recently_closed, group = augroup_misc })
 
   create_autocmd({'BufNewFile', 'BufReadPost'}, {
     callback = vim.schedule_wrap(function(event)

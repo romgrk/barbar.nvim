@@ -122,10 +122,8 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
   To disable the auto-setup, set this variable to `false`: >
     vim.g.barbar_auto_setup = false -- Lua
     let g:barbar_auto_setup = v:false " Vim script
-<
 
 `barbar`.setup({options})                                       *barbar.setup()*
-
   To configure barbar, you must call this `setup` function. The valid
   {options} are listed below.
 
@@ -365,7 +363,7 @@ icons ~
     }}
 <
 
-  Lastly, you can customize icons based on the visibility of a buffer:
+  You can also customize icons based on the visibility of a buffer:
 
                                                 *barbar-setup.icons.alternate*
   icons.alternate ~
@@ -407,6 +405,15 @@ icons ~
       visible = {modified = {buffer_number = false}},
     }}
 <
+
+                                                  *barbar-seutup.icons.preset*
+  icons.preset ~
+    `'default'|'powerline'|'slanted'`  (default: `'default'`)
+    Base all |barbar-setup.icons| configuration off of this set of defaults.
+
+    - `'default'`: the classic |barbar.nvim| look.
+    - `'powerline'`: like <https://github.com/powerline/powerline>
+    - `'slanted'`: like old Google Chrome tabs
 
                                                 *barbar-setup.insert_at_start*
 insert_at_start ~
