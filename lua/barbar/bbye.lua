@@ -24,6 +24,7 @@
 -- http://www.gnu.org/licenses.
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local buf_is_loaded = vim.api.nvim_buf_is_loaded --- @type function
 local buf_set_option = vim.api.nvim_buf_set_option --- @type function
 local buflisted = vim.fn.buflisted --- @type function
 local bufnr = vim.fn.bufnr --- @type function
@@ -83,7 +84,7 @@ local function get_focus_on_close(closing_number)
 
   if focus_on_close == 'previous' then
     local previous = bufnr('#')
-    if previous > -1 then
+    if buf_is_loaded(previous) then
       return previous
     end
   end
