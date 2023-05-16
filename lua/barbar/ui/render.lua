@@ -551,6 +551,7 @@ end
 local HL = {
   FILL = wrap_hl('BufferTabpageFill'),
   TABPAGES = wrap_hl('BufferTabpages'),
+  TABPAGES_SEP = wrap_hl('BufferTabpagesSep'),
   SIGN_INACTIVE = wrap_hl('BufferInactiveSign'),
   SCROLL_ARROW = wrap_hl('BufferScrollArrow'),
 }
@@ -665,10 +666,11 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Tabpages
   if data.tabpages.width > 0 then
-    result = result .. nodes.to_string({{
-      hl = HL.TABPAGES,
-      text = ' ' .. tabpagenr() .. '/' .. tabpagenr('$') .. ' ',
-    }})
+    result = result .. nodes.to_string({
+      {hl = HL.TABPAGES, text = ' ' .. tabpagenr()},
+      {hl = HL.TABPAGES_SEP, text = '/'},
+      {hl = HL.TABPAGES, text = tabpagenr('$') .. ' '},
+    })
   end
 
   -- Right offset

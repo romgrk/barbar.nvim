@@ -54,10 +54,11 @@ hl.set_default_link('BufferInactiveTarget', 'BufferDefaultInactiveTarget')
 hl.set_default_link('BufferInactiveWARN', 'BufferDefaultInactiveWARN')
 
 hl.set_default_link('BufferOffset', 'BufferTabpageFill')
-hl.set_default_link('BufferScrollArrow', 'BufferTabpages')
+hl.set_default_link('BufferScrollArrow', 'BufferDefaultTabpagesSep')
 
 hl.set_default_link('BufferTabpageFill', 'BufferDefaultTabpageFill')
 hl.set_default_link('BufferTabpages', 'BufferDefaultTabpages')
+hl.set_default_link('BufferTabpagesSep', 'BufferDefaultTabpagesSep')
 
 hl.set_default_link('BufferVisible', 'BufferDefaultVisible')
 hl.set_default_link('BufferVisibleADDED', 'BufferDefaultVisibleADDED')
@@ -119,10 +120,10 @@ function highlight.setup()
     local tabpage_hl = {'TabLineFill'}
 
     bg_tabline = hl.bg_or_default(tabpage_hl, '#888888', 102)
-    local fg = hl.fg_or_default(tabpage_hl, 'none')
 
-    hl.set('BufferDefaultTabpageFill', bg_tabline, fg)
-    hl.set('BufferDefaultTabpages', bg_tabline, fg_special, nil, {bold = true})
+    hl.set('BufferDefaultTabpages', bg_tabline, hl.fg_or_default({'Number'}, '#599eff', 75), nil, {bold = true})
+    hl.set('BufferDefaultTabpageFill', bg_tabline, hl.fg_or_default(tabpage_hl, 'none'))
+    hl.set('BufferDefaultTabpagesSep', bg_tabline, hl.fg_or_default({'Delimiter'}, 0xFFFFFF, 255), nil, {bold = true})
   end
 
   --    Alternate: alternate buffer
