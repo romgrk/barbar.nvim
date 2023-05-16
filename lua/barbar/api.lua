@@ -30,8 +30,8 @@ local state = require('barbar.state')
 
 local ESC = vim.api.nvim_replace_termcodes('<Esc>', true, false, true)
 
---- Initialize the buffer pick mode.
---- @param fn fun()
+--- Initialize the buffer pick mode, calling `fn` until it returns `nil`|`false`.
+--- @param fn fun(): nil|boolean
 --- @return nil
 local function pick_buffer_wrap(fn)
   if jump_mode.reinitialize then
@@ -41,7 +41,7 @@ local function pick_buffer_wrap(fn)
   state.is_picking_buffer = true
   render.update()
 
-  fn()
+  while fn() do end
 
   state.is_picking_buffer = false
   render.update()
@@ -422,25 +422,28 @@ function api.pick_buffer()
 end
 
 --- Activate the buffer pick delete mode.
+--- @param count integer
+--- @param force boolean
 --- @return nil
-function api.pick_buffer_delete()
+function api.pick_buffer_delete(count, force)
+  local deleted = 0
   pick_buffer_wrap(function()
-    while true do
-      local ok, letter = pcall(function() return char(getchar()) end)
-      if ok and letter ~= '' then
-        if jump_mode.buffer_by_letter[letter] ~= nil then
-          bdelete(false, jump_mode.buffer_by_letter[letter])
-        elseif letter == ESC then
-          break
-        else
-          notify("Couldn't find buffer with letter '" .. letter .. "'", vim.log.levels.WARN)
-        end
+    local ok, letter = pcall(function() return char(getchar()) end)
+    if ok and letter ~= '' then
+      if jump_mode.buffer_by_letter[letter] ~= nil then
+        bdelete(force, jump_mode.buffer_by_letter[letter])
+        deleted = deleted + 1
+      elseif letter == ESC then
+        return
       else
-        notify('Invalid input', vim.log.levels.WARN)
+        notify("Couldn't find buffer with letter '" .. letter .. "'", vim.log.levels.WARN)
       end
-
-      render.update()
+    else
+      notify('Invalid input', vim.log.levels.WARN)
     end
+
+    render.update()
+    return deleted < count
   end)
 end
 
