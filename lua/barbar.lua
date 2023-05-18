@@ -105,7 +105,18 @@ function barbar.setup(options)
 
   create_user_command('BufferPick', api.pick_buffer, {desc = 'Pick a buffer'})
 
-  create_user_command('BufferPickDelete', api.pick_buffer_delete, {desc = 'Pick buffers to delete'})
+  create_user_command(
+    'BufferPickDelete',
+    function(cmd)
+      local count = cmd.count
+      if count < 1 then
+        count = math.huge
+      end
+
+      api.pick_buffer_delete(count, cmd.bang)
+    end,
+    {bang = true, count = true, desc = 'Pick buffers to delete'}
+  )
 
   create_user_command(
     'BufferPin',
