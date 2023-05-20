@@ -78,10 +78,10 @@ icons.get_icon = ok and
     local invalid_option = utils.markdown_inline_code'icons.filetype.enabled'
     utils.notify_once(
       'barbar.nvim: ' .. invalid_option .. ' is set to ' .. utils.markdown_inline_code'true' ..
-        ' but ' .. utils.markdown_inline_code'nvim-dev-icons' .. ' was not found.' ..
+        ' but ' .. utils.markdown_inline_code'nvim-web-devicons' .. ' was not found.' ..
         '\nbarbar.nvim: icons have been disabled. Set ' .. invalid_option .. ' to ' ..
         utils.markdown_inline_code'false' .. ' or ' .. 'install ' ..
-        utils.markdown_inline_code'nvim-dev-icons' .. 'to disable this message.',
+        utils.markdown_inline_code'nvim-web-devicons' .. 'as a non-optional plugin to prevent this message.',
       vim.log.levels.WARN
     )
 
