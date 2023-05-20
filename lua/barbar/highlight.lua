@@ -117,12 +117,12 @@ function highlight.setup()
 
   local bg_tabline
   do
-    local tabpage_hl = {'TabLineFill'}
+    local tabpage_hl = {'TabLineFill', 'StatusLine'}
 
-    bg_tabline = hl.bg_or_default(tabpage_hl, '#888888', 102)
+    bg_tabline = hl.bg_or_default(tabpage_hl, 'none')
 
     hl.set('BufferDefaultTabpages', bg_tabline, hl.fg_or_default({'Number'}, '#599eff', 75), nil, {bold = true})
-    hl.set('BufferDefaultTabpageFill', bg_tabline, hl.fg_or_default(tabpage_hl, 'none'))
+    hl.set('BufferDefaultTabpageFill', bg_tabline, hl.fg_or_default(tabpage_hl, '#888888', 102))
     hl.set('BufferDefaultTabpagesSep', bg_tabline, hl.fg_or_default({'Delimiter'}, 0xFFFFFF, 255), nil, {bold = true})
   end
 
