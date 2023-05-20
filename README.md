@@ -64,9 +64,9 @@ require('lazy').setup {
 #### Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua
+use 'nvim-tree/nvim-web-devicons' -- OPTIONAL: for file icons (Packer needs this loaded directly because of a lazy loading error)
 use {'romgrk/barbar.nvim', requires = {
   'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
-  'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
 }}
 ```
 
