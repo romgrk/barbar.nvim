@@ -430,7 +430,7 @@ in the demos above.
 
 ##### mini.nvim
 
-Here is a `persistence.nvim` config which can be used:
+Here is a `mini.sessions` config which can be used:
 
 ```lua
 vim.opt.sessionoptions:append 'globals'
