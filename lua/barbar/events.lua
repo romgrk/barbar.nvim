@@ -214,7 +214,7 @@ function events.enable()
           })
 
           local close_events = { "BufWinLeave" }
-          if not vim.tbl_contains(close_events, option.event) then
+          if option.event and not close_events[1] ~= option.event  then
             table.insert(close_events, option.event)
           end
 
