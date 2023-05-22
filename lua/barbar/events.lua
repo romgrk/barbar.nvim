@@ -213,12 +213,17 @@ function events.enable()
             group = augroup_render,
           })
 
-          create_autocmd(option.event or 'BufWinLeave', {
+          local close_events = { "BufWinLeave" }
+          if not vim.tbl_contains(close_events, option.event) then
+            table.insert(close_events, option.event)
+          end
+
+          create_autocmd(close_events, {
             buffer = tbl.buf,
             callback = function()
               widths[side][ft] = nil
               set_offset(total_widths(side), nil, nil, side)
-              del_autocmd(autocmd)
+              pcall(del_autocmd, autocmd)
             end,
             group = augroup_render,
             once = true,
