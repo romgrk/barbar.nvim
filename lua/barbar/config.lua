@@ -99,6 +99,7 @@ local GIT_STATUSES = {'added', 'changed', 'deleted'}
 --- @field inactive barbar.config.options.icons.state the icons for inactive buffers
 --- @field preset barbar.config.options.icons.preset
 --- @field scroll barbar.config.options.icons.scroll the scroll arrows
+--- @field separator_at_end boolean if true, add an additional separator at the end of the buffer list
 --- @field visible barbar.config.options.icons.state the icons for visible buffers
 
 --- @type {[barbar.config.options.icons.preset]: fun(default_icons: barbar.config.options.icons, user_icons?: table)}
@@ -106,6 +107,7 @@ local ICON_PRESETS = {
   default = function(default_icons, user_icons)
     default_icons.inactive = { separator = { left = '▎', right = '' } }
     default_icons.separator = { left = '▎', right = '' }
+    default_icons.separator_at_end = true
 
     local pinned_icons = user_icons and user_icons.pinned
     if pinned_icons == nil or
@@ -119,11 +121,13 @@ local ICON_PRESETS = {
   powerline = function(default_icons)
     default_icons.inactive = { separator = { left = '', right = '' } }
     default_icons.separator = { left = '', right = '' }
+    default_icons.separator_at_end = false
   end,
 
   slanted = function(default_icons)
     default_icons.inactive = { separator = { left = '', right = '' } }
     default_icons.separator = { left = '', right = '' }
+    default_icons.separator_at_end = false
   end,
 }
 

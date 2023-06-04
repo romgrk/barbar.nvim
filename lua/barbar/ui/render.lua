@@ -607,7 +607,7 @@ local function generate_tabline(bufnrs, refocus)
       end
     end
 
-    do
+    if config.options.icons.separator_at_end then
       local inactive_separator = config.options.icons.inactive.separator.left
       if inactive_separator ~= nil and #unpinned > 0 and
         data.buffers.unpinned_width + strwidth(inactive_separator) <= data.buffers.unpinned_allocated_width

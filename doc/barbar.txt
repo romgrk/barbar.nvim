@@ -336,6 +336,13 @@ icons ~
 
   You can also customize icons of 'modified' and pinned buffers:
 
+                                           *barbar-setup.icons.separator_at_end*
+  icons.separator_at_end ~
+    `boolean`  (default: `true`)
+    If true, add an additional separator at the end of the buffer list.
+    Can be used to create a visual separation when the inactive buffer
+    background color is the same as the fill region background color.
+
                                                  *barbar-setup.icons.modified*
   icons.modified ~
     `table`  (default: `{button = '●'}`)

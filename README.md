@@ -326,6 +326,9 @@ require'barbar'.setup {
     },
     separator = {left = '▎', right = ''},
 
+    -- If true, add an additional separator at the end of the buffer list
+    separator_at_end = true,
+
     -- Configure the icons on the bufferline when modified or pinned.
     -- Supports all the base icon options.
     modified = {button = '●'},
