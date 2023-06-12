@@ -145,6 +145,7 @@ function hl.set(group, bg, fg, sp, attributes)
   attributes.ctermbg = bg.cterm
   attributes.ctermfg = fg.cterm
   attributes.fg = fg.gui
+  attributes.reverse = nil
   attributes.sp = sp
   attributes[vim.type_idx] = nil
 
