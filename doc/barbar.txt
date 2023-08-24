@@ -246,7 +246,7 @@ icons ~
 
                                                    *barbar-setup.icons.button*
   icons.button ~
-    `false | string`  (default: `''`)
+    `false | string`  (default: `''`)
     The button which is clicked to close / save a buffer, or indicate that
     it is pinned. Use `false` to disable it.
 
@@ -262,7 +262,7 @@ icons ~
 
                                       *barbar-setup.icons.diagnostics.icon*
      icons.diagnostics.icon ~
-       `boolean`  (defaults: `'Ⓧ '`, `'💡'`, `'ⓘ '`, and `'⚠️ '`)
+       `boolean`  (defaults: `' '`, `'󰌶 '`, `' '`, and `' '`)
        The icon which accompanies the number of diagnostics.
 
     Example that disables the error icon, but still shows the count: >
@@ -327,7 +327,7 @@ icons ~
     require'barbar'.setup {icons = {
       buffer_index = false,
       buffer_number = false,
-      button = '',
+      button = '',
       diagnostics = {{enabled = true}, {enabled = true}},
       filetype = {enabled = true},
       separator = {left = '▎'},
@@ -366,7 +366,7 @@ icons ~
   Example: >
     require'barbar'.setup {icons = {
       modified = {separator = '⋄'},
-      pinned = {button = '車', filename = true},
+      pinned = {button = '', filename = true},
     }}
 <
 
