@@ -25,10 +25,10 @@ local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
 --- @field [3] barbar.config.options.icons.diagnostics.severity
 --- @field [4] barbar.config.options.icons.diagnostics.severity
 local DEFAULT_DIAGNOSTIC_ICONS = {
-  [vim.diagnostic.severity.ERROR] = { enabled = false, icon = 'Ⓧ ' },
-  [vim.diagnostic.severity.HINT] = { enabled = false, icon = '💡' },
-  [vim.diagnostic.severity.INFO] = { enabled = false, icon = 'ⓘ ' },
-  [vim.diagnostic.severity.WARN] = { enabled = false, icon = '⚠️ ' },
+  [vim.diagnostic.severity.ERROR] = { enabled = false, icon = ' ' },
+  [vim.diagnostic.severity.HINT] = { enabled = false, icon = '󰌶 ' },
+  [vim.diagnostic.severity.INFO] = { enabled = false, icon = ' ' },
+  [vim.diagnostic.severity.WARN] = { enabled = false, icon = ' ' },
 }
 
 --- Deeply extend `icons` to include the `DEFAULT_DIAGNOSTIC_ICONS`
@@ -287,7 +287,7 @@ function config.setup(options)
   local default_icons = {
     buffer_index = false,
     buffer_number = false,
-    button = '𝝬',
+    button = '',
     diagnostics = {},
     gitsigns = {
       added = { enabled = false, icon = '+' },
