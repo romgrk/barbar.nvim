@@ -256,6 +256,11 @@ function events.enable()
     group = augroup_render,
   })
 
+  create_autocmd('TermClose', {
+    callback = function() render.update(true) end,
+    group = augroup_render,
+  })
+
   create_autocmd('User', {
     callback = function()
       local relative = require('barbar.fs').relative
