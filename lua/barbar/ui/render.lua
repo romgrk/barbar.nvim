@@ -708,7 +708,7 @@ function render.update(update_names, refocus)
     return
   end
 
-  local buffers = buffer.hide(render.get_updated_buffers(update_names))
+  local buffers = layout.hide(render.get_updated_buffers(update_names))
 
   -- Auto hide/show if applicable
   if config.options.auto_hide then

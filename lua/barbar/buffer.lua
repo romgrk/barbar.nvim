@@ -6,7 +6,6 @@ local max = math.max
 local min = math.min
 local rshift = bit.rshift
 local table_concat = table.concat
-local table_insert = table.insert
 
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
@@ -146,28 +145,6 @@ function buffer.get_unique_name(first, second)
   end
 
   return first_result, second_result
-end
-
---- Filter buffer numbers which are not to be shown during the render process.
---- Does **not** mutate `bufnrs`.
---- @param bufnrs integer[]
---- @return integer[] bufnrs the shown buffers
-function buffer.hide(bufnrs)
-  local hide = config.options.hide
-  if hide.alternate or hide.current or hide.inactive or hide.visible then
-    local shown = {}
-
-    for _, buffer_number in ipairs(bufnrs) do
-      local activity = activities[buffer.get_activity(buffer_number)]
-      if not hide[activity:lower()] then
-        table_insert(shown, buffer_number)
-      end
-    end
-
-    bufnrs = shown
-  end
-
-  return bufnrs
 end
 
 return buffer
