@@ -190,7 +190,7 @@ end
 --- Calculate the width of the buffers
 --- @return integer pinned_count, integer pinned_sum, integer unpinned_sum, integer[] widths
 function layout.calculate_buffers_width()
-  layout.buffers = buffer.hide(state.buffers)
+  layout.buffers = layout.hide(state.buffers)
 
   local pinned_count = 0
   local pinned_sum = 0
@@ -233,6 +233,27 @@ end
 --- @return integer width
 function layout.calculate_width(base_width, padding_width)
   return base_width + (padding_width * SIDES_OF_BUFFER)
+end
+
+--- Filter buffers which are not to be shown in the layout.
+--- Does **not** mutate `bufnrs`.
+--- @param bufnrs integer[]
+--- @return integer[] shown the shown buffers
+function layout.hide(bufnrs)
+  local hide = config.options.hide
+  if hide.alternate or hide.current or hide.inactive or hide.visible then
+    local shown = {}
+
+    for _, buffer_number in ipairs(bufnrs) do
+      if state.is_pinned(buffer_number) or not hide[buffer.activities[buffer.get_activity(buffer_number)]:lower()] then
+        table_insert(shown, buffer_number)
+      end
+    end
+
+    bufnrs = shown
+  end
+
+  return bufnrs
 end
 
 return layout
