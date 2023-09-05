@@ -267,7 +267,8 @@ require'barbar'.setup {
   -- Enable/disable animations
   animation = true,
 
-  -- Enable/disable auto-hiding the tab bar when there is a single buffer
+  -- Automatically hide the tabline when there are this many buffers left.
+  -- Set to any value >=0 to enable.
   auto_hide = false,
 
   -- Enable/disable current/total tabpages indicator (top right corner)
