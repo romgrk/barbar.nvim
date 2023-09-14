@@ -195,7 +195,7 @@ local DEPRECATED_OPTIONS = {
 
 --- @class barbar.config.options
 --- @field animation boolean
---- @field auto_hide boolean
+--- @field auto_hide integer
 --- @field clickable boolean
 --- @field exclude_ft string[]
 --- @field exclude_name string[]
@@ -273,7 +273,14 @@ function config.setup(options)
     options.closable = nil
   end
 
-  do
+  -- convert `auto_hide = true`|`false` to `auto_hide = -1`|`1`
+  if options.auto_hide == false then
+    options.auto_hide = -1
+  elseif options.auto_hide == true then
+    options.auto_hide = 1
+  end
+
+  do -- convert `{Foo = true}` to `{Foo = {event = nil, text = nil}}`
     local sidebar_filetypes = options.sidebar_filetypes
     if sidebar_filetypes then
       for k, v in pairs(sidebar_filetypes) do
@@ -309,7 +316,7 @@ function config.setup(options)
 
   config.options = tbl_deep_extend('keep', options, {
     animation = true,
-    auto_hide = false,
+    auto_hide = -1,
     clickable = true,
     exclude_ft = {},
     exclude_name = {},

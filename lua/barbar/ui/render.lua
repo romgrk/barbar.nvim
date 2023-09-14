@@ -711,8 +711,8 @@ function render.update(update_names, refocus)
   local buffers = layout.hide(render.get_updated_buffers(update_names))
 
   -- Auto hide/show if applicable
-  if config.options.auto_hide then
-    if #buffers + #list_tabpages() < 3 then -- 3 because the condition for auto-hiding is 1 visible buffer and 1 tabpage (2).
+  if config.options.auto_hide > -1 then
+    if #buffers <= config.options.auto_hide and #list_tabpages() < 2 then
       if get_option'showtabline' == 2 then
         set_option('showtabline', 0)
       end

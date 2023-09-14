@@ -129,7 +129,7 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 
   Lua example: >
     require'barbar'.setup {
-      auto_hide = true,
+      auto_hide = 1,
       clickable = false,
       icons = {current = {filetype = {enabled = false}}},
       maximum_padding = math.huge,
@@ -139,7 +139,7 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
   Vimscript example (see |:lua-heredoc| for more details): >
     lua << EOF
     require'barbar'.setup {
-      auto_hide = true,
+      auto_hide = 1,
       clickable = false,
       icons = {current = {filetype = {enabled = false}}},
       maximum_padding = math.huge,
@@ -153,8 +153,13 @@ animation ~
 
                                                       *barbar-setup.auto_hide*
 auto_hide ~
-  `boolean`  (default: `false`)
-  Enable/disable auto-hiding the tab bar when there is a single buffer.
+  `false|integer`  (default: `-1`)
+  Automatically hide the 'tabline' when there are this many buffers left. Set
+  to any value less than `0` to disable.
+
+  For example: `auto_hide = 0` hides the 'tabline' when there would be zero
+  buffers shown, `auto_hide  = 1` hides the 'tabline' when there would only be
+  one, etc.
 
                                                       *barbar-setup.clickable*
 clickable ~
