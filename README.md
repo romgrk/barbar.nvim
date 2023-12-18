@@ -141,6 +141,13 @@ No default mappings are provided, here is an example. It is recommended to use
 the `BufferClose` command to close buffers instead of `bdelete` because it will
 not mess your window layout.
 
+> **Note**
+>
+> In the below key mappings, the Alt key is being used.
+> If you are using a terminal like iTerm on Mac, you
+> will want to make sure that your Option key is properly
+> mapped to Alt. Its under Profiles > Keys, select Esc+
+
 ```vim
 " Move to previous/next
 nnoremap <silent>    <A-,> <Cmd>BufferPrevious<CR>
