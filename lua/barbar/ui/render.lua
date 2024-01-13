@@ -455,7 +455,7 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     end
 
     --- The close icon
-    --- @type barbar.ui.container
+    --- @type barbar.ui.node
     local button = {hl = buffer_hl, text = ''}
 
     local button_icon = icons_option.button
@@ -617,7 +617,7 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Buffer tabs
   do
-    --- @type barbar.ui.container
+    --- @type barbar.ui.node[]
     local content = { { hl = HL.FILL, text = (' '):rep(data.buffers.width) } }
 
     do
