@@ -459,27 +459,25 @@ end
 
 --- Offset the rendering of the bufferline
 --- @param width integer the amount to offset
---- @param text? string text to put in the offset
---- @param hl? string
+--- @param text? string text to put in the offset TODO: remove in v2.0
+--- @param hl? string TODO: remove in v2.0
 --- @param side? side
+--- @param opts barbar.config.options.sidebar_filetype
 --- @return nil
-function api.set_offset(width, text, hl, side)
+function api.set_offset(width, text, hl, side, opts)
+  if hl == nil then
+    hl = 'BufferOffset'
+  end
+
   if side == nil then
     side = 'left'
   end
 
   if text == nil then
-    text = ''
+    text = opts.text or ''
   end
 
-  if hl == nil then
-    hl = 'BufferOffset'
-  end
-
-  state.offset[side] = width > 0 and
-    { hl = hl,  text = text, width = width } or
-    { hl = nil, text = '',   width = 0 }
-
+  state.offset[side] = { align = opts.align or 'left', hl = hl, text = text, width = width }
   render.update()
 end
 

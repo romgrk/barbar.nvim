@@ -291,7 +291,7 @@ function events.enable()
               if width ~= widths[ft] then
                 widths[side][ft] = width
                 widths[other_side][ft] = nil
-                api.set_offset(total_widths(side), option.text, nil, side)
+                api.set_offset(total_widths(side), nil, nil, side, option)
               end
             end,
             group = augroup_render,
@@ -306,7 +306,7 @@ function events.enable()
             buffer = tbl.buf,
             callback = function()
               widths[side][ft] = nil
-              api.set_offset(total_widths(side), nil, nil, side)
+              api.set_offset(total_widths(side), nil, nil, side, {})
               pcall(del_autocmd, autocmd)
             end,
             group = augroup_render,

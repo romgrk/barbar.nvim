@@ -2,6 +2,7 @@
 -- render.lua
 --
 
+local ceil = math.ceil
 local max = math.max
 local table_insert = table.insert
 
@@ -553,6 +554,39 @@ local function get_bufferline_containers(data, bufnrs, refocus)
   return pinned_containers, containers, current_buffer
 end
 
+--- Generate the syntax for the offset on `side`
+--- @param side side
+--- @return string
+local function generate_side_offset(side)
+  local offset = state.offset[side] --- @type barbar.state.offset.side
+
+  local align = offset.align
+  local hl = wrap_hl(offset.hl)
+  local text = offset.text
+  local width = offset.width
+
+  local max_content_width = width - 2
+  local content = nodes.slice_right({ { hl = hl, text = text } }, max_content_width)
+
+  if max_content_width > #text then
+    local offset_nodes = { { hl = hl, text = (' '):rep(width) } } --- @type barbar.ui.node[]
+
+    local insert_position
+    if align == 'left' then
+      insert_position = 1
+    else
+      insert_position = width - #text - 1
+      if align == 'center' then
+        insert_position = ceil(insert_position / 2)
+      end
+    end
+
+    content = nodes.insert_many(offset_nodes, insert_position, content)
+  end
+
+  return nodes.to_string(content);
+end
+
 local HL = {
   FILL = wrap_hl('BufferTabpageFill'),
   TABPAGES = wrap_hl('BufferTabpages'),
@@ -578,14 +612,7 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Left offset
   if state.offset.left.width > 0 then
-    local hl = wrap_hl(state.offset.left.hl)
-    local offset_nodes = { { hl = hl, text = (' '):rep(state.offset.left.width) } }
-
-    local content = { { hl = hl, text = state.offset.left.text } }
-    local content_max_width = state.offset.left.width - 2
-
-    offset_nodes = nodes.insert_many(offset_nodes, 1, nodes.slice_right(content, content_max_width))
-    result = result .. nodes.to_string(offset_nodes)
+    result = result .. generate_side_offset('left')
   end
 
   -- Buffer tabs
@@ -680,15 +707,7 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Right offset
   if state.offset.right.width > 0 then
-    local hl = wrap_hl(state.offset.right.hl)
-    local offset_nodes = { { hl = hl, text = (' '):rep(state.offset.right.width) } }
-
-    local content = { { hl = hl, text = state.offset.right.text } }
-    local content_max_width = state.offset.right.width - 2
-
-    offset_nodes = nodes.insert_many(offset_nodes, 1, nodes.slice_right(content, content_max_width))
-
-    result = result .. nodes.to_string(offset_nodes)
+    result = result .. generate_side_offset('right')
   end
 
   -- NOTE: For development or debugging purposes, the following code can be used:
