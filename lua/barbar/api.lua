@@ -462,9 +462,13 @@ end
 --- @param text? string text to put in the offset TODO: remove in v2.0
 --- @param hl? string TODO: remove in v2.0
 --- @param side? side
---- @param opts barbar.config.options.sidebar_filetype
+--- @param opts? barbar.config.options.sidebar_filetype
 --- @return nil
 function api.set_offset(width, text, hl, side, opts)
+  if opts == nil then
+    opts = {}
+  end
+
   if hl == nil then
     hl = 'BufferOffset'
   end

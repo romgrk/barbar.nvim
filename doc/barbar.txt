@@ -502,6 +502,11 @@ sidebar_filetypes ~
   `{[string]: true|table}`  (default `{}`)
   Control which 'filetype's will cause barbar to add an offset.
 
+                                        *barbar-setup.sidebar_filetypes.align*
+  sidebar_filetypes.align ~
+    `'left'|'center'|'right'`  (default: `'left'`)
+    Aligns the |barbar-setup.sidebar_filetypes.text|.
+
                                         *barbar-setup.sidebar_filetypes.event*
   sidebar_filetypes.event ~
     `string`  (default: `'BufWinLeave'`)
