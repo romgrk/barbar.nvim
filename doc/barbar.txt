@@ -94,7 +94,7 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 `Visible`    |active-buffer|s which are not alternate or current.
 
 `<PART>`       Meaning
-------       -----------------------
+------       ----------------------------------------------------------------
 `ADDED`        Git status added.
 `CHANGED`      Git status changed.
 `DELETED`      Git status deleted.
@@ -110,6 +110,17 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 `SignRight`    The separator between buffers.
 `Target`       The letter in buffer-pick mode.
 `WARN`         Diagnostic warnings.
+
+There are a few highlight groups which do not follow this rule. They are:
+
+Group              Meaning
+-----------------  ------------------------------------------------------
+`BufferOffset`       The background of the header for a `sidebar_filetype`
+`BufferScrollArrow`  The arrow which shows to indicate that there are more
+                   buffers to the left or right of the scroll position.
+`BufferTabpageFill`  The space between the open buffer list and the tabpage
+`BufferTabpages`     The color of the tabpages indicator.
+`BufferTabpagesSep`  The separator between the tabpages count.
 
 ==============================================================================
 4. Settings                                                     *barbar-setup*

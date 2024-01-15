@@ -429,6 +429,16 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 
 * e.g. the current buffer's highlight when modified is `BufferCurrentMod`
 
+There are a few highlight groups which do not follow this rule. They are:
+
+| Group               | Usage                                                                                                      |
+|:--------------------|:-----------------------------------------------------------------------------------------------------------|
+| `BufferOffset`      | The background of the header for a `sidebar_filetype`                                                      |
+| `BufferScrollArrow` | The arrow which shows to indicate that there are more buffers to the left or right of the scroll position. |
+| `BufferTabpageFill` | The space between the open buffer list and the tabpage                                                     |
+| `BufferTabpages`    | The color of the tabpages indicator.                                                                       |
+| `BufferTabpagesSep` | The separator between the tabpages count.                                                                  |
+
 You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see
 in the demos above.
