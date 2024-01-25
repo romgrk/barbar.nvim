@@ -254,7 +254,7 @@ local MOVE_DURATION = 150
 --- @param from_idx integer the buffer's original index.
 --- @param to_idx integer the buffer's new index.
 --- @return nil
-local function move_buffer(from_idx, to_idx)
+local function swap_buffer(from_idx, to_idx)
   to_idx = max(1, min(#state.buffers, to_idx))
   if to_idx == from_idx then
     return
@@ -327,23 +327,30 @@ function api.move_current_buffer_to(idx)
     return notify_buffer_not_found(current_bufnr)
   end
 
-  move_buffer(from_idx, idx)
+  swap_buffer(from_idx, idx)
+end
+
+--- Move the current buffer a certain number of times over.
+--- @param buffer_number integer
+--- @param steps integer
+--- @return nil
+function api.move_buffer(buffer_number, steps)
+  render.update()
+
+  local idx = index_of(state.buffers, buffer_number)
+
+  if idx == nil then
+    return notify_buffer_not_found(buffer_number)
+  end
+
+  swap_buffer(idx, idx + steps)
 end
 
 --- Move the current buffer a certain number of times over.
 --- @param steps integer
 --- @return nil
 function api.move_current_buffer(steps)
-  render.update()
-
-  local current_bufnr = get_current_buf()
-  local idx = index_of(state.buffers, current_bufnr)
-
-  if idx == nil then
-    return notify_buffer_not_found(current_bufnr)
-  end
-
-  move_buffer(idx, idx + steps)
+  api.move_buffer(get_current_buf(), steps)
 end
 
 --- Order the buffers by their buffer number.

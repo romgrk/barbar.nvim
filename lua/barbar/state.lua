@@ -42,6 +42,7 @@ local WARN = severity.WARN
 --- @field computed_width? integer the width of the buffer plus invisible characters
 --- @field diagnostics? {[DiagnosticSeverity]: integer}
 --- @field gitsigns? {[barbar.config.options.icons.buffer.git.statuses]: integer} the real position of the buffer
+--- @field moving? boolean whether the buffer is currently being repositioned
 --- @field name? string the name of the buffer
 --- @field pinned boolean whether the buffer is pinned
 --- @field position? integer the absolute position of the buffer

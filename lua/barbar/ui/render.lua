@@ -231,6 +231,11 @@ local function open_buffers(new_buffers)
   end
 end
 
+--- @return barbar.ui.render.scroll scroll
+function render.get_scroll()
+  return scroll
+end
+
 --- Refresh the buffer list.
 --- @return integer[] state.buffers
 function render.get_updated_buffers(update_names)
