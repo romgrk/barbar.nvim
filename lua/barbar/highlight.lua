@@ -99,8 +99,7 @@ local highlight = {}
 function highlight.setup()
   local preset = config.options.icons.preset
 
-  local fg_target = {gui = 'red'} --- @type barbar.utils.hl.color
-  fg_target.cterm = fg_target.gui
+  local fg_target = {gui = 'red', cterm = 'red'} --- @type barbar.utils.hl.color
 
   local fg_added = hl.fg_or_default({'GitSignsAdd'}, '#59ff5a', 82)
   local fg_changed = hl.fg_or_default({'GitSignsChange'}, '#599eff', 75)
@@ -139,19 +138,14 @@ function highlight.setup()
   if config.options.highlight_alternate then
     local alternate_hl = {'TabLine', 'StatusLine'}
 
-    local attributes = hl.attributes(alternate_hl) or {}
+    local attributes = hl.definition(alternate_hl) or {}
 
     local bg = hl.bg_or_default(alternate_hl, 'none')
     local fg = hl.fg_or_default(alternate_hl, 0xEAD0A0, 223)
     local sp --- @type barbar.utils.hl.color.value
 
     if preset == 'default' then
-      attributes.undercurl = false
-      attributes.underdashed = false
-      attributes.underdotted = false
-      attributes.underdouble = false
-      attributes.underline = false
-
+      hl.remove_underline_attributes(attributes)
       hl.set('BufferDefaultAlternateSign', bg, fg_special, sp, attributes)
     else
       sp = hl.fg_or_default({'DiagnosticSignHint'}, 0xD5508F).gui
@@ -181,18 +175,13 @@ function highlight.setup()
   do
     local current_hl = {'TabLineSel'}
 
-    local attributes = hl.attributes(current_hl) or {}
+    local attributes = hl.definition(current_hl) or {}
     local bg = hl.bg_or_default(current_hl, 'none')
     local fg = hl.fg_or_default(current_hl, '#efefef', 255)
     local sp --- @type barbar.utils.hl.color.value
 
     if preset == 'default' then
-      attributes.undercurl = false
-      attributes.underdashed = false
-      attributes.underdotted = false
-      attributes.underdouble = false
-      attributes.underline = false
-
+      hl.remove_underline_attributes(attributes)
       hl.set('BufferDefaultCurrentSign', bg, fg_special, sp, attributes)
     else
       sp = hl.sp_or_default(current_hl, 0x60AFFF)
@@ -222,12 +211,8 @@ function highlight.setup()
   do
     local inactive_hl = {'TabLine', 'StatusLine'}
 
-    local attributes = hl.attributes(inactive_hl) or {}
-    attributes.undercurl = false
-    attributes.underdashed = false
-    attributes.underdotted = false
-    attributes.underdouble = false
-    attributes.underline = false
+    local attributes = hl.definition(inactive_hl) or {}
+    hl.remove_underline_attributes(attributes)
 
     local bg = hl.bg_or_default(inactive_hl, 'none')
     local fg = hl.fg_or_default(inactive_hl, '#efefef', 255)
@@ -259,18 +244,13 @@ function highlight.setup()
   if config.options.highlight_visible then
     local visible_hl = {'TabLine', 'StatusLine'}
 
-    local attributes = hl.attributes(visible_hl) or {}
+    local attributes = hl.definition(visible_hl) or {}
     local bg = hl.bg_or_default(visible_hl, 'none')
     local fg = hl.fg_or_default(visible_hl, '#efefef', 255)
     local sp --- @type barbar.utils.hl.color.value
 
     if preset == 'default' then
-      attributes.undercurl = false
-      attributes.underdashed = false
-      attributes.underdotted = false
-      attributes.underdouble = false
-      attributes.underline = false
-
+      hl.remove_underline_attributes(attributes)
       hl.set('BufferDefaultVisibleSign', bg, fg, sp, attributes)
     else
       sp = hl.fg_or_default({'Delimiter'}, 0xFFFFFF).gui
