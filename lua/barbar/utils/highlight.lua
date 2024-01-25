@@ -136,6 +136,26 @@ end
 --- Reset the `nvim_get_hl` cache
 function hl.reset_cache() hl_groups_cache = {} end
 
+--- Remove all attributes related to underlining from the definition provided
+--- WARN: mutates `definition`!
+--- @param definition barbar.utils.hl.definition the definition to remove underline from
+--- @return nil
+function hl.remove_underline_attributes(definition)
+  definition.undercurl = nil
+  definition.underdashed = nil
+  definition.underdotted = nil
+  definition.underdouble = nil
+  definition.underline = nil
+
+  if definition.cterm then
+    definition.cterm.undercurl = nil
+    definition.cterm.underdashed = nil
+    definition.cterm.underdotted = nil
+    definition.cterm.underdouble = nil
+    definition.cterm.underline = nil
+  end
+end
+
 --- Set some highlight `group`'s default definition with respect to `&termguicolors`
 --- WARN: this mutates `definition`!
 --- @param group string the name of the highlight group to set
