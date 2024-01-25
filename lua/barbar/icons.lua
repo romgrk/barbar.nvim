@@ -26,7 +26,7 @@ local function hl_buffer_icon(buffer_status, icon_hl)
     hl.bg_or_default(buffer_status_hl, 'none'),
     hl.fg_or_default({icon_hl}, 'none'),
     hl.sp_or_default(buffer_status_hl, 'none'),
-    hl.attributes(buffer_status_hl)
+    hl.definition(buffer_status_hl)
   )
 end
 
