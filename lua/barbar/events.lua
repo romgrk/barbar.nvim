@@ -56,7 +56,7 @@ local function get_idx(buffers, start_idx, min_width)
   local padding = buffers.padding
 
   local idx = nil
-  local total_width = 0
+  local total_width = state.offset.left.width
 
   for i = start_idx, #base_widths do
     local base_width = base_widths[i]
@@ -94,11 +94,12 @@ local function mouse_drag_handler()
 
   local scroll = render.get_scroll()
   local first_visible_bufnr_idx = get_idx(buffers_data, 1, scroll.current)
-  if first_visible_bufnr_idx == nil then
-    return
-  end
 
   local hovered_bufnr_idx = get_idx(buffers_data, first_visible_bufnr_idx, col)
+
+  if first_visible_bufnr_idx == nil or hovered_bufnr_idx == nil then
+    return
+  end
 
   if drag_bufnr_start_idx == nil then
     drag_bufnr_start_idx = hovered_bufnr_idx
