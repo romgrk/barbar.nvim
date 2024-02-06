@@ -56,7 +56,7 @@ local function get_idx(buffers, start_idx, min_width)
   local padding = buffers.padding
 
   local idx = nil
-  local total_width = 0
+  local total_width = state.offset.left.width
 
   for i = start_idx, #base_widths do
     local base_width = base_widths[i]
