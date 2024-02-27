@@ -9,7 +9,7 @@ Help on barbar.nvim                                        *barbar* *barbar.nvim
 1. Intro                        |barbar-intro|
 2. Mappings & Commands          |barbar-mappings| |barbar-commands|
 3. Highlights                   |barbar-highlights|
-4. Settings                     |barbar-settings|
+4. Settings                     |barbar-setup|
 5. Integrations                 |barbar-integrations|
 
 ==============================================================================
@@ -93,19 +93,23 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 `Inactive`   |hidden-buffer|s and |inactive-buffer|s.
 `Visible`    |active-buffer|s which are not alternate or current.
 
-`<PART>`  Meaning
-------  -----------------------
-`ERROR`   Diagnostic errors.
-`HINT`    Diagnostic hints.
-`Icon`    The filetype icon
-        (when `icons.filetype == {custom_colors = true, enabled = true}`).
-`Index`   The buffer's position in the tabline.
-`Number`  The |bufnr()|.
-`INFO`    Diagnostic info.
-`Mod`     When the buffer is modified.
-`Sign`    The separator between buffers.
-`Target`  The letter in buffer-pick mode.
-`WARN`    Diagnostic warnings.
+`<PART>`       Meaning
+------       -----------------------
+`ADDED`        Git status added.
+`CHANGED`      Git status changed.
+`DELETED`      Git status deleted.
+`ERROR`        Diagnostic errors.
+`HINT`         Diagnostic hints.
+`Icon`         The filetype icon
+             (when `icons.filetype == {custom_colors = true, enabled = true}`).
+`Index`        The buffer's position in the tabline.
+`INFO`         Diagnostic info.
+`Mod`          When the buffer is modified.
+`Number`       The |bufnr()|.
+`Sign`         The separator between buffers.
+`SignRight`    The separator between buffers.
+`Target`       The letter in buffer-pick mode.
+`WARN`         Diagnostic warnings.
 
 ==============================================================================
 4. Settings                                                     *barbar-setup*
@@ -118,16 +122,14 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
   To disable the auto-setup, set this variable to `false`: >
     vim.g.barbar_auto_setup = false -- Lua
     let g:barbar_auto_setup = v:false " Vim script
-<
 
 `barbar`.setup({options})                                       *barbar.setup()*
-
   To configure barbar, you must call this `setup` function. The valid
   {options} are listed below.
 
   Lua example: >
     require'barbar'.setup {
-      auto_hide = true,
+      auto_hide = 1,
       clickable = false,
       icons = {current = {filetype = {enabled = false}}},
       maximum_padding = math.huge,
@@ -137,7 +139,7 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
   Vimscript example (see |:lua-heredoc| for more details): >
     lua << EOF
     require'barbar'.setup {
-      auto_hide = true,
+      auto_hide = 1,
       clickable = false,
       icons = {current = {filetype = {enabled = false}}},
       maximum_padding = math.huge,
@@ -151,8 +153,13 @@ animation ~
 
                                                       *barbar-setup.auto_hide*
 auto_hide ~
-  `boolean`  (default: `false`)
-  Enable/disable auto-hiding the tab bar when there is a single buffer.
+  `false|integer`  (default: `-1`)
+  Automatically hide the 'tabline' when there are this many buffers left. Set
+  to any value less than `0` to disable.
+
+  For example: `auto_hide = 0` hides the 'tabline' when there would be zero
+  buffers shown, `auto_hide  = 1` hides the 'tabline' when there would only be
+  one, etc.
 
                                                       *barbar-setup.clickable*
 clickable ~
@@ -172,9 +179,13 @@ exclude_name ~
 
                                                  *barbar-setup.focus_on_close*
 focus_on_close ~
-  `'left'|'right'`  (default: `'left'`)
-  A buffer to this direction will be focused (if it exists) when closing the
-  current buffer.
+  `'left'|'previous'|'right'`  (default: `'left'`)
+  The algorithm to use for getting the next buffer after closing the current
+  one:
+
+  - `'left'`: focus the buffer to the left of the current buffer.
+  - `'previous'`: focus the previous buffer.
+  - `'right'`: focus the buffer to the right of the current buffer.
 
                                                            *barbar-setup.hide*
 hide ~
@@ -229,18 +240,18 @@ icons ~
 
                                              *barbar-setup.icons.buffer_index*
   icons.buffer_index ~
-    `boolean`  (default: `false`)
+    `boolean|'superscript'|'subscript'`  (default: `false`)
     if `true`, show the index of the buffer with respect to the ordering of
     the buffers in the tabline.
 
                                             *barbar-setup.icons.buffer_number*
   icons.buffer_number ~
-    `boolean`  (default: `false`)
+    `boolean|'superscript'|'subscript'`  (default: `false`)
     If `true`, show the `bufnr` for the associated buffer.
 
                                                    *barbar-setup.icons.button*
   icons.button ~
-    `false | string`  (default: `''`)
+    `false | string`  (default: `''`)
     The button which is clicked to close / save a buffer, or indicate that
     it is pinned. Use `false` to disable it.
 
@@ -256,7 +267,7 @@ icons ~
 
                                       *barbar-setup.icons.diagnostics.icon*
      icons.diagnostics.icon ~
-       `boolean`  (defaults: `'Ⓧ '`, `'💡'`, `'ⓘ '`, and `'⚠️ '`)
+       `boolean`  (defaults: `' '`, `'󰌶 '`, `' '`, and `' '`)
        The icon which accompanies the number of diagnostics.
 
     Example that disables the error icon, but still shows the count: >
@@ -264,7 +275,32 @@ icons ~
           [vim.diagnostic.severity.ERROR] = {enabled = true, icon = ''},
       }}}
 <
+                                                 *barbar-setup.icons.gitsigns*
+  icons.gitsigns ~
+    `table`  (default: >
+                    {
+                      added = {enabled = false, icon = '+'},
+                      changed = {enabled = false, icon = '~'},
+                      deleted = {enabled = false, icon = '-'},
+                    }
+<           )
 
+                                         *barbar-setup.icons.gitsigns.enabled*
+    icons.gitsigns.enabled ~
+      `boolean`  (default: `true`)
+      Enables showing git changes of this type.
+      Requires |gitsigns.nvim|.
+
+                                            *barbar-setup.icons.gitsigns.icon*
+    icons.gitsigns.icon ~
+      `boolean`  (default: `'+'`, `'-'`, `'~'`)
+       The icon which accompanies the number of git status.
+
+    Example that disables the "added" icon, but still shows the count: >
+      require'barbar'.setup {icons = {git = {
+        added = {enabled = true, icon = ''},
+      }}}
+<
                                                  *barbar-setup.icons.filename*
   icons.filename ~
     `boolean`  (default: `true`)
@@ -296,7 +332,7 @@ icons ~
     require'barbar'.setup {icons = {
       buffer_index = false,
       buffer_number = false,
-      button = '',
+      button = '',
       diagnostics = {{enabled = true}, {enabled = true}},
       filetype = {enabled = true},
       separator = {left = '▎'},
@@ -304,6 +340,13 @@ icons ~
 <
 
   You can also customize icons of 'modified' and pinned buffers:
+
+                                           *barbar-setup.icons.separator_at_end*
+  icons.separator_at_end ~
+    `boolean`  (default: `true`)
+    If true, add an additional separator at the end of the buffer list.
+    Can be used to create a visual separation when the inactive buffer
+    background color is the same as the fill region background color.
 
                                                  *barbar-setup.icons.modified*
   icons.modified ~
@@ -328,11 +371,11 @@ icons ~
   Example: >
     require'barbar'.setup {icons = {
       modified = {separator = '⋄'},
-      pinned = {button = '車', filename = true},
+      pinned = {button = '', filename = true},
     }}
 <
 
-  Lastly, you can customize icons based on the visibility of a buffer:
+  You can also customize icons based on the visibility of a buffer:
 
                                                 *barbar-setup.icons.alternate*
   icons.alternate ~
@@ -375,6 +418,15 @@ icons ~
     }}
 <
 
+                                                  *barbar-seutup.icons.preset*
+  icons.preset ~
+    `'default'|'powerline'|'slanted'`  (default: `'default'`)
+    Base all |barbar-setup.icons| configuration off of this set of defaults.
+
+    - `'default'`: the classic |barbar.nvim| look.
+    - `'powerline'`: like <https://github.com/powerline/powerline>
+    - `'slanted'`: like old Google Chrome tabs
+
                                                 *barbar-setup.insert_at_start*
 insert_at_start ~
   `boolean`  (default: `false`)
@@ -406,6 +458,11 @@ maximum_padding ~
 maximum_length ~
   `int`  (default: 30)
   Sets the maximum buffer name length.
+
+                                                 *barbar-setup.minimum_length*
+minimum_length ~
+  `int`  (default: 0)
+  Sets the minimum buffer name length.
 
                                                 *barbar-setup.minimum_padding*
 minimum_padding ~
@@ -464,5 +521,62 @@ tabpages ~
 
 ==============================================================================
 5. Integrations                                          *barbar-integrations*
+
+------------------------------------------------------------------------------
+SESSIONS                                        *barbar-integrations-sessions*
+
+|barbar.nvim| can restore the order that your buffers were in, as well as
+whether a buffer was pinned. To do this, 'sessionoptions' must contain
+`globals`, and the |User| `SessionSavePre` event must be executed before
+|:mksession| executes.
+
+                                      *barbar-integrations-sessions-mini.nvim*
+mini.nvim ~
+
+Here is a |mini.sessions| config which can be used: >
+  vim.opt.sessionoptions:append 'globals'
+  require'mini.sessions'.setup {
+    hooks = {
+      pre = {
+        write = function() vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'}) end,
+      },
+    },
+  }
+<
+
+                               *barbar-integrations-sessions-persistence.nvim*
+persistence.nvim ~
+
+Here is a |persistence.nvim| config which can be used: >
+  require'persistence'.setup {
+    options = {--[[<other options>,]] 'globals'},
+    pre_save = function()
+      vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'})
+    end,
+  }
+<
+
+                                         *barbar-integrations-sessions-custom*
+Custom ~
+
+You can add this snippet to your config to take advantage of our session
+integration: >
+  vim.opt.sessionoptions:append 'globals'
+  vim.api.nvim_create_user_command(
+    'Mksession',
+    function(attr)
+      vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'})
+
+      -- Neovim 0.8<=
+      vim.cmd.mksession {bang = attr.bang, args = attr.fargs}
+
+      -- Neovim 0.7>=
+      vim.api.nvim_command(
+        'mksession ' .. (attr.bang and '!' or '') .. attr.args
+      )
+    end,
+    {bang = true, complete = 'file', nargs = '?'}
+  )
+<
 
  vim:tw=78:ts=2:ft=help:norl:

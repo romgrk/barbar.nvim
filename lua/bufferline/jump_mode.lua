@@ -1,1 +1,1 @@
-return require'barbar.jump_mode'
+return require('barbar.jump_mode')

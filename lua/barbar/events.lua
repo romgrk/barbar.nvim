@@ -4,39 +4,121 @@ local table_insert = table.insert
 local buf_call = vim.api.nvim_buf_call --- @type function
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
 local buf_set_var = vim.api.nvim_buf_set_var --- @type function
 local command = vim.api.nvim_command --- @type function
 local create_augroup = vim.api.nvim_create_augroup --- @type function
 local create_autocmd = vim.api.nvim_create_autocmd --- @type function
+local create_namespace = vim.api.nvim_create_namespace
 local defer_fn = vim.defer_fn
 local del_autocmd = vim.api.nvim_del_autocmd --- @type function
 local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
-local list_tabpages = vim.api.nvim_list_tabpages --- @type function
-local schedule = vim.schedule --- @type function
+local on_key = vim.on_key
+local replace_termcodes = vim.api.nvim_replace_termcodes
 local schedule_wrap = vim.schedule_wrap
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
-local tabpage_list_wins = vim.api.nvim_tabpage_list_wins --- @type function
 local tbl_isempty = vim.tbl_isempty
 local win_get_position = vim.api.nvim_win_get_position --- @type function
 local win_get_width = vim.api.nvim_win_get_width --- @type function
 
-local api = require'barbar.api'
-local bbye = require'barbar.bbye'
-local config = require'barbar.config'
-local highlight = require'barbar.highlight'
-local JumpMode = require'barbar.jump_mode'
-local render = require'barbar.ui.render'
-local state = require'barbar.state'
-local utils = require'barbar.utils'
+local api = require('barbar.api')
+local bdelete = require('barbar.bbye').bdelete
+local config = require('barbar.config')
+local highlight_reset_cache = require('barbar.utils.highlight').reset_cache
+local highlight_setup = require('barbar.highlight').setup
+local jump_mode = require('barbar.jump_mode')
+local layout = require('barbar.ui.layout')
+local render = require('barbar.ui.render')
+local state = require('barbar.state')
 
 --- The `<mods>` used for the close click handler
 local CLOSE_CLICK_MODS = vim.api.nvim_cmd and { confirm = true } or 'confirm'
 
+--- The starting index (of a buffer in `layout.buffers`) which was hovered while dragging
+--- @type nil|integer
+local drag_bufnr_start_idx = nil
+
 --- Whether barbar is currently set up to render.
 local enabled = false
 
---- @class barbar.events
+--- Handlers for `on_key` mouse dragging
+--- @type (fun(): nil)[]
+local handlers = {}
+
+--- Find which buffer fits within the `min_width`, from the `start_idx` onwards
+--- @param buffers barbar.ui.layout.data.buffers
+--- @param start_idx integer
+--- @param min_width integer
+--- @return integer|nil index
+local function get_idx(buffers, start_idx, min_width)
+  local base_widths = buffers.base_widths
+  local padding = buffers.padding
+
+  local idx = nil
+  local total_width = state.offset.left.width
+
+  for i = start_idx, #base_widths do
+    local base_width = base_widths[i]
+    local width = layout.calculate_width(base_width, padding)
+    total_width = total_width + width
+    if total_width >= min_width then
+      idx = i
+      break
+    end
+  end
+
+  return idx
+end
+
+--- What to do while dragging the mouse
+--- @return nil
+local function mouse_drag_handler()
+  if not (enabled and config.options.clickable) then
+    return
+  end
+
+  local ok, pos = pcall(vim.fn.getmousepos)
+  if (not ok) or pos.screenrow > 1 then
+    return
+  end
+
+  local col = pos.screencol
+  local data = layout.calculate()
+
+  local buffers_data = data.buffers
+  local start_col = data.left.width
+  if col < start_col or col > start_col + buffers_data.width then
+    return
+  end
+
+  local scroll = render.get_scroll()
+  local first_visible_bufnr_idx = get_idx(buffers_data, 1, scroll.current)
+
+  local hovered_bufnr_idx = get_idx(buffers_data, first_visible_bufnr_idx, col)
+
+  if first_visible_bufnr_idx == nil or hovered_bufnr_idx == nil then
+    return
+  end
+
+  if drag_bufnr_start_idx == nil then
+    drag_bufnr_start_idx = hovered_bufnr_idx
+  elseif drag_bufnr_start_idx ~= hovered_bufnr_idx then
+    local first_hovered_bufnr = layout.buffers[drag_bufnr_start_idx]
+    local steps = hovered_bufnr_idx - drag_bufnr_start_idx
+    api.move_buffer(first_hovered_bufnr, steps)
+
+    drag_bufnr_start_idx = hovered_bufnr_idx
+  end
+end
+
+--- What to do when finishing a mouse drag
+--- @return nil
+local function mouse_drag_release_handler()
+  drag_bufnr_start_idx = nil
+end
+
+--- @class barbar.Events
 local events = {}
 
 --- Create and reset autocommand groups associated with this plugin.
@@ -60,7 +142,7 @@ function events.close_click_handler(buffer)
     buf_call(buffer, function() command('w') end)
     exec_autocmds('BufModifiedSet', {buffer = buffer})
   else
-    bbye.bdelete(false, buffer, CLOSE_CLICK_MODS)
+    bdelete(false, buffer, CLOSE_CLICK_MODS)
   end
 end
 
@@ -77,17 +159,23 @@ end)
 function events.enable()
   local augroup_misc, augroup_render = events.augroups()
 
-  create_autocmd({'VimEnter'}, { callback = state.load_recently_closed, group = augroup_misc })
-  create_autocmd({'VimLeave'}, { callback = state.save_recently_closed, group = augroup_misc })
+  create_autocmd('VimEnter', { callback = state.load_recently_closed, group = augroup_misc })
+  create_autocmd('VimLeave', { callback = state.save_recently_closed, group = augroup_misc })
 
   create_autocmd({'BufNewFile', 'BufReadPost'}, {
-    callback = function(tbl) JumpMode.assign_next_letter(tbl.buf) end,
+    callback = vim.schedule_wrap(function(event)
+      if buf_is_valid(event.buf) then
+        jump_mode.assign_next_letter(event.buf)
+        state.update_diagnostics(event.buf)
+        state.update_gitsigns(event.buf)
+      end
+    end),
     group = augroup_misc,
   })
 
   create_autocmd({'BufDelete', 'BufWipeout'}, {
-    callback = vim.schedule_wrap(function(tbl)
-      JumpMode.unassign_letter_for(tbl.buf)
+    callback = schedule_wrap(function(tbl)
+      jump_mode.unassign_letter_for(tbl.buf)
       state.push_recently_closed(tbl.file)
       render.update()
     end),
@@ -96,8 +184,8 @@ function events.enable()
 
   create_autocmd('ColorScheme', {
     callback = function()
-      utils.hl.reset_cache()
-      highlight.setup()
+      highlight_reset_cache()
+      highlight_setup()
     end,
     group = augroup_misc,
   })
@@ -121,16 +209,32 @@ function events.enable()
   create_autocmd(
     {
       'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost',
-      'DiagnosticChanged',
       'TabEnter',
       'VimResized',
       'WinEnter', 'WinLeave',
     },
     {
-      callback = function() render.update() end,
+      callback = vim.schedule_wrap(function () render.update() end),
       group = augroup_render,
     }
   )
+
+  create_autocmd('DiagnosticChanged', {
+    callback = function(event)
+      state.update_diagnostics(event.buf)
+      render.update()
+    end,
+    group = augroup_render,
+  })
+
+  create_autocmd('User', {
+    callback = vim.schedule_wrap(function(event)
+      state.update_gitsigns(event.buf)
+      render.update()
+    end),
+    group = augroup_render,
+    pattern = 'GitSignsUpdate',
+  })
 
   if not tbl_isempty(config.options.sidebar_filetypes) then
     --- The `middle` column of the screen
@@ -150,7 +254,7 @@ function events.enable()
       right = {}, --- @type {[string]: nil|integer}
     }
 
-    --- @param side 'left'|'right'
+    --- @param side side
     --- @return integer total_width
     local function total_widths(side)
       local offset = 0
@@ -168,7 +272,7 @@ function events.enable()
       create_autocmd('FileType', {
         callback = function(tbl)
           local bufwinid --- @type nil|integer
-          local side --- @type 'left'|'right'
+          local side --- @type side
           local autocmd = create_autocmd({'BufWinEnter', 'WinScrolled'}, {
             callback = function()
               if bufwinid == nil then
@@ -193,12 +297,17 @@ function events.enable()
             group = augroup_render,
           })
 
-          create_autocmd(option.event or 'BufWinLeave', {
+          local close_events = { "BufWinLeave" }
+          if option.event and not close_events[1] ~= option.event  then
+            table.insert(close_events, option.event)
+          end
+
+          create_autocmd(close_events, {
             buffer = tbl.buf,
             callback = function()
               widths[side][ft] = nil
               api.set_offset(total_widths(side), nil, nil, side)
-              del_autocmd(autocmd)
+              pcall(del_autocmd, autocmd)
             end,
             group = augroup_render,
             once = true,
@@ -217,19 +326,12 @@ function events.enable()
   })
 
   create_autocmd('SessionLoadPost', {
-    -- TODO: I'm not sure if this whole thing can just be thrown in a `schedule_wrap`
-    --       in order to remove the inner `defer_fn` and `schedule` calls
-    callback = function()
-      if state.loading_session then
-        return
-      end
-
+    callback = vim.schedule_wrap(function()
       local restore_cmd = vim.g.Bufferline__session_restore
       if restore_cmd then command(restore_cmd) end
 
-      vim.defer_fn(function() state.loading_session = false end, 100)
-      schedule(function() render.update(true) end)
-    end,
+      render.update(true)
+    end),
     group = augroup_render,
   })
 
@@ -238,41 +340,26 @@ function events.enable()
     group = augroup_render,
   })
 
+  create_autocmd('TermClose', {
+    callback = function() render.update(true) end,
+    group = augroup_render,
+  })
+
   create_autocmd('User', {
     callback = function()
-      -- We're allowed to use relative paths for buffers iff there are no tabpages
-      -- or windows with a local directory (:tcd and :lcd)
-      local use_relative_file_paths = true
+      local relative = require('barbar.fs').relative
 
-      -- PERF: I didn't import `haslocaldir` since it is only used here (just before calling `:mksession` and exiting vim)
-      local haslocaldir = vim.fn.haslocaldir --- @type function
-
-      for tabnr, tabpage in ipairs(list_tabpages()) do
-        if not use_relative_file_paths or haslocaldir(-1, tabnr) == 1 then
-          use_relative_file_paths = false
-          break
-        end
-
-        for _, win in ipairs(tabpage_list_wins(tabpage)) do
-          if haslocaldir(win, tabnr) == 1 then
-            use_relative_file_paths = false
-            break
-          end
-        end
-      end
-
+      --- List of open buffers, along with relevant data
       local buffers = {}
-      for _, bufnr in ipairs(state.buffers) do
-        local name = buf_get_name(bufnr)
-        if use_relative_file_paths then
-          name = utils.relative(name)
-        end
 
-        -- escape quotes
-        table_insert(buffers, {name = name, pinned = state.is_pinned(bufnr)})
+      for _, bufnr in ipairs(state.buffers) do
+        table_insert(buffers, {
+          name = relative(buf_get_name(bufnr)),
+          pinned = state.is_pinned(bufnr) or nil,
+        })
       end
 
-      vim.g.Bufferline__session_restore = "lua require'barbar.state'.restore_buffers " ..
+      vim.g.Bufferline__session_restore = "lua require('barbar.state').restore_buffers " ..
         vim.inspect(buffers, {newline = ' ', indent = ''})
     end,
     group = augroup_misc,
@@ -318,7 +405,7 @@ function events.main_click_handler(bufnr, _, btn, _)
 
   -- NOTE: in Vimscript this was not `==`, it was a regex compare `=~`
   if btn == 'm' then
-    bbye.bdelete(false, bufnr)
+    bdelete(false, bufnr)
   else
     render.set_current_win_listed_buffer()
     set_current_buf(bufnr)
@@ -331,12 +418,28 @@ end
 --- @return nil
 function events.on_option_changed(user_config)
   config.setup(user_config) -- NOTE: must be first `setup` called here
-  highlight.setup()
-  JumpMode.set_letters(config.options.letters)
+  highlight_setup()
+  jump_mode.set_letters(config.options.letters)
+
+  if config.options.clickable and vim.tbl_isempty(handlers) then
+    handlers[replace_termcodes('<LeftDrag>', true, true, true)] = mouse_drag_handler
+    handlers[replace_termcodes('<LeftRelease>', true, true, true)] = mouse_drag_release_handler
+    handlers[replace_termcodes('<MiddleDrag>', true, true, true)] = mouse_drag_handler
+    handlers[replace_termcodes('<MiddleRelease>', true, true, true)] = mouse_drag_handler
+    handlers[replace_termcodes('<RightDrag>', true, true, true)] = mouse_drag_handler
+    handlers[replace_termcodes('<RightRelease>', true, true, true)] = mouse_drag_release_handler
+
+    on_key(function(key)
+      local handler = handlers[key]
+      if handler then
+        handler()
+      end
+    end, create_namespace('barbar'))
+  end
 
   -- Don't jump-start barbar if it is disabled
   if enabled then
-    render.update()
+    render.update(true)
   end
 end
 

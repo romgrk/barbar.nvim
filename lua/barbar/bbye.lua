@@ -24,6 +24,7 @@
 -- http://www.gnu.org/licenses.
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local buf_is_loaded = vim.api.nvim_buf_is_loaded --- @type function
 local buf_set_option = vim.api.nvim_buf_set_option --- @type function
 local buflisted = vim.fn.buflisted --- @type function
 local bufnr = vim.fn.bufnr --- @type function
@@ -41,9 +42,10 @@ local set_current_win = vim.api.nvim_set_current_win --- @type function
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 local win_is_valid = vim.api.nvim_win_is_valid --- @type function
 
-local config = require'barbar.config'
-local state = require'barbar.state'
-local utils = require'barbar.utils'
+local config = require('barbar.config')
+local list = require('barbar.utils.list')
+local markdown_inline_code = require('barbar.utils').markdown_inline_code
+local state = require('barbar.state')
 
 -------------------
 -- Section: helpers
@@ -73,13 +75,22 @@ local enew = vim.api.nvim_cmd and
   --- @param force boolean
   function(force) command("enew" .. (force and '!' or '')) end
 
+--- Get the bufnr that will be focused when the buffer with `closing_number` closes.
 --- @param closing_number integer
 --- @return nil|integer bufnr of the buffer to focus
 local function get_focus_on_close(closing_number)
   local focus_on_close = config.options.focus_on_close
   local state_bufnrs = state.buffers
 
-  if #state_bufnrs < 1 then -- all of the buffers are excluded or unlisted
+  if focus_on_close == 'previous' then
+    local previous = bufnr('#')
+    if buf_is_loaded(previous) then
+      return previous
+    end
+  end
+
+  -- Edge case: all of the buffers are excluded or unlisted
+  if #state_bufnrs < 1 then
     local open_bufnrs = list_bufs()
 
     local start, end_, step
@@ -100,10 +111,11 @@ local function get_focus_on_close(closing_number)
   end
 
   if focus_on_close == 'right' then
-    state_bufnrs = utils.list_reverse(state.buffers)
+    state_bufnrs = list.reverse(state.buffers)
   end
 
-  local index = utils.index_of(state_bufnrs, closing_number)
+  -- Next, try to get the buffer to focus by "looking" left or right of the current buffer
+  local index = list.index_of(state_bufnrs, closing_number)
   if index then
     index = index - 1
 
@@ -113,6 +125,7 @@ local function get_focus_on_close(closing_number)
     end
   end
 
+  -- If all else fails, choose the first available listed buffer
   for _, buffer_number in ipairs(state_bufnrs) do
     if buffer_number ~= closing_number then
       return buffer_number
@@ -158,7 +171,7 @@ end
 -- Section: module
 ------------------
 
---- @class bbye
+--- @class barbar.Bbye
 local bbye = {}
 
 --- Delete a buffer
@@ -249,7 +262,7 @@ function bbye.delete(action, force, buffer, mods)
           return err(msg)
         end
       else
-          return err('Could not delete buffer ' .. buffer_number .. ' with ' .. utils.markdown_inline_code(action))
+          return err('Could not delete buffer ' .. buffer_number .. ' with ' .. markdown_inline_code(action))
       end
     end
   end

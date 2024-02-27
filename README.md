@@ -18,21 +18,37 @@ stays constant for the lifetime of the buffer, so if you're working with a set o
 files you can even type the letter ahead from memory.
 
 ##### Table of content
- - [Install](#install)
- - [Features](#features)
- - [Usage](#usage)
- - [Options](#options)
- - [Highlighting](#highlighting)
- - [Known Issues](#known-issues)
- - [About Barbar](#about)
+
+- [Install](#install)
+- [Features](#features)
+- [Usage](#usage)
+- [Options](#options)
+- [Highlighting](#highlighting)
+- [Integrations](#integrations)
+- [Known Issues](#known-issues)
+- [About Barbar](#about)
 
 ## Install
 
+**Requirements:**
+
+- Neovim v0.7+
+
+**Optional Requirements:**
+
+- File icons: [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons)
+  - NOTE: Requires a [nerd font](https://www.nerdfonts.com/) by default. Can be [configured](https://github.com/nvim-tree/nvim-web-devicons#setup) to remove this requirement.
+- Git integration: [gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim)
+
 #### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
+
 ```lua
 require('lazy').setup {
   {'romgrk/barbar.nvim',
-    dependencies = 'nvim-tree/nvim-web-devicons',
+    dependencies = {
+      'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
+      'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
+    },
     init = function() vim.g.barbar_auto_setup = false end,
     opts = {
       -- lazy.nvim will automatically call setup for you. put your options here, anything missing will use the default:
@@ -46,24 +62,21 @@ require('lazy').setup {
 ```
 
 #### Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+
 ```lua
-use 'nvim-tree/nvim-web-devicons'
-use {'romgrk/barbar.nvim', requires = 'nvim-web-devicons'}
+-- These optional plugins should be loaded directly because of a bug in Packer lazy loading
+use 'nvim-tree/nvim-web-devicons' -- OPTIONAL: for file icons
+use 'lewis6991/gitsigns.nvim' -- OPTIONAL: for git status
+use 'romgrk/barbar.nvim'
 ```
 
 #### Using [vim-plug](https://github.com/junegunn/vim-plug)
+
 ```vim
-Plug 'nvim-tree/nvim-web-devicons'
+Plug 'lewis6991/gitsigns.nvim' " OPTIONAL: for git status
+Plug 'nvim-tree/nvim-web-devicons' " OPTIONAL: for file icons
 Plug 'romgrk/barbar.nvim'
 ```
-
-You can skip the dependency on `'nvim-tree/nvim-web-devicons'` if you
-[disable icons](#options).  If you want the icons, don't forget to
-install [nerd fonts](https://www.nerdfonts.com/).
-
-##### Requirements
-
-- Neovim `0.7`
 
 ## Features
 
@@ -127,6 +140,13 @@ as `BufferClose` and `bufferline#bbye#delete(buf)`.
 No default mappings are provided, here is an example. It is recommended to use
 the `BufferClose` command to close buffers instead of `bdelete` because it will
 not mess your window layout.
+
+> **Note**
+>
+> In the below key mappings, the Alt key is being used.
+> If you are using a terminal like iTerm on Mac, you
+> will want to make sure that your Option key is properly
+> mapped to Alt. Its under Profiles > Keys, select Esc+
 
 ```vim
 " Move to previous/next
@@ -245,6 +265,7 @@ map('n', '<Space>bw', '<Cmd>BufferOrderByWindowNumber<CR>', opts)
 
 ```lua
 vim.g.barbar_auto_setup = false -- disable auto-setup
+
 require'barbar'.setup {
   -- WARN: do not copy everything below into your config!
   --       It is just an example of what configuration options there are.
@@ -253,7 +274,8 @@ require'barbar'.setup {
   -- Enable/disable animations
   animation = true,
 
-  -- Enable/disable auto-hiding the tab bar when there is a single buffer
+  -- Automatically hide the tabline when there are this many buffers left.
+  -- Set to any value >=0 to enable.
   auto_hide = false,
 
   -- Enable/disable current/total tabpages indicator (top right corner)
@@ -269,7 +291,7 @@ require'barbar'.setup {
   exclude_name = {'package.json'},
 
   -- A buffer to this direction will be focused (if it exists) when closing the current buffer.
-  -- Valid options are 'left' (the default) and 'right'
+  -- Valid options are 'left' (the default), 'previous', and 'right'
   focus_on_close = 'left',
 
   -- Hide inactive buffers and file extensions. Other options are `alternate`, `current`, and `visible`.
@@ -286,15 +308,21 @@ require'barbar'.setup {
 
   icons = {
     -- Configure the base icons on the bufferline.
+    -- Valid options to display the buffer index and -number are `true`, 'superscript' and 'subscript'
     buffer_index = false,
     buffer_number = false,
-    button = '',
+    button = '',
     -- Enables / disables diagnostic symbols
     diagnostics = {
       [vim.diagnostic.severity.ERROR] = {enabled = true, icon = 'ﬀ'},
       [vim.diagnostic.severity.WARN] = {enabled = false},
       [vim.diagnostic.severity.INFO] = {enabled = false},
       [vim.diagnostic.severity.HINT] = {enabled = true},
+    },
+    gitsigns = {
+      added = {enabled = true, icon = '+'},
+      changed = {enabled = true, icon = '~'},
+      deleted = {enabled = true, icon = '-'},
     },
     filetype = {
       -- Sets the icon's highlight group.
@@ -306,10 +334,16 @@ require'barbar'.setup {
     },
     separator = {left = '▎', right = ''},
 
+    -- If true, add an additional separator at the end of the buffer list
+    separator_at_end = true,
+
     -- Configure the icons on the bufferline when modified or pinned.
     -- Supports all the base icon options.
     modified = {button = '●'},
-    pinned = {button = '車', filename = true, separator = {right = ''}},
+    pinned = {button = '', filename = true},
+
+    -- Use a preconfigured buffer appearance— can be 'default', 'powerline', or 'slanted'
+    preset = 'default',
 
     -- Configure the icons on the bufferline based on the visibility of a buffer.
     -- Supports all the base icon options, plus `modified` and `pinned`.
@@ -332,6 +366,9 @@ require'barbar'.setup {
 
   -- Sets the maximum buffer name length.
   maximum_length = 30,
+
+  -- Sets the minimum buffer name length.
+  minimum_length = 0,
 
   -- If set, the letters for each buffer in buffer-pick mode will be
   -- assigned based on their name. Otherwise or in case all letters are
@@ -373,24 +410,81 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 | `Inactive`  | `:h hidden-buffer`s and `:h inactive-buffer`s.          |
 | `Visible`   | `:h active-buffer`s which are not alternate or current. |
 
-| `<PART>` | Meaning                                                                              |
-|:---------|:-------------------------------------------------------------------------------------|
-| `ERROR`  | Diagnostic errors.                                                                   |
-| `HINT`   | Diagnostic hints.                                                                    |
-| `Icon`   | The filetype icon (when `icons.filetype == {custom_colors = true, enabled = true}`). |
-| `Index`  | The buffer's position in the tabline.                                                |
-| `Number` | The `:h bufnr()`.                                                                    |
-| `INFO`   | Diagnostic info.                                                                     |
-| `Mod`    | When the buffer is modified.                                                         |
-| `Sign`   | The separator between buffers.                                                       |
-| `Target` | The letter in buffer-pick mode.                                                      |
-| `WARN`   | Diagnostic warnings.                                                                 |
+| `<PART>`       | Meaning                                                                              |
+|:---------------|:-------------------------------------------------------------------------------------|
+| `ADDED`        | Git status added.                                                                    |
+| `CHANGED`      | Git status changed.                                                                  |
+| `DELETED`      | Git status deleted.                                                                  |
+| `ERROR`        | Diagnostic errors.                                                                   |
+| `HINT`         | Diagnostic hints.                                                                    |
+| `Icon`         | The filetype icon (when `icons.filetype == {custom_colors = true, enabled = true}`). |
+| `Index`        | The buffer's position in the tabline.                                                |
+| `INFO`         | Diagnostic info.                                                                     |
+| `Mod`          | When the buffer is modified.                                                         |
+| `Number`       | The `:h bufnr()`.                                                                    |
+| `Sign`         | The separator between buffers.                                                       |
+| `SignRight`    | The separator between buffers.                                                       |
+| `Target`       | The letter in buffer-pick mode.                                                      |
+| `WARN`         | Diagnostic warnings.                                                                 |
 
 * e.g. the current buffer's highlight when modified is `BufferCurrentMod`
 
 You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see
 in the demos above.
+
+## Integrations
+
+#### Sessions
+
+`barbar.nvim` can restore the order that your buffers were in, as well as whether a buffer was pinned. To do this, `sessionoptions` must contain `globals`, and the `User SessionSavePre` event must be executed before `:mksession`.
+
+##### mini.nvim
+
+Here is a `mini.sessions` config which can be used:
+
+```lua
+vim.opt.sessionoptions:append 'globals'
+require'mini.sessions'.setup {
+  hooks = {
+    pre = {
+      write = function() vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'}) end,
+    },
+  },
+}
+```
+
+##### persistence.nvim
+
+Here is a `persistence.nvim` config which can be used:
+
+```lua
+require'persistence'.setup {
+  options = {--[[<other options>,]] 'globals'},
+  pre_save = function() vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'}) end,
+}
+```
+
+##### Custom
+
+You can add this snippet to your config to take advantage of our session integration:
+
+```lua
+vim.opt.sessionoptions:append 'globals'
+vim.api.nvim_create_user_command(
+  'Mksession',
+  function(attr)
+    vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'})
+
+    -- Neovim 0.8+
+    vim.cmd.mksession {bang = attr.bang, args = attr.fargs}
+
+    -- Neovim 0.7
+    vim.api.nvim_command('mksession ' .. (attr.bang and '!' or '') .. attr.args)
+  end,
+  {bang = true, complete = 'file', desc = 'Save barbar with :mksession', nargs = '?'}
+)
+```
 
 ## Known Issues
 
@@ -408,6 +502,10 @@ let g:lightline={ 'enable': {'statusline': 1, 'tabline': 0} }
 
 You can use any other [file explorer](https://github.com/rockerBOO/awesome-neovim#file-explorer) instead.
 
+#### Sidebars On Startup
+
+The `sidebar_filetypes` option may not work as expected if your sidebar opens on startup. See nvim-tree/nvim-tree.lua#2130 for details, and romgrk/barbar.nvim#421 for a workaround.
+
 ## About
 
 Barbar is called barbar because it's a bar, but it's also more than a bar:
@@ -419,5 +517,5 @@ No, barbar has nothing to do with barbarians.
 
 ## License
 
-barbar.nvim: Distributed under the terms of the JSON license.  
-bbye.vim: Distributed under the terms of the GNU Affero license.
+* **barbar.nvim:** Distributed under the terms of the JSON license.
+* **bbye.vim:** Distributed under the terms of the GNU Affero license.

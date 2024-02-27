@@ -17,30 +17,32 @@ local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
 
-local animate = require'barbar.animate'
-local bbye = require'barbar.bbye'
-local Buffer = require'barbar.buffer'
-local config = require'barbar.config'
-local JumpMode = require'barbar.jump_mode'
-local Layout = require'barbar.ui.layout'
-local render = require'barbar.ui.render'
-local state = require'barbar.state'
-local utils = require'barbar.utils'
+local animate = require('barbar.animate')
+local bdelete = require('barbar.bbye').bdelete
+local buffer = require('barbar.buffer')
+local config = require('barbar.config')
+local index_of = require('barbar.utils.list').index_of
+local is_relative_path = require('barbar.fs').is_relative_path
+local jump_mode = require('barbar.jump_mode')
+local layout = require('barbar.ui.layout')
+local notify = require('barbar.utils').notify
+local render = require('barbar.ui.render')
+local state = require('barbar.state')
 
 local ESC = vim.api.nvim_replace_termcodes('<Esc>', true, false, true)
 
---- Initialize the buffer pick mode.
---- @param fn fun()
+--- Initialize the buffer pick mode, calling `fn` until it returns `nil`|`false`.
+--- @param fn fun(): nil|boolean
 --- @return nil
 local function pick_buffer_wrap(fn)
-  if JumpMode.reinitialize then
-    JumpMode.initialize_indexes()
+  if jump_mode.reinitialize then
+    jump_mode.initialize_indexes()
   end
 
   state.is_picking_buffer = true
   render.update()
 
-  fn()
+  while fn() do end
 
   state.is_picking_buffer = false
   render.update()
@@ -50,7 +52,7 @@ end
 --- @param buffer_number integer
 --- @return nil
 local function notify_buffer_not_found(buffer_number)
-  utils.notify(
+  notify(
     'Current buffer (' .. buffer_number .. ") not found in barbar.nvim's list of buffers: " .. vim.inspect(state.buffers),
     vim.log.levels.ERROR
   )
@@ -74,7 +76,7 @@ local function with_pin_order(order_func)
   end
 end
 
---- @class barbar.api
+--- @class barbar.Api
 local api = {}
 
 --- Close all open buffers, except the current one.
@@ -84,7 +86,7 @@ function api.close_all_but_current()
 
   for _, buffer_number in ipairs(state.buffers) do
     if buffer_number ~= current_bufnr then
-      bbye.bdelete(false, buffer_number)
+      bdelete(false, buffer_number)
     end
   end
 
@@ -94,10 +96,10 @@ end
 --- Close all open buffers, except those in visible windows.
 --- @return nil
 function api.close_all_but_visible()
-  local visible = Buffer.activities.Visible
+  local visible = buffer.activities.Visible
   for _, buffer_number in ipairs(state.buffers) do
-    if Buffer.get_activity(buffer_number) < visible then
-      bbye.bdelete(false, buffer_number)
+    if buffer.get_activity(buffer_number) < visible then
+      bdelete(false, buffer_number)
     end
   end
 
@@ -109,7 +111,7 @@ end
 function api.close_all_but_pinned()
   for _, buffer_number in ipairs(state.buffers) do
     if not state.is_pinned(buffer_number) then
-      bbye.bdelete(false, buffer_number)
+      bdelete(false, buffer_number)
     end
   end
 
@@ -123,7 +125,7 @@ function api.close_all_but_current_or_pinned()
 
   for _, buffer_number in ipairs(state.buffers) do
     if not state.is_pinned(buffer_number) and buffer_number ~= current_bufnr then
-      bbye.bdelete(false, buffer_number)
+      bdelete(false, buffer_number)
     end
   end
 
@@ -133,13 +135,13 @@ end
 --- Close all buffers which are visually left of the current buffer.
 --- @return nil
 function api.close_buffers_left()
-  local idx = utils.index_of(state.buffers, get_current_buf())
+  local idx = index_of(state.buffers, get_current_buf())
   if idx == nil or idx == 1 then
     return
   end
 
   for i = idx - 1, 1, -1 do
-    bbye.bdelete(false, state.buffers[i])
+    bdelete(false, state.buffers[i])
   end
 
   render.update()
@@ -148,13 +150,13 @@ end
 --- Close all buffers which are visually right of the current buffer.
 --- @return nil
 function api.close_buffers_right()
-  local idx = utils.index_of(state.buffers, get_current_buf())
+  local idx = index_of(state.buffers, get_current_buf())
   if idx == nil then
     return
   end
 
   for i = #state.buffers, idx + 1, -1 do
-    bbye.bdelete(false, state.buffers[i])
+    bdelete(false, state.buffers[i])
   end
 
   render.update()
@@ -181,7 +183,7 @@ function api.goto_buffer(index)
   if buffer_number then
     set_current_buf(buffer_number)
   else
-    utils.notify(
+    notify(
       'E86: buffer at index ' .. index .. ' in list ' .. vim.inspect(state.buffers) .. ' does not exist.',
       vim.log.levels.ERROR
     )
@@ -196,15 +198,15 @@ function api.goto_buffer_relative(steps)
   render.get_updated_buffers()
 
   if #state.buffers < 1 then
-    return utils.notify('E85: There is no listed buffer', vim.log.levels.ERROR)
+    return notify('E85: There is no listed buffer', vim.log.levels.ERROR)
   end
 
   local current_bufnr = render.set_current_win_listed_buffer()
-  local idx = utils.index_of(state.buffers, current_bufnr)
+  local idx = index_of(state.buffers, current_bufnr)
 
   if not idx then -- fall back to: 1. the alternate buffer, 2. the first buffer
-    idx = utils.index_of(state.buffers, bufnr'#') or 1
-    utils.notify(
+    idx = index_of(state.buffers, bufnr'#') or 1
+    notify(
       "Couldn't find buffer #" .. current_bufnr .. ' in the list: ' .. vim.inspect(state.buffers) ..
         '. Falling back to buffer #' .. state.buffers[idx],
       vim.log.levels.INFO
@@ -223,7 +225,7 @@ local move_animation_data = {
 --- An incremental animation for `move_buffer_animated`.
 --- @return nil
 local function move_buffer_animated_tick(ratio, current_animation)
-  for _, current_number in ipairs(Layout.buffers) do
+  for _, current_number in ipairs(layout.buffers) do
     local current_data = state.get_buffer_data(current_number)
 
     if current_animation.running == true then
@@ -253,7 +255,7 @@ local MOVE_DURATION = 150
 --- @param from_idx integer the buffer's original index.
 --- @param to_idx integer the buffer's new index.
 --- @return nil
-local function move_buffer(from_idx, to_idx)
+local function swap_buffer(from_idx, to_idx)
   to_idx = max(1, min(#state.buffers, to_idx))
   if to_idx == from_idx then
     return
@@ -264,7 +266,7 @@ local function move_buffer(from_idx, to_idx)
 
   local previous_positions
   if animation == true then
-    previous_positions = Layout.calculate_buffers_position_by_buffer_number()
+    previous_positions = layout.calculate_buffers_position_by_buffer_number()
   end
 
   table_remove(state.buffers, from_idx)
@@ -272,7 +274,7 @@ local function move_buffer(from_idx, to_idx)
   state.sort_pins_to_left()
 
   if animation == true then
-    local current_index = utils.index_of(Layout.buffers, buffer_number)
+    local current_index = index_of(layout.buffers, buffer_number)
     local start_index = min(from_idx, current_index)
     local end_index   = max(from_idx, current_index)
 
@@ -282,9 +284,9 @@ local function move_buffer(from_idx, to_idx)
       animate.stop(move_animation)
     end
 
-    local next_positions = Layout.calculate_buffers_position_by_buffer_number()
+    local next_positions = layout.calculate_buffers_position_by_buffer_number()
 
-    for _, layout_bufnr  in ipairs(Layout.buffers) do
+    for _, layout_bufnr  in ipairs(layout.buffers) do
       local current_data = state.get_buffer_data(layout_bufnr)
 
       local previous_position = previous_positions[layout_bufnr]
@@ -320,29 +322,36 @@ function api.move_current_buffer_to(idx)
   end
 
   local current_bufnr = get_current_buf()
-  local from_idx = utils.index_of(state.buffers, current_bufnr)
+  local from_idx = index_of(state.buffers, current_bufnr)
 
   if from_idx == nil then
     return notify_buffer_not_found(current_bufnr)
   end
 
-  move_buffer(from_idx, idx)
+  swap_buffer(from_idx, idx)
+end
+
+--- Move the current buffer a certain number of times over.
+--- @param buffer_number integer
+--- @param steps integer
+--- @return nil
+function api.move_buffer(buffer_number, steps)
+  render.update()
+
+  local idx = index_of(state.buffers, buffer_number)
+
+  if idx == nil then
+    return notify_buffer_not_found(buffer_number)
+  end
+
+  swap_buffer(idx, idx + steps)
 end
 
 --- Move the current buffer a certain number of times over.
 --- @param steps integer
 --- @return nil
 function api.move_current_buffer(steps)
-  render.update()
-
-  local current_bufnr = get_current_buf()
-  local idx = utils.index_of(state.buffers, current_bufnr)
-
-  if idx == nil then
-    return notify_buffer_not_found(current_bufnr)
-  end
-
-  move_buffer(idx, idx + steps)
+  api.move_buffer(get_current_buf(), steps)
 end
 
 --- Order the buffers by their buffer number.
@@ -362,8 +371,8 @@ function api.order_by_directory()
 
     -- TODO: remove this block after 0.8 releases
     if not normalize then
-      local a_is_relative = utils.is_relative_path(name_of_a)
-      if a_is_relative and utils.is_relative_path(name_of_b) then
+      local a_is_relative = is_relative_path(name_of_a)
+      if a_is_relative and is_relative_path(name_of_b) then
         return a_less_than_b
       end
 
@@ -409,38 +418,42 @@ function api.pick_buffer()
   pick_buffer_wrap(function()
     local ok, letter = pcall(function() return char(getchar()) end)
     if ok and letter ~= '' then
-      if JumpMode.buffer_by_letter[letter] ~= nil then
-        set_current_buf(JumpMode.buffer_by_letter[letter])
+      if jump_mode.buffer_by_letter[letter] ~= nil then
+        set_current_buf(jump_mode.buffer_by_letter[letter])
       else
-        utils.notify("Couldn't find buffer", vim.log.levels.WARN)
+        notify("Couldn't find buffer", vim.log.levels.WARN)
       end
     else
-      utils.notify('Invalid input', vim.log.levels.WARN)
+      notify('Invalid input', vim.log.levels.WARN)
     end
   end)
 end
 
 --- Activate the buffer pick delete mode.
+--- @param count integer
+--- @param force boolean
 --- @return nil
-function api.pick_buffer_delete()
+function api.pick_buffer_delete(count, force)
+  local deleted = 0
   pick_buffer_wrap(function()
-    while true do
-      local ok, letter = pcall(function() return char(getchar()) end)
-      if ok and letter ~= '' then
-        if JumpMode.buffer_by_letter[letter] ~= nil then
-          bbye.bdelete(false, JumpMode.buffer_by_letter[letter])
-        elseif letter == ESC then
-          break
-        else
-          utils.notify("Couldn't find buffer with letter '" .. letter .. "'", vim.log.levels.WARN)
-        end
+    local ok, letter = pcall(function() return char(getchar()) end)
+    if ok and letter ~= '' then
+      if jump_mode.buffer_by_letter[letter] ~= nil then
+        bdelete(force, jump_mode.buffer_by_letter[letter])
+        deleted = deleted + 1
+      elseif letter == ESC then
+        return
       else
-        utils.notify('Invalid input', vim.log.levels.WARN)
+        notify("Couldn't find buffer with letter '" .. letter .. "'", vim.log.levels.WARN)
       end
-
-      render.update()
-      command('redraw')
+    else
+      notify('Invalid input', vim.log.levels.WARN)
     end
+
+    render.update()
+    command('redraw')
+
+    return deleted < count
   end)
 end
 
@@ -448,7 +461,7 @@ end
 --- @param width integer the amount to offset
 --- @param text? string text to put in the offset
 --- @param hl? string
---- @param side? 'left'|'right'
+--- @param side? side
 --- @return nil
 function api.set_offset(width, text, hl, side)
   if side == nil then

@@ -1,1 +1,1 @@
-return require'barbar.animate'
+return require('barbar.animate')

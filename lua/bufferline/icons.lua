@@ -1,1 +1,1 @@
-return require'barbar.icons'
+return require('barbar.icons')
