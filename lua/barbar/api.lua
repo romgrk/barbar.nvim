@@ -9,6 +9,7 @@ local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local bufnr = vim.fn.bufnr --- @type function
 local bufwinnr = vim.fn.bufwinnr --- @type function
+local command = vim.api.nvim_command --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local getchar = vim.fn.getchar --- @type function
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
@@ -438,6 +439,7 @@ function api.pick_buffer_delete()
       end
 
       render.update()
+      command('redraw')
     end
   end)
 end
