@@ -574,7 +574,7 @@ local function generate_side_offset(side)
     local insert_position
     if align == 'left' then
       insert_position = 1
-    else
+    else -- align to the right (NOTE: center alignment is a type of right alignment)
       insert_position = width - #text - 1
       if align == 'center' then
         insert_position = ceil(insert_position / 2)
