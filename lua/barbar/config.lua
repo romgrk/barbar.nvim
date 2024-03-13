@@ -190,6 +190,7 @@ local DEPRECATED_OPTIONS = {
 }
 
 --- @class barbar.config.options.sidebar_filetype
+--- @field align? align
 --- @field event? string
 --- @field text? string
 

@@ -49,7 +49,8 @@ local WARN = severity.WARN
 --- @field width? integer the width of the buffer minus invisible characters
 
 --- @class barbar.state.offset.side
---- @field hl? string the highlight group to use
+--- @field align align the alignment of the group
+--- @field hl string the highlight group to use
 --- @field text string the text to fill the offset with
 --- @field width integer the size of the offset
 
@@ -68,8 +69,8 @@ local state = {
   data_by_bufnr = {},
   is_picking_buffer = false,
   offset = {
-    left = {text = '', width = 0},
-    right = {text = '', width = 0},
+    left = {align = 'right', hl = 'BufferOffset', text = '', width = 0},
+    right = {align = 'left', hl = 'BufferOffset', text = '', width = 0},
   },
   recently_closed = {},
 }

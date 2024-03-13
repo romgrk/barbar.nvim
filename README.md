@@ -378,14 +378,17 @@ require'barbar'.setup {
 
   -- Set the filetypes which barbar will offset itself for
   sidebar_filetypes = {
-    -- Use the default values: {event = 'BufWinLeave', text = nil}
+    -- Use the default values: {event = 'BufWinLeave', text = '', align = 'left'}
     NvimTree = true,
     -- Or, specify the text used for the offset:
-    undotree = {text = 'undotree'},
+    undotree = {
+      text = 'undotree',
+      align = 'center', -- *optionally* specify an alignment (either 'left', 'center', or 'right')
+    },
     -- Or, specify the event which the sidebar executes when leaving:
     ['neo-tree'] = {event = 'BufWipeout'},
-    -- Or, specify both
-    Outline = {event = 'BufWinLeave', text = 'symbols-outline'},
+    -- Or, specify all three
+    Outline = {event = 'BufWinLeave', text = 'symbols-outline', align = 'right'},
   },
 
   -- New buffer letters are assigned in this order. This order is
@@ -428,6 +431,16 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 | `WARN`         | Diagnostic warnings.                                                                 |
 
 * e.g. the current buffer's highlight when modified is `BufferCurrentMod`
+
+There are a few highlight groups which do not follow this rule. They are:
+
+| Group               | Usage                                                                                                      |
+|:--------------------|:-----------------------------------------------------------------------------------------------------------|
+| `BufferOffset`      | The background of the header for a `sidebar_filetype`                                                      |
+| `BufferScrollArrow` | The arrow which shows to indicate that there are more buffers to the left or right of the scroll position. |
+| `BufferTabpageFill` | The space between the open buffer list and the tabpage                                                     |
+| `BufferTabpages`    | The color of the tabpages indicator.                                                                       |
+| `BufferTabpagesSep` | The separator between the tabpages count.                                                                  |
 
 You can also use the [doom-one.vim](https://github.com/romgrk/doom-one.vim)
 colorscheme that defines those groups and is also very pleasant as you could see
