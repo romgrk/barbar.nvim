@@ -543,29 +543,53 @@ tabpages ~
 5. Integrations                                          *barbar-integrations*
 
 ------------------------------------------------------------------------------
-SESSIONS                                        *barbar-integrations-sessions*
+SCOPE.NVIM                                      *barbar-integrations-scope.nvim*
+
+Add this to your |scope.nvim-configuration| to preserve buffer order while
+switching tabs: >lua
+  require('scope').setup {
+    hooks = {
+      pre_tab_leave = function()
+        vim.api.nvim_exec_autocmds('User', {pattern = 'ScopeTabLeavePre'})
+        -- [other statements]
+      end,
+
+      post_tab_enter = function()
+        vim.api.nvim_exec_autocmds('User', {pattern = 'ScopeTabEnterPost'})
+        -- [other statements]
+      end,
+
+      -- [other hooks]
+    },
+
+    -- [other options]
+  }
+<
+
+------------------------------------------------------------------------------
+SESSIONS                                          *barbar-integrations-sessions*
 
 |barbar.nvim| can restore the order that your buffers were in, as well as
 whether a buffer was pinned. To do this, 'sessionoptions' must contain
 `globals`, and the |User| `SessionSavePre` event must be executed before
 |:mksession| executes.
 
-                                      *barbar-integrations-sessions-mini.nvim*
-mini.nvim ~
+MINI.NVIM                               *barbar-integrations-sessions-mini.nvim*
 
 Here is a |mini.sessions| config which can be used: >
   vim.opt.sessionoptions:append 'globals'
   require'mini.sessions'.setup {
     hooks = {
       pre = {
-        write = function() vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'}) end,
+        write = function()
+          vim.api.nvim_exec_autocmds('User', {pattern = 'SessionSavePre'})
+        end,
       },
     },
   }
 <
 
-                               *barbar-integrations-sessions-persistence.nvim*
-persistence.nvim ~
+PERSISTENCE.NVIM                 *barbar-integrations-sessions-persistence.nvim*
 
 Here is a |persistence.nvim| config which can be used: >
   require'persistence'.setup {
@@ -576,8 +600,7 @@ Here is a |persistence.nvim| config which can be used: >
   }
 <
 
-                                         *barbar-integrations-sessions-custom*
-Custom ~
+CUSTOM                                     *barbar-integrations-sessions-custom*
 
 You can add this snippet to your config to take advantage of our session
 integration: >
