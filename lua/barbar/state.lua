@@ -36,7 +36,7 @@ local WARN = severity.WARN
 -- Section: Application state --
 --------------------------------
 
---- @class barbar.state.data
+--- @class barbar.state.buffer.data
 --- @field closing boolean whether the buffer is being closed
 --- @field computed_position? integer the real position of the buffer
 --- @field computed_width? integer the width of the buffer plus invisible characters
@@ -60,7 +60,7 @@ local WARN = severity.WARN
 
 --- @class barbar.State
 --- @field buffers integer[] the open buffers, in visual order.
---- @field data_by_bufnr {[integer]: barbar.state.data} the buffer data indexed on buffer number
+--- @field data_by_bufnr {[integer]: barbar.state.buffer.data} the buffer data indexed on buffer number
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
 --- @field last_current_buffer? integer the previously-open buffer before rendering starts
 --- @field offset barbar.state.offset
@@ -78,7 +78,7 @@ local state = {
 
 --- Get the state of the `id`
 --- @param bufnr integer the `bufnr`
---- @return barbar.state.data
+--- @return barbar.state.buffer.data
 function state.get_buffer_data(bufnr)
   if bufnr == 0 then
     bufnr = get_current_buf()
@@ -314,6 +314,26 @@ function state.set_offset(width, text, hl)
   )
 
   require('barbar.api').set_offset(width, text, hl)
+end
+
+--- @class barbar.state.buffer.exported
+--- @field name string the name of the buffer
+--- @field pinned boolean whether the buffer is pinned
+
+--- Exports buffers to a format which is acceptable by `restore_buffers`
+--- @return barbar.state.buffer.exported[]
+--- @see barbar.State.restore_buffers
+function state.export_buffers()
+    local buffers = {} --- @type barbar.state.buffer.exported[]
+
+    for _, bufnr in ipairs(state.buffers) do
+      table_insert(buffers, {
+        name = fs.relative(buf_get_name(bufnr)),
+        pinned = state.is_pinned(bufnr) or nil,
+      })
+    end
+
+    return buffers
 end
 
 --- Restore the buffers

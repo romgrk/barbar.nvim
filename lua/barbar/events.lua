@@ -351,18 +351,7 @@ function events.enable()
 
   create_autocmd('User', {
     callback = function()
-      local relative = require('barbar.fs').relative
-
-      --- List of open buffers, along with relevant data
-      local buffers = {}
-
-      for _, bufnr in ipairs(state.buffers) do
-        table_insert(buffers, {
-          name = relative(buf_get_name(bufnr)),
-          pinned = state.is_pinned(bufnr) or nil,
-        })
-      end
-
+      local buffers = state.export_buffers()
       vim.g.Bufferline__session_restore = "lua require('barbar.state').restore_buffers " ..
         vim.inspect(buffers, {newline = ' ', indent = ''})
     end,
