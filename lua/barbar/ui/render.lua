@@ -426,8 +426,14 @@ local function get_bufferline_containers(data, bufnrs, refocus)
       end
     end
 
+    --- the start of all rendered highlight names
+    local hl_prefix = 'Buffer' .. activity_name
+
+    --- the suffix of some (eventually all) rendered highlight names
+    local hl_suffix = (modified and 'Mod') or (pinned and 'Pin') or ''
+
     local buffer_name = buffer_data.name or '[no name]'
-    local buffer_hl = wrap_hl('Buffer' .. activity_name .. (modified and 'Mod' or ''))
+    local buffer_hl = wrap_hl(hl_prefix .. hl_suffix)
 
     local icons_option = buffer.get_icons(activity_name, modified, pinned)
 
@@ -442,7 +448,7 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     --- @type barbar.ui.node
     local buffer_index = { hl = '', text = '' }
     if icons_option.buffer_index then
-      buffer_index.hl = wrap_hl('Buffer' .. activity_name .. 'Index')
+      buffer_index.hl = wrap_hl(hl_prefix .. 'Index')
       buffer_index.text = style_number(i, icons_option.buffer_index) .. ' '
     end
 
@@ -450,13 +456,13 @@ local function get_bufferline_containers(data, bufnrs, refocus)
     --- @type barbar.ui.node
     local buffer_number = { hl = '', text = '' }
     if icons_option.buffer_number then
-      buffer_number.hl = wrap_hl('Buffer' .. activity_name .. 'Number')
+      buffer_number.hl = wrap_hl(hl_prefix .. 'Number')
       buffer_number.text = style_number(bufnr, icons_option.buffer_number) .. ' '
     end
 
     --- The close icon
-    --- @type barbar.ui.container
-    local button = {hl = buffer_hl, text = ''}
+    --- @type barbar.ui.node
+    local button = {hl = wrap_hl(hl_prefix .. hl_suffix .. 'Btn'), text = ''}
 
     local button_icon = icons_option.button
     if button_icon and #button_icon > 0 then
@@ -483,7 +489,7 @@ local function get_bufferline_containers(data, bufnrs, refocus)
         name.text = strcharpart(name.text, 1)
       end
 
-      jump_letter.hl = wrap_hl('Buffer' .. activity_name .. 'Target')
+      jump_letter.hl = wrap_hl(hl_prefix .. 'Target')
       if letter then
         jump_letter.text = letter
         if icons_option.filetype.enabled and #name.text > 0 then
@@ -499,14 +505,14 @@ local function get_bufferline_containers(data, bufnrs, refocus)
         or iconHl
 
       icon.hl = icons_option.filetype.custom_colors and
-        wrap_hl('Buffer' .. activity_name .. 'Icon') or
+        wrap_hl(hl_prefix .. 'Icon') or
         (hlName and wrap_hl(hlName) or buffer_hl)
       icon.text = #name.text > 0 and iconChar .. ' ' or iconChar
     end
 
     --- @type barbar.ui.node
     local left_separator = {
-      hl = clickable .. wrap_hl('Buffer' .. activity_name .. 'Sign'),
+      hl = clickable .. wrap_hl(hl_prefix .. 'Sign'),
       text = icons_option.separator.left,
     }
 
@@ -523,21 +529,21 @@ local function get_bufferline_containers(data, bufnrs, refocus)
 
     state.for_each_counted_enabled_diagnostic(bufnr, icons_option.diagnostics, function(count, idx, option)
       table_insert(container.nodes, {
-        hl = wrap_hl('Buffer' .. activity_name .. severity[idx]),
+        hl = wrap_hl(hl_prefix .. severity[idx]),
         text = ' ' .. option.icon .. count,
       })
     end)
 
     state.for_each_counted_enabled_git_status(bufnr, icons_option.gitsigns, function(count, idx, option)
       table_insert(container.nodes, {
-        hl = wrap_hl('Buffer' .. activity_name .. idx:upper()),
+        hl = wrap_hl(hl_prefix .. idx:upper()),
         text = ' ' .. option.icon .. count,
       })
     end)
 
     --- @type barbar.ui.node
     local right_separator = {
-      hl = clickable .. wrap_hl('Buffer' .. activity_name .. 'SignRight'),
+      hl = clickable .. wrap_hl(hl_prefix .. 'SignRight'),
       text = icons_option.separator.right,
     }
 
@@ -617,7 +623,7 @@ local function generate_tabline(bufnrs, refocus)
 
   -- Buffer tabs
   do
-    --- @type barbar.ui.container
+    --- @type barbar.ui.node[]
     local content = { { hl = HL.FILL, text = (' '):rep(data.buffers.width) } }
 
     do

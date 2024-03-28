@@ -105,7 +105,7 @@ local GIT_STATUSES = {'added', 'changed', 'deleted'}
 --- @type {[barbar.config.options.icons.preset]: fun(default_icons: barbar.config.options.icons, user_icons?: table)}
 local ICON_PRESETS = {
   default = function(default_icons, user_icons)
-    default_icons.inactive = { separator = { left = '▎', right = '' } }
+    default_icons.inactive = { separator = { left = '▎', right = '' } } --- @diagnostic disable-line: missing-fields
     default_icons.separator = { left = '▎', right = '' }
     default_icons.separator_at_end = true
 
@@ -114,18 +114,18 @@ local ICON_PRESETS = {
       pinned_icons.button == false or
       (pinned_icons.button and strwidth(pinned_icons.button) < 1)
     then
-      default_icons.pinned.separator = { right = ' ' }
+      default_icons.pinned.separator = { right = ' ' } --- @diagnostic disable-line: missing-fields
     end
   end,
 
   powerline = function(default_icons)
-    default_icons.inactive = { separator = { left = '', right = '' } }
+    default_icons.inactive = { separator = { left = '', right = '' } }  --- @diagnostic disable-line: missing-fields
     default_icons.separator = { left = '', right = '' }
     default_icons.separator_at_end = false
   end,
 
   slanted = function(default_icons)
-    default_icons.inactive = { separator = { left = '', right = '' } }
+    default_icons.inactive = { separator = { left = '', right = '' } }  --- @diagnostic disable-line: missing-fields
     default_icons.separator = { left = '', right = '' }
     default_icons.separator_at_end = false
   end,
@@ -220,7 +220,10 @@ local DEPRECATED_OPTIONS = {
 
 --- @class barbar.Config
 --- @field options barbar.config.options
-local config = { git_statuses = GIT_STATUSES, options = {} }
+local config = {
+  git_statuses = GIT_STATUSES,
+  options = {}, --- @diagnostic disable-line: missing-fields
+}
 
 --- @param options? table
 function config.setup(options)

@@ -62,6 +62,7 @@ local WARN = severity.WARN
 --- @field buffers integer[] the open buffers, in visual order.
 --- @field data_by_bufnr {[integer]: barbar.state.data} the buffer data indexed on buffer number
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
+--- @field last_current_buffer? integer the previously-open buffer before rendering starts
 --- @field offset barbar.state.offset
 --- @field recently_closed string[] the list of recently closed paths
 local state = {

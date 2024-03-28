@@ -416,6 +416,7 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 | `<PART>`       | Meaning                                                                              |
 |:---------------|:-------------------------------------------------------------------------------------|
 | `ADDED`        | Git status added.                                                                    |
+| `Btn`          | The button that shows when a buffer is unpinned and unmodified.                      |
 | `CHANGED`      | Git status changed.                                                                  |
 | `DELETED`      | Git status deleted.                                                                  |
 | `ERROR`        | Diagnostic errors.                                                                   |
@@ -424,7 +425,10 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 | `Index`        | The buffer's position in the tabline.                                                |
 | `INFO`         | Diagnostic info.                                                                     |
 | `Mod`          | When the buffer is modified.                                                         |
+| `ModBtn`       | The button that shows when a buffer is modified.                                     |
 | `Number`       | The `:h bufnr()`.                                                                    |
+| `Pin`          | When the buffer is pinned.                                                           |
+| `PinBtn`       | The button that shows when a buffer is pinned.                                       |
 | `Sign`         | The separator between buffers.                                                       |
 | `SignRight`    | The separator between buffers.                                                       |
 | `Target`       | The letter in buffer-pick mode.                                                      |
