@@ -26,8 +26,7 @@ list below is the mappings I use. It is recommended to use the `BufferClose`
 command to close buffers instead of `bdelete` because it will not mess your
 window layout.
 
-The name of each command should be descriptive enough for you to use it.
->
+The name of each command should be descriptive enough for you to use it. >vim
     " Move to previous/next
     nnoremap <silent>    <A-,> <Cmd>BufferPrevious<CR>
     nnoremap <silent>    <A-.> <Cmd>BufferNext<CR>
@@ -134,15 +133,16 @@ Group              Meaning
   However, if you want to customize this plugin, there is no need for that
   since you will have to call |barbar.setup()| yourself.
 
-  To disable the auto-setup, set this variable to `false`: >
+  To disable the auto-setup, set this variable to `false`: >lua
     vim.g.barbar_auto_setup = false -- Lua
     let g:barbar_auto_setup = v:false " Vim script
+<
 
 `barbar`.setup({options})                                       *barbar.setup()*
   To configure barbar, you must call this `setup` function. The valid
   {options} are listed below.
 
-  Lua example: >
+  Lua example: >lua
     require'barbar'.setup {
       auto_hide = 1,
       clickable = false,
@@ -151,7 +151,7 @@ Group              Meaning
     }
 <
 
-  Vimscript example (see |:lua-heredoc| for more details): >
+  Vimscript example (see |:lua-heredoc| for more details): >vim
     lua << EOF
     require'barbar'.setup {
       auto_hide = 1,
@@ -285,14 +285,14 @@ icons ~
        `boolean`  (defaults: `' '`, `'󰌶 '`, `' '`, and `' '`)
        The icon which accompanies the number of diagnostics.
 
-    Example that disables the error icon, but still shows the count: >
+    Example that disables the error icon, but still shows the count: >lua
       require'barbar'.setup {icons = {diagnostics = {
           [vim.diagnostic.severity.ERROR] = {enabled = true, icon = ''},
       }}}
 <
                                                  *barbar-setup.icons.gitsigns*
   icons.gitsigns ~
-    `table`  (default: >
+    `table`  (default: >lua
                     {
                       added = {enabled = false, icon = '+'},
                       changed = {enabled = false, icon = '~'},
@@ -311,7 +311,7 @@ icons ~
       `boolean`  (default: `'+'`, `'-'`, `'~'`)
        The icon which accompanies the number of git status.
 
-    Example that disables the "added" icon, but still shows the count: >
+    Example that disables the "added" icon, but still shows the count: >lua
       require'barbar'.setup {icons = {git = {
         added = {enabled = true, icon = ''},
       }}}
@@ -342,7 +342,7 @@ icons ~
     `string`  (default: `''`)
     The right separator between buffers in the tabline.
 
-  Example: >
+  Example: >lua
     -- Show the file icon, a left separator, and ERROR/WARN diagnostics
     require'barbar'.setup {icons = {
       buffer_index = false,
@@ -372,7 +372,7 @@ icons ~
 
                                                    *barbar-setup.icons.pinned*
   icons.pinned ~
-    `table`  (default: >
+    `table`  (default: >lua
                     {
                       button = false,
                       filename = false,
@@ -383,7 +383,7 @@ icons ~
     Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc)
 
-  Example: >
+  Example: >lua
     require'barbar'.setup {icons = {
       modified = {separator = '⋄'},
       pinned = {button = '', filename = true},
@@ -420,7 +420,7 @@ icons ~
     Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc) as well as `modified` and `pinned`.
 
-  Example: >
+  Example: >lua
     -- Enable file icons for alternate buffers.
     -- Enable buffer indices for current buffers.
     -- Override the button for inactive buffers.
@@ -521,7 +521,7 @@ sidebar_filetypes ~
     `string`  (default: `nil`)
     The text which will fill the offset.
 
-  Example: >
+  Example: >lua
     require'bufferline'.setup {sidebar_filetypes = {
       -- Use the default values: {event = 'BufWinLeave', text = nil}
       NvimTree = true,
@@ -576,7 +576,7 @@ whether a buffer was pinned. To do this, 'sessionoptions' must contain
 
 MINI.NVIM                               *barbar-integrations-sessions-mini.nvim*
 
-Here is a |mini.sessions| config which can be used: >
+Here is a |mini.sessions| config which can be used: >lua
   vim.opt.sessionoptions:append 'globals'
   require'mini.sessions'.setup {
     hooks = {
@@ -591,7 +591,7 @@ Here is a |mini.sessions| config which can be used: >
 
 PERSISTENCE.NVIM                 *barbar-integrations-sessions-persistence.nvim*
 
-Here is a |persistence.nvim| config which can be used: >
+Here is a |persistence.nvim| config which can be used: >lua
   require'persistence'.setup {
     options = {--[[<other options>,]] 'globals'},
     pre_save = function()
@@ -603,7 +603,7 @@ Here is a |persistence.nvim| config which can be used: >
 CUSTOM                                     *barbar-integrations-sessions-custom*
 
 You can add this snippet to your config to take advantage of our session
-integration: >
+integration: >lua
   vim.opt.sessionoptions:append 'globals'
   vim.api.nvim_create_user_command(
     'Mksession',
