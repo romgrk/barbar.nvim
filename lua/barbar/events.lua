@@ -14,6 +14,7 @@ local create_namespace = vim.api.nvim_create_namespace
 local defer_fn = vim.defer_fn
 local del_autocmd = vim.api.nvim_del_autocmd --- @type function
 local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
+local get_current_tabpage = vim.api.nvim_get_current_tabpage
 local get_option = vim.api.nvim_get_option --- @type function
 local on_key = vim.on_key
 local replace_termcodes = vim.api.nvim_replace_termcodes
@@ -348,6 +349,30 @@ function events.enable()
     callback = function() render.update(true) end,
     group = augroup_render,
   })
+
+  do
+    local buffers_by_tab = {}
+    create_autocmd('User', {
+      callback = function()
+        local tab = get_current_tabpage()
+        buffers_by_tab[tab] = state.export_buffers()
+      end,
+      group = augroup_misc,
+      pattern = 'ScopeTabLeavePre',
+    })
+
+    create_autocmd('User', {
+      callback = function()
+        local tab = get_current_tabpage()
+        local buffers = buffers_by_tab[tab]
+        if buffers then
+          state.restore_buffers(buffers)
+        end
+      end,
+      group = augroup_misc,
+      pattern = 'ScopeTabEnterPost',
+    })
+  end
 
   create_autocmd('User', {
     callback = function()
