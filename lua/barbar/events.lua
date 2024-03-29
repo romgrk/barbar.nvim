@@ -1,3 +1,4 @@
+local max = math.max
 local rshift = bit.rshift
 local table_insert = table.insert
 
@@ -265,7 +266,10 @@ function events.enable()
 
       -- we want the offset to begin ON the first win separator
       -- WARN: don't use `win_separator` here
-      return offset - 1
+      offset = offset - 1
+
+      -- width cannot be less than zero
+      return max(0, offset)
     end
 
     for ft, option in pairs(config.options.sidebar_filetypes) do
