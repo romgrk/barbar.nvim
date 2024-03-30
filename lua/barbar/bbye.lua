@@ -284,19 +284,26 @@ function bbye.delete(action, force, buffer, mods)
 
   -- WARN: actions on relative buffers must wait to run until other operations have finished, or else it will cause a
   --       race condition in determining what to reference as buffers close
-  if buffer_is_relative and not vim.wait(5, function() return bbye.closing < 1 end) then
-    return -- other buffers did not finish closing in time
+  if buffer_is_relative and bbye.closing > 0 then
+    local check_closing = vim.loop.new_check()
+    return check_closing:start(function() -- start checking for when buffer operations are complete
+      if bbye.closing < 1 then
+        check_closing:stop()
+        vim.schedule(function()
+          bbye.delete(action, force, buffer, mods)
+        end)
+      end
+    end)
   end
 
   bbye.closing = bbye.closing + 1
   local buffer_number = delete(action, force, buffer, mods)
 
-  -- check for when the buffer is closed
   local check_closed = vim.loop.new_check()
-  check_closed:start(function()
-    if not state.data_by_bufnr[buffer_number] then -- buffer is finished closing
-      bbye.closing = bbye.closing - 1
+  check_closed:start(function() -- start checking for when buffer is really deleted
+    if not state.data_by_bufnr[buffer_number] then
       check_closed:stop()
+      bbye.closing = bbye.closing - 1
     end
   end)
 end
