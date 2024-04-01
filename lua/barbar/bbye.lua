@@ -289,7 +289,7 @@ local function delete(action, force, buffer_number, mods)
     end
   end
 
-  return buffer_number
+  return true
 end
 
 --- Delete a buffer
