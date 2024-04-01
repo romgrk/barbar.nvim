@@ -292,6 +292,14 @@ local function delete(action, force, buffer_number, mods)
   return true
 end
 
+local BUFFER_REFERENCE_LITERALS = {
+  [0] = true,
+  [''] = true,
+  ['#'] = true,
+  ['$'] = true,
+  ['%'] = true,
+}
+
 --- Delete a buffer
 --- @param action string the command to use to delete the buffer (e.g. `'bdelete'`)
 --- @param force boolean if true, forcefully delete the buffer
@@ -303,7 +311,7 @@ function bbye.delete(action, force, buffer, mods)
   --       race condition in determining what to reference as buffers close.
   do
     --- `buffer` refers to the state of the editor
-    local buffer_is_relative = buffer == nil or buffer == '' or buffer == 0
+    local buffer_is_relative = buffer == nil or BUFFER_REFERENCE_LITERALS[buffer]
 
     if buffer_is_relative and bbye.closing > 0 then -- cannot "acquire" reference to referenced buffer
       --- check for reference availability
