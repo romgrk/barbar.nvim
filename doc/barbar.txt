@@ -4,7 +4,7 @@
                       barbar.vim    by Rom Grk
 
 
-Help on barbar.nvim                                        *barbar* *barbar.nvim*
+Help on barbar.nvim                                         *barbar* *barbar.nvim*
 
 1. Intro                        |barbar-intro|
 2. Mappings & Commands          |barbar-mappings| |barbar-commands|
@@ -13,21 +13,20 @@ Help on barbar.nvim                                        *barbar* *barbar.nvim
 5. Integrations                 |barbar-integrations|
 
 ==============================================================================
-1. Intro                                                        *barbar-intro*
+1. Intro                                                          *barbar-intro*
 
 Barbar is a tabline plugin. It's called Barbar because it deals with the bar
 at the top of your window. And it does it well so it's more than a bar. Barbar.
 
 ==============================================================================
-2. Mappings & Commands                     *barbar-mappings* *barbar-commands*
+2. Mappings & Commands                         *barbar-mappings* *barbar-commands*
 
 The plugin doesn't provide default mappings as there isn't any standard. The
 list below is the mappings I use. It is recommended to use the `BufferClose`
 command to close buffers instead of `bdelete` because it will not mess your
 window layout.
 
-The name of each command should be descriptive enough for you to use it.
->
+The name of each command should be descriptive enough for you to use it. >vim
     " Move to previous/next
     nnoremap <silent>    <A-,> <Cmd>BufferPrevious<CR>
     nnoremap <silent>    <A-.> <Cmd>BufferNext<CR>
@@ -82,7 +81,7 @@ The name of each command should be descriptive enough for you to use it.
 <
 
 ==============================================================================
-3. Highlights                                              *barbar-highlights*
+3. Highlights                                                *barbar-highlights*
 ~
 Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 
@@ -127,22 +126,23 @@ Group              Meaning
 `BufferTabpagesSep`  The separator between the tabpages count.
 
 ==============================================================================
-4. Settings                                                     *barbar-setup*
+4. Settings                                                       *barbar-setup*
 
 *g:barbar_auto_setup*  `boolean`  (default: `true`)
   By default, |barbar.nvim| will call the |barbar.setup()| function for you.
   However, if you want to customize this plugin, there is no need for that
   since you will have to call |barbar.setup()| yourself.
 
-  To disable the auto-setup, set this variable to `false`: >
+  To disable the auto-setup, set this variable to `false`: >lua
     vim.g.barbar_auto_setup = false -- Lua
     let g:barbar_auto_setup = v:false " Vim script
+<
 
-`barbar`.setup({options})                                       *barbar.setup()*
+`barbar`.setup({options})                                           *barbar.setup()*
   To configure barbar, you must call this `setup` function. The valid
   {options} are listed below.
 
-  Lua example: >
+  Lua example: >lua
     require'barbar'.setup {
       auto_hide = 1,
       clickable = false,
@@ -151,7 +151,7 @@ Group              Meaning
     }
 <
 
-  Vimscript example (see |:lua-heredoc| for more details): >
+  Vimscript example (see |:lua-heredoc| for more details): >vim
     lua << EOF
     require'barbar'.setup {
       auto_hide = 1,
@@ -161,12 +161,12 @@ Group              Meaning
     }
     EOF
 <
-                                                      *barbar-setup.animation*
+                                                        *barbar-setup.animation*
 animation ~
   `boolean`  (default: `true`)
   Enables animations if `true`.
 
-                                                      *barbar-setup.auto_hide*
+                                                        *barbar-setup.auto_hide*
 auto_hide ~
   `false|integer`  (default: `-1`)
   Automatically hide the 'tabline' when there are this many buffers left. Set
@@ -176,23 +176,23 @@ auto_hide ~
   buffers shown, `auto_hide  = 1` hides the 'tabline' when there would only be
   one, etc.
 
-                                                      *barbar-setup.clickable*
+                                                        *barbar-setup.clickable*
 clickable ~
   `boolean`  (default: `true`)
   If set, you can left-click on a tab to switch to that buffer, and
   middle-click to delete it.
 
-                                                     *barbar-setup.exclude_ft*
+                                                       *barbar-setup.exclude_ft*
 exclude_ft ~
   `string[]`  (default: `{}`)
   Excludes filetypes from appearing in the tabs.
 
-                                                   *barbar-setup.exclude_name*
+                                                     *barbar-setup.exclude_name*
 exclude_name ~
   `string[]`  (default: `{}`)
   Excludes buffers matching name from appearing in the tabs.
 
-                                                 *barbar-setup.focus_on_close*
+                                                   *barbar-setup.focus_on_close*
 focus_on_close ~
   `'left'|'previous'|'right'`  (default: `'left'`)
   The algorithm to use for getting the next buffer after closing the current
@@ -202,97 +202,97 @@ focus_on_close ~
   - `'previous'`: focus the previous buffer.
   - `'right'`: focus the buffer to the right of the current buffer.
 
-                                                           *barbar-setup.hide*
+                                                             *barbar-setup.hide*
 hide ~
   Sets which elements are hidden in the bufferline. Possible options are:
 
-                                                 *barbar-setup.hide.alternate*
+                                                   *barbar-setup.hide.alternate*
   hide.alternate ~
     `boolean`  (default: `false`)
     Controls the visibility of the |alternate-file|.
     |barbar-setup.highlight_alternate| must be `true`.
 
-                                                   *barbar-setup.hide.current*
+                                                     *barbar-setup.hide.current*
   hide.current ~
     `boolean`  (default: `false`)
     Controls the visibility of the current buffer.
 
-                                                *barbar-setup.hide.extensions*
+                                                  *barbar-setup.hide.extensions*
   hide.extensions ~
     `boolean`  (default: `false`)
     Controls the visibility of file extensions.
 
-                                                  *barbar-setup.hide.inactive*
+                                                    *barbar-setup.hide.inactive*
   hide.inactive ~
     `boolean`  (default: `false`)
     Controls visibility of |hidden-buffer|s and |inactive-buffer|s.
 
-                                                   *barbar-setup.hide.visible*
+                                                     *barbar-setup.hide.visible*
   hide.visible ~
     `boolean`  (default: `false`)
     Controls visibility of |active-buffer|s.
     |barbar-setup.highlight_visible| must be `true`.
 
-                                            *barbar-setup.highlight_alternate*
+                                              *barbar-setup.highlight_alternate*
 highlight_alternate ~
   `boolean`  (default: `false`)
   Enables highlighting of alternate buffers.
 
-                                  *barbar-setup.highlight_inactive_file_icons*
+                                    *barbar-setup.highlight_inactive_file_icons*
 highlight_inactive_file_icons ~
   `boolean`  (default: `false`)
   Enables highlighting the file icons of inactive buffers.
 
-                                              *barbar-setup.highlight_visible*
+                                                *barbar-setup.highlight_visible*
 highlight_visible ~
   `boolean`  (default: `true`)
   Enables highlighting of visible buffers.
 
-                                                          *barbar-setup.icons*
+                                                            *barbar-setup.icons*
 icons ~
   `table`
   Controls the icons rendered on each tab. The base options are:
 
-                                             *barbar-setup.icons.buffer_index*
+                                               *barbar-setup.icons.buffer_index*
   icons.buffer_index ~
     `boolean|'superscript'|'subscript'`  (default: `false`)
     if `true`, show the index of the buffer with respect to the ordering of
     the buffers in the tabline.
 
-                                            *barbar-setup.icons.buffer_number*
+                                              *barbar-setup.icons.buffer_number*
   icons.buffer_number ~
     `boolean|'superscript'|'subscript'`  (default: `false`)
     If `true`, show the `bufnr` for the associated buffer.
 
-                                                   *barbar-setup.icons.button*
+                                                     *barbar-setup.icons.button*
   icons.button ~
     `false | string`  (default: `''`)
     The button which is clicked to close / save a buffer, or indicate that
     it is pinned. Use `false` to disable it.
 
-                                              *barbar-setup.icons.diagnostics*
+                                                *barbar-setup.icons.diagnostics*
   icons.diagnostics ~
     `{[vim.diagnostic.severity]: table}`
 
-                                      *barbar-setup.icons.diagnostics.enabled*
+                                        *barbar-setup.icons.diagnostics.enabled*
      icons.diagnostics.enabled ~
        `boolean`  (default: `false`)
        Enable showing diagnostics of this |diagnostic-severity| in the
        'tabline'.
 
-                                      *barbar-setup.icons.diagnostics.icon*
+                                           *barbar-setup.icons.diagnostics.icon*
      icons.diagnostics.icon ~
        `boolean`  (defaults: `' '`, `'󰌶 '`, `' '`, and `' '`)
        The icon which accompanies the number of diagnostics.
 
-    Example that disables the error icon, but still shows the count: >
+    Example that disables the error icon, but still shows the count: >lua
       require'barbar'.setup {icons = {diagnostics = {
           [vim.diagnostic.severity.ERROR] = {enabled = true, icon = ''},
       }}}
 <
-                                                 *barbar-setup.icons.gitsigns*
+                                                   *barbar-setup.icons.gitsigns*
   icons.gitsigns ~
-    `table`  (default: >
+    `table`  (default: >lua
                     {
                       added = {enabled = false, icon = '+'},
                       changed = {enabled = false, icon = '~'},
@@ -300,49 +300,49 @@ icons ~
                     }
 <           )
 
-                                         *barbar-setup.icons.gitsigns.enabled*
+                                           *barbar-setup.icons.gitsigns.enabled*
     icons.gitsigns.enabled ~
       `boolean`  (default: `true`)
       Enables showing git changes of this type.
       Requires |gitsigns.nvim|.
 
-                                            *barbar-setup.icons.gitsigns.icon*
+                                              *barbar-setup.icons.gitsigns.icon*
     icons.gitsigns.icon ~
       `boolean`  (default: `'+'`, `'-'`, `'~'`)
        The icon which accompanies the number of git status.
 
-    Example that disables the "added" icon, but still shows the count: >
+    Example that disables the "added" icon, but still shows the count: >lua
       require'barbar'.setup {icons = {git = {
         added = {enabled = true, icon = ''},
       }}}
 <
-                                                 *barbar-setup.icons.filename*
+                                                   *barbar-setup.icons.filename*
   icons.filename ~
     `boolean`  (default: `true`)
     If `true`, show the name of the file.
 
-                                   *barbar-setup.icons.filetype.custom_colors*
+                                     *barbar-setup.icons.filetype.custom_colors*
   icons.filetype.custom_colors ~
     `boolean`  (default: `false`)
     If `true`, the `Buffer<status>Icon` color will be used for icon colors.
 
-                                         *barbar-setup.icons.filetype.enabled*
+                                           *barbar-setup.icons.filetype.enabled*
   icons.filetype.enabled ~
     `boolean`  (default: `true`)
     Filetype `true`, show the `devicons` for the associated buffer's
     `filetype`.
 
-                                           *barbar-setup.icons.separator.left*
+                                             *barbar-setup.icons.separator.left*
   icons.separator.left ~
     `string`  (default: `'▎'`)
     The left separator between buffers in the tabline.
 
-                                          *barbar-setup.icons.separator.right*
+                                            *barbar-setup.icons.separator.right*
   icons.separator.right ~
     `string`  (default: `''`)
     The right separator between buffers in the tabline.
 
-  Example: >
+  Example: >lua
     -- Show the file icon, a left separator, and ERROR/WARN diagnostics
     require'barbar'.setup {icons = {
       buffer_index = false,
@@ -363,16 +363,16 @@ icons ~
     Can be used to create a visual separation when the inactive buffer
     background color is the same as the fill region background color.
 
-                                                 *barbar-setup.icons.modified*
+                                                   *barbar-setup.icons.modified*
   icons.modified ~
     `table`  (default: `{button = '●'}`)
     The icons which should be used for a 'modified' buffer.
     Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc)
 
-                                                   *barbar-setup.icons.pinned*
+                                                     *barbar-setup.icons.pinned*
   icons.pinned ~
-    `table`  (default: >
+    `table`  (default: >lua
                     {
                       button = false,
                       filename = false,
@@ -383,7 +383,7 @@ icons ~
     Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc)
 
-  Example: >
+  Example: >lua
     require'barbar'.setup {icons = {
       modified = {separator = '⋄'},
       pinned = {button = '', filename = true},
@@ -392,35 +392,35 @@ icons ~
 
   You can also customize icons based on the visibility of a buffer:
 
-                                                *barbar-setup.icons.alternate*
+                                                  *barbar-setup.icons.alternate*
   icons.alternate ~
     `table`
     The icons which should be used for the |alternate-file|.
     Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc) as well as `modified` and `pinned`.
 
-                                                  *barbar-setup.icons.current*
+                                                    *barbar-setup.icons.current*
   icons.current ~
     `table`
     The icons which should be used for current buffer.
     Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc) as well as `modified` and `pinned`.
 
-                                                 *barbar-setup.icons.inactive*
+                                                   *barbar-setup.icons.inactive*
   icons.inactive ~
     `table`  (default: `{separator = {left = '▎', right = ''}}`)
     The icons which should be used for |hidden-buffer|s and |inactive-buffer|s.
     Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc) as well as `modified` and `pinned`.
 
-                                                  *barbar-setup.icons.visible*
+                                                    *barbar-setup.icons.visible*
   icons.visible ~
     `table`
     The icons which should be used for |active-buffer|s.
     Supports all the base options (e.g. `buffer_index`, `filetype.enabled`,
     etc) as well as `modified` and `pinned`.
 
-  Example: >
+  Example: >lua
     -- Enable file icons for alternate buffers.
     -- Enable buffer indices for current buffers.
     -- Override the button for inactive buffers.
@@ -433,7 +433,7 @@ icons ~
     }}
 <
 
-                                                  *barbar-seutup.icons.preset*
+                                                    *barbar-seutup.icons.preset*
   icons.preset ~
     `'default'|'powerline'|'slanted'`  (default: `'default'`)
     Base all |barbar-setup.icons| configuration off of this set of defaults.
@@ -442,7 +442,7 @@ icons ~
     - `'powerline'`: like <https://github.com/powerline/powerline>
     - `'slanted'`: like old Google Chrome tabs
 
-                                                *barbar-setup.insert_at_start*
+                                                  *barbar-setup.insert_at_start*
 insert_at_start ~
   `boolean`  (default: `false`)
   If `true`, new buffers appear at the start of the list. Default is to open
@@ -450,13 +450,13 @@ insert_at_start ~
 
   Has priority over |barbar-setup.insert_at_end|
 
-                                                  *barbar-setup.insert_at_end*
+                                                    *barbar-setup.insert_at_end*
 insert_at_end ~
   `boolean`   (default: `false`)
   If `true`, new buffers appear at the end of the list. Default is to open
   after the current buffer.
 
-                                                        *barbar-setup.letters*
+                                                          *barbar-setup.letters*
 letters ~
   `string`  (default: `'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP'`)
   New buffer letters are assigned in this order.
@@ -464,27 +464,27 @@ letters ~
   This order is optimal for the QWERTY keyboard layout but might need
   adjustment for other layouts.
 
-                                                *barbar-setup.maximum_padding*
+                                                  *barbar-setup.maximum_padding*
 maximum_padding ~
   `int`  (default: `4`)
   Sets the maximum padding width with which to surround each tab.
 
-                                                 *barbar-setup.maximum_length*
+                                                   *barbar-setup.maximum_length*
 maximum_length ~
   `int`  (default: 30)
   Sets the maximum buffer name length.
 
-                                                 *barbar-setup.minimum_length*
+                                                   *barbar-setup.minimum_length*
 minimum_length ~
   `int`  (default: 0)
   Sets the minimum buffer name length.
 
-                                                *barbar-setup.minimum_padding*
+                                                  *barbar-setup.minimum_padding*
 minimum_padding ~
   `int`  (default: `1`)
   Sets the minimum padding width with which to surround each tab.
 
-                                                  *barbar-setup.no_name_title*
+                                                    *barbar-setup.no_name_title*
 no_name_title ~
   `string`  (default: `nil`)
   Sets the name of unnamed buffers.
@@ -492,7 +492,7 @@ no_name_title ~
   By default format is `'[Buffer X]'` where `X` is the buffer number. However,
   only a static string is accepted here.
 
-                                               *barbar-setup.semantic_letters*
+                                                 *barbar-setup.semantic_letters*
 semantic_letters ~
   `boolean`  (default: `true`)
   If `true`, the letters for each buffer in buffer-pick mode will be
@@ -501,27 +501,27 @@ semantic_letters ~
   Otherwise (or in case all letters are already assigned), the behavior is to
   assign letters in the order of provided to |barbar-setup.letters|.
 
-                                              *barbar-setup.sidebar_filetypes*
+                                                *barbar-setup.sidebar_filetypes*
 sidebar_filetypes ~
   `{[string]: true|table}`  (default `{}`)
   Control which 'filetype's will cause barbar to add an offset.
 
-                                        *barbar-setup.sidebar_filetypes.align*
+                                          *barbar-setup.sidebar_filetypes.align*
   sidebar_filetypes.align ~
     `'left'|'center'|'right'`  (default: `'left'`)
     Aligns the |barbar-setup.sidebar_filetypes.text|.
 
-                                        *barbar-setup.sidebar_filetypes.event*
+                                          *barbar-setup.sidebar_filetypes.event*
   sidebar_filetypes.event ~
     `string`  (default: `'BufWinLeave'`)
     The |{event}| which is |autocmd-execute|d when the sidebar closes.
 
-                                         *barbar-setup.sidebar_filetypes.text*
+                                           *barbar-setup.sidebar_filetypes.text*
   sidebar_filetypes.text ~
     `string`  (default: `nil`)
     The text which will fill the offset.
 
-  Example: >
+  Example: >lua
     require'bufferline'.setup {sidebar_filetypes = {
       -- Use the default values: {event = 'BufWinLeave', text = nil}
       NvimTree = true,
@@ -534,13 +534,13 @@ sidebar_filetypes ~
     }}
 <
 
-                                                       *barbar-setup.tabpages*
+                                                         *barbar-setup.tabpages*
 tabpages ~
   `boolean`  (default: `true`)
   Enable/disable current/total tabpages indicator (top right corner).
 
 ==============================================================================
-5. Integrations                                          *barbar-integrations*
+5. Integrations                                            *barbar-integrations*
 
 ------------------------------------------------------------------------------
 SCOPE.NVIM                                      *barbar-integrations-scope.nvim*
@@ -576,7 +576,7 @@ whether a buffer was pinned. To do this, 'sessionoptions' must contain
 
 MINI.NVIM                               *barbar-integrations-sessions-mini.nvim*
 
-Here is a |mini.sessions| config which can be used: >
+Here is a |mini.sessions| config which can be used: >lua
   vim.opt.sessionoptions:append 'globals'
   require'mini.sessions'.setup {
     hooks = {
@@ -591,7 +591,7 @@ Here is a |mini.sessions| config which can be used: >
 
 PERSISTENCE.NVIM                 *barbar-integrations-sessions-persistence.nvim*
 
-Here is a |persistence.nvim| config which can be used: >
+Here is a |persistence.nvim| config which can be used: >lua
   require'persistence'.setup {
     options = {--[[<other options>,]] 'globals'},
     pre_save = function()
@@ -603,7 +603,7 @@ Here is a |persistence.nvim| config which can be used: >
 CUSTOM                                     *barbar-integrations-sessions-custom*
 
 You can add this snippet to your config to take advantage of our session
-integration: >
+integration: >lua
   vim.opt.sessionoptions:append 'globals'
   vim.api.nvim_create_user_command(
     'Mksession',
