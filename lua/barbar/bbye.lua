@@ -31,6 +31,7 @@ local bufnr = vim.fn.bufnr --- @type function
 local command = vim.api.nvim_command --- @type function
 local create_augroup = vim.api.nvim_create_augroup --- @type function
 local create_autocmd = vim.api.nvim_create_autocmd
+local del_autocmd = vim.api.nvim_del_autocmd
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local get_current_win = vim.api.nvim_get_current_win --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
@@ -183,18 +184,18 @@ local function start_closing()
 end
 
 --- Indicate that a buffer is done closing
-local stop_closing = vim.schedule_wrap(function()
+local function stop_closing()
   bbye.closing = bbye.closing - 1
-end)
+end
 
---- `stop_closing` when the buffer has finally closed
+--- `stop_closing` automatically when the buffer's closing has been rendered
 --- @param buffer_number integer the number of the buffer to listen for events on
 --- @return integer autocmd the id of the autocmd
 --- @see stop_closing
 local function auto_stop_closing(buffer_number)
-  return create_autocmd(BUFFER_CLOSE_AUTOCMDS, { -- declare closed condition
+  return create_autocmd(BUFFER_CLOSE_AUTOCMDS, {
     buffer = buffer_number,
-    callback = stop_closing,
+    callback = vim.schedule_wrap(stop_closing), -- NOTE: must be `schedule`d so that the bufferline is rendered first
     once = true,
   })
 end
@@ -291,21 +292,6 @@ local function delete(action, force, buffer_number, mods)
   return buffer_number
 end
 
---- Delete a buffer when there are no other buffers being deleted
---- @param ... unknown args to `bbye.delete`
---- @return nil
---- @see barbar.Bbye.delete
-local function delete_buffer_when_idle(...)
-  local args = { ... }
-  local check_closing = vim.loop.new_check()
-  check_closing:start(function() -- start checking for when buffer operations are complete
-    if bbye.closing < 1 then
-      check_closing:stop()
-      vim.schedule(function() bbye.delete(unpack(args)) end)
-    end
-  end)
-end
-
 --- Delete a buffer
 --- @param action string the command to use to delete the buffer (e.g. `'bdelete'`)
 --- @param force boolean if true, forcefully delete the buffer
@@ -313,14 +299,23 @@ end
 --- @param mods? string|{[string]: any} the modifiers to the command (e.g. `'verbose'`)
 --- @return nil
 function bbye.delete(action, force, buffer, mods)
+  -- WARN: actions on relative buffers must wait to run until other operations have finished, or else it will cause a
+  --       race condition in determining what to reference as buffers close.
   do
     --- `buffer` refers to the state of the editor
     local buffer_is_relative = buffer == nil or buffer == '' or buffer == 0
 
-    -- WARN: actions on relative buffers must wait to run until other operations have finished, or else it will cause a
-    --       race condition in determining what to reference as buffers close
-    if buffer_is_relative and bbye.closing > 0 then
-      return delete_buffer_when_idle(action, force, buffer, mods)
+    if buffer_is_relative and bbye.closing > 0 then -- cannot "acquire" reference to referenced buffer
+      --- check for reference availability
+      local check_closing = vim.loop.new_check()
+      return check_closing:start(function() -- runs once each event loop iteration
+        if bbye.closing < 1 then -- no currently-active bbye operations
+          check_closing:stop()
+          vim.schedule(function() -- loop callbacks are `in_fast_event`, so `schedule` to escape it
+            bbye.delete(action, force, buffer, mods)
+          end)
+        end
+      end)
     end
   end
 
@@ -330,8 +325,9 @@ function bbye.delete(action, force, buffer, mods)
   end
 
   start_closing()
-  auto_stop_closing(buffer_number)
-  if not delete(action, force, buffer_number, mods) then -- buffer will not auto close
+  local autocmd = auto_stop_closing(buffer_number)
+  if not delete(action, force, buffer_number, mods) then -- delete failed, will not auto close
+    del_autocmd(autocmd)
     stop_closing()
   end
 end
