@@ -452,13 +452,37 @@ in the demos above.
 
 ## Integrations
 
+#### [scope.nvim]
+
+To preserve buffer order while using [scope.nvim], you can add this to your config:
+
+```lua
+require('scope').setup {
+  hooks = {
+    pre_tab_leave = function()
+      vim.api.nvim_exec_autocmds('User', {pattern = 'ScopeTabLeavePre'})
+      -- [other statements]
+    end,
+
+    post_tab_enter = function()
+      vim.api.nvim_exec_autocmds('User', {pattern = 'ScopeTabEnterPost'})
+      -- [other statements]
+    end,
+
+    -- [other hooks]
+  },
+
+  -- [other options]
+}
+```
+
 #### Sessions
 
 `barbar.nvim` can restore the order that your buffers were in, as well as whether a buffer was pinned. To do this, `sessionoptions` must contain `globals`, and the `User SessionSavePre` event must be executed before `:mksession`.
 
-##### mini.nvim
+##### [mini.nvim]
 
-Here is a `mini.sessions` config which can be used:
+Here is a [mini.sessions][mini.nvim] config which can be used:
 
 ```lua
 vim.opt.sessionoptions:append 'globals'
@@ -471,9 +495,9 @@ require'mini.sessions'.setup {
 }
 ```
 
-##### persistence.nvim
+##### [persistence.nvim]
 
-Here is a `persistence.nvim` config which can be used:
+Here is a [persistence.nvim] config which can be used:
 
 ```lua
 require'persistence'.setup {
@@ -536,3 +560,7 @@ No, barbar has nothing to do with barbarians.
 
 * **barbar.nvim:** Distributed under the terms of the JSON license.
 * **bbye.vim:** Distributed under the terms of the GNU Affero license.
+
+[mini.nvim]: https://github.com/echasnovski/mini.nvim
+[persistence.nvim]: https://github.com/folke/persistence.nvim
+[scope.nvim]: https://github.com/tiagovla/scope.nvim
