@@ -275,30 +275,28 @@ end
 --- @return nil
 function state.update_names()
   local buffer_index_by_name = {}
-  local hide_extensions = config.options.hide.extensions
 
-  -- Compute names
+  -- Find all names
   for i, buffer_n in ipairs(state.buffers) do
-    local name = buffer.get_name(buffer_n, hide_extensions)
+    local name = buffer.get_name(buffer_n, 1)
 
     if buffer_index_by_name[name] == nil then
-      buffer_index_by_name[name] = i
-      state.get_buffer_data(buffer_n).name = name
-    else
-      local other_i = buffer_index_by_name[name]
-      local other_n = state.buffers[other_i]
-      local new_name, new_other_name =
-        buffer.get_unique_name(
-          buf_get_name(buffer_n),
-          buf_get_name(state.buffers[other_i]))
-
-      state.get_buffer_data(buffer_n).name = new_name
-      state.get_buffer_data(other_n).name = new_other_name
-      buffer_index_by_name[new_name] = i
-      buffer_index_by_name[new_other_name] = other_i
-      buffer_index_by_name[name] = nil
+      buffer_index_by_name[name] = {}
     end
 
+    table.insert(buffer_index_by_name[name], i)
+  end
+
+  for name, indexes in pairs(buffer_index_by_name) do
+    if #indexes == 1 then
+      state.get_buffer_data(state.buffers[indexes[1]]).name = name
+    else
+      local buffer_numbers = tbl_map(function(i) return state.buffers[i] end, indexes)
+      local unique_names = buffer.get_unique_names(buffer_numbers)
+      for i, buffer_number in ipairs(buffer_numbers) do
+        state.get_buffer_data(buffer_number).name = unique_names[i]
+      end
+    end
   end
 end
 
