@@ -361,19 +361,31 @@ function api.order_by_buffer_number()
   render.update()
 end
 
+--- Order the buffers by their name
+--- @return nil
+function api.order_by_name()
+  table_sort(state.buffers, with_pin_order(function(a, b)
+    local name_of_a = buf_get_name(a)
+    local name_of_b = buf_get_name(b)
+    return name_of_b > name_of_a
+  end))
+
+  render.update()
+end
+
 --- Order the buffers by their parent directory.
 --- @return nil
 function api.order_by_directory()
   table_sort(state.buffers, with_pin_order(function(a, b)
     local name_of_a = buf_get_name(a)
     local name_of_b = buf_get_name(b)
-    local a_less_than_b = name_of_b < name_of_a
+    local compare_a_b = name_of_b > name_of_a
 
     -- TODO: remove this block after 0.8 releases
     if not normalize then
       local a_is_relative = is_relative_path(name_of_a)
       if a_is_relative and is_relative_path(name_of_b) then
-        return a_less_than_b
+        return compare_a_b
       end
 
       return a_is_relative
@@ -386,7 +398,7 @@ function api.order_by_directory()
       return level_of_a < level_of_b
     end
 
-    return a_less_than_b
+    return compare_a_b
   end))
 
   render.update()
