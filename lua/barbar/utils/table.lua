@@ -50,8 +50,6 @@ end
 ---@param o table Table to add the reverse to
 ---@return table o
 function table.add_reverse_lookup(o)
-  vim.deprecate('vim.tbl_add_reverse_lookup', nil, '0.12')
-
   --- @cast o table<any,any>
   --- @type any[]
   local keys = vim.tbl_keys(o)
