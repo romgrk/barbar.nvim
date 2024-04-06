@@ -71,6 +71,7 @@ The name of each command should be descriptive enough for you to use it. >vim
 
     " Sort automatically by...
     nnoremap <silent> <Space>bb <Cmd>BufferOrderByBufferNumber<CR>
+    nnoremap <silent> <Space>bn <Cmd>BufferOrderByName<CR>
     nnoremap <silent> <Space>bd <Cmd>BufferOrderByDirectory<CR>
     nnoremap <silent> <Space>bl <Cmd>BufferOrderByLanguage<CR>
     nnoremap <silent> <Space>bw <Cmd>BufferOrderByWindowNumber<CR>

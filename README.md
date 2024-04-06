@@ -73,8 +73,8 @@ use 'romgrk/barbar.nvim'
 #### Using [vim-plug](https://github.com/junegunn/vim-plug)
 
 ```vim
-Plug 'lewis6991/gitsigns.nvim' " OPTIONAL: for git status
 Plug 'nvim-tree/nvim-web-devicons' " OPTIONAL: for file icons
+Plug 'lewis6991/gitsigns.nvim' " OPTIONAL: for git status
 Plug 'romgrk/barbar.nvim'
 ```
 
@@ -101,7 +101,7 @@ home row (`asdfjkl;gh`) first, then other rows.
 
 ![jump](./static/sort.gif)
 
-`:BufferOrderByDirectory`, `:BufferOrderByLanguage`, `:BufferOrderByWindowNumber`, `:BufferOrderByBufferNumber`
+`:BufferOrderByName`, `:BufferOrderByDirectory`, `:BufferOrderByLanguage`, `:BufferOrderByWindowNumber`, `:BufferOrderByBufferNumber`
 
 ##### Clickable & closable tabs
 

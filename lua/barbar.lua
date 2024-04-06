@@ -131,6 +131,12 @@ function barbar.setup(options)
   )
 
   create_user_command(
+    'BufferOrderByName',
+    api.order_by_name,
+    {desc = 'Order the bufferline by name'}
+  )
+
+  create_user_command(
     'BufferOrderByDirectory',
     api.order_by_directory,
     {desc = 'Order the bufferline by directory'}
