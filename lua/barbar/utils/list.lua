@@ -40,20 +40,4 @@ function list.slice_from_end(tbl, index_from_end)
   return list_slice(tbl, #tbl - index_from_end + 1)
 end
 
---- Check if values are unique
---- @generic T
---- @param tbl T[]
---- @return boolean
-function list.is_unique(tbl)
-  local value_set = {}
-  for _, value in ipairs(tbl) do
-    if value_set[value] ~= nil then
-      return false
-    end
-    value_set[value] = true
-  end
-  return true
-end
-
-
 return list

@@ -2,6 +2,8 @@
 -- buffer.lua
 --
 
+local max = math.max
+local min = math.min
 local rshift = bit.rshift
 local table_concat = table.concat
 
@@ -10,17 +12,15 @@ local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
 local bufnr = vim.fn.bufnr --- @type function
 local bufwinnr = vim.fn.bufwinnr --- @type function
-local fnamemodify = vim.fn.fnamemodify --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
-local map = vim.tbl_map
 local matchlist = vim.fn.matchlist --- @type function
 local split = vim.split
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 
+local basename = require('barbar.fs').basename
 local config = require('barbar.config')
-local list = require('barbar.utils.list')
-local add_reverse_lookup = require('barbar.utils.table').add_reverse_lookup
+local slice_from_end = require('barbar.utils.list').slice_from_end
 
 local ELLIPSIS = '…'
 local ELLIPSIS_LEN = strwidth(ELLIPSIS)
@@ -31,7 +31,7 @@ local ELLIPSIS_LEN = strwidth(ELLIPSIS)
 
 --- A bidirectional map of activities to activity names
 --- @type {[barbar.buffer.activity]: barbar.buffer.activity.name, [barbar.buffer.activity.name]: barbar.buffer.activity}
-local activities = add_reverse_lookup {'Inactive', 'Alternate', 'Visible', 'Current'}
+local activities = vim.tbl_add_reverse_lookup {'Inactive', 'Alternate', 'Visible', 'Current'}
 
 --- The character used to delimit paths (e.g. `/` or `\`).
 local separator = package.config:sub(1, 1)
@@ -80,20 +80,18 @@ function buffer.get_icons(activity, modified, pinned)
 end
 
 --- @param buffer_number integer
---- @param depth integer
+--- @param hide_extensions boolean? if `true`, exclude the extension of the file
 --- @return string name
-function buffer.get_name(buffer_number, depth)
+function buffer.get_name(buffer_number, hide_extensions)
   --- @type string
   local name = buf_is_valid(buffer_number) and buf_get_name(buffer_number) or ''
 
+  local maximum_length = config.options.maximum_length
+  local minimum_length = config.options.minimum_length
   local no_name_title = config.options.no_name_title
-  local hide_extensions = config.options.hide.extensions
 
   if name ~= '' then
-    local full_name = buf_get_option(buffer_number, 'buftype') == 'terminal' and
-      terminalname(name) or (hide_extensions and fnamemodify(name, ':t') or name)
-    local parts = split(full_name, separator)
-    name = table_concat(list.slice_from_end(parts, depth), separator)
+    name = buf_get_option(buffer_number, 'buftype') == 'terminal' and terminalname(name) or basename(name, hide_extensions)
   elseif no_name_title ~= nil and no_name_title ~= vim.NIL then
     name = no_name_title
   end
@@ -101,15 +99,6 @@ function buffer.get_name(buffer_number, depth)
   if name == '' then
     name = '[buffer ' .. buffer_number .. ']'
   end
-
-  return name
-end
-
---- @param name string
---- @return string name
-function buffer.format_name(name)
-  local maximum_length = config.options.maximum_length
-  local minimum_length = config.options.minimum_length
 
   local name_width = strwidth(name)
   if name_width < minimum_length then
@@ -136,27 +125,26 @@ function buffer.format_name(name)
   return name
 end
 
---- @param buffer_numbers integer[]
---- @return string[]
-function buffer.get_unique_names(buffer_numbers)
-  local depth = 1
-  local computed_names
+--- @param first string
+--- @param second string
+--- @return string, string
+function buffer.get_unique_name(first, second)
+  local first_parts  = split(first,  separator)
+  local second_parts = split(second, separator)
 
-  local update_computed_names = function()
-    computed_names = map(function(buffer_number)
-      local name = buffer.get_name(buffer_number, depth)
-      local parts = split(name, separator)
-      local computed_name = table_concat(list.slice_from_end(parts, depth), separator)
-      return computed_name
-    end, buffer_numbers)
+  local length = 1
+  local first_result  = table_concat(slice_from_end(first_parts, length),  separator)
+  local second_result = table_concat(slice_from_end(second_parts, length), separator)
+
+  while first_result == second_result and
+        length < max(#first_parts, #second_parts)
+  do
+    length = length + 1
+    first_result  = table_concat(slice_from_end(first_parts,  min(#first_parts, length)),  separator)
+    second_result = table_concat(slice_from_end(second_parts, min(#second_parts, length)), separator)
   end
 
-  repeat
-    update_computed_names()
-    depth = depth + 1
-  until list.is_unique(computed_names) or depth > 10
-
-  return computed_names
+  return first_result, second_result
 end
 
 return buffer

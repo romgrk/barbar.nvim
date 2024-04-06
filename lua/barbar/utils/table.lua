@@ -42,33 +42,4 @@ function table.set(tbl, keys, value)
   current[keys[#keys]] = value
 end
 
---- Add the reverse lookup values to an existing table.
---- For example:
---- `add_reverse_lookup { A = 1 } == { [1] = 'A', A = 1 }`
----
---- Note that this *modifies* the input.
----@param o table Table to add the reverse to
----@return table o
-function table.add_reverse_lookup(o)
-  vim.deprecate('vim.tbl_add_reverse_lookup', nil, '0.12')
-
-  --- @cast o table<any,any>
-  --- @type any[]
-  local keys = vim.tbl_keys(o)
-  for _, k in ipairs(keys) do
-    local v = o[k]
-    if o[v] then
-      error(
-        string.format(
-          'The reverse lookup found an existing value for %q while processing key %q',
-          tostring(v),
-          tostring(k)
-        )
-      )
-    end
-    o[v] = k
-  end
-  return o
-end
-
 return table
