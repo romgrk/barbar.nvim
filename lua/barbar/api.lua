@@ -365,8 +365,10 @@ end
 --- @return nil
 function api.order_by_name()
   table_sort(state.buffers, with_pin_order(function(a, b)
-    local name_of_a = buf_get_name(a)
-    local name_of_b = buf_get_name(b)
+    local parts_of_a = vim.split(buf_get_name(a), '/')
+    local parts_of_b = vim.split(buf_get_name(b), '/')
+    local name_of_a = parts_of_a[#parts_of_a]
+    local name_of_b = parts_of_b[#parts_of_b]
     return name_of_b > name_of_a
   end))
 
