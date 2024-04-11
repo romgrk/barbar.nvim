@@ -7,9 +7,7 @@ local max = math.max
 local table_insert = table.insert
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
-local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
 local command = vim.api.nvim_command --- @type function
-local defer_fn = vim.defer_fn
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
 local has = vim.fn.has --- @type function
@@ -22,8 +20,6 @@ local severity = vim.diagnostic.severity
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 local tabpagenr = vim.fn.tabpagenr --- @type function
-local tbl_contains = vim.tbl_contains
-local tbl_filter = vim.tbl_filter
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 
 local animate = require('barbar.animate')
@@ -32,11 +28,11 @@ local config = require('barbar.config')
 -- local fs = require('barbar.fs') -- For debugging purposes
 local get_icon = require('barbar.icons').get_icon
 local get_letter = require('barbar.jump_mode').get_letter
-local index_of = require('barbar.utils.list').index_of
 local layout = require('barbar.ui.layout')
 local nodes = require('barbar.ui.nodes')
 local notify = require('barbar.utils').notify
 local state = require('barbar.state')
+local ANIMATION = require('barbar.constants').ANIMATION
 
 -- Digits for optional styling of buffer_number and buffer_index.
 local SUPERSCRIPT_DIGITS = { '⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹' }
@@ -65,18 +61,6 @@ local function wrap_hl(group)
   return '%#' .. group .. '#'
 end
 
---- @class barbar.ui.render.animation
---- @field OPEN_DELAY integer
---- @field OPEN_DURATION integer
---- @field CLOSE_DURATION integer
---- @field SCROLL_DURATION integer
-local ANIMATION = {
-  OPEN_DELAY = 10,
-  OPEN_DURATION = 150,
-  CLOSE_DURATION = 150,
-  SCROLL_DURATION = 200,
-}
-
 --- @class barbar.ui.render.scroll
 --- @field current integer the place where the bufferline is currently scrolled to
 --- @field target integer the place where the bufferline is scrolled/wants to scroll to.
@@ -85,200 +69,10 @@ local scroll = { current = 0, target = 0 }
 --- @class barbar.ui.Render
 local render = {}
 
---- An incremental animation for `close_buffer_animated`.
---- @param bufnr integer
---- @param new_width integer
---- @return nil
-local function close_buffer_animated_tick(bufnr, new_width, animation)
-  if new_width > 0 and state.data_by_bufnr[bufnr] ~= nil then
-    local buffer_data = state.get_buffer_data(bufnr)
-    buffer_data.width = new_width
-    return render.update()
-  end
-  animate.stop(animation)
-  render.close_buffer(bufnr, true)
-end
-
---- Stop tracking the `bufnr` with barbar, and update the bufferline.
---- WARN: does NOT close the buffer in Neovim (see `:h nvim_buf_delete`)
---- @param bufnr integer
---- @param do_name_update? boolean refreshes all buffer names iff `true`
---- @return nil
-function render.close_buffer(bufnr, do_name_update)
-  state.close_buffer(bufnr, do_name_update)
-  render.update()
-end
-
---- Same as `close_buffer`, but animated.
---- @param bufnr integer
---- @return nil
-function render.close_buffer_animated(bufnr)
-  if config.options.animation == false then
-    return render.close_buffer(bufnr)
-  end
-
-  local buffer_data = state.get_buffer_data(bufnr)
-  local current_width = buffer_data.computed_width or 0
-
-  buffer_data.closing = true
-  buffer_data.width = current_width
-
-  animate.start(
-    ANIMATION.CLOSE_DURATION, current_width, 0, vim.v.t_number,
-    function(new_width, m)
-      close_buffer_animated_tick(bufnr, new_width, m)
-    end)
-end
-
---- The incremental animation for `open_buffer_start_animation`.
---- @param bufnr integer
---- @param new_width integer
---- @param animation unknown
---- @return nil
-local function open_buffer_animated_tick(bufnr, new_width, animation)
-  local buffer_data = state.get_buffer_data(bufnr)
-  buffer_data.width = animation.running and new_width or nil
-
-  render.update()
-end
-
---- Opens a buffer with animation.
---- @param bufnr integer
---- @param data barbar.ui.layout.data
---- @return nil
-local function open_buffer_start_animation(data, bufnr)
-  local buffer_data = state.get_buffer_data(bufnr)
-  local index = index_of(layout.buffers, bufnr)
-
-  buffer_data.computed_width = layout.calculate_width(
-    data.buffers.base_widths[index] or layout.calculate_buffer_width(bufnr, #layout.buffers + 1),
-    data.buffers.padding
-  )
-
-  local target_width = buffer_data.computed_width or 0
-
-  buffer_data.width = 1
-
-  defer_fn(function()
-    animate.start(
-      ANIMATION.OPEN_DURATION, 1, target_width, vim.v.t_number,
-      function(new_width, animation)
-        open_buffer_animated_tick(bufnr, new_width, animation)
-      end)
-  end, ANIMATION.OPEN_DELAY)
-end
-
---- Open the `new_buffers` in the bufferline.
---- @return nil
-local function open_buffers(new_buffers)
-  local initial_buffers = #state.buffers
-
-  -- Open next to the currently opened tab
-  -- Find the new index where the tab will be inserted
-  local new_index = index_of(state.buffers, state.last_current_buffer)
-  if new_index ~= nil then
-    new_index = new_index + 1
-  else
-    new_index = #state.buffers + 1
-  end
-
-  local should_insert_at_start = config.options.insert_at_start
-
-  -- Insert the buffers where they go
-  for _, new_buffer in ipairs(new_buffers) do
-    if index_of(state.buffers, new_buffer) == nil then
-      local actual_index = new_index
-
-      local should_insert_at_end = config.options.insert_at_end or
-        -- We add special buffers at the end
-        buf_get_option(new_buffer, 'buftype') ~= ''
-
-      if should_insert_at_start then
-        actual_index = 1
-        new_index = new_index + 1
-      elseif should_insert_at_end then
-        actual_index = #state.buffers + 1
-      else
-        new_index = new_index + 1
-      end
-
-      table_insert(state.buffers, actual_index, new_buffer)
-    end
-  end
-
-  state.sort_pins_to_left()
-
-  -- We're done if there is no animations
-  if config.options.animation == false then
-    return
-  end
-
-  -- Case: opening a lot of buffers from a session
-  -- We avoid animating here as well as it's a bit
-  -- too much work otherwise.
-  if initial_buffers <= 1 and #new_buffers > 1 or
-     initial_buffers == 0 and #new_buffers == 1
-  then
-    return
-  end
-
-  -- Update names because they affect the layout
-  state.update_names()
-
-  local data = layout.calculate()
-
-  for _, buffer_number in ipairs(new_buffers) do
-    open_buffer_start_animation(data, buffer_number)
-  end
-end
 
 --- @return barbar.ui.render.scroll scroll
 function render.get_scroll()
   return scroll
-end
-
---- Refresh the buffer list.
---- @return integer[] state.buffers
-function render.get_updated_buffers(update_names)
-  local current_buffers = state.get_buffer_list()
-  local new_buffers =
-    tbl_filter(function(b) return not tbl_contains(state.buffers, b) end, current_buffers)
-
-  -- To know if we need to update names
-  local did_change = false
-
-  -- Remove closed or update closing buffers
-  local closed_buffers =
-    tbl_filter(function(b) return not tbl_contains(current_buffers, b) end, state.buffers)
-
-  for _, buffer_number in ipairs(closed_buffers) do
-    local buffer_data = state.get_buffer_data(buffer_number)
-    if not buffer_data.closing then
-      did_change = true
-
-      if buffer_data.computed_width == nil then
-        render.close_buffer(buffer_number)
-      else
-        render.close_buffer_animated(buffer_number)
-      end
-    end
-  end
-
-  -- Add new buffers
-  if #new_buffers > 0 then
-    did_change = true
-
-    open_buffers(new_buffers)
-  end
-
-  state.buffers =
-    tbl_filter(function(b) return buf_is_valid(b) end, state.buffers)
-
-  if did_change or update_names then
-    state.update_names()
-  end
-
-  return state.buffers
 end
 
 --- Open the window which contained the buffer which was clicked on.
@@ -606,7 +400,7 @@ local HL = {
 --- @param refocus? boolean if `true`, the bufferline will be refocused on the current buffer (default: `true`)
 --- @return nil|string syntax
 local function generate_tabline(bufnrs, refocus)
-  local data = layout.calculate()
+  local data = layout.calculate(state)
   if refocus ~= false and scroll.current > data.buffers.scroll_max then
     render.set_scroll(data.buffers.scroll_max)
   end
@@ -738,7 +532,7 @@ function render.update(update_names, refocus)
     return
   end
 
-  local buffers = layout.hide(render.get_updated_buffers(update_names))
+  local buffers = layout.hide(state, state.get_updated_buffers(update_names))
 
   -- Auto hide/show if applicable
   if config.options.auto_hide > -1 then
@@ -780,5 +574,7 @@ function render.update(update_names, refocus)
     )
   end
 end
+
+state.update_callback = render.update
 
 return render

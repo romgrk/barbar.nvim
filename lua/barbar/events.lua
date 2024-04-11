@@ -3,7 +3,6 @@ local rshift = bit.rshift
 local table_insert = table.insert
 
 local buf_call = vim.api.nvim_buf_call --- @type function
-local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
 local buf_set_var = vim.api.nvim_buf_set_var --- @type function
@@ -86,7 +85,7 @@ local function mouse_drag_handler()
   end
 
   local col = pos.screencol
-  local data = layout.calculate()
+  local data = layout.calculate(state)
 
   local buffers_data = data.buffers
   local start_col = data.left.width

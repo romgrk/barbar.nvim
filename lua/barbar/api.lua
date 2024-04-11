@@ -195,7 +195,7 @@ end
 --- @param steps integer
 --- @return nil
 function api.goto_buffer_relative(steps)
-  render.get_updated_buffers()
+  state.get_updated_buffers()
 
   if #state.buffers < 1 then
     return notify('E85: There is no listed buffer', vim.log.levels.ERROR)
@@ -225,7 +225,7 @@ local move_animation_data = {
 --- An incremental animation for `move_buffer_animated`.
 --- @return nil
 local function move_buffer_animated_tick(ratio, current_animation)
-  for _, current_number in ipairs(layout.buffers) do
+  for _, current_number in ipairs(state.buffers_visible) do
     local current_data = state.get_buffer_data(current_number)
 
     if current_animation.running == true then
@@ -266,7 +266,7 @@ local function swap_buffer(from_idx, to_idx)
 
   local previous_positions
   if animation == true then
-    previous_positions = layout.calculate_buffers_position_by_buffer_number()
+    previous_positions = layout.calculate_buffers_position_by_buffer_number(state)
   end
 
   table_remove(state.buffers, from_idx)
@@ -274,7 +274,7 @@ local function swap_buffer(from_idx, to_idx)
   state.sort_pins_to_left()
 
   if animation == true then
-    local current_index = index_of(layout.buffers, buffer_number)
+    local current_index = index_of(state.buffers_visible, buffer_number)
     local start_index = min(from_idx, current_index)
     local end_index   = max(from_idx, current_index)
 
@@ -284,9 +284,9 @@ local function swap_buffer(from_idx, to_idx)
       animate.stop(move_animation)
     end
 
-    local next_positions = layout.calculate_buffers_position_by_buffer_number()
+    local next_positions = layout.calculate_buffers_position_by_buffer_number(state)
 
-    for _, layout_bufnr  in ipairs(layout.buffers) do
+    for _, layout_bufnr  in ipairs(state.buffers_visible) do
       local current_data = state.get_buffer_data(layout_bufnr)
 
       local previous_position = previous_positions[layout_bufnr]

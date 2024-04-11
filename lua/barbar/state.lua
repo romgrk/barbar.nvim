@@ -5,8 +5,12 @@
 local table_insert = table.insert
 local table_remove = table.remove
 
+local defer_fn = vim.defer_fn
+local vim_bufnr = vim.fn.bufnr --- @type function
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
+local buf_is_loaded = vim.api.nvim_buf_is_loaded --- @type function
+local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
 local bufname = vim.fn.bufname --- @type function
 local command = vim.api.nvim_command --- @type function
 local fnamemodify = vim.fn.fnamemodify --- @type function
@@ -21,10 +25,14 @@ local tbl_contains = vim.tbl_contains
 local tbl_filter = vim.tbl_filter
 local tbl_map = vim.tbl_map
 
+local fs = require('barbar.fs')
 local buffer = require('barbar.buffer')
 local config = require('barbar.config')
-local fs = require('barbar.fs')
+local animate = require('barbar.animate')
 local utils = require('barbar.utils')
+local list = require('barbar.utils.list')
+local layout = require('barbar.ui.layout')
+local ANIMATION = require('barbar.constants').ANIMATION
 
 local CACHE_PATH = vim.fn.stdpath('cache') .. '/barbar.json'
 local ERROR = severity.ERROR
@@ -38,6 +46,7 @@ local WARN = severity.WARN
 
 --- @class barbar.state.buffer.data
 --- @field closing boolean whether the buffer is being closed
+--- @field will_close boolean whether the buffer will be closed
 --- @field computed_position? integer the real position of the buffer
 --- @field computed_width? integer the width of the buffer plus invisible characters
 --- @field diagnostics? {[DiagnosticSeverity]: integer}
@@ -60,20 +69,24 @@ local WARN = severity.WARN
 
 --- @class barbar.State
 --- @field buffers integer[] the open buffers, in visual order.
+--- @field buffers_visible integer[] same as above, but with the `config.hide` options applied
 --- @field data_by_bufnr {[integer]: barbar.state.buffer.data} the buffer data indexed on buffer number
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
 --- @field last_current_buffer? integer the previously-open buffer before rendering starts
 --- @field offset barbar.state.offset
 --- @field recently_closed string[] the list of recently closed paths
+--- @field update_callback function the render.update callback
 local state = {
   buffers = {},
+  buffers_visible = {},
   data_by_bufnr = {},
   is_picking_buffer = false,
   offset = {
-    left = {align = 'right', hl = 'BufferOffset', text = '', width = 0},
-    right = {align = 'left', hl = 'BufferOffset', text = '', width = 0},
+    left = { align = 'right', hl = 'BufferOffset', text = '', width = 0 },
+    right = { align = 'left', hl = 'BufferOffset', text = '', width = 0 },
   },
   recently_closed = {},
+  update_callback = function() end,
 }
 
 --- Get the state of the `id`
@@ -86,7 +99,7 @@ function state.get_buffer_data(bufnr)
 
   local data = state.data_by_bufnr[bufnr]
   if data == nil then
-    data = {closing = false, pinned = false}
+    data = { closing = false, will_close = false, pinned = false }
     state.data_by_bufnr[bufnr] = data
   end
 
@@ -154,11 +167,19 @@ end
 
 -- Open/close buffers
 
+--- Mark buffer as soon-to-be closed
+--- @param bufnr integer
+function state.will_close(bufnr)
+  local buffer_data = state.data_by_bufnr[bufnr]
+  if buffer_data then
+    buffer_data.will_close = true
+  end
+end
+
 --- Stop tracking the `bufnr` with barbar.
 --- WARN: does NOT close the buffer in Neovim (see `:h nvim_buf_delete`)
 --- @param bufnr integer
 --- @param do_name_update? boolean refreshes all buffer names iff `true`
---- @return nil
 function state.close_buffer(bufnr, do_name_update)
   state.buffers = tbl_filter(function(b) return b ~= bufnr end, state.buffers)
   state.data_by_bufnr[bufnr] = nil
@@ -166,7 +187,171 @@ function state.close_buffer(bufnr, do_name_update)
   if do_name_update then
     state.update_names()
   end
+
+  state.update_callback()
 end
+
+--- Same as `close_buffer`, but animated.
+--- @param bufnr integer
+function state.close_buffer_animated(bufnr)
+  if config.options.animation == false then
+    return state.close_buffer(bufnr)
+  end
+
+  local buffer_data = state.get_buffer_data(bufnr)
+  local current_width = buffer_data.computed_width or 0
+
+  buffer_data.closing = true
+  buffer_data.width = current_width
+
+  animate.start(
+    ANIMATION.CLOSE_DURATION, current_width, 0, vim.v.t_number,
+    function(new_width, animation)
+      if new_width > 0 and state.data_by_bufnr[bufnr] ~= nil then
+        buffer_data.width = new_width
+        return state.update_callback()
+      end
+      animate.stop(animation)
+      state.close_buffer(bufnr, true)
+    end)
+end
+
+--- Opens a buffer with animation.
+--- @param bufnr integer
+--- @param data barbar.ui.layout.data
+--- @return nil
+local function open_buffer_start_animation(data, bufnr)
+  local buffer_data = state.get_buffer_data(bufnr)
+  local index = list.index_of(state.buffers_visible, bufnr)
+
+  buffer_data.computed_width = layout.calculate_width(
+    data.buffers.base_widths[index] or
+      layout.calculate_buffer_width(state, bufnr, #state.buffers_visible + 1),
+    data.buffers.padding
+  )
+
+  local target_width = buffer_data.computed_width or 0
+
+  buffer_data.width = 1
+
+  defer_fn(function()
+    animate.start(
+      ANIMATION.OPEN_DURATION, 1, target_width, vim.v.t_number,
+      function(new_width, animation)
+        buffer_data.width = animation.running and new_width or nil
+        state.update_callback()
+      end)
+  end, ANIMATION.OPEN_DELAY)
+end
+
+--- Open the `new_buffers` in the bufferline.
+--- @return nil
+local function open_buffers(new_buffers)
+  local initial_buffers = #state.buffers
+
+  -- Open next to the currently opened tab
+  -- Find the new index where the tab will be inserted
+  local new_index = list.index_of(state.buffers, state.last_current_buffer)
+  if new_index ~= nil then
+    new_index = new_index + 1
+  else
+    new_index = #state.buffers + 1
+  end
+
+  local should_insert_at_start = config.options.insert_at_start
+
+  -- Insert the buffers where they go
+  for _, new_buffer in ipairs(new_buffers) do
+    if list.index_of(state.buffers, new_buffer) == nil then
+      local actual_index = new_index
+
+      local should_insert_at_end = config.options.insert_at_end or
+        -- We add special buffers at the end
+        buf_get_option(new_buffer, 'buftype') ~= ''
+
+      if should_insert_at_start then
+        actual_index = 1
+        new_index = new_index + 1
+      elseif should_insert_at_end then
+        actual_index = #state.buffers + 1
+      else
+        new_index = new_index + 1
+      end
+
+      table_insert(state.buffers, actual_index, new_buffer)
+    end
+  end
+
+  state.sort_pins_to_left()
+
+  -- We're done if there is no animations
+  if config.options.animation == false then
+    return
+  end
+
+  -- Case: opening a lot of buffers from a session
+  -- We avoid animating here as well as it's a bit
+  -- too much work otherwise.
+  if initial_buffers <= 1 and #new_buffers > 1 or
+     initial_buffers == 0 and #new_buffers == 1
+  then
+    return
+  end
+
+  -- Update names because they affect the layout
+  state.update_names()
+
+  local data = layout.calculate(state)
+
+  for _, buffer_number in ipairs(new_buffers) do
+    open_buffer_start_animation(data, buffer_number)
+  end
+end
+
+--- Refresh the buffer list.
+--- @return integer[] state.buffers
+function state.get_updated_buffers(update_names)
+  local current_buffers = state.get_buffer_list()
+  local new_buffers =
+    tbl_filter(function(b) return not tbl_contains(state.buffers, b) end, current_buffers)
+
+  -- To know if we need to update names
+  local did_change = false
+
+  -- Remove closed or update closing buffers
+  local closed_buffers =
+    tbl_filter(function(b) return not tbl_contains(current_buffers, b) end, state.buffers)
+
+  for _, buffer_number in ipairs(closed_buffers) do
+    local buffer_data = state.get_buffer_data(buffer_number)
+    if not buffer_data.closing then
+      did_change = true
+
+      if buffer_data.computed_width == nil then
+        state.close_buffer(buffer_number)
+      else
+        state.close_buffer_animated(buffer_number)
+      end
+    end
+  end
+
+  -- Add new buffers
+  if #new_buffers > 0 then
+    did_change = true
+
+    open_buffers(new_buffers)
+  end
+
+  state.buffers =
+    tbl_filter(function(b) return buf_is_valid(b) end, state.buffers)
+
+  if did_change or update_names then
+    state.update_names()
+  end
+
+  return state.buffers
+end
+
 
 --- Store a recently closed buffer
 --- @param filepath string | nil
@@ -397,6 +582,82 @@ function state.load_recently_closed()
     state.recently_closed = result.recently_closed
   end
 end
+
+--- Get the bufnr that will be focused when the buffer with `closing_number` closes.
+--- @param closing_number integer
+--- @return nil|integer bufnr of the buffer to focus
+function state.get_focus_on_close(closing_number)
+  local focus_on_close = config.options.focus_on_close
+
+  if focus_on_close == 'previous' then
+    local previous = vim_bufnr('#')
+    if buf_is_loaded(previous) then
+      return previous
+    end
+  end
+
+  -- Edge case: no buflisted buffers in state
+  if #state.buffers == 0 then
+    local open_bufnrs = list_bufs()
+
+    local start, end_, step
+    if focus_on_close == 'left' then
+      start, end_, step = 1, #open_bufnrs, 1
+    else
+      start, end_, step = #open_bufnrs, 1, -1
+    end
+
+    for i = start, end_, step do
+      local nr = open_bufnrs[i]
+      if buf_get_option(nr, 'buflisted') then
+        return nr -- there was a listed buffer open, focus it.
+      end
+    end
+
+    return nil -- there are no listed, focusable buffers open
+  end
+
+  local closing_index = list.index_of(state.buffers, closing_number)
+  if closing_index == nil then
+    return nil
+  end
+
+  if focus_on_close == 'previous' then
+    focus_on_close = 'right'
+  end
+
+  -- Next, try to get the buffer to focus by "looking" left or right of the current buffer
+  do
+    local step = focus_on_close == 'right' and 1 or -1
+    local end_ = focus_on_close == 'right' and #state.buffers or 0
+
+
+    for i = closing_index + step, end_, step do
+      local buffer_number = state.buffers[i]
+      local buffer_data = state.data_by_bufnr[buffer_number]
+      if buffer_data and not buffer_data.closing and not buffer_data.will_close then
+        return buffer_number
+      end
+    end
+  end
+
+  -- If it failed, try looking the other direction
+  do
+    local step = focus_on_close == 'left' and 1 or -1
+    local end_ = focus_on_close == 'left' and #state.buffers or 0
+
+    for i = closing_index + step, end_, step do
+      local buffer_number = state.buffers[i]
+      local buffer_data = state.data_by_bufnr[buffer_number]
+      if buffer_data and not buffer_data.closing and not buffer_data.will_close then
+        return buffer_number
+      end
+    end
+  end
+
+  return nil
+end
+
 
 -- Exports
 return state
