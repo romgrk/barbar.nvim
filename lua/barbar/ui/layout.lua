@@ -15,7 +15,6 @@ local tabpagenr = vim.fn.tabpagenr --- @type function
 local buffer = require('barbar.buffer')
 local config = require('barbar.config')
 local get_icon = require('barbar.icons').get_icon
-local state = require('barbar.state')
 
 --- The number of sides of each buffer in the tabline.
 local SIDES_OF_BUFFER = 2
@@ -50,12 +49,12 @@ local SPACE_LEN = #' '
 --- @field width integer the amount of space allocated to the tabpage indicator
 
 --- @class barbar.ui.Layout
---- @field buffers integer[] different from `state.buffers` in that the `hide` option is respected. Only updated when calling `calculate_buffers_width`.
-local layout = { buffers = {} }
+local layout = {}
 
 --- Calculate the current layout of the bufferline.
+--- @param state barbar.State
 --- @return barbar.ui.layout.data
-function layout.calculate()
+function layout.calculate(state)
   local total_width = get_option('columns')
 
   local left_width  = state.offset.left.width
@@ -63,7 +62,7 @@ function layout.calculate()
   local tabpages_width = layout.calculate_tabpages_width()
   local buffers_width = total_width - state.offset.left.width - state.offset.right.width - tabpages_width
 
-  local pinned_count, pinned_sum, unpinned_sum, widths = layout.calculate_buffers_width()
+  local pinned_count, pinned_sum, unpinned_sum, widths = layout.calculate_buffers_width(state)
   local pinned_width = pinned_sum + (pinned_count * config.options.minimum_padding * SIDES_OF_BUFFER)
 
   local unpinned_allocated_width = buffers_width - pinned_width
@@ -108,10 +107,11 @@ function layout.calculate()
   return result
 end
 
+--- @param state barbar.State
 --- @param bufnr integer the buffer to calculate the width of
 --- @param index integer the buffer's numerical index
 --- @return integer width
-function layout.calculate_buffer_width(bufnr, index)
+function layout.calculate_buffer_width(state, bufnr, index)
   local buffer_data = state.get_buffer_data(bufnr)
   if buffer_data.closing then
     return buffer_data.width or buffer_data.computed_width or 0
@@ -160,15 +160,16 @@ function layout.calculate_buffer_width(bufnr, index)
   return width + strwidth(icons_option.separator.right)
 end
 
+--- @param state barbar.State
 --- @return {[integer]: integer} position_by_bufnr
-function layout.calculate_buffers_position_by_buffer_number()
-  local data = layout.calculate()
+function layout.calculate_buffers_position_by_buffer_number(state)
+  local data = layout.calculate(state)
   local positions = {}
 
   local pinned_position = 0
   local unpinned_position = data.buffers.pinned_width
 
-  for i, buffer_number in ipairs(layout.buffers) do
+  for i, buffer_number in ipairs(state.buffers_visible) do
     if state.is_pinned(buffer_number) then
       positions[buffer_number] = pinned_position
       pinned_position = pinned_position + layout.calculate_width(
@@ -188,17 +189,18 @@ function layout.calculate_buffers_position_by_buffer_number()
 end
 
 --- Calculate the width of the buffers
+--- @param state barbar.State
 --- @return integer pinned_count, integer pinned_sum, integer unpinned_sum, integer[] widths
-function layout.calculate_buffers_width()
-  layout.buffers = layout.hide(state.buffers)
+function layout.calculate_buffers_width(state)
+  state.buffers_visible = layout.hide(state, state.buffers)
 
   local pinned_count = 0
   local pinned_sum = 0
   local unpinned_sum = 0
   local widths = {}
 
-  for i, bufnr in ipairs(layout.buffers) do
-    local width = layout.calculate_buffer_width(bufnr, i)
+  for i, bufnr in ipairs(state.buffers_visible) do
+    local width = layout.calculate_buffer_width(state, bufnr, i)
     if state.is_pinned(bufnr) then
       pinned_count = pinned_count + 1
       pinned_sum = pinned_sum + width
@@ -237,9 +239,10 @@ end
 
 --- Filter buffers which are not to be shown in the layout.
 --- Does **not** mutate `bufnrs`.
+--- @param state barbar.State
 --- @param bufnrs integer[]
 --- @return integer[] shown the shown buffers
-function layout.hide(bufnrs)
+function layout.hide(state, bufnrs)
   local hide = config.options.hide
   if hide.alternate or hide.current or hide.inactive or hide.visible then
     local shown = {}

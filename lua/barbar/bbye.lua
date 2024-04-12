@@ -24,7 +24,6 @@
 -- http://www.gnu.org/licenses.
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
-local buf_is_loaded = vim.api.nvim_buf_is_loaded --- @type function
 local buf_set_option = vim.api.nvim_buf_set_option --- @type function
 local buflisted = vim.fn.buflisted --- @type function
 local bufnr = vim.fn.bufnr --- @type function
@@ -34,7 +33,6 @@ local create_autocmd = vim.api.nvim_create_autocmd --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local get_current_win = vim.api.nvim_get_current_win --- @type function
 local get_option = vim.api.nvim_get_option --- @type function
-local list_bufs = vim.api.nvim_list_bufs --- @type function
 local list_wins = vim.api.nvim_list_wins --- @type function
 local notify = vim.notify
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
@@ -42,10 +40,8 @@ local set_current_win = vim.api.nvim_set_current_win --- @type function
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 local win_is_valid = vim.api.nvim_win_is_valid --- @type function
 
-local config = require('barbar.config')
-local list = require('barbar.utils.list')
-local markdown_inline_code = require('barbar.utils').markdown_inline_code
 local state = require('barbar.state')
+local markdown_inline_code = require('barbar.utils').markdown_inline_code
 
 -------------------
 -- Section: helpers
@@ -74,64 +70,6 @@ local enew = vim.api.nvim_cmd and
   --- The `:enew` command
   --- @param force boolean
   function(force) command("enew" .. (force and '!' or '')) end
-
---- Get the bufnr that will be focused when the buffer with `closing_number` closes.
---- @param closing_number integer
---- @return nil|integer bufnr of the buffer to focus
-local function get_focus_on_close(closing_number)
-  local focus_on_close = config.options.focus_on_close
-  local state_bufnrs = state.buffers
-
-  if focus_on_close == 'previous' then
-    local previous = bufnr('#')
-    if buf_is_loaded(previous) then
-      return previous
-    end
-  end
-
-  -- Edge case: all of the buffers are excluded or unlisted
-  if #state_bufnrs < 1 then
-    local open_bufnrs = list_bufs()
-
-    local start, end_, step
-    if focus_on_close == 'left' then
-      start, end_, step = 1, #open_bufnrs, 1
-    else
-      start, end_, step = #open_bufnrs, 1, -1
-    end
-
-    for i = start, end_, step do
-      local nr = open_bufnrs[i]
-      if buf_get_option(nr, 'buflisted') then
-        return nr -- there was a listed buffer open, focus it.
-      end
-    end
-
-    return -- there are no listed, focusable buffers open
-  end
-
-  if focus_on_close == 'right' then
-    state_bufnrs = list.reverse(state.buffers)
-  end
-
-  -- Next, try to get the buffer to focus by "looking" left or right of the current buffer
-  local index = list.index_of(state_bufnrs, closing_number)
-  if index then
-    index = index - 1
-
-    local buffer_number = state_bufnrs[index]
-    if buffer_number then
-      return buffer_number
-    end
-  end
-
-  -- If all else fails, choose the first available listed buffer
-  for _, buffer_number in ipairs(state_bufnrs) do
-    if buffer_number ~= closing_number then
-      return buffer_number
-    end
-  end
-end
 
 --- Use `vim.notify` to print an error `msg`
 --- @param msg string
@@ -223,7 +161,7 @@ function bbye.delete(action, force, buffer, mods)
 
       -- Bprevious also wraps around the buffer list, if necessary:
       local ok = pcall(function()
-        local focus_buffer = get_focus_on_close(buffer_number)
+        local focus_buffer = state.get_focus_on_close(buffer_number)
         if focus_buffer then
           set_current_buf(focus_buffer)
         else
@@ -266,6 +204,8 @@ function bbye.delete(action, force, buffer, mods)
       end
     end
   end
+
+  state.will_close(buffer_number)
 end
 
 --- 'bdelete' a buffer
