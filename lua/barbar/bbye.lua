@@ -40,7 +40,7 @@ local set_current_win = vim.api.nvim_set_current_win --- @type function
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 local win_is_valid = vim.api.nvim_win_is_valid --- @type function
 
-local config = require('barbar.config')
+local state = require('barbar.state')
 local markdown_inline_code = require('barbar.utils').markdown_inline_code
 
 -------------------
@@ -100,7 +100,7 @@ local function new(force)
 
   create_autocmd('BufWipeout', {
     buffer = 0,
-    callback = function() require('barbar.state').close_buffer(empty_buffer) end,
+    callback = function() state.close_buffer(empty_buffer) end,
     group = create_augroup('bbye_empty_buffer', {})
   })
 end
@@ -119,8 +119,6 @@ local bbye = {}
 --- @param mods? string|{[string]: any} the modifiers to the command (e.g. `'verbose'`)
 --- @return nil
 function bbye.delete(action, force, buffer, mods)
-  local state = require('barbar.state')
-
   local buffer_number = type(buffer) == 'string' and bufnr(buffer) or tonumber(buffer) or get_current_buf()
   if buffer_number < 0 then
     return err("E516: No buffers were deleted. No match for " .. buffer)
