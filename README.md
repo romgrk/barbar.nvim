@@ -508,6 +508,21 @@ require'persistence'.setup {
 }
 ```
 
+##### [persisted.nvim]
+
+Here is a [persisted.nvim] config which can be used:
+
+```lua
+vim.opt.sessionoptions:append 'globals'
+vim.api.nvim_create_autocmd({ 'User' }, {
+  pattern = 'PersistedSavePre',
+  group = vim.api.nvim_create_augroup('PersistedHooks', {}),
+  callback = function()
+    vim.api.nvim_exec_autocmds('User', { pattern = 'SessionSavePre' })
+  end,
+})
+```
+
 ##### Custom
 
 You can add this snippet to your config to take advantage of our session integration:
@@ -565,4 +580,5 @@ No, barbar has nothing to do with barbarians.
 
 [mini.nvim]: https://github.com/echasnovski/mini.nvim
 [persistence.nvim]: https://github.com/folke/persistence.nvim
+[persisted.nvim]: https://github.com/olimorris/persisted.nvim
 [scope.nvim]: https://github.com/tiagovla/scope.nvim
