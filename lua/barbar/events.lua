@@ -1,6 +1,5 @@
 local max = math.max
 local rshift = bit.rshift
-local table_insert = table.insert
 
 local buf_call = vim.api.nvim_buf_call --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
@@ -105,7 +104,7 @@ local function mouse_drag_handler()
   if drag_bufnr_start_idx == nil then
     drag_bufnr_start_idx = hovered_bufnr_idx
   elseif drag_bufnr_start_idx ~= hovered_bufnr_idx then
-    local first_hovered_bufnr = layout.buffers[drag_bufnr_start_idx]
+    local first_hovered_bufnr = state.buffers_visible[drag_bufnr_start_idx]
     local steps = hovered_bufnr_idx - drag_bufnr_start_idx
     api.move_buffer(first_hovered_bufnr, steps)
 
