@@ -156,7 +156,7 @@ function bbye.delete(action, force, buffer, mods)
   local wins = list_wins()
   for i = #wins, 1, -1 do
     local window_number = wins[i]
-    if win_get_buf(window_number) == buffer_number then
+    if win_is_valid(window_number) and win_get_buf(window_number) == buffer_number then
       set_current_win(window_number)
 
       -- Bprevious also wraps around the buffer list, if necessary:
