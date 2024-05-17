@@ -14,6 +14,7 @@ local del_autocmd = vim.api.nvim_del_autocmd --- @type function
 local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
 local get_current_tabpage = vim.api.nvim_get_current_tabpage
 local get_option = vim.api.nvim_get_option --- @type function
+local islist = vim.islist or vim.tbl_islist --- @type function
 local on_key = vim.on_key
 local replace_termcodes = vim.api.nvim_replace_termcodes
 local schedule_wrap = vim.schedule_wrap
@@ -395,7 +396,7 @@ function events.enable()
     ]]
 
     local g_bufferline = vim.g.bufferline
-    if type(g_bufferline) ~= 'table' or vim.tbl_islist(g_bufferline) then
+    if type(g_bufferline) ~= 'table' or islist(g_bufferline) then
       vim.g.bufferline = vim.empty_dict()
     end
 
@@ -474,7 +475,7 @@ do
   --- @param k string
   --- @param v any
   function vim_g_metatable.__newindex(tbl, k, v)
-    if k == 'bufferline' and (type(v) ~= 'table' or vim.tbl_islist(v)) then
+    if k == 'bufferline' and (type(v) ~= 'table' or islist(v)) then
       v = vim.empty_dict()
     end
 
