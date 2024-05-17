@@ -395,7 +395,7 @@ function events.enable()
     ]]
 
     local g_bufferline = vim.g.bufferline
-    if type(g_bufferline) ~= 'table' or vim.tbl_islist(g_bufferline) then
+    if type(g_bufferline) ~= 'table' or vim.islist(g_bufferline) then
       vim.g.bufferline = vim.empty_dict()
     end
 
@@ -474,7 +474,7 @@ do
   --- @param k string
   --- @param v any
   function vim_g_metatable.__newindex(tbl, k, v)
-    if k == 'bufferline' and (type(v) ~= 'table' or vim.tbl_islist(v)) then
+    if k == 'bufferline' and (type(v) ~= 'table' or vim.islist(v)) then
       v = vim.empty_dict()
     end
 
