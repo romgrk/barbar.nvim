@@ -191,6 +191,12 @@ function bbye.delete(action, force, buffer, mods)
   -- Using buflisted() over bufexists() because bufhidden=delete causes the
   -- buffer to still _exist_ even though it won't be :bdelete-able.
   if buflisted(buffer_number) == 1 and buffer_number ~= get_current_buf() then
+    -- Disable auto commands when executing bdelete/bwipeout on a buffer
+    if type(mods) == 'string' then
+      mods = mods .. ' noautocmd'
+    elseif type(mods) == 'table' then
+      mods.noautocmd = true
+    end
     local ok, msg = pcall(cmd, action, buffer_number, force, mods)
     if not ok then
       if msg then
