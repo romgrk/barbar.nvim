@@ -39,6 +39,7 @@ local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local set_current_win = vim.api.nvim_set_current_win --- @type function
 local win_get_buf = vim.api.nvim_win_get_buf --- @type function
 local win_is_valid = vim.api.nvim_win_is_valid --- @type function
+local winbufnr = vim.fn.winbufnr --- @type function
 
 local state = require('barbar.state')
 local markdown_inline_code = require('barbar.utils').markdown_inline_code
@@ -156,7 +157,7 @@ function bbye.delete(action, force, buffer, mods)
   local wins = list_wins()
   for i = #wins, 1, -1 do
     local window_number = wins[i]
-    if win_is_valid(window_number) and win_get_buf(window_number) == buffer_number then
+    if winbufnr(i) == buffer_number then
       command(string.format('execute "%dwincmd w"', i))
 
       -- Bprevious also wraps around the buffer list, if necessary:
