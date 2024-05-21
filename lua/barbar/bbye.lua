@@ -156,7 +156,6 @@ function bbye.delete(action, force, buffer, mods)
   -- causes windows to disappear and thereby decrement, loop backwards.
   local wins = list_wins()
   for i = #wins, 1, -1 do
-    local window_number = wins[i]
     if winbufnr(i) == buffer_number then
       command(string.format('execute "%dwincmd w"', i))
 
