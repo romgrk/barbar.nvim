@@ -222,8 +222,10 @@ function events.enable()
 
   create_autocmd('DiagnosticChanged', {
     callback = function(event)
-      state.update_diagnostics(event.buf)
-      render.update()
+      if vim.api.nvim_buf_is_loaded(event.buf) then
+        state.update_diagnostics(event.buf)
+        render.update()
+      end
     end,
     group = augroup_render,
   })
