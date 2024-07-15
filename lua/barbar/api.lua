@@ -371,12 +371,12 @@ end
 --- Order the buffers by their name
 --- @return nil
 function api.order_by_name()
-  table_sort(state.buffers, with_pin_order(function(a, b)
+  table_sort(state.buffers, with_pin_order(function(a, b, to_sort_case)
     local parts_of_a = vim.split(buf_get_name(a), '/')
     local parts_of_b = vim.split(buf_get_name(b), '/')
     local name_of_a = parts_of_a[#parts_of_a]
     local name_of_b = parts_of_b[#parts_of_b]
-    return name_of_b > name_of_a
+    return to_sort_case(name_of_b) > to_sort_case(name_of_a)
   end))
 
   render.update()
@@ -385,10 +385,10 @@ end
 --- Order the buffers by their parent directory.
 --- @return nil
 function api.order_by_directory()
-  table_sort(state.buffers, with_pin_order(function(a, b)
+  table_sort(state.buffers, with_pin_order(function(a, b, to_sort_case)
     local name_of_a = buf_get_name(a)
     local name_of_b = buf_get_name(b)
-    local compare_a_b = name_of_b > name_of_a
+    local compare_a_b = to_sort_case(name_of_b) > to_sort_case(name_of_a)
 
     -- TODO: remove this block after 0.8 releases
     if not normalize then
@@ -416,8 +416,8 @@ end
 --- Order the buffers by filetype.
 --- @return nil
 function api.order_by_language()
-  table_sort(state.buffers, with_pin_order(function(a, b)
-    return buf_get_option(a, 'filetype') < buf_get_option(b, 'filetype')
+  table_sort(state.buffers, with_pin_order(function(a, b, to_sort_case)
+    return to_sort_case(buf_get_option(a, 'filetype')) < to_sort_case(buf_get_option(b, 'filetype'))
   end))
 
   render.update()
