@@ -13,6 +13,7 @@ local command = vim.api.nvim_command --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local getchar = vim.fn.getchar --- @type function
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
+local tolower = vim.fn.tolower
 
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
@@ -59,9 +60,15 @@ local function notify_buffer_not_found(buffer_number)
 end
 
 --- Forwards some `order_func` after ensuring that all buffers sorted in the order of pinned first.
---- @param order_func fun(bufnr_a: integer, bufnr_b: integer): boolean accepts `(integer, integer)` params.
+--- @param order_func fun(bufnr_a: integer, bufnr_b: integer, to_sort_case: fun(s: string): string): boolean accepts `(integer, integer)` params.
 --- @return fun(bufnr_a: integer, bufnr_b: integer): boolean
 local function with_pin_order(order_func)
+  local to_sort_case = config.options.sort.ignore_case and function(s)
+    return tolower(s)
+  end or function(s)
+    return s
+  end
+
   return function(a, b)
     local a_pinned = state.is_pinned(a)
     local b_pinned = state.is_pinned(b)
@@ -71,7 +78,7 @@ local function with_pin_order(order_func)
     elseif b_pinned and not a_pinned then
       return false
     else
-      return order_func(a, b)
+      return order_func(a, b, to_sort_case)
     end
   end
 end
