@@ -63,9 +63,7 @@ end
 --- @param order_func fun(bufnr_a: integer, bufnr_b: integer, to_sort_case: fun(s: string): string): boolean accepts `(integer, integer)` params.
 --- @return fun(bufnr_a: integer, bufnr_b: integer): boolean
 local function with_pin_order(order_func)
-  local to_sort_case = config.options.sort.ignore_case and function(s)
-    return tolower(s)
-  end or function(s)
+  local to_sort_case = config.options.sort.ignore_case and tolower or function(s)
     return s
   end
 
