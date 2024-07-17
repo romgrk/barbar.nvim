@@ -194,6 +194,9 @@ local DEPRECATED_OPTIONS = {
 --- @field event? string
 --- @field text? string
 
+--- @class barbar.config.options.sort
+--- @field ignore_case boolean
+
 --- @class barbar.config.options
 --- @field animation boolean
 --- @field auto_hide integer
@@ -216,6 +219,7 @@ local DEPRECATED_OPTIONS = {
 --- @field no_name_title? string
 --- @field semantic_letters boolean
 --- @field sidebar_filetypes {[string]: nil|barbar.config.options.sidebar_filetype}
+--- @field sort barbar.config.options.sort
 --- @field tabpages boolean
 
 --- @class barbar.Config
@@ -341,6 +345,7 @@ function config.setup(options)
     preset = 'default',
     semantic_letters = true,
     sidebar_filetypes = {},
+    sort = { ignore_case = false },
     tabpages = true,
   })
 

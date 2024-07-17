@@ -535,6 +535,16 @@ sidebar_filetypes ~
     }}
 <
 
+                                                             *barbar-setup.sort*
+sort ~
+  Configures the `:BufferOrderBy*` commands.
+
+                                                 *barbar-setup.sort.ignore_case*
+  sort.ignore_case ~
+    `boolean` (default `false`)
+    If `true`, comparisons of names in buffer orderings will not take into
+    account differences in case (e.g. 'a' will equal 'A').
+
                                                          *barbar-setup.tabpages*
 tabpages ~
   `boolean`  (default: `true`)

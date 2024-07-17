@@ -13,6 +13,7 @@ local command = vim.api.nvim_command --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local getchar = vim.fn.getchar --- @type function
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
+local tolower = vim.fn.tolower
 
 -- TODO: remove `vim.fs and` after 0.8 release
 local normalize = vim.fs and vim.fs.normalize
@@ -59,9 +60,13 @@ local function notify_buffer_not_found(buffer_number)
 end
 
 --- Forwards some `order_func` after ensuring that all buffers sorted in the order of pinned first.
---- @param order_func fun(bufnr_a: integer, bufnr_b: integer): boolean accepts `(integer, integer)` params.
+--- @param order_func fun(bufnr_a: integer, bufnr_b: integer, to_sort_case: fun(s: string): string): boolean accepts `(integer, integer)` params.
 --- @return fun(bufnr_a: integer, bufnr_b: integer): boolean
 local function with_pin_order(order_func)
+  local to_sort_case = config.options.sort.ignore_case and tolower or function(s)
+    return s
+  end
+
   return function(a, b)
     local a_pinned = state.is_pinned(a)
     local b_pinned = state.is_pinned(b)
@@ -71,7 +76,7 @@ local function with_pin_order(order_func)
     elseif b_pinned and not a_pinned then
       return false
     else
-      return order_func(a, b)
+      return order_func(a, b, to_sort_case)
     end
   end
 end
@@ -364,12 +369,12 @@ end
 --- Order the buffers by their name
 --- @return nil
 function api.order_by_name()
-  table_sort(state.buffers, with_pin_order(function(a, b)
+  table_sort(state.buffers, with_pin_order(function(a, b, to_sort_case)
     local parts_of_a = vim.split(buf_get_name(a), '/')
     local parts_of_b = vim.split(buf_get_name(b), '/')
     local name_of_a = parts_of_a[#parts_of_a]
     local name_of_b = parts_of_b[#parts_of_b]
-    return name_of_b > name_of_a
+    return to_sort_case(name_of_b) > to_sort_case(name_of_a)
   end))
 
   render.update()
@@ -378,10 +383,10 @@ end
 --- Order the buffers by their parent directory.
 --- @return nil
 function api.order_by_directory()
-  table_sort(state.buffers, with_pin_order(function(a, b)
+  table_sort(state.buffers, with_pin_order(function(a, b, to_sort_case)
     local name_of_a = buf_get_name(a)
     local name_of_b = buf_get_name(b)
-    local compare_a_b = name_of_b > name_of_a
+    local compare_a_b = to_sort_case(name_of_b) > to_sort_case(name_of_a)
 
     -- TODO: remove this block after 0.8 releases
     if not normalize then
@@ -409,8 +414,8 @@ end
 --- Order the buffers by filetype.
 --- @return nil
 function api.order_by_language()
-  table_sort(state.buffers, with_pin_order(function(a, b)
-    return buf_get_option(a, 'filetype') < buf_get_option(b, 'filetype')
+  table_sort(state.buffers, with_pin_order(function(a, b, to_sort_case)
+    return to_sort_case(buf_get_option(a, 'filetype')) < to_sort_case(buf_get_option(b, 'filetype'))
   end))
 
   render.update()
