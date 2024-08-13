@@ -232,7 +232,14 @@ function events.enable()
 
   create_autocmd('User', {
     callback = vim.schedule_wrap(function(event)
-      state.update_gitsigns(event.buf)
+      local bufnr
+      if event.data == nil or event.data.buffer == nil then
+        bufnr = event.buf
+      else
+        bufnr = event.data.buffer
+      end
+
+      state.update_gitsigns(bufnr)
       render.update()
     end),
     group = augroup_render,
