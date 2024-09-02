@@ -172,6 +172,10 @@ nnoremap <silent>    <A-0> <Cmd>BufferLast<CR>
 " Pin/unpin buffer
 nnoremap <silent>    <A-p> <Cmd>BufferPin<CR>
 
+" Goto pinned/unpinned buffer
+"                          :BufferGotoPinned
+"                          :BufferGotoUnpinned
+
 " Close buffer
 nnoremap <silent>    <A-c> <Cmd>BufferClose<CR>
 " Restore buffer
@@ -228,6 +232,9 @@ map('n', '<A-9>', '<Cmd>BufferGoto 9<CR>', opts)
 map('n', '<A-0>', '<Cmd>BufferLast<CR>', opts)
 -- Pin/unpin buffer
 map('n', '<A-p>', '<Cmd>BufferPin<CR>', opts)
+-- Goto pinned/unpinned buffer
+--                 :BufferGotoPinned
+--                 :BufferGotoUnpinned
 -- Close buffer
 map('n', '<A-c>', '<Cmd>BufferClose<CR>', opts)
 -- Wipeout buffer

@@ -172,27 +172,61 @@ function api.restore_buffer()
   state.pop_recently_closed()
 end
 
---- Set the current buffer to the `number`
---- @param index integer
---- @return nil
-function api.goto_buffer(index)
+local function goto_buffer_impl(index, buffers)
   if index < 0 then
-    index = #state.buffers + index + 1
+    index = #buffers + index + 1
   else
-    index = min(index, #state.buffers)
+    index = min(index, #buffers)
   end
 
   index = max(1, index)
 
-  local buffer_number = state.buffers[index]
+  local buffer_number = buffers[index]
   if buffer_number then
     set_current_buf(buffer_number)
   else
     notify(
-      'E86: buffer at index ' .. index .. ' in list ' .. vim.inspect(state.buffers) .. ' does not exist.',
+      'E86: buffer at index ' .. index .. ' in list ' .. vim.inspect(buffers) .. ' does not exist.',
       vim.log.levels.ERROR
     )
   end
+end
+
+--- Set the current buffer to the `number`
+--- @param index integer
+--- @return nil
+function api.goto_buffer(index)
+  goto_buffer_impl(index, state.buffers)
+end
+
+--- Jump to pinned buffer at position `index`
+--- @param index integer
+--- @return nil
+function api.goto_buffer_pinned(index)
+  local buffers =
+    vim.tbl_filter(
+      function(number)
+        return state.get_buffer_data(number).pinned == true
+      end,
+      state.buffers
+    )
+
+  goto_buffer_impl(index, buffers)
+end
+
+--- Jump to unpinned buffer at position `index`
+--- @param index integer
+--- @return nil
+function api.goto_buffer_unpinned(index)
+  local buffers =
+    vim.tbl_filter(
+      function(number)
+        return state.get_buffer_data(number).pinned == false
+      end,
+      state.buffers
+    )
+
+  goto_buffer_impl(index, buffers)
 end
 
 --- Go to the buffer a certain number of buffers away from the current buffer.
