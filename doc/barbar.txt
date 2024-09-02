@@ -50,6 +50,10 @@ The name of each command should be descriptive enough for you to use it. >vim
     " Pin/unpin buffer
     nnoremap <silent>    <A-p> <Cmd>BufferPin<CR>
 
+    " Goto pinned/unpinned buffer
+    "                          :BufferGotoPinned
+    "                          :BufferGotoUnpinned
+
     " Close buffer
     nnoremap <silent>    <A-c> <Cmd>BufferClose<CR>
     " Restore buffer
