@@ -26,11 +26,11 @@ local win_get_width = vim.api.nvim_win_get_width --- @type function
 local api = require('barbar.api')
 local bdelete = require('barbar.bbye').bdelete
 local config = require('barbar.config')
-local highlight_reset_cache = require('barbar.utils.highlight').reset_cache
-local setup_default_highlights = require('barbar.highlight').setup_defaults
 local jump_mode = require('barbar.jump_mode')
 local layout = require('barbar.ui.layout')
 local render = require('barbar.ui.render')
+local reset_highlight_cache = require('barbar.utils.highlight').reset_cache
+local setup_default_highlights = require('barbar.highlight').setup_defaults
 local state = require('barbar.state')
 
 --- The `<mods>` used for the close click handler
@@ -185,7 +185,7 @@ function events.enable()
 
   create_autocmd('ColorScheme', {
     callback = function()
-      highlight_reset_cache()
+      reset_highlight_cache()
       setup_default_highlights()
     end,
     group = augroup_misc,
