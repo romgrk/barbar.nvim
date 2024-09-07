@@ -90,7 +90,7 @@ icons.get_icon = ok and
 
 --- Re-highlight all of the groups which have been set before. Checks for updated highlight groups.
 --- @return nil
-icons.set_highlights = vim.schedule_wrap(function()
+icons.setup_cached_highlights = vim.schedule_wrap(function()
   for _, group in ipairs(hl_groups) do
     hl_buffer_icon(group.buffer_status, group.icon_hl)
   end

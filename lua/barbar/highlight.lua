@@ -310,7 +310,7 @@ function highlight.setup()
     hl.set('BufferDefaultVisibleTarget',  bg, fg_target, sp, attributes)
   end
 
-  icons.set_highlights()
+  icons.setup_cached_highlights()
 end
 
 return highlight
