@@ -127,9 +127,9 @@ hl.set_default_link('BufferDefaultVisibleSignRight', 'BufferVisibleSign')
 --- @class barbar.Highlight
 local highlight = {}
 
---- Setup the highlight groups for this plugin.
+--- Setup the default highlight groups for this plugin.
 --- @return nil
-function highlight.setup()
+function highlight.setup_defaults()
   local preset = config.options.icons.preset
 
   local fg_target = {cterm = 'red', gui = 'red'} --- @type barbar.utils.hl.color

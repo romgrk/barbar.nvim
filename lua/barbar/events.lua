@@ -27,7 +27,7 @@ local api = require('barbar.api')
 local bdelete = require('barbar.bbye').bdelete
 local config = require('barbar.config')
 local highlight_reset_cache = require('barbar.utils.highlight').reset_cache
-local highlight_setup = require('barbar.highlight').setup
+local setup_default_highlights = require('barbar.highlight').setup_defaults
 local jump_mode = require('barbar.jump_mode')
 local layout = require('barbar.ui.layout')
 local render = require('barbar.ui.render')
@@ -186,7 +186,7 @@ function events.enable()
   create_autocmd('ColorScheme', {
     callback = function()
       highlight_reset_cache()
-      highlight_setup()
+      setup_default_highlights()
     end,
     group = augroup_misc,
   })
@@ -444,7 +444,7 @@ end
 --- @return nil
 function events.on_option_changed(user_config)
   config.setup(user_config) -- NOTE: must be first `setup` called here
-  highlight_setup()
+  setup_default_highlights()
   jump_mode.set_letters(config.options.letters)
 
   if config.options.clickable and vim.tbl_isempty(handlers) then
