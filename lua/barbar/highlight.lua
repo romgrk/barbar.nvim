@@ -128,7 +128,7 @@ hl.set_default_link('BufferDefaultVisibleSignRight', 'BufferVisibleSign')
 local highlight = {}
 
 --- @class barbar.highlight.definition
---- @field opts barbar.utils.hl.definition
+--- @field opts? barbar.utils.hl.definition
 
 --- @alias barbar.highlight.part
 --- | 'btn' the buffer button (e.g. close click, pin/unpin, save)
@@ -138,31 +138,55 @@ local highlight = {}
 --- | 'target' the letter in buffer-pick mode
 
 --- @class barbar.highlight.definition.part.diagnostic: barbar.highlight.definition
---- @field [1|2|3|4]? true|barbar.utils.hl.definition
+--- @field [1|2|3|4]? barbar.utils.hl.definition
 
 --- @class barbar.highlight.definition.part.git: barbar.highlight.definition
---- @field [barbar.config.options.icons.buffer.git.statuses]? true|barbar.utils.hl.definition
+--- @field [barbar.config.options.icons.buffer.git.statuses]? barbar.utils.hl.definition
 
 --- @class barbar.highlight.definition.part.sign: barbar.highlight.definition
---- @field [side]? true|barbar.utils.hl.definition
+--- @field [side]? barbar.utils.hl.definition
 
 --- @class barbar.highlight.definition.part: barbar.highlight.definition
---- @field [barbar.highlight.part]? true|barbar.utils.hl.definition
+--- @field [barbar.highlight.part]? barbar.utils.hl.definition
 --- @field diagnostic? barbar.highlight.definition.part.diagnostic
 --- @field git? barbar.highlight.definition.part.git
 --- @field sign? barbar.highlight.definition.part.sign
 
 --- @class barbar.highlight.definition.state: barbar.highlight.definition.part
---- @field ['modified'|'pinned']? true|barbar.highlight.definition.part
+--- @field ['modified'|'pinned']? barbar.highlight.definition.part
 
 --- @class barbar.highlight.definition.activity: barbar.highlight.definition.state
---- @field [barbar.buffer.activity.name]? true|barbar.highlight.definition.state
+--- @field ['alternate'|'current'|'inactive'|'visible']? barbar.highlight.definition.state
+
+--- @param base barbar.utils.hl.definition the definition which contains desired default settings
+--- @param extension? barbar.highlight.definition the definition which will override the default settings
+--- @return barbar.utils.hl.definition extended the `base` definition after `extension` has been merged in
+local function extend_definition(base, extension)
+  if extension == nil or extension.opts == nil then
+    return base
+  end
+
+  return vim.tbl_deep_extend('force', base, extension.opts)
+end
 
 --- Sets non-default highlight groups using
---- @param definitions barbar.highlight.definition.activity[]
+--- @param definition? barbar.highlight.definition.activity
 --- @return nil
-function highlight.setup(definitions)
-  vim.notify_once('barbar.highlight.setup` is unimplemented', vim.log.levels.ERROR)
+function highlight.setup(definition)
+  if definition == nil then
+    return
+  end
+
+  local opts = definition.opts or {}
+
+  do
+    local alternate_definition = definition --- @type barbar.highlight.definition.state
+    local alternate = opts
+    if definition.alternate ~= nil then
+      alternate_definition = definition.alternate
+      alternate = extend_definition(opts, definition)
+    end
+  end
 end
 
 --- Setup the default highlight groups for this plugin.
