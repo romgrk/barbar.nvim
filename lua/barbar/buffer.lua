@@ -34,7 +34,8 @@ local ELLIPSIS_LEN = strwidth(ELLIPSIS)
 local activities = add_reverse_lookup {'Inactive', 'Alternate', 'Visible', 'Current'}
 
 --- The character used to delimit paths (e.g. `/` or `\`).
-local separator = '[\\/]'
+local default_separator = package.config:sub(1, 1)
+local separators = '[\\/]'
 
 --- @param name string
 --- @return string
@@ -92,8 +93,8 @@ function buffer.get_name(buffer_number, depth)
   if name ~= '' then
     local full_name = buf_get_option(buffer_number, 'buftype') == 'terminal' and
       terminalname(name) or (hide_extensions and fnamemodify(name, ':t') or name)
-    local parts = split(full_name, separator)
-    name = table_concat(list.slice_from_end(parts, depth), separator)
+    local parts = split(full_name, separators)
+    name = table_concat(list.slice_from_end(parts, depth), default_separator)
   elseif no_name_title ~= nil and no_name_title ~= vim.NIL then
     name = no_name_title
   end
@@ -145,8 +146,8 @@ function buffer.get_unique_names(buffer_numbers)
   local update_computed_names = function()
     computed_names = map(function(buffer_number)
       local name = buffer.get_name(buffer_number, depth)
-      local parts = split(name, separator)
-      local computed_name = table_concat(list.slice_from_end(parts, depth), separator)
+      local parts = split(name, separators)
+      local computed_name = table_concat(list.slice_from_end(parts, depth), default_separator)
       return computed_name
     end, buffer_numbers)
   end
