@@ -34,7 +34,7 @@ local ELLIPSIS_LEN = strwidth(ELLIPSIS)
 local activities = add_reverse_lookup {'Inactive', 'Alternate', 'Visible', 'Current'}
 
 --- The character used to delimit paths (e.g. `/` or `\`).
-local separator = package.config:sub(1, 1)
+local separator = '\\/'
 
 --- @param name string
 --- @return string
