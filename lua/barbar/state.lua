@@ -474,12 +474,12 @@ function state.update_names()
 
   for name, indexes in pairs(buffer_index_by_name) do
     if #indexes == 1 then
-      state.get_buffer_data(state.buffers[indexes[1]]).name = name
+      state.get_buffer_data(state.buffers[indexes[1]]).name = buffer.format_name(name)
     else
       local buffer_numbers = tbl_map(function(i) return state.buffers[i] end, indexes)
       local unique_names = buffer.get_unique_names(buffer_numbers)
       for i, buffer_number in ipairs(buffer_numbers) do
-        state.get_buffer_data(buffer_number).name = unique_names[i]
+        state.get_buffer_data(buffer_number).name = buffer.format_name(unique_names[i])
       end
     end
   end
