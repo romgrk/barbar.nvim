@@ -27,6 +27,43 @@ function fs.is_relative_path(path)
   return fs.relative(path) == path
 end
 
+--- implementation of certain functions can be simplified based on Neovim version
+if vim.fs then
+  local normalize = vim.fs.normalize
+
+  --- create a standard format for the path.
+  ---
+  --- # Remarks
+  ---
+  --- - we wrap around `normalize` despite forwarding all args so we can control the input
+  --- - env variables are not expanded, which differs from the default behavior of `vim.fs.normalize`
+  ---   - we do this to prevent pervasive mismatch between behavior in different Nvim versions.
+  ---
+  --- @param path string
+  --- @return string normalized_path
+  function fs.normalize(path)
+    return normalize(path, { expand_env = false })
+  end
+else
+  --- the OS' path separator (e.g. `/` on unix, `\` on windows)
+  local os_path_separator = package.config:sub(1, 1)
+
+  --- a custom implementation of path normalization.
+  ---
+  --- # Remarks
+  ---
+  --- - less in-depth than `vim.fs.normalize` (available from Nvim 0.8+); meant to bridge the gap in versions.
+  --- - `vim.loop.fs_realpath` was considered, but it fails if a path does not exist on-disk
+  ---
+  --- @param path string
+  --- @return string normalized_path
+  function fs.normalize(path)
+    local normalized, _ = path:gsub(os_path_separator, '/') -- replace backslashes on Windows with forward slashes
+    normalized = fs.absolute(path) -- make path absolute
+    return normalized
+  end
+end
+
 --- @param filepath string
 --- @param mode? openmode
 --- @return string|nil error_message, any content
