@@ -100,6 +100,18 @@ function fs.relative(path)
   return fnamemodify(path, ':~:.')
 end
 
+--- # Example
+---
+--- ```lua
+--- fs.split '~/foo/bar/baz.lua' --> {'~', 'foo', 'bar', 'baz.lua'}
+--- ```
+---
+--- @param path string a (normalized) filepath to split
+--- @return string[] parts the sections of the filepath between separators
+function fs.split(path)
+  return vim.split(path, '/', { plain = true, trimempty = true })
+end
+
 --- @param filepath string
 --- @param content string
 --- @param mode? openmode
