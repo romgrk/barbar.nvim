@@ -7,6 +7,12 @@ local fnamemodify = vim.fn.fnamemodify --- @type function
 --- @class barbar.Fs
 local fs = {}
 
+--- @param path string
+--- @return string absolute_path
+function fs.absolute(path)
+  return fnamemodify(path, ':p')
+end
+
 --- Get
 --- @param path string
 --- @param hide_extension? boolean if `true`, exclude the extension of the file in the basename
