@@ -15,15 +15,12 @@ local getchar = vim.fn.getchar --- @type function
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local tolower = vim.fn.tolower
 
--- TODO: remove `vim.fs and` after 0.8 release
-local normalize = vim.fs and vim.fs.normalize
-
 local animate = require('barbar.animate')
 local bdelete = require('barbar.bbye').bdelete
 local buffer = require('barbar.buffer')
 local config = require('barbar.config')
+local fs = require('barbar.fs') --- @type barbar.Fs
 local index_of = require('barbar.utils.list').index_of
-local is_relative_path = require('barbar.fs').is_relative_path
 local jump_mode = require('barbar.jump_mode')
 local layout = require('barbar.ui.layout')
 local notify = require('barbar.utils').notify
@@ -404,8 +401,8 @@ end
 --- @return nil
 function api.order_by_name()
   table_sort(state.buffers, with_pin_order(function(a, b, to_sort_case)
-    local parts_of_a = vim.split(buf_get_name(a), '/')
-    local parts_of_b = vim.split(buf_get_name(b), '/')
+    local parts_of_a = fs.split(buf_get_name(a))
+    local parts_of_b = fs.split(buf_get_name(b))
     local name_of_a = parts_of_a[#parts_of_a]
     local name_of_b = parts_of_b[#parts_of_b]
     return to_sort_case(name_of_b) > to_sort_case(name_of_a)
@@ -420,25 +417,18 @@ function api.order_by_directory()
   table_sort(state.buffers, with_pin_order(function(a, b, to_sort_case)
     local name_of_a = buf_get_name(a)
     local name_of_b = buf_get_name(b)
-    local compare_a_b = to_sort_case(name_of_b) > to_sort_case(name_of_a)
 
-    -- TODO: remove this block after 0.8 releases
-    if not normalize then
-      local a_is_relative = is_relative_path(name_of_a)
-      if a_is_relative and is_relative_path(name_of_b) then
-        return compare_a_b
-      end
+    name_of_a = fs.normalize(name_of_a)
+    name_of_b = fs.normalize(name_of_b)
 
-      return a_is_relative
-    end
-
-    local level_of_a = #vim.split(normalize(name_of_a), '/')
-    local level_of_b = #vim.split(normalize(name_of_b), '/')
+    local level_of_a = #fs.split(name_of_a)
+    local level_of_b = #fs.split(name_of_b)
 
     if level_of_a ~= level_of_b then
       return level_of_a < level_of_b
     end
 
+    local compare_a_b = to_sort_case(name_of_b) > to_sort_case(name_of_a)
     return compare_a_b
   end))
 
