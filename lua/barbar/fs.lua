@@ -4,6 +4,8 @@
 
 local fnamemodify = vim.fn.fnamemodify --- @type function
 
+local list = require('barbar.utils.list') --- @type barbar.utils.List
+
 --- @class barbar.Fs
 local fs = {}
 
@@ -126,6 +128,23 @@ end
 --- @return string[] parts the sections of the filepath between separators
 function fs.split(path)
   return vim.split(path, '/', { plain = true, trimempty = true })
+end
+
+--- # Example
+---
+--- ```lua
+--- fs.slice_parts_from_end('~/foo/bar/baz', 2) --> 'bar/baz'
+--- ```
+---
+--- @param path string a (normalized) filepath from which to select a given number of ending parts
+--- @param desired_parts integer the number of parts which the final path should have
+--- @return string sliced_path the filepath with only the given number of desired parts left at the end
+function fs.slice_parts_from_end(path, desired_parts)
+  local parts = fs.split(path)
+  parts = list.slice_from_end(parts, desired_parts)
+
+  local desired_path = fs.join(unpack(parts))
+  return desired_path
 end
 
 --- @param filepath string
