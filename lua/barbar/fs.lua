@@ -30,6 +30,11 @@ end
 --- implementation of certain functions can be simplified based on Neovim version
 if vim.fs then
   local normalize = vim.fs.normalize
+  local join = vim.fs.joinpath
+
+  --- Join file path parts into one normalized filepath
+  --- @type fun(...: string): string
+  fs.join = join
 
   --- create a standard format for the path.
   ---
@@ -45,8 +50,19 @@ if vim.fs then
     return normalize(path, { expand_env = false })
   end
 else
+  local table_concat = table.concat
+
   --- the OS' path separator (e.g. `/` on unix, `\` on windows)
   local os_path_separator = package.config:sub(1, 1)
+
+  --- @param ... string the parts to join into a path
+  --- @return string path the joined, normalized path
+  function fs.join(...)
+    local joined = table_concat({...}, '/')
+    local normalized = fs.normalize(joined)
+    return normalized
+  end
+
 
   --- a custom implementation of path normalization.
   ---
