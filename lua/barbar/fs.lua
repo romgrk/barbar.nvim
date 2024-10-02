@@ -4,8 +4,16 @@
 
 local fnamemodify = vim.fn.fnamemodify --- @type function
 
+local list = require('barbar.utils.list') --- @type barbar.utils.List
+
 --- @class barbar.Fs
 local fs = {}
+
+--- @param path string
+--- @return string absolute_path
+function fs.absolute(path)
+  return fnamemodify(path, ':p')
+end
 
 --- Get
 --- @param path string
@@ -19,6 +27,59 @@ end
 --- @return boolean is_relative `true` if `path` is relative to the CWD
 function fs.is_relative_path(path)
   return fs.relative(path) == path
+end
+
+--- implementation of certain functions can be simplified based on Neovim version
+if vim.fs then
+  local normalize = vim.fs.normalize
+  local join = vim.fs.joinpath
+
+  --- Join file path parts into one normalized filepath
+  --- @type fun(...: string): string
+  fs.join = join
+
+  --- create a standard format for the path.
+  ---
+  --- # Remarks
+  ---
+  --- - we wrap around `normalize` despite forwarding all args so we can control the input
+  --- - env variables are not expanded, which differs from the default behavior of `vim.fs.normalize`
+  ---   - we do this to prevent pervasive mismatch between behavior in different Nvim versions.
+  ---
+  --- @param path string
+  --- @return string normalized_path
+  function fs.normalize(path)
+    return normalize(path, { expand_env = false })
+  end
+else
+  local table_concat = table.concat
+
+  --- the OS' path separator (e.g. `/` on unix, `\` on windows)
+  local os_path_separator = package.config:sub(1, 1)
+
+  --- @param ... string the parts to join into a path
+  --- @return string path the joined, normalized path
+  function fs.join(...)
+    local joined = table_concat({...}, '/')
+    local normalized = fs.normalize(joined)
+    return normalized
+  end
+
+
+  --- a custom implementation of path normalization.
+  ---
+  --- # Remarks
+  ---
+  --- - less in-depth than `vim.fs.normalize` (available from Nvim 0.8+); meant to bridge the gap in versions.
+  --- - `vim.loop.fs_realpath` was considered, but it fails if a path does not exist on-disk
+  ---
+  --- @param path string
+  --- @return string normalized_path
+  function fs.normalize(path)
+    local normalized, _ = path:gsub(os_path_separator, '/') -- replace backslashes on Windows with forward slashes
+    normalized = fs.absolute(path) -- make path absolute
+    return normalized
+  end
 end
 
 --- @param filepath string
@@ -55,6 +116,35 @@ end
 --- @return string relative_path
 function fs.relative(path)
   return fnamemodify(path, ':~:.')
+end
+
+--- # Example
+---
+--- ```lua
+--- fs.split '~/foo/bar/baz.lua' --> {'~', 'foo', 'bar', 'baz.lua'}
+--- ```
+---
+--- @param path string a (normalized) filepath to split
+--- @return string[] parts the sections of the filepath between separators
+function fs.split(path)
+  return vim.split(path, '/', { plain = true, trimempty = true })
+end
+
+--- # Example
+---
+--- ```lua
+--- fs.slice_parts_from_end('~/foo/bar/baz', 2) --> 'bar/baz'
+--- ```
+---
+--- @param path string a (normalized) filepath from which to select a given number of ending parts
+--- @param desired_parts integer the number of parts which the final path should have
+--- @return string sliced_path the filepath with only the given number of desired parts left at the end
+function fs.slice_parts_from_end(path, desired_parts)
+  local parts = fs.split(path)
+  parts = list.slice_from_end(parts, desired_parts)
+
+  local desired_path = fs.join(unpack(parts))
+  return desired_path
 end
 
 --- @param filepath string

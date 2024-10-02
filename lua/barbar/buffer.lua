@@ -3,7 +3,6 @@
 --
 
 local rshift = bit.rshift
-local table_concat = table.concat
 
 local buf_get_name = vim.api.nvim_buf_get_name --- @type function
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
@@ -14,13 +13,13 @@ local fnamemodify = vim.fn.fnamemodify --- @type function
 local get_current_buf = vim.api.nvim_get_current_buf --- @type function
 local map = vim.tbl_map
 local matchlist = vim.fn.matchlist --- @type function
-local split = vim.split
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 
-local config = require('barbar.config')
-local list = require('barbar.utils.list')
 local add_reverse_lookup = require('barbar.utils.table').add_reverse_lookup
+local config = require('barbar.config')
+local fs = require('barbar.fs') --- @type barbar.Fs
+local list = require('barbar.utils.list') --- @type barbar.utils.List
 
 local ELLIPSIS = '…'
 local ELLIPSIS_LEN = strwidth(ELLIPSIS)
@@ -32,9 +31,6 @@ local ELLIPSIS_LEN = strwidth(ELLIPSIS)
 --- A bidirectional map of activities to activity names
 --- @type {[barbar.buffer.activity]: barbar.buffer.activity.name, [barbar.buffer.activity.name]: barbar.buffer.activity}
 local activities = add_reverse_lookup {'Inactive', 'Alternate', 'Visible', 'Current'}
-
---- The character used to delimit paths (e.g. `/` or `\`).
-local separator = package.config:sub(1, 1)
 
 --- @param name string
 --- @return string
@@ -90,10 +86,15 @@ function buffer.get_name(buffer_number, depth)
   local hide_extensions = config.options.hide.extensions
 
   if name ~= '' then
-    local full_name = buf_get_option(buffer_number, 'buftype') == 'terminal' and
-      terminalname(name) or (hide_extensions and fnamemodify(name, ':t') or name)
-    local parts = split(full_name, separator)
-    name = table_concat(list.slice_from_end(parts, depth), separator)
+    local full_name = name
+    if buf_get_option(buffer_number, 'buftype') == 'terminal' then
+      full_name = terminalname(name)
+    elseif hide_extensions then
+      full_name = fnamemodify(name, ':t')
+    end
+
+    full_name = fs.normalize(full_name)
+    name = fs.slice_parts_from_end(full_name, depth)
   elseif no_name_title ~= nil and no_name_title ~= vim.NIL then
     name = no_name_title
   end
@@ -145,9 +146,7 @@ function buffer.get_unique_names(buffer_numbers)
   local update_computed_names = function()
     computed_names = map(function(buffer_number)
       local name = buffer.get_name(buffer_number, depth)
-      local parts = split(name, separator)
-      local computed_name = table_concat(list.slice_from_end(parts, depth), separator)
-      return computed_name
+      return fs.slice_parts_from_end(name, depth)
     end, buffer_numbers)
   end
 
