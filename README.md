@@ -536,6 +536,18 @@ vim.api.nvim_create_autocmd({ 'User' }, {
 })
 ```
 
+##### [resession.nvim]
+
+This plugin comes with support for [resession.nvim] through an extension. To enable, add the following snippet to your resession config:
+
+```lua
+extensions = {
+  barbar = {},
+}
+```
+
+If using [lazy.nvim](https://github.com/folke/lazy.nvim) then ensure you add barbar.nvim as a dependency to resession, to ensure that the extension loads before resession.
+
 ##### Custom
 
 You can add this snippet to your config to take advantage of our session integration:
@@ -594,4 +606,5 @@ No, barbar has nothing to do with barbarians.
 [mini.nvim]: https://github.com/echasnovski/mini.nvim
 [persistence.nvim]: https://github.com/folke/persistence.nvim
 [persisted.nvim]: https://github.com/olimorris/persisted.nvim
+[resession.nvim]: https://github.com/stevearc/resession.nvim
 [scope.nvim]: https://github.com/tiagovla/scope.nvim
