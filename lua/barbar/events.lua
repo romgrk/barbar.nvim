@@ -334,6 +334,12 @@ function events.enable()
     pattern = 'buflisted',
   })
 
+  create_autocmd('OptionSet', {
+    callback = highlight.resetup,
+    group = augroup_misc,
+    pattern = 'background',
+  })
+
   create_autocmd('SessionLoadPost', {
     callback = vim.schedule_wrap(function()
       local restore_cmd = vim.g.Bufferline__session_restore
