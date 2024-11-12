@@ -26,8 +26,7 @@ local win_get_width = vim.api.nvim_win_get_width --- @type function
 local api = require('barbar.api')
 local bdelete = require('barbar.bbye').bdelete
 local config = require('barbar.config')
-local highlight_reset_cache = require('barbar.utils.highlight').reset_cache
-local highlight_setup = require('barbar.highlight').setup
+local highlight = require('barbar.highlight') --- @type barbar.Highlight
 local jump_mode = require('barbar.jump_mode')
 local layout = require('barbar.ui.layout')
 local render = require('barbar.ui.render')
@@ -184,10 +183,7 @@ function events.enable()
   })
 
   create_autocmd('ColorScheme', {
-    callback = function()
-      highlight_reset_cache()
-      highlight_setup()
-    end,
+    callback = highlight.resetup,
     group = augroup_misc,
   })
 
@@ -338,6 +334,12 @@ function events.enable()
     pattern = 'buflisted',
   })
 
+  create_autocmd('OptionSet', {
+    callback = highlight.resetup,
+    group = augroup_misc,
+    pattern = 'background',
+  })
+
   create_autocmd('SessionLoadPost', {
     callback = vim.schedule_wrap(function()
       local restore_cmd = vim.g.Bufferline__session_restore
@@ -444,7 +446,7 @@ end
 --- @return nil
 function events.on_option_changed(user_config)
   config.setup(user_config) -- NOTE: must be first `setup` called here
-  highlight_setup()
+  highlight.setup()
   jump_mode.set_letters(config.options.letters)
 
   if config.options.clickable and vim.tbl_isempty(handlers) then

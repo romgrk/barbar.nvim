@@ -1,7 +1,7 @@
 -- !::exe [So]
 
 local config = require('barbar.config')
-local hl = require('barbar.utils.highlight')
+local hl = require('barbar.utils.highlight') --- @type barbar.utils.Hl
 local icons = require('barbar.icons')
 
 -- Setup the highlight groups used by the plugin.
@@ -311,6 +311,15 @@ function highlight.setup()
   end
 
   icons.set_highlights()
+end
+
+--- Calls resets the highlight cache and then sets up highlighting.
+---
+--- @see barbar.utils.Hl.reset_cache for details on the cache reset
+--- @see barbar.Highlight.setup for details on setting up highlights
+function highlight.resetup()
+  hl.reset_cache()
+  highlight.setup()
 end
 
 return highlight
