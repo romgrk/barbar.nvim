@@ -30,7 +30,7 @@ local highlight = require('barbar.highlight') --- @type barbar.Highlight
 local jump_mode = require('barbar.jump_mode')
 local layout = require('barbar.ui.layout')
 local render = require('barbar.ui.render')
-local state = require('barbar.state')
+local state = require('barbar.state') --- @type barbar.State
 
 --- The `<mods>` used for the close click handler
 local CLOSE_CLICK_MODS = vim.api.nvim_cmd and { confirm = true } or 'confirm'
@@ -327,6 +327,15 @@ function events.enable()
       })
     end
   end
+
+  create_autocmd('OptionSet', {
+    callback = function()
+      state.fillchars.vert = nil
+      render.update()
+    end,
+    group = augroup_render,
+    pattern = { 'ambiwidth', 'fillchars' },
+  })
 
   create_autocmd('OptionSet', {
     callback = function() render.update() end,
