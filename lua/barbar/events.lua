@@ -260,18 +260,17 @@ function events.enable()
       right = {}, --- @type {[string]: nil|integer}
     }
 
+    local win_separator_width = 1 -- gives padding for fillchars
+
     --- @param side side
     --- @return integer total_width
     local function total_widths(side)
+      local length = 0
       local offset = 0
-      local win_separator_width = side == 'left' and 1 or 2 -- It looks better like this… don't ask me why
       for _, width in pairs(widths[side]) do
+        length = length + 1
         offset = offset + width + win_separator_width
       end
-
-      -- we want the offset to begin ON the first win separator
-      -- WARN: don't use `win_separator` here
-      offset = offset - 1
 
       -- width cannot be less than zero
       return max(0, offset)

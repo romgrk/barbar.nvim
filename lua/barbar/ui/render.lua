@@ -31,7 +31,7 @@ local get_letter = require('barbar.jump_mode').get_letter
 local layout = require('barbar.ui.layout')
 local nodes = require('barbar.ui.nodes')
 local notify = require('barbar.utils').notify
-local state = require('barbar.state')
+local state = require('barbar.state') --- @type barbar.State
 local ANIMATION = require('barbar.constants').ANIMATION
 
 -- Digits for optional styling of buffer_number and buffer_index.
@@ -369,7 +369,16 @@ local function generate_side_offset(side)
   local content = nodes.slice_right({ { hl = hl, text = text } }, max_content_width)
 
   if max_content_width > #text then
-    local offset_nodes = { { hl = hl, text = (' '):rep(width) } } --- @type barbar.ui.node[]
+    local separator = state.fillchars.vert
+    local separator_width = strwidth(separator)
+
+    local offset_nodes = { { hl = hl, text = (' '):rep(width - separator_width) } } --- @type barbar.ui.node[]
+    local separator_node = { hl = wrap_hl 'WinSeparator', text = separator } --- @type barbar.ui.node
+    if side == 'left' then
+      table_insert(offset_nodes, separator_node)
+    else
+      table_insert(offset_nodes, 1, separator_node)
+    end
 
     local insert_position
     if align == 'left' then
