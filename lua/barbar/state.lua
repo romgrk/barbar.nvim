@@ -71,6 +71,7 @@ local WARN = severity.WARN
 --- @field buffers integer[] the open buffers, in visual order.
 --- @field buffers_visible integer[] same as above, but with the `config.hide` options applied
 --- @field data_by_bufnr {[integer]: barbar.state.buffer.data} the buffer data indexed on buffer number
+--- @field fillchars {vert: string} cached resolution of user configured `fillchars`
 --- @field is_picking_buffer boolean whether the user is currently in jump-mode
 --- @field last_current_buffer? integer the previously-open buffer before rendering starts
 --- @field offset barbar.state.offset
@@ -87,6 +88,25 @@ local state = {
   },
   recently_closed = {},
   update_callback = function() end,
+
+  fillchars = setmetatable({}, {__index = function(t, k)
+    if k ~= 'vert' then
+      return nil
+    end
+
+    -- see if user has set custom fillchars value
+    local fillchars = vim.opt.fillchars:get()
+    local vert = fillchars.vert
+    if not vert then -- determine the default
+      -- the default vertical character is dependent on ambiwidth, see :h fillchars
+      local ambiwidth = vim.api.nvim_get_option_value('ambiwidth', {})
+      vert = ambiwidth == 'double' and '|' or '│'
+    end
+
+      rawset(t, k, vert)
+      return vert
+
+  end}),
 }
 
 --- Get the state of the `id`
