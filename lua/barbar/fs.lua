@@ -143,7 +143,15 @@ function fs.slice_parts_from_end(path, desired_parts)
   local parts = fs.split(path)
   parts = list.slice_from_end(parts, desired_parts)
 
-  local desired_path = fs.join(unpack(parts))
+  local unpacked = unpack(parts)
+  local desired_path
+
+  if type(unpacked) == 'string' then
+    desired_path = unpacked
+  else -- list of strings
+    desired_path = fs.join(unpacked)
+  end
+
   return desired_path
 end
 
