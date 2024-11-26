@@ -30,7 +30,7 @@ function fs.is_relative_path(path)
 end
 
 --- implementation of certain functions can be simplified based on Neovim version
-if vim.fs then
+if vim.fs and vim.fs.joinpath ~= nil then
   local normalize = vim.fs.normalize
   local join = vim.fs.joinpath
 
