@@ -27,6 +27,7 @@ command to close buffers instead of `bdelete` because it will not mess your
 window layout.
 
 The name of each command should be descriptive enough for you to use it. >vim
+
     " Move to previous/next
     nnoremap <silent>    <A-,> <Cmd>BufferPrevious<CR>
     nnoremap <silent>    <A-.> <Cmd>BufferNext<CR>
@@ -71,7 +72,7 @@ The name of each command should be descriptive enough for you to use it. >vim
 
     " Magic buffer-picking mode
     nnoremap <silent> <C-p>    <Cmd>BufferPick<CR>
-    nnoremap <silent> <C-p>    <Cmd>BufferPickDelete<CR>
+    nnoremap <silent> <C-s-p>  <Cmd>BufferPickDelete<CR>
 
     " Sort automatically by...
     nnoremap <silent> <Space>bb <Cmd>BufferOrderByBufferNumber<CR>
