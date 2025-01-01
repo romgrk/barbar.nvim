@@ -182,7 +182,6 @@ function highlight.setup()
       hl.set('BufferDefaultAlternateSign', bg, fg_special, sp, attributes)
     else
       sp = hl.fg_or_default({'DiagnosticSignHint'}, 0xD5508F).gui
-      attributes.underline = true
 
       hl.set('BufferDefaultAlternateSign', bg, bg_tabline, sp, attributes)
       if preset == 'powerline' then
@@ -218,7 +217,6 @@ function highlight.setup()
       hl.set('BufferDefaultCurrentSign', bg, fg_special, sp, attributes)
     else
       sp = hl.sp_or_default(current_hl, 0x60AFFF)
-      attributes.underline = true
 
       hl.set('BufferDefaultCurrentSign', bg, bg_tabline, sp, attributes)
       if preset == 'powerline' then
@@ -287,7 +285,6 @@ function highlight.setup()
       hl.set('BufferDefaultVisibleSign', bg, fg, sp, attributes)
     else
       sp = hl.fg_or_default({'Delimiter'}, 0xFFFFFF).gui
-      attributes.underline = true
 
       hl.set('BufferDefaultVisibleSign', bg, bg_tabline, sp, attributes)
       if preset == 'powerline' then
