@@ -90,7 +90,7 @@ function buffer.get_name(buffer_number, depth)
     if buf_get_option(buffer_number, 'buftype') == 'terminal' then
       full_name = terminalname(name)
     elseif hide_extensions then
-      full_name = fnamemodify(name, ':t')
+      full_name = fnamemodify(name, ':r')
     end
 
     full_name = fs.normalize(full_name)
