@@ -76,7 +76,6 @@ else
   --- @return string normalized_path
   function fs.normalize(path)
     local normalized, _ = path:gsub(os_path_separator, '/') -- replace backslashes on Windows with forward slashes
-    normalized = fs.absolute(path) -- make path absolute
     return normalized
   end
 end
