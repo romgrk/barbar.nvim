@@ -3,6 +3,7 @@
 --
 
 local fnamemodify = vim.fn.fnamemodify --- @type function
+local vim_fs = vim.fs or {}
 
 local list = require('barbar.utils.list') --- @type barbar.utils.List
 
@@ -29,14 +30,22 @@ function fs.is_relative_path(path)
   return fs.relative(path) == path
 end
 
---- implementation of certain functions can be simplified based on Neovim version
-if vim.fs and vim.fs.joinpath ~= nil then
-  local normalize = vim.fs.normalize
-  local join = vim.fs.joinpath
+if vim_fs.joinpath then
+  fs.join = vim_fs.joinpath
+else
+  local table_concat = table.concat
+  --- @param ... string the parts to join into a path
+  --- @return string path the joined, normalized path
+  function fs.join(...)
+    local joined = table_concat({...}, '/')
+    local normalized = fs.normalize(joined)
+    return normalized
+  end
+end
 
-  --- Join file path parts into one normalized filepath
-  --- @type fun(...: string): string
-  fs.join = join
+--- implementation of certain functions can be simplified based on Neovim version
+if vim_fs.normalize then
+  local normalize = vim_fs.normalize
 
   --- create a standard format for the path.
   ---
@@ -52,18 +61,8 @@ if vim.fs and vim.fs.joinpath ~= nil then
     return normalize(path, { expand_env = false })
   end
 else
-  local table_concat = table.concat
-
   --- the OS' path separator (e.g. `/` on unix, `\` on windows)
   local os_path_separator = package.config:sub(1, 1)
-
-  --- @param ... string the parts to join into a path
-  --- @return string path the joined, normalized path
-  function fs.join(...)
-    local joined = table_concat({...}, '/')
-    local normalized = fs.normalize(joined)
-    return normalized
-  end
 
 
   --- a custom implementation of path normalization.
@@ -77,7 +76,6 @@ else
   --- @return string normalized_path
   function fs.normalize(path)
     local normalized, _ = path:gsub(os_path_separator, '/') -- replace backslashes on Windows with forward slashes
-    normalized = fs.absolute(path) -- make path absolute
     return normalized
   end
 end
