@@ -314,8 +314,10 @@ function events.enable()
           create_autocmd(close_events, {
             buffer = tbl.buf,
             callback = function()
-              widths[side][ft] = nil
-              api.set_offset(total_widths(side), nil, nil, side, {})
+              if widths[side] then
+                widths[side][ft] = nil
+                api.set_offset(total_widths(side), nil, nil, side, {})
+              end
               pcall(del_autocmd, autocmd)
             end,
             group = augroup_render,
