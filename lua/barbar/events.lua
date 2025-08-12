@@ -20,6 +20,7 @@ local replace_termcodes = vim.api.nvim_replace_termcodes
 local schedule_wrap = vim.schedule_wrap
 local set_current_buf = vim.api.nvim_set_current_buf --- @type function
 local tbl_isempty = vim.tbl_isempty
+local win_is_valid = vim.api.nvim_win_is_valid --- @type function
 local win_get_position = vim.api.nvim_win_get_position --- @type function
 local win_get_width = vim.api.nvim_win_get_width --- @type function
 
@@ -287,7 +288,9 @@ function events.enable()
               if bufwinid == nil then
                 bufwinid = vim.fn.bufwinid(tbl.buf)
               end
-
+              if not win_is_valid(bufwinid) then
+                return
+              end
               local col = win_get_position(bufwinid)[2]
               local other_side
               if col < middle then
