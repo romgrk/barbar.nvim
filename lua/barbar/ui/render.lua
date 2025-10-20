@@ -536,7 +536,7 @@ function render.update(update_names, refocus)
 
   -- Auto hide/show if applicable
   if config.options.auto_hide > -1 then
-    if #buffers <= config.options.auto_hide and #list_tabpages() < 2 then
+    if #buffers <= config.options.auto_hide and #list_tabpages() < 2 and not state.is_picking_buffer then
       if get_option'showtabline' == 2 then
         set_option('showtabline', 0)
       end
