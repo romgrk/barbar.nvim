@@ -43,8 +43,7 @@ files you can even type the letter ahead from memory.
 #### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
-require('lazy').setup {
-  {'romgrk/barbar.nvim',
+require('barbar').setup {
     dependencies = {
       'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
       'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
