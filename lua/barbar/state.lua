@@ -510,10 +510,12 @@ function state.export_buffers()
     local buffers = {} --- @type barbar.state.buffer.exported[]
 
     for _, bufnr in ipairs(state.buffers) do
-      table_insert(buffers, {
-        name = fs.relative(buf_get_name(bufnr)),
-        pinned = state.is_pinned(bufnr) or nil,
-      })
+      if buf_is_valid(bufnr) then
+        table_insert(buffers, {
+          name = fs.relative(buf_get_name(bufnr)),
+          pinned = state.is_pinned(bufnr) or nil,
+        })
+      end
     end
 
     return buffers
