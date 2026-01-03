@@ -11,6 +11,8 @@ M.on_post_load = function(data)
   if data then
     vim.api.nvim_command('lua require(\'barbar.state\').restore_buffers ' .. data)
   end
+
+  state.refresh_all_buffer_data()
   render.update(true)
 end
 

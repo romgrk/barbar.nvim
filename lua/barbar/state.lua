@@ -456,6 +456,15 @@ function state.update_gitsigns(bufnr)
   state.get_buffer_data(bufnr).gitsigns = count
 end
 
+function state.refresh_all_buffer_data()
+  for _, bufnr in ipairs(state.buffers) do
+    if buf_is_valid(bufnr) then
+      state.update_diagnostics(bufnr)
+      state.update_gitsigns(bufnr)
+    end
+  end
+end
+
 --- Update the names of all buffers in the bufferline.
 --- @return nil
 function state.update_names()
