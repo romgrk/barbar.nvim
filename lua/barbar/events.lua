@@ -382,6 +382,12 @@ function events.enable()
         local buffers = buffers_by_tab[tab]
         if buffers then
           state.restore_buffers(buffers)
+          for _, bufnr in ipairs(state.buffers) do
+            if buf_is_valid(bufnr) then
+              state.update_diagnostics(bufnr)
+              state.update_gitsigns(bufnr)
+            end
+          end
         end
       end,
       group = augroup_misc,
