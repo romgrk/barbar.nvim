@@ -16,12 +16,12 @@ local matchlist = vim.fn.matchlist --- @type function
 local strcharpart = vim.fn.strcharpart --- @type function
 local strwidth = vim.api.nvim_strwidth --- @type function
 
-local add_reverse_lookup = require('barbar.utils.table').add_reverse_lookup
-local config = require('barbar.config')
-local fs = require('barbar.fs') --- @type barbar.Fs
-local list = require('barbar.utils.list') --- @type barbar.utils.List
+local add_reverse_lookup = require("barbar.utils.table").add_reverse_lookup
+local config = require("barbar.config")
+local fs = require("barbar.fs") --- @type barbar.Fs
+local list = require("barbar.utils.list") --- @type barbar.utils.List
 
-local ELLIPSIS = '…'
+local ELLIPSIS = "…"
 local ELLIPSIS_LEN = strwidth(ELLIPSIS)
 
 --- @alias barbar.buffer.activity 1|2|3|4
@@ -30,7 +30,7 @@ local ELLIPSIS_LEN = strwidth(ELLIPSIS)
 
 --- A bidirectional map of activities to activity names
 --- @type {[barbar.buffer.activity]: barbar.buffer.activity.name, [barbar.buffer.activity.name]: barbar.buffer.activity}
-local activities = add_reverse_lookup {'Inactive', 'Alternate', 'Visible', 'Current'}
+local activities = add_reverse_lookup({ "Inactive", "Alternate", "Visible", "Current" })
 
 --- @param name string
 --- @return string
@@ -51,7 +51,7 @@ local buffer = { activities = activities }
 function buffer.get_activity(buffer_number)
   if get_current_buf() == buffer_number then
     return activities.Current
-  elseif config.options.highlight_alternate and bufnr('#') == buffer_number then
+  elseif config.options.highlight_alternate and bufnr("#") == buffer_number then
     return activities.Alternate
   elseif config.options.highlight_visible and bufwinnr(buffer_number) ~= -1 then
     return activities.Visible
@@ -80,27 +80,43 @@ end
 --- @return string name
 function buffer.get_name(buffer_number, depth)
   --- @type string
-  local name = buf_is_valid(buffer_number) and buf_get_name(buffer_number) or ''
+  local name = buf_is_valid(buffer_number) and buf_get_name(buffer_number) or ""
 
   local no_name_title = config.options.no_name_title
   local hide_extensions = config.options.hide.extensions
 
-  if name ~= '' then
+  if name ~= "" then
     local full_name = name
-    if buf_get_option(buffer_number, 'buftype') == 'terminal' then
+    if buf_get_option(buffer_number, "buftype") == "terminal" then
       full_name = terminalname(name)
     elseif hide_extensions then
-      full_name = fnamemodify(name, ':r')
+      full_name = fnamemodify(name, ":r")
     end
 
     full_name = fs.normalize(full_name)
+    ------------------------------------------------------------------
+    -- NEW LOGIC: Relative Path Calculation
+    ------------------------------------------------------------------
+    -- Get the path relative to the current working directory (project root)
+    local relative_name = fnamemodify(full_name, ":.")
+
+    -- Count how many parts (folders + filename) the relative path has
+    local _, relative_depth = relative_name:gsub("[/\\]", "")
+    relative_depth = relative_depth + 1
+
+    -- If the requested depth is greater than the actual relative depth,
+    -- we cap it to the relative depth to avoid showing folders outside the project.
+    if depth > relative_depth then
+      depth = relative_depth
+    end
+    ------------------------------------------------------------------
     name = fs.slice_parts_from_end(full_name, depth)
   elseif no_name_title ~= nil and no_name_title ~= vim.NIL then
     name = no_name_title
   end
 
-  if name == '' then
-    name = '[buffer ' .. buffer_number .. ']'
+  if name == "" then
+    name = "[buffer " .. buffer_number .. "]"
   end
 
   return name
@@ -122,9 +138,9 @@ function buffer.format_name(name)
     --- accounts for if `remaining_length` is not evenly divisible
     local other_half = remaining_length - half
 
-    name = (' '):rep(other_half) .. name .. (' '):rep(half)
+    name = (" "):rep(other_half) .. name .. (" "):rep(half)
   elseif name_width > maximum_length then
-    local ext_index = name:reverse():find('%.')
+    local ext_index = name:reverse():find("%.")
 
     if ext_index ~= nil and (ext_index < maximum_length - ELLIPSIS_LEN) then
       local extension = name:sub(-ext_index)
@@ -140,7 +156,7 @@ end
 --- @param buffer_numbers integer[]
 --- @return string[]
 function buffer.get_unique_names(buffer_numbers)
-  local depth = 1
+  local depth = config.options.filename_depth
   local computed_names
 
   local update_computed_names = function()

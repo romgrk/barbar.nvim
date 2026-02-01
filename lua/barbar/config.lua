@@ -2,11 +2,11 @@ local strwidth = vim.api.nvim_strwidth --- @type function
 local table_concat = table.concat
 local tbl_deep_extend = vim.tbl_deep_extend
 
-local table_set = require('barbar.utils.table').set
-local utils = require('barbar.utils')
+local table_set = require("barbar.utils.table").set
+local utils = require("barbar.utils")
 
 --- The prefix used for `utils.deprecate`
-local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
+local DEPRECATE_PREFIX = "\nThe barbar.nvim option "
 
 --- @class barbar.config.options.hide
 --- @field alternate? boolean
@@ -25,10 +25,10 @@ local DEPRECATE_PREFIX = '\nThe barbar.nvim option '
 --- @field [3] barbar.config.options.icons.diagnostics.severity
 --- @field [4] barbar.config.options.icons.diagnostics.severity
 local DEFAULT_DIAGNOSTIC_ICONS = {
-  [vim.diagnostic.severity.ERROR] = { enabled = false, icon = ' ' },
-  [vim.diagnostic.severity.HINT] = { enabled = false, icon = '󰌶 ' },
-  [vim.diagnostic.severity.INFO] = { enabled = false, icon = ' ' },
-  [vim.diagnostic.severity.WARN] = { enabled = false, icon = ' ' },
+  [vim.diagnostic.severity.ERROR] = { enabled = false, icon = " " },
+  [vim.diagnostic.severity.HINT] = { enabled = false, icon = "󰌶 " },
+  [vim.diagnostic.severity.INFO] = { enabled = false, icon = " " },
+  [vim.diagnostic.severity.WARN] = { enabled = false, icon = " " },
 }
 
 --- Deeply extend `icons` to include the `DEFAULT_DIAGNOSTIC_ICONS`
@@ -58,7 +58,7 @@ end
 --- @field enabled boolean iff `true`, show the `devicons` for the associated buffer's `filetype`.
 
 --- @alias barbar.config.options.icons.buffer.git.statuses 'added'|'changed'|'deleted'
-local GIT_STATUSES = {'added', 'changed', 'deleted'}
+local GIT_STATUSES = { "added", "changed", "deleted" }
 
 --- @class barbar.config.options.icons.buffer.git.status
 --- @field enabled boolean
@@ -105,28 +105,29 @@ local GIT_STATUSES = {'added', 'changed', 'deleted'}
 --- @type {[barbar.config.options.icons.preset]: fun(default_icons: barbar.config.options.icons, user_icons?: table)}
 local ICON_PRESETS = {
   default = function(default_icons, user_icons)
-    default_icons.inactive = { separator = { left = '▎', right = '' } } --- @diagnostic disable-line: missing-fields
-    default_icons.separator = { left = '▎', right = '' }
+    default_icons.inactive = { separator = { left = "▎", right = "" } } --- @diagnostic disable-line: missing-fields
+    default_icons.separator = { left = "▎", right = "" }
     default_icons.separator_at_end = true
 
     local pinned_icons = user_icons and user_icons.pinned
-    if pinned_icons == nil or
-      pinned_icons.button == false or
-      (pinned_icons.button and strwidth(pinned_icons.button) < 1)
+    if
+      pinned_icons == nil
+      or pinned_icons.button == false
+      or (pinned_icons.button and strwidth(pinned_icons.button) < 1)
     then
-      default_icons.pinned.separator = { right = ' ' } --- @diagnostic disable-line: missing-fields
+      default_icons.pinned.separator = { right = " " } --- @diagnostic disable-line: missing-fields
     end
   end,
 
   powerline = function(default_icons)
-    default_icons.inactive = { separator = { left = '', right = '' } }  --- @diagnostic disable-line: missing-fields
-    default_icons.separator = { left = '', right = '' }
+    default_icons.inactive = { separator = { left = "", right = "" } } --- @diagnostic disable-line: missing-fields
+    default_icons.separator = { left = "", right = "" }
     default_icons.separator_at_end = false
   end,
 
   slanted = function(default_icons)
-    default_icons.inactive = { separator = { left = '', right = '' } }  --- @diagnostic disable-line: missing-fields
-    default_icons.separator = { left = '', right = '' }
+    default_icons.inactive = { separator = { left = "", right = "" } } --- @diagnostic disable-line: missing-fields
+    default_icons.separator = { left = "", right = "" }
     default_icons.separator_at_end = false
   end,
 }
@@ -134,59 +135,61 @@ local ICON_PRESETS = {
 --- @alias barbar.config.options.icons.preset.deprecated boolean|'both'|'buffer_number_with_icon'|'buffer_numbers'|'numbers'
 
 --- @type {[barbar.config.options.icons.preset.deprecated]: barbar.config.options.icons}
-local DEPRECATED_ICON_PRESETS = setmetatable({}, {__index = function(_, key)
-  local icons
-  if key == false then
-    icons = {
-      buffer_number = false,
-      buffer_index = false,
-      filetype = { enabled = false },
-    }
-  elseif key == true then
-    icons = {
-      buffer_number = false,
-      buffer_index = false,
-      filetype = { enabled = true },
-    }
-  elseif key == 'both' then
-    icons = {
-      buffer_index = true,
-      buffer_number = false,
-      filetype = { enabled = true },
-    }
-  elseif key == 'buffer_number_with_icon' then
-    icons = {
-      buffer_index = false,
-      buffer_number = true,
-      filetype = { enabled = true },
-    }
-  elseif key == 'buffer_numbers' then
-    icons = {
-      buffer_index = false,
-      buffer_number = true,
-      filetype = { enabled = false },
-    }
-  elseif key == 'numbers' then
-    icons = {
-      buffer_index = true,
-      buffer_number = false,
-      filetype = { enabled = false },
-    }
-  end
+local DEPRECATED_ICON_PRESETS = setmetatable({}, {
+  __index = function(_, key)
+    local icons
+    if key == false then
+      icons = {
+        buffer_number = false,
+        buffer_index = false,
+        filetype = { enabled = false },
+      }
+    elseif key == true then
+      icons = {
+        buffer_number = false,
+        buffer_index = false,
+        filetype = { enabled = true },
+      }
+    elseif key == "both" then
+      icons = {
+        buffer_index = true,
+        buffer_number = false,
+        filetype = { enabled = true },
+      }
+    elseif key == "buffer_number_with_icon" then
+      icons = {
+        buffer_index = false,
+        buffer_number = true,
+        filetype = { enabled = true },
+      }
+    elseif key == "buffer_numbers" then
+      icons = {
+        buffer_index = false,
+        buffer_number = true,
+        filetype = { enabled = false },
+      }
+    elseif key == "numbers" then
+      icons = {
+        buffer_index = true,
+        buffer_number = false,
+        filetype = { enabled = false },
+      }
+    end
 
-  return icons
-end})
+    return icons
+  end,
+})
 
 --- A table of options that used to exist, and where they are located now.
 --- @type {[string]: string[]}
 local DEPRECATED_OPTIONS = {
-  diagnostics = { 'icons', 'diagnostics' },
-  icon_close_tab = { 'icons', 'button' },
-  icon_close_tab_modified = { 'icons', 'modified', 'button' },
-  icon_custom_colors = { 'icons', 'filetype', 'custom_colors' },
-  icon_pinned = { 'icons', 'pinned', 'button' },
-  icon_separator_active = { 'icons', 'separator', 'left' },
-  icon_separator_inactive = { 'icons', 'inactive', 'separator', 'left' },
+  diagnostics = { "icons", "diagnostics" },
+  icon_close_tab = { "icons", "button" },
+  icon_close_tab_modified = { "icons", "modified", "button" },
+  icon_custom_colors = { "icons", "filetype", "custom_colors" },
+  icon_pinned = { "icons", "pinned", "button" },
+  icon_separator_active = { "icons", "separator", "left" },
+  icon_separator_inactive = { "icons", "inactive", "separator", "left" },
 }
 
 --- @class barbar.config.options.sidebar_filetype
@@ -212,6 +215,7 @@ local DEPRECATED_OPTIONS = {
 --- @field insert_at_end boolean
 --- @field insert_at_start boolean
 --- @field letters string
+--- @field filename_depth integer
 --- @field maximum_length integer
 --- @field maximum_padding integer
 --- @field minimum_length integer
@@ -233,19 +237,21 @@ local config = {
 function config.setup(options)
   vim.g.barbar_auto_setup = false
 
-  if type(options) ~= 'table' then
+  if type(options) ~= "table" then
     options = {}
   end
 
   do -- TODO: remove after v2
     local icons_type = type(options.icons)
-    if icons_type == 'string' or icons_type == 'boolean' then
+    if icons_type == "string" or icons_type == "boolean" then
       local preset = DEPRECATED_ICON_PRESETS[options.icons]
       utils.deprecate(
-        DEPRECATE_PREFIX .. utils.markdown_inline_code('icons = ' .. vim.inspect(options.icons)),
-        utils.markdown_inline_code('icons = ' .. vim.inspect(
-          vim.tbl_map(function(v) return v or nil end, preset),
-          { newline = ' ', indent = '' }
+        DEPRECATE_PREFIX .. utils.markdown_inline_code("icons = " .. vim.inspect(options.icons)),
+        utils.markdown_inline_code("icons = " .. vim.inspect(
+          vim.tbl_map(function(v)
+            return v or nil
+          end, preset),
+          { newline = " ", indent = "" }
         ))
       )
 
@@ -260,7 +266,7 @@ function config.setup(options)
       table_set(options, new_option, user_setting)
       utils.deprecate(
         DEPRECATE_PREFIX .. utils.markdown_inline_code(deprecated_option),
-        utils.markdown_inline_code(table_concat(new_option, '.'))
+        utils.markdown_inline_code(table_concat(new_option, "."))
       )
 
       options[deprecated_option] = nil
@@ -270,15 +276,21 @@ function config.setup(options)
   -- TODO: remove after v2
   -- Edge case deprecated option
   if options.closable == false then
-    table_set(options, { 'icons', 'button' }, false)
-    table_set(options, { 'icons', 'modified', 'button' }, false)
+    table_set(options, { "icons", "button" }, false)
+    table_set(options, { "icons", "modified", "button" }, false)
     utils.deprecate(
-      DEPRECATE_PREFIX .. utils.markdown_inline_code'closable',
-      utils.markdown_inline_code'icons.button' ..
-        ' and ' .. utils.markdown_inline_code'icons.modified.button'
+      DEPRECATE_PREFIX .. utils.markdown_inline_code("closable"),
+      utils.markdown_inline_code("icons.button") .. " and " .. utils.markdown_inline_code("icons.modified.button")
     )
 
     options.closable = nil
+  end
+
+  -- configure
+  do
+    if options.filename_depth < 1 then
+      options.filename_depth = 1
+    end
   end
 
   -- convert `auto_hide = true`|`false` to `auto_hide = -1`|`1`
@@ -302,19 +314,19 @@ function config.setup(options)
   local default_icons = {
     buffer_index = false,
     buffer_number = false,
-    button = '',
+    button = "",
     diagnostics = {},
     gitsigns = {
-      added = { enabled = false, icon = '+' },
-      changed = { enabled = false, icon = '~' },
-      deleted = { enabled = false, icon = '-' },
+      added = { enabled = false, icon = "+" },
+      changed = { enabled = false, icon = "~" },
+      deleted = { enabled = false, icon = "-" },
     },
     filename = true,
     filetype = { enabled = true },
-    modified = { button = '●' },
+    modified = { button = "●" },
     pinned = { button = false, filename = false },
-    preset = 'default',
-    scroll = { left = '❮', right = '❯' },
+    preset = "default",
+    scroll = { left = "❮", right = "❯" },
   }
 
   do
@@ -322,13 +334,13 @@ function config.setup(options)
     ICON_PRESETS[icons and icons.preset or default_icons.preset](default_icons, icons)
   end
 
-  config.options = tbl_deep_extend('keep', options, {
+  config.options = tbl_deep_extend("keep", options, {
     animation = true,
     auto_hide = -1,
     clickable = true,
     exclude_ft = {},
     exclude_name = {},
-    focus_on_close = 'previous',
+    focus_on_close = "previous",
     hide = {},
     highlight_alternate = false,
     highlight_inactive_file_icons = false,
@@ -336,13 +348,14 @@ function config.setup(options)
     icons = default_icons,
     insert_at_end = false,
     insert_at_start = false,
-    letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
+    letters = "asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP",
+    filename_depth = 1,
     maximum_length = 30,
     maximum_padding = 4,
     minimum_length = 0,
     minimum_padding = 1,
     no_name_title = nil,
-    preset = 'default',
+    preset = "default",
     semantic_letters = true,
     sidebar_filetypes = {},
     sort = { ignore_case = false },
@@ -369,14 +382,14 @@ function config.setup(options)
     local pinned_icons = icons.pinned or {}
 
     -- resolve all of the icons for the activities
-    for _, activity in ipairs { 'alternate', 'current', 'inactive', 'visible' } do
-      local activity_icons = tbl_deep_extend('keep', config.options.icons[activity] or {}, base_options)
+    for _, activity in ipairs({ "alternate", "current", "inactive", "visible" }) do
+      local activity_icons = tbl_deep_extend("keep", config.options.icons[activity] or {}, base_options)
       tbl_deep_extend_diagnostic_icons(activity_icons)
 
-      activity_icons.pinned = tbl_deep_extend('keep', activity_icons.pinned or {}, pinned_icons, activity_icons)
+      activity_icons.pinned = tbl_deep_extend("keep", activity_icons.pinned or {}, pinned_icons, activity_icons)
       tbl_deep_extend_diagnostic_icons(activity_icons.pinned)
 
-      activity_icons.modified = tbl_deep_extend('keep', activity_icons.modified or {}, modified_icons, activity_icons)
+      activity_icons.modified = tbl_deep_extend("keep", activity_icons.modified or {}, modified_icons, activity_icons)
       tbl_deep_extend_diagnostic_icons(activity_icons.modified)
 
       icons[activity] = activity_icons
