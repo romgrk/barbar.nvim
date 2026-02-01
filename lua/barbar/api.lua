@@ -535,5 +535,20 @@ function api.toggle_pin(buffer_number)
   state.toggle_pin(buffer_number or 0)
   render.update()
 end
+--- Set the minimum number of path components shown in buffer labels.
+--- For example: 1 => "init.lua", 2 => "lua/init.lua".
+--- @param depth string | number | nil
+--- @return nil
+function api.set_filename_depth(depth)
+  depth = tonumber(depth)
+
+  if not depth or depth < 1 or depth ~= math.floor(depth) then
+    notify('Invalid input: expected an integer >= 1', vim.log.levels.WARN)
+    return
+  end
+
+  config.options.filename_depth = depth
+  render.update()
+end
 
 return api
