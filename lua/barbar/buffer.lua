@@ -80,7 +80,7 @@ end
 --- @return string name
 function buffer.get_name(buffer_number, depth)
   --- @type string
-  local name = buf_is_valid(buffer_number) and buf_get_name(buffer_number) or ""
+  local name = buf_is_valid(buffer_number) and buf_get_name(buffer_number) or ''
 
   local no_name_title = config.options.no_name_title
   local hide_extensions = config.options.hide.extensions
