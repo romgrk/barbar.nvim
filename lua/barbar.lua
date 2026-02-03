@@ -260,14 +260,6 @@ function barbar.setup(options)
     {desc = 'Restore the last recently closed buffer'}
   )
 
-  create_user_command(
-    'BufferSetFilenameDepth',
-    function(cmd)
-      api.set_filename_depth(cmd.args)
-    end,
-    { desc = 'Set minimum path depth shown in buffer labels (>=1)', nargs = 1 }
-  )
-
   -- Setup barbar
   events.on_option_changed(options)
   events.enable()
