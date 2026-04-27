@@ -1,33 +1,32 @@
 local max = math.max
 local rshift = bit.rshift
 
-local buf_call = vim.api.nvim_buf_call --- @type function
-local buf_get_option = vim.api.nvim_buf_get_option --- @type function
-local buf_is_valid = vim.api.nvim_buf_is_valid --- @type function
-local buf_set_var = vim.api.nvim_buf_set_var --- @type function
-local command = vim.api.nvim_command --- @type function
-local create_augroup = vim.api.nvim_create_augroup --- @type function
-local create_autocmd = vim.api.nvim_create_autocmd --- @type function
+local buf_call = vim.api.nvim_buf_call
+local buf_is_valid = vim.api.nvim_buf_is_valid
+local buf_set_var = vim.api.nvim_buf_set_var
+local command = vim.api.nvim_command
+local create_augroup = vim.api.nvim_create_augroup
+local create_autocmd = vim.api.nvim_create_autocmd
 local create_namespace = vim.api.nvim_create_namespace
 local defer_fn = vim.defer_fn
-local del_autocmd = vim.api.nvim_del_autocmd --- @type function
-local exec_autocmds = vim.api.nvim_exec_autocmds --- @type function
+local del_autocmd = vim.api.nvim_del_autocmd
+local exec_autocmds = vim.api.nvim_exec_autocmds
 local get_current_tabpage = vim.api.nvim_get_current_tabpage
-local get_option = vim.api.nvim_get_option --- @type function
-local islist = vim.islist or vim.tbl_islist --- @type function
+local get_option = vim.api.nvim_get_option_value
+local islist = vim.islist or vim.tbl_islist
 local on_key = vim.on_key
 local replace_termcodes = vim.api.nvim_replace_termcodes
 local schedule_wrap = vim.schedule_wrap
-local set_current_buf = vim.api.nvim_set_current_buf --- @type function
+local set_current_buf = vim.api.nvim_set_current_buf
 local tbl_isempty = vim.tbl_isempty
-local win_is_valid = vim.api.nvim_win_is_valid --- @type function
-local win_get_position = vim.api.nvim_win_get_position --- @type function
-local win_get_width = vim.api.nvim_win_get_width --- @type function
+local win_is_valid = vim.api.nvim_win_is_valid
+local win_get_position = vim.api.nvim_win_get_position
+local win_get_width = vim.api.nvim_win_get_width
 
 local api = require('barbar.api')
 local bdelete = require('barbar.bbye').bdelete
 local config = require('barbar.config')
-local highlight = require('barbar.highlight') --- @type barbar.Highlight
+local highlight = require('barbar.highlight')
 local jump_mode = require('barbar.jump_mode')
 local layout = require('barbar.ui.layout')
 local render = require('barbar.ui.render')
@@ -130,8 +129,7 @@ function events.augroups(clear)
     clear = true
   end
 
-  return create_augroup('barbar_misc', {clear = clear}),
-    create_augroup('barbar_render', {clear = clear})
+  return create_augroup('barbar_misc', { clear = clear }), create_augroup('barbar_render', { clear = clear })
 end
 
 --- What to do when clicking a buffer close button
@@ -139,9 +137,15 @@ end
 --- @param buffer integer
 --- @return nil
 function events.close_click_handler(buffer)
-  if buf_get_option(buffer, 'modified') then
-    buf_call(buffer, function() command('w') end)
-    exec_autocmds('BufModifiedSet', {buffer = buffer})
+  if get_option('modified', { buf = buffer }) then
+    buf_call(buffer, function()
+      command('w')
+    end)
+    if vim.fn.has('nvim-0.13') == 1 then
+      exec_autocmds('User', { pattern = 'BufModifiedSet', buffer = buffer })
+    else
+      exec_autocmds('BufModifiedSet', { buffer = buffer })
+    end
   else
     bdelete(false, buffer, CLOSE_CLICK_MODS)
   end
@@ -163,7 +167,7 @@ function events.enable()
   create_autocmd('VimEnter', { callback = state.load_recently_closed, group = augroup_misc })
   create_autocmd('VimLeave', { callback = state.save_recently_closed, group = augroup_misc })
 
-  create_autocmd({'BufNewFile', 'BufReadPost'}, {
+  create_autocmd({ 'BufNewFile', 'BufReadPost' }, {
     callback = vim.schedule_wrap(function(event)
       if buf_is_valid(event.buf) then
         jump_mode.assign_next_letter(event.buf)
@@ -174,7 +178,7 @@ function events.enable()
     group = augroup_misc,
   })
 
-  create_autocmd({'BufDelete', 'BufWipeout'}, {
+  create_autocmd({ 'BufDelete', 'BufWipeout' }, {
     callback = schedule_wrap(function(tbl)
       jump_mode.unassign_letter_for(tbl.buf)
       state.push_recently_closed(tbl.file)
@@ -188,34 +192,53 @@ function events.enable()
     group = augroup_misc,
   })
 
-  create_autocmd('BufModifiedSet', {
-    callback = function(tbl)
-      local is_modified = buf_get_option(tbl.buf, 'modified')
-      if is_modified ~= vim.b[tbl.buf].checked then
-        buf_set_var(tbl.buf, 'checked', is_modified)
-        render.update()
-      end
+  if vim.fn.has('nvim-0.13') == 1 then
+    create_autocmd('User', {
+      pattern = 'BufModifiedSet',
+      callback = function(tbl)
+        local is_modified = get_option('modified', { buf = tbl.buf })
+        if is_modified ~= vim.b[tbl.buf].checked then
+          buf_set_var(tbl.buf, 'checked', is_modified)
+          render.update()
+        end
+      end,
+      group = augroup_render,
+    })
+  else
+    create_autocmd('BufModifiedSet', {
+      callback = function(tbl)
+        local is_modified = get_option('modified', { buf = tbl.buf })
+        if is_modified ~= vim.b[tbl.buf].checked then
+          buf_set_var(tbl.buf, 'checked', is_modified)
+          render.update()
+        end
+      end,
+      group = augroup_render,
+    })
+  end
+
+  create_autocmd({ 'BufEnter', 'BufNew' }, {
+    callback = function()
+      render.update(true)
     end,
     group = augroup_render,
   })
 
-  create_autocmd({'BufEnter', 'BufNew'}, {
-    callback = function() render.update(true) end,
+  create_autocmd({
+    'BufEnter',
+    'BufWinEnter',
+    'BufWinLeave',
+    'BufWritePost',
+    'TabEnter',
+    'VimResized',
+    'WinEnter',
+    'WinLeave',
+  }, {
+    callback = vim.schedule_wrap(function()
+      render.update()
+    end),
     group = augroup_render,
   })
-
-  create_autocmd(
-    {
-      'BufEnter', 'BufWinEnter', 'BufWinLeave', 'BufWritePost',
-      'TabEnter',
-      'VimResized',
-      'WinEnter', 'WinLeave',
-    },
-    {
-      callback = vim.schedule_wrap(function () render.update() end),
-      group = augroup_render,
-    }
-  )
 
   create_autocmd('DiagnosticChanged', {
     callback = function(event)
@@ -250,10 +273,10 @@ function events.enable()
 
     --- Sets the `middle` of the screen
     local function set_middle()
-      middle = rshift(get_option('columns'), 1) -- PERF: faster than math.floor(&columns / 2)
+      middle = rshift(vim.o.columns, 1) -- PERF: faster than math.floor(&columns / 2)
     end
 
-    create_autocmd('VimResized', {callback = set_middle, group = augroup_misc})
+    create_autocmd('VimResized', { callback = set_middle, group = augroup_misc })
     set_middle()
 
     local widths = {
@@ -283,7 +306,7 @@ function events.enable()
         callback = function(tbl)
           local bufwinid --- @type nil|integer
           local side --- @type side
-          local autocmd = create_autocmd({'BufWinEnter', 'WinScrolled'}, {
+          local autocmd = create_autocmd({ 'BufWinEnter', 'WinScrolled' }, {
             callback = function()
               if bufwinid == nil then
                 bufwinid = vim.fn.bufwinid(tbl.buf)
@@ -309,8 +332,8 @@ function events.enable()
             group = augroup_render,
           })
 
-          local close_events = { "BufWinLeave" }
-          if option.event and not close_events[1] ~= option.event  then
+          local close_events = { 'BufWinLeave' }
+          if option.event and not close_events[1] ~= option.event then
             table.insert(close_events, option.event)
           end
 
@@ -334,7 +357,9 @@ function events.enable()
   end
 
   create_autocmd('OptionSet', {
-    callback = function() render.update() end,
+    callback = function()
+      render.update()
+    end,
     group = augroup_render,
     pattern = 'buflisted',
   })
@@ -348,7 +373,9 @@ function events.enable()
   create_autocmd('SessionLoadPost', {
     callback = vim.schedule_wrap(function()
       local restore_cmd = vim.g.Bufferline__session_restore
-      if restore_cmd then command(restore_cmd) end
+      if restore_cmd then
+        command(restore_cmd)
+      end
 
       render.update(true)
     end),
@@ -356,12 +383,18 @@ function events.enable()
   })
 
   create_autocmd('TermOpen', {
-    callback = function() defer_fn(function() render.update(true) end, 500) end,
+    callback = function()
+      defer_fn(function()
+        render.update(true)
+      end, 500)
+    end,
     group = augroup_render,
   })
 
   create_autocmd('TermClose', {
-    callback = function() render.update(true) end,
+    callback = function()
+      render.update(true)
+    end,
     group = augroup_render,
   })
 
@@ -392,8 +425,8 @@ function events.enable()
   create_autocmd('User', {
     callback = function()
       local buffers = state.export_buffers()
-      vim.g.Bufferline__session_restore = "lua require('barbar.state').restore_buffers " ..
-        vim.inspect(buffers, {newline = ' ', indent = ''})
+      vim.g.Bufferline__session_restore = "lua require('barbar.state').restore_buffers "
+        .. vim.inspect(buffers, { newline = ' ', indent = '' })
     end,
     group = augroup_misc,
     pattern = 'SessionSavePre',
@@ -406,20 +439,20 @@ function events.enable()
 
   -- TODO: merge the `vim.cmd` calls and references to `vim.g.bufferline` when v2 releases
   vim.schedule(function()
-    vim.cmd [[
+    vim.cmd([[
       silent! call dictwatcherdel(g:, 'bufferline', 'barbar#events#dict_changed')
       silent! call dictwatcherdel(g:bufferline, '*', 'barbar#events#on_option_changed')
-    ]]
+    ]])
 
     local g_bufferline = vim.g.bufferline
     if type(g_bufferline) ~= 'table' or islist(g_bufferline) then
       vim.g.bufferline = vim.empty_dict()
     end
 
-    vim.cmd [[
+    vim.cmd([[
       call dictwatcheradd(g:, 'bufferline', 'barbar#events#dict_changed')
       call dictwatcheradd(g:bufferline, '*', 'barbar#events#on_option_changed')
-    ]]
+    ]])
   end)
 
   render.update()
