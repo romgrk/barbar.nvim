@@ -36,6 +36,9 @@ local state = require('barbar.state')
 --- The `<mods>` used for the close click handler
 local CLOSE_CLICK_MODS = vim.api.nvim_cmd and { confirm = true } or 'confirm'
 
+--- Neovim 0.13 dropped BufModifiedSet in favor of OptionSet+modified
+local HAS_BUF_MODIFIED_SET = vim.fn.exists('##BufModifiedSet') == 1
+
 --- The starting index (of a buffer in `layout.buffers`) which was hovered while dragging
 --- @type nil|integer
 local drag_bufnr_start_idx = nil
@@ -141,7 +144,9 @@ end
 function events.close_click_handler(buffer)
   if buf_get_option(buffer, 'modified') then
     buf_call(buffer, function() command('w') end)
-    exec_autocmds('BufModifiedSet', {buffer = buffer})
+    if HAS_BUF_MODIFIED_SET then
+      exec_autocmds('BufModifiedSet', {buffer = buffer})
+    end
   else
     bdelete(false, buffer, CLOSE_CLICK_MODS)
   end
@@ -188,16 +193,24 @@ function events.enable()
     group = augroup_misc,
   })
 
-  create_autocmd('BufModifiedSet', {
-    callback = function(tbl)
-      local is_modified = buf_get_option(tbl.buf, 'modified')
-      if is_modified ~= vim.b[tbl.buf].checked then
-        buf_set_var(tbl.buf, 'checked', is_modified)
-        render.update()
-      end
-    end,
-    group = augroup_render,
-  })
+  if HAS_BUF_MODIFIED_SET then
+    create_autocmd('BufModifiedSet', {
+      callback = function(tbl)
+        local is_modified = buf_get_option(tbl.buf, 'modified')
+        if is_modified ~= vim.b[tbl.buf].checked then
+          buf_set_var(tbl.buf, 'checked', is_modified)
+          render.update()
+        end
+      end,
+      group = augroup_render,
+    })
+  else
+    create_autocmd('OptionSet', {
+      callback = function() render.update() end,
+      group = augroup_render,
+      pattern = 'modified',
+    })
+  end
 
   create_autocmd({'BufEnter', 'BufNew'}, {
     callback = function() render.update(true) end,
