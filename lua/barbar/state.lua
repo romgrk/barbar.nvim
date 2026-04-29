@@ -463,7 +463,8 @@ function state.update_names()
 
   -- Find all names
   for i, buffer_n in ipairs(state.buffers) do
-    local name = buffer.get_name(buffer_n, 1)
+    local filename_depth = config.options.filename_depth
+    local name = buffer.get_name(buffer_n, filename_depth)
 
     if buffer_index_by_name[name] == nil then
       buffer_index_by_name[name] = {}

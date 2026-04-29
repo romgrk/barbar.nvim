@@ -470,6 +470,11 @@ letters ~
   This order is optimal for the QWERTY keyboard layout but might need
   adjustment for other layouts.
 
+                                                   *barbar-setup.filename_depth*
+filename_depth ~
+  `int`  (default: 1)
+  Sets the minimum number of path components shown in buffer labels.
+
                                                   *barbar-setup.maximum_padding*
 maximum_padding ~
   `int`  (default: `4`)
