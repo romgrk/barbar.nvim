@@ -5,6 +5,7 @@
 local ceil = math.ceil
 local max = math.max
 local table_insert = table.insert
+local table_remove = table.remove
 
 local buf_get_option = vim.api.nvim_buf_get_option --- @type function
 local command = vim.api.nvim_command --- @type function
@@ -437,6 +438,10 @@ local function generate_tabline(bufnrs, refocus)
       if current_container ~= nil then
         content = nodes.insert_many(content, current_container.position - scroll.current, current_container.nodes)
       end
+    end
+
+    if not config.options.icons.separator_at_start then
+      table_remove(content, 1)
     end
 
     if config.options.icons.separator_at_end then
