@@ -94,6 +94,22 @@ function buffer.get_name(buffer_number, depth)
     end
 
     full_name = fs.normalize(full_name)
+    ------------------------------------------------------------------
+    -- NEW LOGIC: Relative Path Calculation
+    ------------------------------------------------------------------
+    -- Get the path relative to the current working directory (project root)
+    local relative_name = fnamemodify(full_name, ':.')
+
+    -- Count how many parts (folders + filename) the relative path has
+    local _, relative_depth = relative_name:gsub('[/\\]', '')
+    relative_depth = relative_depth + 1
+
+    -- If the requested depth is greater than the actual relative depth,
+    -- we cap it to the relative depth to avoid showing folders outside the project.
+    if depth > relative_depth then
+      depth = relative_depth
+    end
+    ------------------------------------------------------------------
     name = fs.slice_parts_from_end(full_name, depth)
   elseif no_name_title ~= nil and no_name_title ~= vim.NIL then
     name = no_name_title
@@ -140,7 +156,7 @@ end
 --- @param buffer_numbers integer[]
 --- @return string[]
 function buffer.get_unique_names(buffer_numbers)
-  local depth = 1
+  local depth = config.options.filename_depth
   local computed_names
 
   local update_computed_names = function()

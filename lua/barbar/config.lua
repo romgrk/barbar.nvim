@@ -212,6 +212,7 @@ local DEPRECATED_OPTIONS = {
 --- @field insert_at_end boolean
 --- @field insert_at_start boolean
 --- @field letters string
+--- @field filename_depth integer
 --- @field maximum_length integer
 --- @field maximum_padding integer
 --- @field minimum_length integer
@@ -281,6 +282,14 @@ function config.setup(options)
     options.closable = nil
   end
 
+  -- set filename_depth to valid value
+  do
+    local depth = tonumber(options.filename_depth)
+    if not depth or depth < 1 or depth ~= math.floor(depth) then
+      options.filename_depth = 1
+    end
+  end
+
   -- convert `auto_hide = true`|`false` to `auto_hide = -1`|`1`
   if options.auto_hide == false then
     options.auto_hide = -1
@@ -337,6 +346,7 @@ function config.setup(options)
     insert_at_end = false,
     insert_at_start = false,
     letters = 'asdfjkl;ghnmxcvbziowerutyqpASDFJKLGHNMXCVBZIOWERUTYQP',
+    filename_depth = 1,
     maximum_length = 30,
     maximum_padding = 4,
     minimum_length = 0,

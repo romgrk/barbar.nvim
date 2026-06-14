@@ -377,6 +377,9 @@ require'barbar'.setup {
   insert_at_end = false,
   insert_at_start = false,
 
+  -- Sets the minimum number of path components shown in buffer labels
+  filename_depth = 1,
+
   -- Sets the maximum padding width with which to surround each tab
   maximum_padding = 1,
 
