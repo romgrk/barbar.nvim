@@ -100,6 +100,7 @@ local GIT_STATUSES = {'added', 'changed', 'deleted'}
 --- @field preset barbar.config.options.icons.preset
 --- @field scroll barbar.config.options.icons.scroll the scroll arrows
 --- @field separator_at_end boolean if true, add an additional separator at the end of the buffer list
+--- @field separator_at_start boolean if false, remove the left separator of the first buffer in the list
 --- @field visible barbar.config.options.icons.state the icons for visible buffers
 
 --- @type {[barbar.config.options.icons.preset]: fun(default_icons: barbar.config.options.icons, user_icons?: table)}
@@ -108,6 +109,7 @@ local ICON_PRESETS = {
     default_icons.inactive = { separator = { left = '▎', right = '' } } --- @diagnostic disable-line: missing-fields
     default_icons.separator = { left = '▎', right = '' }
     default_icons.separator_at_end = true
+    default_icons.separator_at_start = true
 
     local pinned_icons = user_icons and user_icons.pinned
     if pinned_icons == nil or
