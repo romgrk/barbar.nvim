@@ -354,6 +354,15 @@ local function get_bufferline_containers(data, bufnrs, refocus)
   return pinned_containers, containers, current_buffer
 end
 
+local HL = {
+  FILL = wrap_hl('BufferTabpageFill'),
+  TABPAGES = wrap_hl('BufferTabpages'),
+  TABPAGES_SEP = wrap_hl('BufferTabpagesSep'),
+  SIGN_INACTIVE = wrap_hl('BufferInactiveSign'),
+  SCROLL_ARROW = wrap_hl('BufferScrollArrow'),
+  BUFFER_OFFSET_SEPARATOR = wrap_hl('BufferOffsetSeparator'),
+}
+
 --- Generate the syntax for the offset on `side`
 --- @param side side
 --- @return string
@@ -362,10 +371,18 @@ local function generate_side_offset(side)
 
   local align = offset.align
   local hl = wrap_hl(offset.hl)
-  local text = offset.text
+  local text = ' ' .. offset.text .. ' '
   local width = offset.width
+  local separator = offset.separator
 
-  local max_content_width = width - 2
+  -- add an extra space to be filed in by the separator
+  if (separator ~= '') then
+    text = side == 'left'
+      and text .. (' '):rep(strwidth(separator))
+      or (' '):rep(strwidth(separator)) .. text
+  end
+
+  local max_content_width = width
   local content = nodes.slice_right({ { hl = hl, text = text } }, max_content_width)
 
   if max_content_width > #text then
@@ -373,9 +390,9 @@ local function generate_side_offset(side)
 
     local insert_position
     if align == 'left' then
-      insert_position = 1
+      insert_position = 0
     else -- align to the right (NOTE: center alignment is a type of right alignment)
-      insert_position = width - #text - 1
+      insert_position = width - #text
       if align == 'center' then
         insert_position = ceil(insert_position / 2)
       end
@@ -384,16 +401,22 @@ local function generate_side_offset(side)
     content = nodes.insert_many(offset_nodes, insert_position, content)
   end
 
+  if (side =='left') then
+    content = nodes.insert_many(
+      content,
+      width - strwidth(separator),
+      {{text = separator, hl = HL.BUFFER_OFFSET_SEPARATOR}}
+    )
+  else
+    content = nodes.insert_many(
+      content,
+      0,
+      {{text = separator, hl = HL.BUFFER_OFFSET_SEPARATOR}}
+    )
+  end
+
   return nodes.to_string(content);
 end
-
-local HL = {
-  FILL = wrap_hl('BufferTabpageFill'),
-  TABPAGES = wrap_hl('BufferTabpages'),
-  TABPAGES_SEP = wrap_hl('BufferTabpagesSep'),
-  SIGN_INACTIVE = wrap_hl('BufferInactiveSign'),
-  SCROLL_ARROW = wrap_hl('BufferScrollArrow'),
-}
 
 --- Generate the `&tabline` representing the current state of Neovim.
 --- @param bufnrs integer[] the bufnrs to render

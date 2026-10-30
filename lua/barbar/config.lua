@@ -193,6 +193,7 @@ local DEPRECATED_OPTIONS = {
 --- @field align? align
 --- @field event? string
 --- @field text? string
+--- @field separator? string
 
 --- @class barbar.config.options.sort
 --- @field ignore_case boolean

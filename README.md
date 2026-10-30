@@ -397,7 +397,7 @@ require'barbar'.setup {
 
   -- Set the filetypes which barbar will offset itself for
   sidebar_filetypes = {
-    -- Use the default values: {event = 'BufWinLeave', text = '', align = 'left'}
+    -- Use the default values: {event = 'BufWinLeave', text = '', align = 'left', separator = ''}
     NvimTree = true,
     -- Or, specify the text used for the offset:
     undotree = {
@@ -406,8 +406,8 @@ require'barbar'.setup {
     },
     -- Or, specify the event which the sidebar executes when leaving:
     ['neo-tree'] = {event = 'BufWipeout'},
-    -- Or, specify all three
-    Outline = {event = 'BufWinLeave', text = 'symbols-outline', align = 'right'},
+    -- Or, specify all four
+    Outline = {event = 'BufWinLeave', text = 'symbols-outline', align = 'right', separator = '|'},
   },
 
   -- New buffer letters are assigned in this order. This order is

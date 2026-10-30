@@ -524,7 +524,13 @@ function api.set_offset(width, text, hl, side, opts)
     text = opts.text or ''
   end
 
-  state.offset[side] = { align = opts.align or 'left', hl = hl, text = text, width = width }
+  state.offset[side] = {
+    align = opts.align or 'left',
+    hl = hl,
+    text = text,
+    width = width,
+    separator = opts.separator or ''
+  }
   render.update()
 end
 

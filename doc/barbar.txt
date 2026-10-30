@@ -122,14 +122,15 @@ Highlight groups are created in this way: `Buffer<STATUS><PART>`.
 
 There are a few highlight groups which do not follow this rule. They are:
 
-Group              Meaning
------------------  ------------------------------------------------------
-`BufferOffset`       The background of the header for a `sidebar_filetype`
-`BufferScrollArrow`  The arrow which shows to indicate that there are more
-                   buffers to the left or right of the scroll position.
-`BufferTabpageFill`  The space between the open buffer list and the tabpage
-`BufferTabpages`     The color of the tabpages indicator.
-`BufferTabpagesSep`  The separator between the tabpages count.
+Group                   Meaning
+----------------------  ------------------------------------------------------
+`BufferOffset`          The background of the header for a `sidebar_filetype`
+`BufferOffsetSeparator` The offset separator for the `sidebar_filetype`
+`BufferScrollArrow`     The arrow which shows to indicate that there are more
+                          buffers to the left or right of the scroll position.
+`BufferTabpageFill`     The space between the open buffer list and the tabpage
+`BufferTabpages`        The color of the tabpages indicator.
+`BufferTabpagesSep`     The separator between the tabpages count.
 
 ==============================================================================
 4. Settings                                                       *barbar-setup*
@@ -526,6 +527,11 @@ sidebar_filetypes ~
   sidebar_filetypes.text ~
     `string`  (default: `nil`)
     The text which will fill the offset.
+
+                                      *barbar-setup.sidebar_filetypes.separator*
+  sidebar_filetypes.separator ~
+    `string`  (default: `nil`)
+    The char which will be used for the offset separator.
 
   Example: >lua
     require'bufferline'.setup {sidebar_filetypes = {

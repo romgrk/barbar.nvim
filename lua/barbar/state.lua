@@ -62,6 +62,7 @@ local WARN = severity.WARN
 --- @field hl string the highlight group to use
 --- @field text string the text to fill the offset with
 --- @field width integer the size of the offset
+--- @field separator string the separator character for the offset
 
 --- @class barbar.state.offset
 --- @field left barbar.state.offset.side
@@ -82,8 +83,8 @@ local state = {
   data_by_bufnr = {},
   is_picking_buffer = false,
   offset = {
-    left = { align = 'right', hl = 'BufferOffset', text = '', width = 0 },
-    right = { align = 'left', hl = 'BufferOffset', text = '', width = 0 },
+    left = { align = 'right', hl = 'BufferOffset', text = '', width = 0, separator = '' },
+    right = { align = 'left', hl = 'BufferOffset', text = '', width = 0, separator = '' },
   },
   recently_closed = {},
   update_callback = function() end,
